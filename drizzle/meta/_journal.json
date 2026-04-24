@@ -15,6 +15,13 @@
       "when": 1777066100341,
       "tag": "0001_lyrical_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1777069269242,
+      "tag": "0002_nosy_spyke",
+      "breakpoints": true
     }
   ]
 }

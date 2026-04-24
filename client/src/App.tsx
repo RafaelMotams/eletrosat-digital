@@ -11,6 +11,7 @@ import AdminAtribuicoes from "./pages/admin/Atribuicoes";
 import AdminOrdens from "./pages/admin/Ordens";
 import AdminRelatorios from "./pages/admin/Relatorios";
 import AdminMapa from "./pages/admin/Mapa";
+import AdminPlanilha from "./pages/admin/Planilha";
 import TecnicoLogin from "./pages/tecnico/Login";
 import TecnicoHome from "./pages/tecnico/Home";
 import TecnicoOS from "./pages/tecnico/OrdemServico";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/admin/ordens" component={AdminOrdens} />
       <Route path="/admin/relatorios" component={AdminRelatorios} />
       <Route path="/admin/mapa" component={AdminMapa} />
+      <Route path="/admin/planilha" component={AdminPlanilha} />
       {/* Técnico app routes */}
       <Route path="/tecnico/login" component={TecnicoLogin} />
       <Route path="/tecnico" component={TecnicoHome} />

@@ -346,6 +346,13 @@ const relatoriosRouter = router({
   }),
 });
 
+// ─── PLANILHA ROUTER ────────────────────────────────────────────────────────────
+const planilhaRouter = router({
+  listar: adminProcedure.query(async () => {
+    return listEscolas();
+  }),
+});
+
 // ─── AUTH DO TÉCNICO (login por email/senha) ──────────────────────────────────
 const tecnicoAuthRouter = router({
   login: publicProcedure
@@ -393,6 +400,7 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
+  planilha: planilhaRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -53,3 +53,17 @@
 
 ## Testes
 - [x] Testes vitest para routers principais (11 testes passando)
+
+## APK Android (Capacitor)
+- [ ] Criar projeto React standalone do app do técnico
+- [ ] Instalar Capacitor e configurar Android
+- [ ] Build do app e geração do APK
+- [ ] Entregar APK ao usuário
+
+## Planilha DOC-20260424-WA0261.xlsx
+- [x] Atualizar schema: adicionar campos apAdicional e kitWifi na tabela escolas
+- [x] Migrar banco de dados com novos campos
+- [x] Atualizar seed com dados completos da planilha (incluindo apAdicional e kitWifi)
+- [x] Criar página "Planilha" no painel admin com tabela completa e filtros
+- [x] Exibir todos os 13 campos da planilha: INEP, UF, Município, Nome, Endereço, Lat, Lng, AP Adicional, Telefone, Kit Wi-Fi, Vel. Mínima, Vel. Ofertada, Solução
+- [x] Botão de download da planilha em formato Excel/CSV

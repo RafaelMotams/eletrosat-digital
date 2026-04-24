@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  TableProperties,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
@@ -28,6 +29,7 @@ const navItems = [
   { path: "/admin/ordens", label: "Ordens de Serviço", icon: ClipboardList },
   { path: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/admin/mapa", label: "Mapa", icon: Map },
+  { path: "/admin/planilha", label: "Planilha", icon: TableProperties },
 ];
 
 interface AdminLayoutProps {

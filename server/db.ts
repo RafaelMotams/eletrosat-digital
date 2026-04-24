@@ -153,6 +153,8 @@ export async function createEscola(data: InsertEscola) {
       latitude: data.latitude,
       longitude: data.longitude,
       qtdAp: data.qtdAp,
+      kitWifi: data.kitWifi,
+      apAdicional: data.apAdicional,
       telefone: data.telefone,
       velocidadeMinima: data.velocidadeMinima,
       velocidadeOfertada: data.velocidadeOfertada,

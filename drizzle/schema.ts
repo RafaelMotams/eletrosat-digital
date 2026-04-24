@@ -51,6 +51,8 @@ export const escolas = mysqlTable("escolas", {
   latitude: decimal("latitude", { precision: 12, scale: 8 }),
   longitude: decimal("longitude", { precision: 12, scale: 8 }),
   qtdAp: int("qtdAp").default(1),
+  apAdicional: int("apAdicional"),
+  kitWifi: int("kitWifi"),
   telefone: varchar("telefone", { length: 20 }),
   velocidadeMinima: int("velocidadeMinima"),
   velocidadeOfertada: int("velocidadeOfertada"),
