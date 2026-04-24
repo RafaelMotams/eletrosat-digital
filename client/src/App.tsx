@@ -4,32 +4,44 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminTecnicos from "./pages/admin/Tecnicos";
+import AdminEscolas from "./pages/admin/Escolas";
+import AdminAtribuicoes from "./pages/admin/Atribuicoes";
+import AdminOrdens from "./pages/admin/Ordens";
+import AdminRelatorios from "./pages/admin/Relatorios";
+import AdminMapa from "./pages/admin/Mapa";
+import TecnicoLogin from "./pages/tecnico/Login";
+import TecnicoHome from "./pages/tecnico/Home";
+import TecnicoOS from "./pages/tecnico/OrdemServico";
 import Home from "./pages/Home";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Home} />
+      {/* Admin routes */}
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/tecnicos" component={AdminTecnicos} />
+      <Route path="/admin/escolas" component={AdminEscolas} />
+      <Route path="/admin/atribuicoes" component={AdminAtribuicoes} />
+      <Route path="/admin/ordens" component={AdminOrdens} />
+      <Route path="/admin/relatorios" component={AdminRelatorios} />
+      <Route path="/admin/mapa" component={AdminMapa} />
+      {/* Técnico app routes */}
+      <Route path="/tecnico/login" component={TecnicoLogin} />
+      <Route path="/tecnico" component={TecnicoHome} />
+      <Route path="/tecnico/os/:id" component={TecnicoOS} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
