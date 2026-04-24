@@ -55,10 +55,10 @@
 - [x] Testes vitest para routers principais (11 testes passando)
 
 ## APK Android (Capacitor)
-- [ ] Criar projeto React standalone do app do técnico
-- [ ] Instalar Capacitor e configurar Android
-- [ ] Build do app e geração do APK
-- [ ] Entregar APK ao usuário
+- [x] Criar projeto React standalone do app do técnico
+- [x] Instalar Capacitor e configurar Android
+- [x] Build do app e geração do APK
+- [x] Entregar APK ao usuário
 
 ## Planilha DOC-20260424-WA0261.xlsx
 - [x] Atualizar schema: adicionar campos apAdicional e kitWifi na tabela escolas
@@ -67,3 +67,11 @@
 - [x] Criar página "Planilha" no painel admin com tabela completa e filtros
 - [x] Exibir todos os 13 campos da planilha: INEP, UF, Município, Nome, Endereço, Lat, Lng, AP Adicional, Telefone, Kit Wi-Fi, Vel. Mínima, Vel. Ofertada, Solução
 - [x] Botão de download da planilha em formato Excel/CSV
+
+## Importação Universal de Planilhas
+- [x] Backend: endpoint multipart para upload de .xlsx, .xls e .csv
+- [x] Backend: parser automático que detecta colunas por nome (fuzzy match)
+- [x] Backend: retornar preview dos dados antes de confirmar importação
+- [x] Frontend: componente de upload com drag-and-drop
+- [x] Frontend: tela de pré-visualização com mapeamento de colunas
+- [x] Frontend: confirmação e importação definitiva com feedback de progresso
