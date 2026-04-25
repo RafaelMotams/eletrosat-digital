@@ -98,3 +98,6 @@
 
 ## Bugs - Atribuição
 - [x] Corrigir NotFoundError: removeChild na página de Atribuições ao atribuir técnico
+
+## Bug - App do Técnico
+- [x] Corrigir: escolas atribuídas no painel admin não aparecem no app do técnico

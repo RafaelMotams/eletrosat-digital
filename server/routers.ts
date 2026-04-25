@@ -384,6 +384,47 @@ const tecnicoAuthRouter = router({
     .query(async ({ input }) => {
       return getTecnicoById(input.tecnicoId);
     }),
+  // Busca escolas atribuídas ao técnico pelo ID (não depende de OAuth)
+  minhasEscolas: publicProcedure
+    .input(z.object({ tecnicoId: z.number() }))
+    .query(async ({ input }) => {
+      return listEscolas({ tecnicoId: input.tecnicoId });
+    }),
+  // Busca OS do técnico pelo ID
+  minhasOrdens: publicProcedure
+    .input(z.object({ tecnicoId: z.number() }))
+    .query(async ({ input }) => {
+      return listOrdensServico({ tecnicoId: input.tecnicoId });
+    }),
+  // Cria e conclui OS pelo técnico (sem OAuth)
+  concluirEscola: publicProcedure
+    .input(z.object({
+      escolaId: z.number(),
+      tecnicoId: z.number(),
+      qtdApInstalado: z.number(),
+      observacao: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const escola = await getEscolaById(input.escolaId);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      // Criar OS
+      const os = await createOrdemServico({
+        escolaId: input.escolaId,
+        tecnicoId: input.tecnicoId,
+        qtdApInstalado: input.qtdApInstalado,
+        observacao: input.observacao ?? "",
+        status: "concluida",
+      });
+      // Atualizar status da escola
+      await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
+      // Notificar admin
+      const tecnico = await getTecnicoById(input.tecnicoId);
+      await notifyOwner({
+        title: `✅ OS Concluída: ${escola.nome}`,
+        content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
+      });
+      return os;
+    }),
 });
 
 // ─── APP ROUTER ───────────────────────────────────────────────────────────────

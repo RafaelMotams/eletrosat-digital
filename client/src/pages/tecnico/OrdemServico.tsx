@@ -37,28 +37,11 @@ export default function TecnicoOS() {
     { enabled: !!escolaId }
   );
 
-  const { data: ordens } = trpc.ordens.list.useQuery(
-    { tecnicoId: tecnico?.id },
-    { enabled: !!tecnico }
-  );
-  const osAberta = ordens?.find(o => o.escolaId === escolaId && o.status !== "concluida");
-
-  const concluirMut = trpc.ordens.concluir.useMutation({
+  const concluirMut = trpc.tecnicoAuth.concluirEscola.useMutation({
     onSuccess: () => {
       toast.success("Instalação concluída com sucesso!");
-      utils.escolas.list.invalidate();
-      utils.ordens.list.invalidate();
-      setOpenConcluir(false);
-      navigate("/tecnico");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const criarEConcluirMut = trpc.ordens.criarEConcluir.useMutation({
-    onSuccess: () => {
-      toast.success("Instalação concluída com sucesso!");
-      utils.escolas.list.invalidate();
-      utils.ordens.list.invalidate();
+      utils.tecnicoAuth.minhasEscolas.invalidate();
+      utils.escolas.getById.invalidate({ id: escolaId });
       setOpenConcluir(false);
       navigate("/tecnico");
     },
@@ -68,11 +51,8 @@ export default function TecnicoOS() {
   function handleConcluir() {
     const ap = parseInt(qtdAp);
     if (isNaN(ap) || ap < 0) { toast.error("Informe a quantidade de APs instalados"); return; }
-    if (osAberta) {
-      concluirMut.mutate({ osId: osAberta.id, qtdApInstalado: ap, observacao });
-    } else if (tecnico) {
-      criarEConcluirMut.mutate({ escolaId, tecnicoId: tecnico.id, qtdApInstalado: ap, observacao });
-    }
+    if (!tecnico) { toast.error("Sessão expirada. Faça login novamente."); navigate("/tecnico/login"); return; }
+    concluirMut.mutate({ escolaId, tecnicoId: tecnico.id, qtdApInstalado: ap, observacao });
   }
 
   const lat = parseFloat(String(escola?.latitude ?? ""));
@@ -96,7 +76,7 @@ export default function TecnicoOS() {
 
   const status = escola?.status ?? "pendente";
   const sc = statusConfig[status] ?? statusConfig.pendente;
-  const isPending = concluirMut.isPending || criarEConcluirMut.isPending;
+  const isPending = concluirMut.isPending;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(180deg, oklch(0.10 0.04 240) 0%, oklch(0.13 0.06 240) 100%)" }}>

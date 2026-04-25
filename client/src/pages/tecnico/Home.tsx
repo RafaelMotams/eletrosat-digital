@@ -22,9 +22,9 @@ export default function TecnicoHome() {
     try { setTecnico(JSON.parse(stored)); } catch { navigate("/tecnico/login"); }
   }, [navigate]);
 
-  const { data: escolas, isLoading, refetch } = trpc.escolas.list.useQuery(
-    { tecnicoId: tecnico?.id },
-    { enabled: !!tecnico, refetchInterval: 30000 }
+  const { data: escolas, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+    { tecnicoId: tecnico?.id ?? 0 },
+    { enabled: !!tecnico?.id, refetchInterval: 30000 }
   );
 
   function handleLogout() {
