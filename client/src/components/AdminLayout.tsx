@@ -69,6 +69,30 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
   if (!isAuthenticated) return null;
 
+  if (user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4 text-center max-w-sm p-8">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+            <Wifi className="w-8 h-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Acesso Restrito</h2>
+          <p className="text-muted-foreground text-sm">Sua conta não tem permissão de administrador. Entre em contato com o administrador do sistema para solicitar acesso.</p>
+          <p className="text-xs text-muted-foreground bg-muted px-3 py-2 rounded-full font-mono">{user?.email}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => logout.mutate()}
+            className="mt-2"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair e entrar com outra conta
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar overlay mobile */}

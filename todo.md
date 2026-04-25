@@ -75,3 +75,6 @@
 - [x] Frontend: componente de upload com drag-and-drop
 - [x] Frontend: tela de pré-visualização com mapeamento de colunas
 - [x] Frontend: confirmação e importação definitiva com feedback de progresso
+
+## Bugs
+- [ ] Corrigir bug de criação de login de técnico no painel admin
