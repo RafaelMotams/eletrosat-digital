@@ -111,3 +111,11 @@
 - [x] Tela de perfil do técnico com estatísticas pessoais e badge de conquista
 - [x] Histórico de OS concluídas e pendentes no app
 - [x] Navegação bottom tab bar estilo app nativo (Início, Mapa, Histórico, Perfil)
+
+## Correções v3
+- [x] WhatsApp: sempre usar 5575 + 8/9 dígitos locais, remover prefixos duplicados (55, 75, 0 inicial)
+- [x] Importação de planilha: botão "Avançar" agora sempre visível com feedback claro sobre campos obrigatórios
+- [x] Importação: detecção automática melhorada com fallback manual para INEP e Nome
+- [x] Importação: indicador de status (verde/amarelo) mostrando se pode avançar
+- [x] Importação: dica textual explicando quais campos faltam para habilitar o botão
+- [x] Importação: preview agora mostra coluna Telefone

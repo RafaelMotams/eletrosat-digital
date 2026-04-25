@@ -78,11 +78,23 @@ export default function TecnicoOS() {
     ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
     : `https://www.google.com/maps/search/${encodeURIComponent((escola?.nome ?? "") + " " + (escola?.municipio ?? "Monte Santo BA"))}`;
 
-  const whatsappNumber = escola?.telefoneWhatsApp
-    ? escola.telefoneWhatsApp
-    : escola?.telefone
-      ? "55" + String(escola.telefone).replace(/\D/g, "")
-      : null;
+  // Monta número WhatsApp: sempre 5575 + apenas os 8 ou 9 dígitos locais do número
+  // Remove tudo que não é dígito, remove DDD (75) se já vier na frente, remove 0 inicial
+  const buildWhatsapp = (raw: string | null | undefined): string | null => {
+    if (!raw) return null;
+    const digits = String(raw).replace(/\D/g, ""); // só números
+    if (!digits) return null;
+    // Remove prefixos: 55 (país), 75 (DDD), 0 inicial
+    let local = digits;
+    if (local.startsWith("5575")) local = local.slice(4);
+    else if (local.startsWith("55")) local = local.slice(2);
+    if (local.startsWith("75")) local = local.slice(2);
+    if (local.startsWith("0")) local = local.slice(1);
+    // Aceita apenas 8 ou 9 dígitos locais
+    if (local.length < 8 || local.length > 9) return null;
+    return "5575" + local;
+  };
+  const whatsappNumber = buildWhatsapp(escola?.telefoneWhatsApp ?? escola?.telefone);
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Sou técnico da Eletrosat Digital e estou entrando em contato sobre a instalação de internet na ${escola?.nome}.`)}`
     : null;

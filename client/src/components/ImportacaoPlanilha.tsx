@@ -14,6 +14,7 @@ import {
   ArrowRight,
   RefreshCw,
   Table2,
+  ChevronRight,
 } from "lucide-react";
 import {
   detectarMapeamento,
@@ -41,6 +42,48 @@ const CAMPOS_OPCIONAIS: CampoEscola[] = [
   "qtdAp", "telefone", "velocidadeMinima", "velocidadeOfertada",
   "tipoConexao", "kitWifi", "apAdicional",
 ];
+
+/** Detecção manual de fallback para INEP e Nome quando o fuzzy falha */
+function detectarFallback(headers: string[]): Partial<Record<CampoEscola, string>> {
+  const map: Partial<Record<CampoEscola, string>> = {};
+  for (const h of headers) {
+    const hn = h.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!map.inep && (hn.includes("inep") || hn.includes("codinep") || hn.includes("codescola"))) {
+      map.inep = h;
+    }
+    if (!map.nome && (hn.includes("nome") || hn.includes("escola") || hn.includes("estabelecimento") || hn.includes("name"))) {
+      map.nome = h;
+    }
+    if (!map.municipio && (hn.includes("munic") || hn.includes("cidade") || hn.includes("city"))) {
+      map.municipio = h;
+    }
+    if (!map.uf && (hn === "uf" || hn === "estado" || hn === "state")) {
+      map.uf = h;
+    }
+    if (!map.telefone && (hn.includes("tel") || hn.includes("fone") || hn.includes("phone") || hn.includes("whats"))) {
+      map.telefone = h;
+    }
+    if (!map.latitude && (hn.includes("lat") || hn === "y")) {
+      map.latitude = h;
+    }
+    if (!map.longitude && (hn.includes("lon") || hn.includes("lng") || hn === "x")) {
+      map.longitude = h;
+    }
+    if (!map.endereco && (hn.includes("ender") || hn.includes("addr") || hn.includes("logr") || hn.includes("rua"))) {
+      map.endereco = h;
+    }
+    if (!map.kitWifi && (hn.includes("kit") || hn.includes("wifi") || hn.includes("wif"))) {
+      map.kitWifi = h;
+    }
+    if (!map.velocidadeOfertada && (hn.includes("ofert") || hn.includes("veloc"))) {
+      map.velocidadeOfertada = h;
+    }
+    if (!map.tipoConexao && (hn.includes("soluc") || hn.includes("solução") || hn.includes("conexao") || hn.includes("tipo"))) {
+      map.tipoConexao = h;
+    }
+  }
+  return map;
+}
 
 export default function ImportacaoPlanilha({ onConcluido }: Props) {
   const utils = trpc.useUtils();
@@ -73,7 +116,12 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
       }
 
       const headers = Object.keys(rows[0]);
-      const detectedMap = detectarMapeamento(headers);
+
+      // Tenta detecção automática (fuzzy) primeiro, depois fallback manual
+      const fuzzyMap = detectarMapeamento(headers);
+      const fallbackMap = detectarFallback(headers);
+      // Mescla: fuzzy tem prioridade, fallback preenche o que faltou
+      const detectedMap: Partial<Record<CampoEscola, string>> = { ...fallbackMap, ...fuzzyMap };
 
       setDados({
         headers,
@@ -114,7 +162,10 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
   const confirmarMapeamento = () => {
     const faltando = CAMPOS_OBRIGATORIOS.filter(c => !mapeamento[c]);
     if (faltando.length > 0) {
-      toast.error(`Campos obrigatórios não mapeados: ${faltando.map(c => CAMPOS_LABELS[c]).join(", ")}`);
+      toast.error(
+        `Mapeie os campos obrigatórios antes de avançar: ${faltando.map(c => CAMPOS_LABELS[c]).join(", ")}`,
+        { duration: 5000 }
+      );
       return;
     }
     setEtapa("preview");
@@ -127,7 +178,7 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
       .filter(e => e.inep && e.nome);
 
     if (escolasData.length === 0) {
-      toast.error("Nenhuma escola válida encontrada com o mapeamento atual.");
+      toast.error("Nenhuma escola válida encontrada. Verifique o mapeamento de INEP e Nome.");
       return;
     }
 
@@ -139,6 +190,10 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
     setDados(null);
     setMapeamento({});
   };
+
+  const inepMapeado = !!mapeamento.inep;
+  const nomeMapeado = !!mapeamento.nome;
+  const podeAvancar = inepMapeado && nomeMapeado;
 
   // ── ETAPA 1: Upload ──────────────────────────────────────────────────────────
   if (etapa === "upload") {
@@ -198,7 +253,7 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
     );
 
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -207,12 +262,32 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
             </div>
             <div>
               <p className="font-semibold text-sm">{dados.nomeArquivo}</p>
-              <p className="text-xs text-muted-foreground">{dados.totalLinhas} linhas detectadas · {dados.headers.length} colunas</p>
+              <p className="text-xs text-muted-foreground">{dados.totalLinhas} linhas · {dados.headers.length} colunas detectadas</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={reiniciar}>
             <X className="w-4 h-4 mr-1" /> Trocar arquivo
           </Button>
+        </div>
+
+        {/* Status dos campos obrigatórios */}
+        <div className={`rounded-lg border p-3 flex items-center gap-3 ${podeAvancar ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}`}>
+          {podeAvancar ? (
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-medium ${podeAvancar ? "text-green-800" : "text-amber-800"}`}>
+              {podeAvancar
+                ? "Campos obrigatórios mapeados — pronto para avançar!"
+                : `Mapeie os campos obrigatórios: ${[!inepMapeado && "Código INEP", !nomeMapeado && "Nome da Escola"].filter(Boolean).join(" e ")}`
+              }
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {camposMapeados.length} de {camposMapeados.length + camposNaoMapeados.length} campos mapeados
+            </p>
+          </div>
         </div>
 
         {/* Campos detectados automaticamente */}
@@ -227,7 +302,12 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {camposMapeados.map(campo => (
                 <div key={campo} className="flex items-center justify-between bg-white rounded-md px-3 py-2 border border-green-100">
-                  <span className="text-xs font-medium text-foreground">{CAMPOS_LABELS[campo]}</span>
+                  <span className="text-xs font-medium text-foreground flex items-center gap-1">
+                    {CAMPOS_LABELS[campo]}
+                    {CAMPOS_OBRIGATORIOS.includes(campo) && (
+                      <span className="text-green-600 font-bold">✓</span>
+                    )}
+                  </span>
                   <div className="flex items-center gap-1">
                     <ArrowRight className="w-3 h-3 text-muted-foreground" />
                     <Badge variant="secondary" className="text-xs font-mono max-w-[120px] truncate">
@@ -252,16 +332,19 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-medium">
-                Mapeie os campos restantes (opcional, exceto INEP e Nome)
+                Mapeie os campos restantes
+                {camposNaoMapeados.some(c => CAMPOS_OBRIGATORIOS.includes(c)) && (
+                  <span className="text-destructive ml-1">(obrigatórios marcados com *)</span>
+                )}
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {camposNaoMapeados.map(campo => (
-                <div key={campo} className="flex flex-col gap-1">
+                <div key={campo} className={`flex flex-col gap-1 ${CAMPOS_OBRIGATORIOS.includes(campo) ? "ring-1 ring-amber-300 rounded-lg p-2" : ""}`}>
                   <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                     {CAMPOS_LABELS[campo]}
                     {CAMPOS_OBRIGATORIOS.includes(campo) && (
-                      <span className="text-destructive">*</span>
+                      <span className="text-destructive font-bold">*</span>
                     )}
                   </label>
                   <Select
@@ -274,8 +357,8 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
                       }
                     }}
                   >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecionar coluna..." />
+                    <SelectTrigger className={`h-8 text-xs ${CAMPOS_OBRIGATORIOS.includes(campo) ? "border-amber-300" : ""}`}>
+                      <SelectValue placeholder="Selecionar coluna da planilha..." />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">— Não mapear —</SelectItem>
@@ -290,14 +373,31 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
           </div>
         )}
 
-        <div className="flex gap-2 justify-end">
+        {/* Botões de ação */}
+        <div className="flex gap-2 justify-between items-center pt-2 border-t">
           <Button variant="outline" onClick={reiniciar} size="sm">
             <RefreshCw className="w-4 h-4 mr-1" /> Recomeçar
           </Button>
-          <Button onClick={confirmarMapeamento} size="sm">
-            Pré-visualizar dados <ArrowRight className="w-4 h-4 ml-1" />
+          <Button
+            onClick={confirmarMapeamento}
+            size="sm"
+            disabled={!podeAvancar}
+            className={podeAvancar ? "bg-primary hover:bg-primary/90" : "opacity-60 cursor-not-allowed"}
+            title={!podeAvancar ? "Mapeie INEP e Nome da Escola antes de avançar" : ""}
+          >
+            Avançar para pré-visualização
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
+
+        {/* Dica quando não pode avançar */}
+        {!podeAvancar && (
+          <p className="text-xs text-center text-muted-foreground pb-1">
+            💡 Selecione a coluna correspondente a{" "}
+            {[!inepMapeado && <strong key="inep">Código INEP</strong>, !nomeMapeado && <strong key="nome">Nome da Escola</strong>].filter(Boolean).reduce((a: React.ReactNode[], b, i) => i === 0 ? [b] : [...a, " e ", b], [])}
+            {" "}para habilitar o botão de avançar.
+          </p>
+        )}
       </div>
     );
   }
@@ -327,55 +427,70 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
           </Button>
         </div>
 
-        <div className="rounded-lg border overflow-auto max-h-64">
-          <table className="w-full text-xs">
-            <thead className="bg-muted sticky top-0">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium">INEP</th>
-                <th className="px-3 py-2 text-left font-medium">Nome</th>
-                <th className="px-3 py-2 text-left font-medium">Município</th>
-                <th className="px-3 py-2 text-left font-medium">APs</th>
-                <th className="px-3 py-2 text-left font-medium">Velocidade</th>
-                <th className="px-3 py-2 text-left font-medium">Solução</th>
-              </tr>
-            </thead>
-            <tbody>
-              {escolasPreview.map((e, i) => (
-                <tr key={i} className="border-t hover:bg-muted/30">
-                  <td className="px-3 py-2 font-mono text-muted-foreground">{e.inep}</td>
-                  <td className="px-3 py-2 font-medium max-w-[180px] truncate">{e.nome}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{e.municipio ?? "—"}</td>
-                  <td className="px-3 py-2">{e.qtdAp ?? "—"}</td>
-                  <td className="px-3 py-2">{e.velocidadeOfertada ? `${e.velocidadeOfertada} Mbps` : "—"}</td>
-                  <td className="px-3 py-2">{e.tipoConexao ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {totalValidas > 5 && (
-            <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30 border-t">
-              + {totalValidas - 5} escola(s) adicionais serão importadas
+        {totalValidas === 0 ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
+            <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
+            <p className="font-semibold text-destructive">Nenhuma escola válida encontrada</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Verifique se as colunas INEP e Nome estão mapeadas corretamente.
+            </p>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => setEtapa("mapeamento")}>
+              ← Voltar ao mapeamento
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border overflow-auto max-h-64">
+              <table className="w-full text-xs">
+                <thead className="bg-muted sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">INEP</th>
+                    <th className="px-3 py-2 text-left font-medium">Nome</th>
+                    <th className="px-3 py-2 text-left font-medium">Município</th>
+                    <th className="px-3 py-2 text-left font-medium">Telefone</th>
+                    <th className="px-3 py-2 text-left font-medium">APs</th>
+                    <th className="px-3 py-2 text-left font-medium">Velocidade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {escolasPreview.map((e, i) => (
+                    <tr key={i} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2 font-mono text-muted-foreground">{e.inep}</td>
+                      <td className="px-3 py-2 font-medium max-w-[180px] truncate">{e.nome}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{e.municipio ?? "—"}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{e.telefone ?? "—"}</td>
+                      <td className="px-3 py-2">{e.qtdAp ?? "—"}</td>
+                      <td className="px-3 py-2">{e.velocidadeOfertada ? `${e.velocidadeOfertada} Mbps` : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {totalValidas > 5 && (
+                <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30 border-t">
+                  + {totalValidas - 5} escola(s) adicionais serão importadas
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={() => setEtapa("mapeamento")} size="sm">
-            ← Voltar
-          </Button>
-          <Button
-            onClick={confirmarImportacao}
-            disabled={importarMut.isPending}
-            size="sm"
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {importarMut.isPending ? (
-              <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Importando...</>
-            ) : (
-              <><Upload className="w-4 h-4 mr-2" /> Confirmar e importar {totalValidas} escola(s)</>
-            )}
-          </Button>
-        </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEtapa("mapeamento")} size="sm">
+                ← Voltar
+              </Button>
+              <Button
+                onClick={confirmarImportacao}
+                disabled={importarMut.isPending}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {importarMut.isPending ? (
+                  <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Importando...</>
+                ) : (
+                  <><Upload className="w-4 h-4 mr-2" /> Confirmar e importar {totalValidas} escola(s)</>
+                )}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     );
   }
