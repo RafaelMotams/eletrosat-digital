@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
-  MessageCircle, Navigation, Zap, Hash, Building2, Signal
+  MessageCircle, Navigation, Hash, Building2, Signal, Loader2, Search
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
@@ -94,10 +94,24 @@ export default function TecnicoOS() {
     if (local.length < 8 || local.length > 9) return null;
     return "5575" + local;
   };
-  const whatsappNumber = buildWhatsapp(escola?.telefoneWhatsApp ?? escola?.telefone);
+  const [telefoneLocal, setTelefoneLocal] = useState<string | null>(null);
+  const whatsappNumber = buildWhatsapp(telefoneLocal ?? escola?.telefoneWhatsApp ?? escola?.telefone);
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Sou técnico da Eletrosat Digital e estou entrando em contato sobre a instalação de internet na ${escola?.nome}.`)}`
     : null;
+
+  const buscarTelMut = trpc.tecnicoAuth.buscarTelefone.useMutation({
+    onSuccess: (data) => {
+      if (data.telefone) {
+        setTelefoneLocal(data.telefone);
+        toast.success(data.salvo ? `✅ Telefone encontrado e salvo: ${data.telefone}` : `✅ Telefone já cadastrado: ${data.telefone}`);
+        utils.tecnicoAuth.minhasEscolas.invalidate();
+      } else {
+        toast.error("Não foi possível encontrar o telefone desta escola. Verifique manualmente no site do INEP.");
+      }
+    },
+    onError: () => toast.error("Erro ao buscar telefone. Tente novamente."),
+  });
 
   const status = escola?.status ?? "pendente";
   const sc = statusConfig[status] ?? statusConfig.pendente;
@@ -295,15 +309,30 @@ export default function TecnicoOS() {
                 </button>
               </a>
             ) : (
-              <button disabled className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 opacity-30 cursor-not-allowed"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <button
+                onClick={() => escola && buscarTelMut.mutate({ escolaId: escola.id, inep: escola.inep, nome: escola.nome, municipio: escola.municipio ?? undefined })}
+                disabled={buscarTelMut.isPending}
+                className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-95"
+                style={{
+                  background: buscarTelMut.isPending
+                    ? "rgba(255,255,255,0.05)"
+                    : "linear-gradient(135deg, #1e3a5f, #7c3aed)",
+                  border: "1px solid rgba(124,58,237,0.30)",
+                }}
+              >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.08)" }}>
-                  <MessageCircle className="w-5 h-5 text-white" />
+                  style={{ background: "rgba(255,255,255,0.12)" }}>
+                  {buscarTelMut.isPending
+                    ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    : <Search className="w-5 h-5 text-white" />}
                 </div>
                 <div className="text-center">
-                  <p className="text-white font-bold text-sm">WhatsApp</p>
-                  <p className="text-xs text-white/50">Sem telefone</p>
+                  <p className="text-white font-bold text-sm">
+                    {buscarTelMut.isPending ? "Buscando..." : "Buscar Tel. (IA)"}
+                  </p>
+                  <p className="text-xs" style={{ color: "rgba(196,181,253,0.7)" }}>
+                    {buscarTelMut.isPending ? "Aguarde..." : "Busca automática"}
+                  </p>
                 </div>
               </button>
             )}

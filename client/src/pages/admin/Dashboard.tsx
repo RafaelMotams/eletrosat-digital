@@ -1,9 +1,9 @@
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap } from "lucide-react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, AreaChart, Area
+  ResponsiveContainer, Cell
 } from "recharts";
 
 const COLORS_BAR = [
@@ -62,20 +62,47 @@ export default function AdminDashboard() {
     ? Math.round((stats.concluidas / stats.totalEscolas) * 100)
     : 0;
 
-  const progressData = stats ? [
-    { name: "Concluídas", value: stats.concluidas, fill: "oklch(0.50 0.18 162)" },
-    { name: "Em Andamento", value: stats.emAndamento, fill: "oklch(0.30 0.10 240)" },
-    { name: "Pendentes", value: stats.pendentes, fill: "oklch(0.60 0.16 75)" },
-  ] : [];
+  // APs: usa totalApsPlanejados se disponível, senão totalApsInstalados
+  const totalApsExibir = (stats as any)?.totalApsPlanejados ?? stats?.totalApsInstalados ?? 0;
+  const totalApsConcluidos = (stats as any)?.totalApsConcluidos ?? 0;
+  const pctAps = totalApsExibir > 0 ? Math.round((totalApsConcluidos / totalApsExibir) * 100) : 0;
 
   return (
     <AdminLayout title="Dashboard">
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Total de Escolas" value={stats?.totalEscolas ?? 0} icon={School} variant="blue" loading={loadingStats} subtitle="Monte Santo, BA" />
-        <StatCard title="Concluídas" value={stats?.concluidas ?? 0} icon={CheckCircle} variant="green" loading={loadingStats} subtitle={`${pct}% do total`} />
-        <StatCard title="Pendentes" value={stats?.pendentes ?? 0} icon={Clock} variant="gold" loading={loadingStats} subtitle="Aguardando instalação" />
-        <StatCard title="APs Instalados" value={stats?.totalApsInstalados ?? 0} icon={Wifi} variant="purple" loading={loadingStats} subtitle="Access Points" />
+        <StatCard
+          title="Total de Escolas"
+          value={stats?.totalEscolas ?? 0}
+          icon={School}
+          variant="blue"
+          loading={loadingStats}
+          subtitle="Cadastradas no sistema"
+        />
+        <StatCard
+          title="Concluídas"
+          value={stats?.concluidas ?? 0}
+          icon={CheckCircle}
+          variant="green"
+          loading={loadingStats}
+          subtitle={`${pct}% do total`}
+        />
+        <StatCard
+          title="Pendentes"
+          value={(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)}
+          icon={Clock}
+          variant="gold"
+          loading={loadingStats}
+          subtitle={`${stats?.emAndamento ?? 0} em andamento`}
+        />
+        <StatCard
+          title="APs Planejados"
+          value={totalApsExibir}
+          icon={Wifi}
+          variant="purple"
+          loading={loadingStats}
+          subtitle={`${totalApsConcluidos} já instalados (${pctAps}%)`}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -101,10 +128,9 @@ export default function AdminDashboard() {
                   <span className="text-5xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>{pct}</span>
                   <span className="text-2xl font-bold text-muted-foreground">%</span>
                 </div>
-                <span className="text-sm text-muted-foreground pb-1">concluído</span>
+                <span className="text-sm text-muted-foreground pb-1">escolas concluídas</span>
               </div>
 
-              {/* Progress bar */}
               <div className="w-full rounded-full h-3 overflow-hidden mb-4" style={{ background: "oklch(0.92 0.015 240)" }}>
                 <div
                   className="h-3 rounded-full transition-all duration-700 ease-out"
@@ -115,8 +141,8 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              {/* Mini stats */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Mini stats escolas */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
                 {[
                   { label: "Concluídas", value: stats?.concluidas ?? 0, color: "oklch(0.40 0.18 162)", bg: "oklch(0.94 0.06 162)" },
                   { label: "Andamento", value: stats?.emAndamento ?? 0, color: "oklch(0.30 0.10 240)", bg: "oklch(0.94 0.04 240)" },
@@ -128,6 +154,33 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* Progresso APs */}
+              {totalApsExibir > 0 && (
+                <div className="rounded-xl p-3" style={{ background: "oklch(0.94 0.04 240)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Wifi className="w-3.5 h-3.5" style={{ color: "oklch(0.30 0.10 240)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "oklch(0.30 0.10 240)" }}>APs Instalados</span>
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: "oklch(0.30 0.10 240)" }}>
+                      {totalApsConcluidos} / {totalApsExibir}
+                    </span>
+                  </div>
+                  <div className="w-full rounded-full h-2 overflow-hidden" style={{ background: "oklch(0.88 0.04 240)" }}>
+                    <div
+                      className="h-2 rounded-full transition-all duration-700"
+                      style={{
+                        width: `${pctAps}%`,
+                        background: "linear-gradient(90deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))"
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs mt-1.5" style={{ color: "oklch(0.45 0.06 240)", opacity: 0.8 }}>
+                    {pctAps}% dos APs planejados instalados
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -209,7 +262,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between mb-1.5">
                       <p className="font-semibold text-sm text-foreground truncate">{t.tecnicoNome}</p>
                       <div className="flex gap-3 text-xs flex-shrink-0 ml-2">
-                        <span className="text-muted-foreground">{t.totalEscolas} escola{t.totalEscolas !== 1 ? 's' : ''}</span>
+                        <span className="text-muted-foreground">{t.totalEscolas} escola{t.totalEscolas !== 1 ? "s" : ""}</span>
                         <span className="font-bold" style={{ color: "oklch(0.40 0.18 162)" }}>{t.totalAps} APs</span>
                       </div>
                     </div>
@@ -230,8 +283,10 @@ export default function AdminDashboard() {
         style={{ background: "linear-gradient(135deg, oklch(0.97 0.008 240), oklch(0.98 0.004 162))" }}>
         <div className="w-2 h-2 rounded-full animate-pulse-dot flex-shrink-0" style={{ background: "oklch(0.50 0.18 162)" }} />
         <p className="text-sm text-muted-foreground">
-          Sistema sincronizado em tempo real · <span className="font-semibold text-foreground">{stats?.totalEscolas ?? 0} escolas</span> cadastradas ·
-          <span className="font-semibold" style={{ color: "oklch(0.40 0.18 162)" }}> {stats?.totalApsInstalados ?? 0} APs</span> instalados no total
+          Sistema sincronizado em tempo real ·{" "}
+          <span className="font-semibold text-foreground">{stats?.totalEscolas ?? 0} escolas</span> cadastradas ·{" "}
+          <span className="font-semibold" style={{ color: "oklch(0.40 0.18 162)" }}>{totalApsExibir} APs</span> planejados ·{" "}
+          <span className="font-semibold" style={{ color: "oklch(0.40 0.18 162)" }}>{totalApsConcluidos} APs</span> instalados
         </p>
         <Zap className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: "oklch(0.55 0.16 75)" }} />
       </div>

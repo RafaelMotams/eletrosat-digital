@@ -286,12 +286,25 @@ export async function getDashboardStats() {
     .from(ordensServico)
     .where(eq(ordensServico.status, "concluida"));
 
+  // Total de APs planejados (soma de qtd_ap de todas as escolas)
+  const [totalApsPlanejados] = await db
+    .select({ total: sql<number>`COALESCE(SUM(qtd_ap), 0)` })
+    .from(escolas);
+
+  // Total de APs de escolas já concluídas
+  const [totalApsConcluidos] = await db
+    .select({ total: sql<number>`COALESCE(SUM(qtd_ap), 0)` })
+    .from(escolas)
+    .where(eq(escolas.status, "concluido"));
+
   return {
     totalEscolas: Number(totalEscolas?.count ?? 0),
     concluidas: Number(concluidas?.count ?? 0),
     pendentes: Number(pendentes?.count ?? 0),
     emAndamento: Number(emAndamento?.count ?? 0),
     totalApsInstalados: Number(totalAps?.total ?? 0),
+    totalApsPlanejados: Number(totalApsPlanejados?.total ?? 0),
+    totalApsConcluidos: Number(totalApsConcluidos?.total ?? 0),
   };
 }
 

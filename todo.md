@@ -119,3 +119,11 @@
 - [x] Importação: indicador de status (verde/amarelo) mostrando se pode avançar
 - [x] Importação: dica textual explicando quais campos faltam para habilitar o botão
 - [x] Importação: preview agora mostra coluna Telefone
+
+## Correções v4
+- [ ] Mapa técnico: popup com endereço, cidade, INEP, nome completo + botão de rota funcional
+- [ ] Mapa técnico: botão Rota abre Google Maps com navegação GPS até a escola selecionada
+- [ ] Home técnico: lista de escolas com nome, INEP, endereço e cidade visíveis
+- [ ] WhatsApp: quando telefone ausente, mostrar link de busca Google pelo INEP da escola
+- [ ] Dashboard admin: contadores reais (total escolas, concluídas, APs instalados)
+- [x] Busca automática de telefone por INEP via IA (LLM + web search), salva no banco e exibe WhatsApp

@@ -396,6 +396,67 @@ const tecnicoAuthRouter = router({
     .query(async ({ input }) => {
       return listOrdensServico({ tecnicoId: input.tecnicoId });
     }),
+  // Busca telefone da escola pelo INEP usando IA e salva no banco
+  buscarTelefone: publicProcedure
+    .input(z.object({ escolaId: z.number(), inep: z.string(), nome: z.string(), municipio: z.string().optional() }))
+    .mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+
+      // Primeiro verifica se já tem telefone salvo
+      const escola = await getEscolaById(input.escolaId);
+      if (escola?.telefoneWhatsApp || escola?.telefone) {
+        return {
+          telefone: escola.telefoneWhatsApp || escola.telefone,
+          salvo: false,
+        };
+      }
+
+      // Usa LLM com busca web para encontrar o telefone
+      const prompt = `Você é um assistente especializado em encontrar informações de escolas públicas brasileiras.
+
+Preciso do número de telefone da seguinte escola:
+- INEP: ${input.inep}
+- Nome: ${input.nome}
+- Município: ${input.municipio || "Bahia"}
+
+Busque no site do INEP (https://inepdata.inep.gov.br), no Censo Escolar, ou em qualquer fonte confiável o telefone desta escola.
+
+Responda APENAS com o número de telefone no formato: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+Se não encontrar, responda: NAO_ENCONTRADO
+Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
+
+      try {
+        const result = await invokeLLM({
+          messages: [
+            { role: "system", content: "Você é um assistente que busca informações de escolas públicas brasileiras. Responda apenas com o número de telefone encontrado ou NAO_ENCONTRADO." },
+            { role: "user", content: prompt },
+          ],
+          max_tokens: 100,
+        });
+
+        const content = result.choices[0]?.message?.content;
+        const telefoneRaw = typeof content === "string" ? content.trim() : "";
+
+        if (!telefoneRaw || telefoneRaw === "NAO_ENCONTRADO" || telefoneRaw.includes("NAO_ENCONTRADO")) {
+          return { telefone: null, salvo: false };
+        }
+
+        // Extrai apenas dígitos e valida
+        const digits = telefoneRaw.replace(/\D/g, "");
+        if (digits.length < 10 || digits.length > 11) {
+          return { telefone: null, salvo: false };
+        }
+
+        // Salva no banco
+        await updateEscola(input.escolaId, { telefone: telefoneRaw, telefoneWhatsApp: telefoneRaw });
+
+        return { telefone: telefoneRaw, salvo: true };
+      } catch (e) {
+        console.error("[buscarTelefone] Erro ao buscar telefone:", e);
+        return { telefone: null, salvo: false };
+      }
+    }),
+
   // Cria e conclui OS pelo técnico (sem OAuth)
   concluirEscola: publicProcedure
     .input(z.object({

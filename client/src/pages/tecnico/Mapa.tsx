@@ -1,20 +1,25 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
-import { MapPin, Navigation, Route, CheckCircle, Clock, AlertCircle, ExternalLink, ArrowLeft } from "lucide-react";
+import {
+  MapPin, Navigation, Route, CheckCircle, Clock, AlertCircle,
+  ExternalLink, ArrowLeft, Phone, X, Building2
+} from "lucide-react";
 import { MapView } from "@/components/Map";
 
 type Escola = {
   id: number;
   nome: string;
   inep: string;
-  endereco: string | null;
-  latitude: string | null;
-  longitude: string | null;
+  municipio?: string | null;
+  endereco?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
   status: string;
-  qtdAp: number | null;
-  telefoneWhatsApp: string | null;
+  qtdAp?: number | null;
+  telefone?: string | null;
+  telefoneWhatsApp?: string | null;
   [key: string]: unknown;
 };
 
@@ -30,12 +35,27 @@ function getStatusLabel(status: string) {
   return "Pendente";
 }
 
+/** Formata número para WhatsApp: sempre 5575 + 8 ou 9 dígitos locais */
+function formatWhatsApp(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const digits = raw.replace(/\D/g, "");
+  // Remove prefixos: 55 (país), 75 (DDD), 0 inicial
+  let local = digits;
+  if (local.startsWith("55")) local = local.slice(2);
+  if (local.startsWith("75")) local = local.slice(2);
+  if (local.startsWith("0")) local = local.slice(1);
+  if (local.length < 8 || local.length > 9) return null;
+  return `5575${local}`;
+}
+
 export default function TecnicoMapa() {
   const [, navigate] = useLocation();
   const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
   const [selectedEscola, setSelectedEscola] = useState<Escola | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<Map<number, google.maps.Marker>>(new Map());
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const { data: escolas = [] } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
@@ -48,12 +68,13 @@ export default function TecnicoMapa() {
   );
 
   const handleMapReady = (map: google.maps.Map) => {
-    setMapInstance(map);
+    mapRef.current = map;
     setMapReady(true);
 
     if (escolasComCoordenadas.length === 0) return;
 
     const bounds = new google.maps.LatLngBounds();
+    infoWindowRef.current = new google.maps.InfoWindow();
 
     escolasComCoordenadas.forEach((escola: Escola) => {
       const lat = parseFloat(escola.latitude!);
@@ -67,44 +88,88 @@ export default function TecnicoMapa() {
         title: escola.nome,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
+          scale: 11,
           fillColor: getStatusColor(escola.status),
           fillOpacity: 1,
           strokeColor: "#fff",
-          strokeWeight: 2,
+          strokeWeight: 2.5,
         },
       });
 
-      const infoWindow = new google.maps.InfoWindow({
-        content: `
-          <div style="font-family: sans-serif; padding: 8px; min-width: 180px;">
-            <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">${escola.nome}</div>
-            <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">INEP: ${escola.inep}</div>
-            <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">${escola.qtdAp || 1} AP(s)</div>
-            <div style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; background: ${getStatusColor(escola.status)}22; color: ${getStatusColor(escola.status)};">
-              ${getStatusLabel(escola.status)}
-            </div>
-          </div>
-        `,
-      });
+      markersRef.current.set(escola.id, marker);
 
       marker.addListener("click", () => {
-        infoWindow.open(map, marker);
         setSelectedEscola(escola);
+        // Fecha info window anterior e abre nova com dados completos
+        if (infoWindowRef.current) {
+          const whatsNum = formatWhatsApp(escola.telefoneWhatsApp || escola.telefone);
+          const whatsBtn = whatsNum
+            ? `<a href="https://wa.me/${whatsNum}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;background:#25d366;color:#fff;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">📱 WhatsApp</a>`
+            : `<a href="https://www.google.com/search?q=${encodeURIComponent(escola.nome + ' ' + escola.inep + ' telefone')}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;background:#4285f4;color:#fff;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">🔍 Buscar telefone</a>`;
+
+          infoWindowRef.current.setContent(`
+            <div style="font-family: -apple-system, sans-serif; padding: 10px; min-width: 220px; max-width: 280px;">
+              <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 6px; line-height: 1.3;">${escola.nome}</div>
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div style="font-size: 11px; color: #475569;"><strong>INEP:</strong> ${escola.inep}</div>
+                ${escola.municipio ? `<div style="font-size: 11px; color: #475569;"><strong>Cidade:</strong> ${escola.municipio}</div>` : ""}
+                ${escola.endereco ? `<div style="font-size: 11px; color: #475569;"><strong>Endereço:</strong> ${escola.endereco}</div>` : ""}
+                <div style="font-size: 11px; color: #475569;"><strong>APs:</strong> ${escola.qtdAp || 1}</div>
+              </div>
+              <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;background:${getStatusColor(escola.status)}22;color:${getStatusColor(escola.status)};">
+                  ${getStatusLabel(escola.status)}
+                </span>
+                ${whatsBtn}
+              </div>
+              <div style="margin-top:8px;display:flex;gap:6px;">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving" target="_blank"
+                  style="flex:1;text-align:center;padding:6px;background:#1d4ed8;color:#fff;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">
+                  🧭 Navegar
+                </a>
+              </div>
+            </div>
+          `);
+          infoWindowRef.current.open(map, marker);
+        }
       });
     });
 
     map.fitBounds(bounds);
   };
 
+  // Quando escola é selecionada na lista, centraliza o mapa nela
+  const focusEscola = (escola: Escola) => {
+    setSelectedEscola(escola);
+    if (mapRef.current && escola.latitude && escola.longitude) {
+      mapRef.current.panTo({ lat: parseFloat(escola.latitude), lng: parseFloat(escola.longitude) });
+      mapRef.current.setZoom(15);
+      const marker = markersRef.current.get(escola.id);
+      if (marker) google.maps.event.trigger(marker, "click");
+    }
+  };
+
+  /** Abre rota no Google Maps com todas as escolas pendentes como waypoints */
   const openRoute = () => {
     const pendentes = escolasComCoordenadas.filter((e: Escola) => e.status !== "concluido");
-    if (pendentes.length === 0) return;
-    const waypoints = pendentes.slice(1, -1).map((e: Escola) =>
-      `${e.latitude},${e.longitude}`
-    ).join("|");
+    if (pendentes.length === 0) {
+      alert("Nenhuma escola pendente com coordenadas para roteirizar.");
+      return;
+    }
+    if (pendentes.length === 1) {
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&destination=${pendentes[0].latitude},${pendentes[0].longitude}&travelmode=driving`,
+        "_blank"
+      );
+      return;
+    }
+    // Monta URL com origem, waypoints e destino
     const origin = `${pendentes[0].latitude},${pendentes[0].longitude}`;
     const dest = `${pendentes[pendentes.length - 1].latitude},${pendentes[pendentes.length - 1].longitude}`;
+    const waypoints = pendentes
+      .slice(1, -1)
+      .map((e: Escola) => `${e.latitude},${e.longitude}`)
+      .join("|");
     const url = waypoints
       ? `https://www.google.com/maps/dir/${origin}/${waypoints}/${dest}`
       : `https://www.google.com/maps/dir/${origin}/${dest}`;
@@ -114,15 +179,14 @@ export default function TecnicoMapa() {
   const stats = {
     total: escolas.length,
     concluidas: escolas.filter((e: Escola) => e.status === "concluido").length,
-    pendentes: escolas.filter((e: Escola) => e.status === "pendente").length,
-    emAndamento: escolas.filter((e: Escola) => e.status === "em_andamento").length,
+    pendentes: escolas.filter((e: Escola) => e.status !== "concluido").length,
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0a0f1e" }}>
+    <div className="min-h-screen flex flex-col pb-20" style={{ background: "#0a0f1e" }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-3"
-        style={{ background: "rgba(10,15,30,0.95)", backdropFilter: "blur(20px)" }}>
+      <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-3 sticky top-0 z-10"
+        style={{ background: "rgba(10,15,30,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <button onClick={() => navigate("/tecnico")} className="p-2 rounded-xl"
           style={{ background: "rgba(255,255,255,0.06)" }}>
           <ArrowLeft className="w-5 h-5 text-white" />
@@ -162,7 +226,7 @@ export default function TecnicoMapa() {
       </div>
 
       {/* Legenda */}
-      <div className="flex gap-3 px-4 pb-2">
+      <div className="flex gap-4 px-4 pb-2">
         {[
           { color: "#3b82f6", label: "Pendente" },
           { color: "#f59e0b", label: "Em andamento" },
@@ -176,12 +240,12 @@ export default function TecnicoMapa() {
       </div>
 
       {/* Mapa */}
-      <div className="flex-1 relative mx-4 mb-2 rounded-2xl overflow-hidden"
-        style={{ minHeight: "340px", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="relative mx-4 mb-2 rounded-2xl overflow-hidden"
+        style={{ height: "340px", border: "1px solid rgba(255,255,255,0.08)" }}>
         <MapView onMapReady={handleMapReady} />
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center"
-            style={{ background: "rgba(10,15,30,0.8)" }}>
+            style={{ background: "rgba(10,15,30,0.85)" }}>
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               <p className="text-sm text-white">Carregando mapa...</p>
@@ -190,68 +254,132 @@ export default function TecnicoMapa() {
         )}
       </div>
 
-      {/* Escola selecionada */}
+      {/* Painel da escola selecionada */}
       {selectedEscola && (
-        <div className="mx-4 mb-2 rounded-2xl p-4"
+        <div className="mx-4 mb-3 rounded-2xl p-4"
           style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-sm truncate">{selectedEscola.nome}</h3>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.7)" }}>INEP: {selectedEscola.inep}</p>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0 pr-2">
+              <h3 className="text-white font-bold text-sm leading-tight">{selectedEscola.nome}</h3>
+              <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.6)" }}>
+                INEP: <span className="font-mono">{selectedEscola.inep}</span>
+              </p>
+              {selectedEscola.municipio && (
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: "rgba(148,163,184,0.6)" }}>
+                  <Building2 className="w-3 h-3" /> {selectedEscola.municipio}
+                </p>
+              )}
+              {selectedEscola.endereco && (
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: "rgba(148,163,184,0.6)" }}>
+                  <MapPin className="w-3 h-3" /> {selectedEscola.endereco}
+                </p>
+              )}
             </div>
-            <span className="text-xs px-2 py-1 rounded-full font-semibold ml-2 flex-shrink-0"
-              style={{
-                background: `${getStatusColor(selectedEscola.status)}20`,
-                color: getStatusColor(selectedEscola.status)
-              }}>
-              {getStatusLabel(selectedEscola.status)}
-            </span>
+            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+              <span className="text-xs px-2 py-1 rounded-full font-semibold"
+                style={{
+                  background: `${getStatusColor(selectedEscola.status)}20`,
+                  color: getStatusColor(selectedEscola.status)
+                }}>
+                {getStatusLabel(selectedEscola.status)}
+              </span>
+              <button onClick={() => setSelectedEscola(null)}
+                className="p-1 rounded-lg" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <X className="w-3.5 h-3.5 text-white opacity-60" />
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2 mt-3">
+
+          <div className="flex gap-2">
+            {/* Navegar */}
             {selectedEscola.latitude && selectedEscola.longitude && (
               <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedEscola.latitude},${selectedEscola.longitude}`}
+                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedEscola.latitude},${selectedEscola.longitude}&travelmode=driving`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs text-white"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs text-white"
                 style={{ background: "linear-gradient(135deg, #1d4ed8, #3b82f6)" }}
               >
-                <Navigation className="w-4 h-4" />
+                <Navigation className="w-3.5 h-3.5" />
                 Navegar
               </a>
             )}
+
+            {/* WhatsApp ou busca */}
+            {(() => {
+              const num = formatWhatsApp(selectedEscola.telefoneWhatsApp as string || selectedEscola.telefone as string);
+              if (num) {
+                return (
+                  <a
+                    href={`https://wa.me/${num}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs text-white"
+                    style={{ background: "linear-gradient(135deg, #128c7e, #25d366)" }}
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    WhatsApp
+                  </a>
+                );
+              }
+              return (
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(selectedEscola.nome + " " + selectedEscola.inep + " telefone")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs text-white"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  Buscar tel.
+                </a>
+              );
+            })()}
+
+            {/* Ver OS */}
             <button
               onClick={() => navigate(`/tecnico/os/${selectedEscola.id}`)}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs text-white"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs text-white"
               style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-3.5 h-3.5" />
               Ver OS
             </button>
           </div>
         </div>
       )}
 
-      {/* Lista rápida */}
-      <div className="px-4 mb-20">
-        <h3 className="text-xs font-semibold mb-2" style={{ color: "rgba(148,163,184,0.6)" }}>
-          ESCOLAS SEM COORDENADAS ({escolas.length - escolasComCoordenadas.length})
+      {/* Lista de escolas */}
+      <div className="px-4 mb-2">
+        <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider"
+          style={{ color: "rgba(148,163,184,0.5)" }}>
+          Todas as escolas ({escolas.length})
         </h3>
-        {escolas.filter((e: Escola) => !e.latitude || !e.longitude).map((escola: Escola) => (
-          <div key={escola.id} className="flex items-center gap-3 py-2.5 border-b"
-            style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-            <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: "#f59e0b" }} />
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-medium truncate">{escola.nome}</p>
-              <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Sem GPS</p>
-            </div>
-            <button onClick={() => navigate(`/tecnico/os/${escola.id}`)}
-              className="text-xs px-2 py-1 rounded-lg"
-              style={{ background: "rgba(255,255,255,0.06)", color: "rgba(148,163,184,0.8)" }}>
-              Ver
+        <div className="space-y-1.5">
+          {escolas.map((escola: Escola) => (
+            <button
+              key={escola.id}
+              onClick={() => focusEscola(escola)}
+              className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-left transition-all"
+              style={{
+                background: selectedEscola?.id === escola.id ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.03)",
+                border: `1px solid ${selectedEscola?.id === escola.id ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.05)"}`,
+              }}
+            >
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: getStatusColor(escola.status) }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-xs font-semibold truncate">{escola.nome}</p>
+                <p className="text-xs truncate" style={{ color: "rgba(148,163,184,0.5)" }}>
+                  {escola.inep}{escola.municipio ? ` · ${escola.municipio}` : ""}
+                  {!escola.latitude && " · Sem GPS"}
+                </p>
+              </div>
+              <span className="text-xs flex-shrink-0 font-medium" style={{ color: getStatusColor(escola.status) }}>
+                {escola.qtdAp || 1} AP
+              </span>
             </button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <TecnicoBottomNav />
