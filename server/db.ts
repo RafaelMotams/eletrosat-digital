@@ -422,3 +422,64 @@ export async function deleteEscolasPorCidade(municipio: string): Promise<number>
 
   return ids.length;
 }
+
+/** Retorna lista detalhada de OS concluídas com dados da escola, para relatório */
+export async function getOsDetalhadas(filters: {
+  tecnicoId?: number;
+  dataInicio?: Date | null;
+  dataFim?: Date | null;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions: any[] = [eq(ordensServico.status, "concluida")];
+
+  if (filters.tecnicoId) {
+    conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
+  }
+  if (filters.dataInicio && filters.dataFim) {
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) >= ${filters.dataInicio}` as any
+    );
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) <= ${filters.dataFim}` as any
+    );
+  }
+
+  const rows = await db
+    .select({
+      osId: ordensServico.id,
+      escolaId: ordensServico.escolaId,
+      escolaNome: escolas.nome,
+      inep: escolas.inep,
+      municipio: escolas.municipio,
+      uf: escolas.uf,
+      qtdApInstalado: ordensServico.qtdApInstalado,
+      qtdApPlanejado: escolas.qtdAp,
+      tecnicoId: ordensServico.tecnicoId,
+      tecnicoNome: tecnicos.nome,
+      dataConclusao: ordensServico.dataConclusao,
+      createdAt: ordensServico.createdAt,
+      observacao: ordensServico.observacao,
+    })
+    .from(ordensServico)
+    .leftJoin(escolas, eq(ordensServico.escolaId, escolas.id))
+    .leftJoin(tecnicos, eq(ordensServico.tecnicoId, tecnicos.id))
+    .where(and(...conditions))
+    .orderBy(desc(sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt})`));
+
+  return rows.map((r) => ({
+    osId: r.osId,
+    escolaId: r.escolaId,
+    escolaNome: r.escolaNome ?? "—",
+    inep: r.inep ?? "—",
+    municipio: r.municipio ?? "—",
+    uf: r.uf ?? "—",
+    qtdApInstalado: r.qtdApInstalado ?? 0,
+    qtdApPlanejado: r.qtdApPlanejado ?? 0,
+    tecnicoId: r.tecnicoId,
+    tecnicoNome: r.tecnicoNome ?? "Desconhecido",
+    dataConclusao: r.dataConclusao ?? r.createdAt ?? null,
+    observacao: r.observacao ?? "",
+  }));
+}

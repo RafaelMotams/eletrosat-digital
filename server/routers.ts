@@ -19,6 +19,7 @@ import {
   getEscolaByInep,
   getOrdemById,
   getProdutividadePorTecnico,
+  getOsDetalhadas,
   getRelatorioTecnico,
   getTecnicoByEmail,
   getTecnicoById,
@@ -364,6 +365,21 @@ const relatoriosRouter = router({
   ranking: publicProcedure.query(async () => {
     return getProdutividadePorTecnico();
   }),
+
+  osDetalhadas: publicProcedure
+    .input(
+      z.object({
+        tecnicoId: z.number().optional(), // 0 = todos os técnicos
+        dataInicio: z.string().nullable().optional(),
+        dataFim: z.string().nullable().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
+      const fim = input.dataFim ? new Date(input.dataFim) : null;
+      const tecnicoId = input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
+      return getOsDetalhadas({ tecnicoId, dataInicio: inicio, dataFim: fim });
+    }),
 });
 
 // === PLANILHA ROUTER ===

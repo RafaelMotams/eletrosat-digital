@@ -166,3 +166,9 @@
 - [x] Relatórios admin: bug do filtro por técnico corrigido (strings ISO em vez de Date objects)
 - [x] Service Worker atualizado para não cachear arquivos JS/TS do Vite (evitar servir versões antigas)
 - [x] Relatórios admin: Rodrigo aparece com 4 escolas concluídas e 11 APs instalados
+
+## Relatório Detalhado de OS
+- [x] Backend: endpoint relatorios.osDetalhadas — lista OS concluídas com nome escola, INEP, qtd AP, técnico, data, observação
+- [x] Frontend: tabela de OS concluídas na página Relatórios com colunas: escola, INEP, APs instalados, técnico, data
+- [x] Frontend: filtros por técnico e por período (igual ao relatório de resumo)
+- [x] Frontend: totalizador no rodapé da tabela (total de escolas e APs)
