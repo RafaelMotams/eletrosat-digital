@@ -129,6 +129,10 @@ export default function AdminAtribuicoes() {
   const [cidadeOpen, setCidadeOpen] = useState(false);
   const [tecnicoCidadeOpen, setTecnicoCidadeOpen] = useState(false);
 
+  // Filtro por cidade na lista manual
+  const [filtroCidade, setFiltroCidade] = useState("");
+  const [filtroCidadeOpen, setFiltroCidadeOpen] = useState(false);
+
   // Cidades únicas
   const cidades = Array.from(
     new Set((escolas ?? []).map(e => e.municipio).filter(Boolean) as string[])
@@ -154,6 +158,9 @@ export default function AdminAtribuicoes() {
   }
 
   const escolasPendentes = (escolas ?? []).filter(e => e.status !== "concluido");
+  const escolasFiltradas = filtroCidade
+    ? escolasPendentes.filter(e => e.municipio === filtroCidade)
+    : escolasPendentes;
 
   return (
     <AdminLayout title="Atribuições">
@@ -303,22 +310,81 @@ export default function AdminAtribuicoes() {
       {/* Atribuição manual por escola */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <GitBranch className="w-4 h-4 text-primary" />
-            Atribuição Manual por Escola
-            <span className="text-xs font-normal text-muted-foreground ml-1">
-              (sobrescreve regra de cidade)
-            </span>
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Atribuição Manual por Escola
+              <span className="text-xs font-normal text-muted-foreground ml-1">
+                (sobrescreve regra de cidade)
+              </span>
+            </CardTitle>
+            {/* Filtro por cidade */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setFiltroCidadeOpen(o => !o)}
+                className="flex items-center gap-2 h-8 px-3 rounded-md border text-xs bg-background hover:bg-muted transition-colors min-w-[160px] justify-between"
+              >
+                <span className={filtroCidade ? "font-medium" : "text-muted-foreground"}>
+                  <MapPin className="w-3 h-3 inline mr-1" />
+                  {filtroCidade || "Filtrar por cidade"}
+                </span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </button>
+              {filtroCidadeOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setFiltroCidadeOpen(false)} />
+                  <div className="absolute right-0 top-9 z-50 bg-popover border rounded-md shadow-lg min-w-[180px] py-1 max-h-56 overflow-y-auto">
+                    <button
+                      type="button"
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors ${
+                        filtroCidade === "" ? "font-semibold text-primary" : "text-muted-foreground"
+                      }`}
+                      onClick={() => { setFiltroCidade(""); setFiltroCidadeOpen(false); }}
+                    >
+                      Todas as cidades
+                    </button>
+                    {cidades.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors ${
+                          c === filtroCidade ? "font-semibold text-primary" : ""
+                        }`}
+                        onClick={() => { setFiltroCidade(c); setFiltroCidadeOpen(false); }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
+          {filtroCidade && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="text-sm text-primary font-medium">{filtroCidade}</span>
+              <span className="text-xs text-muted-foreground">— {escolasFiltradas.length} escola(s)</span>
+              <button
+                onClick={() => setFiltroCidade("")}
+                className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+              >
+                Limpar filtro
+              </button>
+            </div>
+          )}
           {escolasPendentes.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               {escolas?.length === 0 ? "Nenhuma escola cadastrada." : "Todas as escolas já foram concluídas."}
             </p>
+          ) : escolasFiltradas.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Nenhuma escola pendente em {filtroCidade}.</p>
           ) : (
             <div className="space-y-2">
-              {escolasPendentes.map((escola) => (
+              {escolasFiltradas.map((escola) => (
                 <EscolaRow
                   key={escola.id}
                   escola={escola}

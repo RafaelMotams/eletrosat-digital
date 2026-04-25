@@ -9,6 +9,8 @@ import {
   atribuirPorCidade,
   atribuirTecnicoEscola,
   concluirOrdemServico,
+  iniciarOrdemServico,
+  registrarNaoInstalada,
   createEscola,
   createOrdemServico,
   createTecnico,
@@ -489,34 +491,111 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       }
     }),
 
-  // Cria e conclui OS pelo técnico (sem OAuth)
+  // Inicia a OS (muda status de aberta para em_andamento)
+  iniciarOS: publicProcedure
+    .input(z.object({
+      escolaId: z.number(),
+      tecnicoId: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const escola = await getEscolaById(input.escolaId);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      const ordens = await listOrdensServico({ tecnicoId: input.tecnicoId });
+      const osExistente = ordens.find(o => o.escolaId === input.escolaId && (o.status === "aberta" || o.status === "em_andamento"));
+      if (osExistente) {
+        await iniciarOrdemServico(osExistente.id);
+        return { osId: osExistente.id };
+      }
+      const result = await createOrdemServico({
+        escolaId: input.escolaId,
+        tecnicoId: input.tecnicoId,
+        status: "em_andamento",
+      });
+      await updateEscola(input.escolaId, { status: "em_andamento" });
+      return { osId: (result as any).insertId };
+    }),
+
+  // Registra escola como não instalada com motivo
+  naoInstalada: publicProcedure
+    .input(z.object({
+      escolaId: z.number(),
+      tecnicoId: z.number(),
+      motivo: z.enum(["escola_desativada", "em_reforma", "mudanca_endereco"]),
+      observacao: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const escola = await getEscolaById(input.escolaId);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      const result = await registrarNaoInstalada(input.escolaId, input.tecnicoId, input.motivo, input.observacao);
+      const tecnico = await getTecnicoById(input.tecnicoId);
+      const motivoLabel: Record<string, string> = {
+        escola_desativada: "Escola desativada",
+        em_reforma: "Em reforma",
+        mudanca_endereco: "Mudança de endereço",
+      };
+      await notifyOwner({
+        title: `⚠️ Não Instalada: ${escola.nome}`,
+        content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome}\nMotivo: ${motivoLabel[input.motivo]}\nObservação: ${input.observacao ?? "-"}`,
+      });
+      return result;
+    }),
+
+  // Cria e conclui OS pelo técnico com foto do mapa de calor (sem OAuth)
   concluirEscola: publicProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
       qtdApInstalado: z.number(),
       observacao: z.string().optional(),
+      fotoMapaCalorUrl: z.string().optional(),
+      fotoMapaCalorKey: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
-      // Criar OS
       const os = await createOrdemServico({
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId,
         qtdApInstalado: input.qtdApInstalado,
         observacao: input.observacao ?? "",
         status: "concluida",
+        fotoMapaCalorUrl: input.fotoMapaCalorUrl,
+        fotoMapaCalorKey: input.fotoMapaCalorKey,
       });
-      // Atualizar status da escola
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
-      // Notificar admin
       const tecnico = await getTecnicoById(input.tecnicoId);
       await notifyOwner({
         title: `✅ OS Concluída: ${escola.nome}`,
         content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
       });
       return os;
+    }),
+
+  // Upload de foto do mapa de calor para uma OS
+  uploadFotoMapaCalor: publicProcedure
+    .input(z.object({
+      osId: z.number().optional(),
+      escolaId: z.number(),
+      tecnicoId: z.number(),
+      // base64 da imagem
+      imageBase64: z.string(),
+      mimeType: z.string().default("image/jpeg"),
+    }))
+    .mutation(async ({ input }) => {
+      const { storagePut } = await import("./storage");
+      const buffer = Buffer.from(input.imageBase64, "base64");
+      const key = `mapa-calor/escola-${input.escolaId}-tecnico-${input.tecnicoId}-${Date.now()}.jpg`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+      // Se tiver osId, atualiza a OS existente
+      if (input.osId) {
+        const db = await (await import("./db")).getDb();
+        if (db) {
+          const { ordensServico } = await import("../drizzle/schema");
+          const { eq } = await import("drizzle-orm");
+          await db.update(ordensServico).set({ fotoMapaCalorUrl: url, fotoMapaCalorKey: key }).where(eq(ordensServico.id, input.osId));
+        }
+      }
+      return { url, key };
     }),
 });
 

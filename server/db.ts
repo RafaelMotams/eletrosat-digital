@@ -243,6 +243,48 @@ export async function createOrdemServico(data: InsertOrdemServico) {
   return result;
 }
 
+export async function iniciarOrdemServico(osId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db
+    .update(ordensServico)
+    .set({ status: "em_andamento" })
+    .where(eq(ordensServico.id, osId));
+  // Atualizar escola vinculada
+  const os = await getOrdemById(osId);
+  if (os) {
+    await db
+      .update(escolas)
+      .set({ status: "em_andamento" })
+      .where(eq(escolas.id, os.escolaId));
+  }
+}
+
+export async function registrarNaoInstalada(
+  escolaId: number,
+  tecnicoId: number,
+  motivo: "escola_desativada" | "em_reforma" | "mudanca_endereco",
+  observacao?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  // Criar OS com status nao_instalada
+  const result = await db.insert(ordensServico).values({
+    escolaId,
+    tecnicoId,
+    status: "nao_instalada",
+    motivoNaoInstalacao: motivo,
+    observacao: observacao ?? "",
+    dataConclusao: new Date(),
+  });
+  // Atualizar escola para nao_instalada
+  await db
+    .update(escolas)
+    .set({ status: "nao_instalada", dataConclusao: new Date() })
+    .where(eq(escolas.id, escolaId));
+  return result;
+}
+
 export async function concluirOrdemServico(id: number, qtdApInstalado: number, observacao: string) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");

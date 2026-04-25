@@ -172,3 +172,15 @@
 - [x] Frontend: tabela de OS concluídas na página Relatórios com colunas: escola, INEP, APs instalados, técnico, data
 - [x] Frontend: filtros por técnico e por período (igual ao relatório de resumo)
 - [x] Frontend: totalizador no rodapé da tabela (total de escolas e APs)
+
+## Melhorias v9
+- [x] Corrigir erro "Invalid time value" na página Relatórios (formatDate com valor inválido)
+- [x] Schema: adicionar campo statusMotivo (escola_desativada, em_reforma, mudanca_endereco) e fotoMapaCalor na tabela ordensServico
+- [x] Schema: adicionar status "nao_instalada" na tabela escolas
+- [x] App técnico: botão "Iniciar OS" para mudar status de aberta para em_andamento
+- [x] App técnico: opção "Não Instalada" com seleção de motivo (escola desativada, em reforma, mudança de endereço)
+- [x] App técnico: upload de foto do mapa de calor ao concluir OS
+- [x] Painel admin: exibir foto do mapa de calor na OS (página Ordens de Serviço)
+- [x] Painel admin: escolas não instaladas aparecem em vermelho na lista de escolas
+- [x] Atribuição Manual: filtro por cidade
+- [x] CSV OS concluídas: colunas na ordem correta (Escola, INEP, APs instalados, Município, Técnico, Data, Observação)

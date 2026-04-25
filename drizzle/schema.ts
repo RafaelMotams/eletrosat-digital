@@ -58,7 +58,8 @@ export const escolas = mysqlTable("escolas", {
   velocidadeMinima: varchar("velocidadeMinima", { length: 20 }),
   velocidadeOfertada: varchar("velocidadeOfertada", { length: 20 }),
   tipoConexao: varchar("tipoConexao", { length: 50 }).default("Fibra"),
-  status: mysqlEnum("status", ["pendente", "em_andamento", "concluido"]).default("pendente").notNull(),
+  // status agora inclui "nao_instalada" para escolas que não puderam ser instaladas
+  status: mysqlEnum("status", ["pendente", "em_andamento", "concluido", "nao_instalada"]).default("pendente").notNull(),
   tecnicoId: int("tecnicoId"),
   dataAtribuicao: timestamp("dataAtribuicao"),
   dataConclusao: timestamp("dataConclusao"),
@@ -85,9 +86,15 @@ export const ordensServico = mysqlTable("ordens_servico", {
   id: int("id").autoincrement().primaryKey(),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
-  status: mysqlEnum("status", ["aberta", "em_andamento", "concluida"]).default("aberta").notNull(),
+  // status inclui "nao_instalada" para OS que não puderam ser concluídas
+  status: mysqlEnum("status", ["aberta", "em_andamento", "concluida", "nao_instalada"]).default("aberta").notNull(),
   qtdApInstalado: int("qtdApInstalado"),
   observacao: text("observacao"),
+  // Motivo de não instalação: escola_desativada, em_reforma, mudanca_endereco
+  motivoNaoInstalacao: mysqlEnum("motivoNaoInstalacao", ["escola_desativada", "em_reforma", "mudanca_endereco"]),
+  // URL da foto do mapa de calor (armazenada no S3)
+  fotoMapaCalorUrl: text("fotoMapaCalorUrl"),
+  fotoMapaCalorKey: varchar("fotoMapaCalorKey", { length: 500 }),
   dataAbertura: timestamp("dataAbertura").defaultNow().notNull(),
   dataConclusao: timestamp("dataConclusao"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

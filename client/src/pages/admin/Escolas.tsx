@@ -14,11 +14,13 @@ const statusLabel: Record<string, string> = {
   pendente: "Pendente",
   em_andamento: "Em andamento",
   concluido: "Concluído",
+  nao_instalada: "Não Instalada",
 };
 const statusClass: Record<string, string> = {
   pendente: "bg-amber-50 text-amber-700 border-amber-200",
   em_andamento: "bg-blue-50 text-blue-700 border-blue-200",
   concluido: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  nao_instalada: "bg-red-50 text-red-700 border-red-300",
 };
 
 export default function AdminEscolas() {
@@ -83,7 +85,8 @@ export default function AdminEscolas() {
 
   const totalAps = escolas?.reduce((sum, e) => sum + (e.qtdAp ?? 0), 0) ?? 0;
   const concluidas = escolas?.filter(e => e.status === "concluido").length ?? 0;
-  const pendentes = escolas?.filter(e => e.status !== "concluido").length ?? 0;
+  const naoInstaladas = escolas?.filter(e => e.status === "nao_instalada").length ?? 0;
+  const pendentes = escolas?.filter(e => e.status !== "concluido" && e.status !== "nao_instalada").length ?? 0;
 
   return (
     <AdminLayout title="Gestão de Escolas">
@@ -94,7 +97,7 @@ export default function AdminEscolas() {
           { label: "Total de Escolas", value: escolas?.length ?? 0, icon: School, color: "text-primary", bg: "bg-primary/10" },
           { label: "Pendentes",        value: pendentes,            icon: Zap,    color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Concluídas",       value: concluidas,           icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Total de APs",     value: totalAps,             icon: Wifi,   color: "text-blue-600",  bg: "bg-blue-50" },
+          { label: "Não Instaladas",   value: naoInstaladas,        icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
         ].map((s, i) => {
           const Icon = s.icon;
           return (
@@ -333,7 +336,7 @@ export default function AdminEscolas() {
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {["todos", "pendente", "em_andamento", "concluido"].map(s => (
+          {["todos", "pendente", "em_andamento", "concluido", "nao_instalada"].map(s => (
             <Button
               key={s}
               variant={statusFilter === s ? "default" : "outline"}
@@ -369,11 +372,20 @@ export default function AdminEscolas() {
       ) : (
         <div className="space-y-2">
           {filtered.map(escola => (
-            <Card key={escola.id} className="hover:shadow-sm transition-shadow border-0 shadow-sm">
+            <Card key={escola.id}
+              className={`hover:shadow-sm transition-shadow border shadow-sm ${
+                escola.status === "nao_instalada"
+                  ? "border-red-300 bg-red-50/60"
+                  : "border-0"
+              }`}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <School className="w-5 h-5 text-primary" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    escola.status === "nao_instalada" ? "bg-red-100" : "bg-primary/10"
+                  }`}>
+                    {escola.status === "nao_instalada"
+                      ? <AlertTriangle className="w-5 h-5 text-red-600" />
+                      : <School className="w-5 h-5 text-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 flex-wrap">

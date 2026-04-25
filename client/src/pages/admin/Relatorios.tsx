@@ -29,8 +29,13 @@ function getDateRange(periodo: string, dataInicio: string, dataFim: string) {
 
 function formatDate(d: Date | string | null | undefined) {
   if (!d) return "—";
-  const date = d instanceof Date ? d : new Date(d);
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  try {
+    const date = d instanceof Date ? d : new Date(d);
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return "—";
+  }
 }
 
 const SELECT_CLASS =
@@ -84,15 +89,12 @@ export default function AdminRelatorios() {
   // Exportar CSV
   function exportarCSV() {
     if (!osDetalhadas || osDetalhadas.length === 0) return;
-    const header = ["#", "Escola", "INEP", "Município", "UF", "APs Instalados", "APs Planejados", "Técnico", "Data Conclusão", "Observação"];
-    const rows = osDetalhadas.map((os, i) => [
-      i + 1,
+    const header = ["Escola", "INEP", "APs Instalados", "Município", "Técnico", "Data Conclusão", "Observação"];
+    const rows = osDetalhadas.map((os) => [
       `"${os.escolaNome}"`,
       os.inep,
-      `"${os.municipio}"`,
-      os.uf,
       os.qtdApInstalado,
-      os.qtdApPlanejado,
+      `"${os.municipio}"`,
       `"${os.tecnicoNome}"`,
       formatDate(os.dataConclusao),
       `"${os.observacao}"`,
