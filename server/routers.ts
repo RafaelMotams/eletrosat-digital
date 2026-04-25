@@ -350,16 +350,15 @@ const relatoriosRouter = router({
     .input(
       z.object({
         tecnicoId: z.number(),
-        dataInicio: z.date().nullable().optional(),
-        dataFim: z.date().nullable().optional(),
+        // Recebe strings ISO ou null para evitar problemas de serialização de Date
+        dataInicio: z.string().nullable().optional(),
+        dataFim: z.string().nullable().optional(),
       })
     )
     .query(async ({ input }) => {
-      return getRelatorioTecnico(
-        input.tecnicoId,
-        input.dataInicio ?? null,
-        input.dataFim ?? null
-      );
+      const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
+      const fim = input.dataFim ? new Date(input.dataFim) : null;
+      return getRelatorioTecnico(input.tecnicoId, inicio, fim);
     }),
 
   ranking: publicProcedure.query(async () => {

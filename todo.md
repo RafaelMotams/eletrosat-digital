@@ -129,26 +129,26 @@
 - [x] Busca automática de telefone por INEP via IA (LLM + web search), salva no banco e exibe WhatsApp
 
 ## Correções v5
-- [ ] WhatsApp: link direto do banco (telefone/telefoneWhatsApp), sem IA, botão sempre visível
-- [ ] Endereço completo no app (sem truncar)
-- [ ] Mapa: popup com INEP, nome, endereço, cidade completos + roteamento por coordenadas GPS
-- [ ] Mapa "Todas Escolas": mostrar INEP, nome, endereço completo em cada item da lista
-- [ ] Dashboard admin: resultado técnico com dados reais (OS concluídas, APs instalados, média/dia)
-- [ ] Sync automático no painel admin (refetch a cada 30s quando online)
-- [ ] Roteamento Google Maps por coordenadas (lat/lng) em vez de endereço texto
+- [x] WhatsApp: link direto do banco (telefone/telefoneWhatsApp), sem IA, botão sempre visível
+- [x] Endereço completo no app (sem truncar)
+- [x] Mapa: popup com INEP, nome, endereço, cidade completos + roteamento por coordenadas GPS
+- [x] Mapa "Todas Escolas": mostrar INEP, nome, endereço completo em cada item da lista
+- [x] Dashboard admin: resultado técnico com dados reais (OS concluídas, APs instalados, média/dia)
+- [x] Sync automático no painel admin (refetch a cada 30s quando online)
+- [x] Roteamento Google Maps por coordenadas (lat/lng) em vez de endereço texto
 
 ## Funcionalidade - Apagar Escolas por Cidade
 - [x] Backend: endpoint escolas.deletarPorCidade (adminProcedure) com confirmação
 - [x] Frontend: botão "Apagar por Cidade" na página Escolas com modal de seleção de cidade e confirmação
 
 ## Correções v6
-- [ ] WhatsApp: botão direto do banco (sem IA), link wa.me/5575+número, sem fallback de busca
-- [ ] Endereço completo sem truncar no app (Home e Mapa)
-- [ ] Lista "Todas as escolas" no Mapa: mostrar INEP, endereço e nome completo
-- [ ] Roteamento Google Maps por coordenadas ordenado por proximidade (nearest neighbor)
-- [ ] Dashboard admin: resultado técnico Rodrigo com dados reais (2 OS concluídas, 6 APs)
-- [ ] Dashboard admin: sync automático a cada 30s quando online, indicador de status
-- [ ] Relatorios admin: tornar publicProcedure para funcionar sem login OAuth
+- [x] WhatsApp: botão direto do banco (sem IA), link wa.me/5575+número, sem fallback de busca
+- [x] Endereço completo sem truncar no app (Home e Mapa)
+- [x] Lista "Todas as escolas" no Mapa: mostrar INEP, endereço e nome completo
+- [x] Roteamento Google Maps por coordenadas ordenado por proximidade (nearest neighbor)
+- [x] Dashboard admin: resultado técnico Rodrigo com dados reais (OS concluídas, APs instalados, média/dia)
+- [x] Dashboard admin: sync automático a cada 30s quando online, indicador de status
+- [x] Relatorios admin: tornar publicProcedure para funcionar sem login OAuth
 
 ## Correções v7
 - [x] Endereço completo sem truncar na OS (tela de detalhe)
@@ -156,8 +156,13 @@
 - [x] Ordenar escolas por rota (proximidade GPS nearest-neighbor) na Home do técnico
 
 ## Suporte Offline App Técnico
-- [ ] Service Worker: cache de assets (HTML, JS, CSS) para funcionar sem internet
-- [ ] Cache local de escolas no localStorage ao carregar online
-- [ ] Home, Mapa e OS usam cache quando offline
-- [ ] Indicador visual de status offline no app
-- [ ] Fila de ações offline (concluir OS) sincroniza quando voltar online
+- [x] Service Worker: cache de assets (HTML, JS, CSS) para funcionar sem internet
+- [x] Cache local de escolas no localStorage ao carregar online
+- [x] Home, Mapa e OS usam cache quando offline
+- [x] Indicador visual de status offline no app
+- [x] Fila de ações offline (concluir OS) sincroniza quando voltar online
+
+## Correções v8
+- [x] Relatórios admin: bug do filtro por técnico corrigido (strings ISO em vez de Date objects)
+- [x] Service Worker atualizado para não cachear arquivos JS/TS do Vite (evitar servir versões antigas)
+- [x] Relatórios admin: Rodrigo aparece com 4 escolas concluídas e 11 APs instalados

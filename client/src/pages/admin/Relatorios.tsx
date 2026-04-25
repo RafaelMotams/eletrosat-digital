@@ -42,9 +42,14 @@ export default function AdminRelatorios() {
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split("T")[0]);
 
   // Estabilizar as datas com useMemo para evitar novas referências a cada render
+  // Retorna strings ISO (ou null) para compatibilidade com o schema do servidor
   const dates = useMemo(() => {
-    if (periodo === "geral") return { inicio: null, fim: null };
-    return getDateRange(periodo, dataInicio, dataFim);
+    if (periodo === "geral") return { inicio: null as string | null, fim: null as string | null };
+    const range = getDateRange(periodo, dataInicio, dataFim);
+    return {
+      inicio: range.inicio ? range.inicio.toISOString() : null,
+      fim: range.fim ? range.fim.toISOString() : null,
+    };
   }, [periodo, dataInicio, dataFim]);
 
   // Estabilizar o tecnicoId como número
