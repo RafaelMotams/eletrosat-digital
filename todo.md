@@ -190,3 +190,8 @@
   - Removido capture="environment" do input principal
   - Adicionados dois inputs separados: Câmera (com capture) e Galeria (sem capture)
   - Dois botões visuais no modal de conclusão
+
+## Correção SW v3
+- [x] Service Worker atualizado para network-first (sempre busca versão mais recente do servidor)
+- [x] Remove caches antigos automaticamente (v1, v2)
+- [x] APK v5 gerado com SW v3
