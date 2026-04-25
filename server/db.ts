@@ -282,7 +282,7 @@ export async function getDashboardStats() {
     .from(escolas)
     .where(eq(escolas.status, "em_andamento"));
   const [totalAps] = await db
-    .select({ total: sql<number>`COALESCE(SUM(qtd_ap_instalado), 0)` })
+    .select({ total: sql<number>`COALESCE(SUM(${ordensServico.qtdApInstalado}), 0)` })
     .from(ordensServico)
     .where(eq(ordensServico.status, "concluida"));
 

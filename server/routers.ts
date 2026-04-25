@@ -322,11 +322,11 @@ const ordensRouter = router({
 
 // ─── DASHBOARD ROUTER ─────────────────────────────────────────────────────────
 const dashboardRouter = router({
-  stats: adminProcedure.query(async () => {
+  stats: publicProcedure.query(async () => {
     return getDashboardStats();
   }),
 
-  produtividade: adminProcedure.query(async () => {
+  produtividade: publicProcedure.query(async () => {
     return getProdutividadePorTecnico();
   }),
 });
