@@ -15,6 +15,9 @@ import AdminPlanilha from "./pages/admin/Planilha";
 import TecnicoLogin from "./pages/tecnico/Login";
 import TecnicoHome from "./pages/tecnico/Home";
 import TecnicoOS from "./pages/tecnico/OrdemServico";
+import TecnicoMapa from "./pages/tecnico/Mapa";
+import TecnicoPerfil from "./pages/tecnico/Perfil";
+import TecnicoHistorico from "./pages/tecnico/Historico";
 import Home from "./pages/Home";
 
 function Router() {
@@ -34,6 +37,9 @@ function Router() {
       <Route path="/tecnico/login" component={TecnicoLogin} />
       <Route path="/tecnico" component={TecnicoHome} />
       <Route path="/tecnico/os/:id" component={TecnicoOS} />
+      <Route path="/tecnico/mapa" component={TecnicoMapa} />
+      <Route path="/tecnico/perfil" component={TecnicoPerfil} />
+      <Route path="/tecnico/historico" component={TecnicoHistorico} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

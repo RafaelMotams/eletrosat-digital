@@ -13,6 +13,9 @@ export default function TecnicoLogin() {
   const loginMut = trpc.tecnicoAuth.login.useMutation({
     onSuccess: (data) => {
       localStorage.setItem("tecnico", JSON.stringify(data));
+      localStorage.setItem("tecnico_id", String(data.id));
+      localStorage.setItem("tecnico_nome", data.nome);
+      localStorage.setItem("tecnico_email", data.email);
       navigate("/tecnico");
     },
     onError: (e) => setError(e.message),

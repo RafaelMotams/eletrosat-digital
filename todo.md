@@ -101,3 +101,13 @@
 
 ## Bug - App do Técnico
 - [x] Corrigir: escolas atribuídas no painel admin não aparecem no app do técnico
+
+## Redesign Total App do Técnico v2
+- [x] Login premium com animações e ícones de tecnologia
+- [x] Home com stats, barra de progresso e lista de escolas premium com bottom nav
+- [x] Tela de OS: INEP, nome, endereço, APs, WhatsApp, Google Maps com dados reais
+- [x] Mapa de escolas com marcadores coloridos por status (verde/amarelo/azul)
+- [x] Roteirizador de rotas (abre Google Maps com todas as escolas pendentes como waypoints)
+- [x] Tela de perfil do técnico com estatísticas pessoais e badge de conquista
+- [x] Histórico de OS concluídas e pendentes no app
+- [x] Navegação bottom tab bar estilo app nativo (Início, Mapa, Histórico, Perfil)

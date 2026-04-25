@@ -1,24 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
-  MessageCircle, Navigation, ClipboardList, Zap, Hash
+  MessageCircle, Navigation, Zap, Hash, Building2, Signal
 } from "lucide-react";
 
-type TecnicoData = { id: number; nome: string; email: string };
-
 const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  pendente:     { label: "Pendente",     bg: "oklch(0.95 0.05 75 / 0.15)",  text: "oklch(0.55 0.16 75)",  dot: "oklch(0.65 0.18 75)" },
-  em_andamento: { label: "Em andamento", bg: "oklch(0.94 0.06 240 / 0.15)", text: "oklch(0.50 0.18 240)", dot: "oklch(0.55 0.20 240)" },
-  concluido:    { label: "Concluído",    bg: "oklch(0.93 0.07 162 / 0.15)", text: "oklch(0.45 0.18 162)", dot: "oklch(0.52 0.20 162)" },
+  pendente:     { label: "Pendente",     bg: "rgba(245,158,11,0.12)",  text: "#f59e0b", dot: "#f59e0b" },
+  em_andamento: { label: "Em andamento", bg: "rgba(59,130,246,0.12)",  text: "#3b82f6", dot: "#3b82f6" },
+  concluido:    { label: "Concluído",    bg: "rgba(16,185,129,0.12)",  text: "#10b981", dot: "#10b981" },
 };
 
 export default function TecnicoOS() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const [tecnico, setTecnico] = useState<TecnicoData | null>(null);
+  const [tecnicoId, setTecnicoId] = useState(0);
   const [openConcluir, setOpenConcluir] = useState(false);
   const [qtdAp, setQtdAp] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -26,22 +24,39 @@ export default function TecnicoOS() {
   const utils = trpc.useUtils();
 
   useEffect(() => {
-    const stored = localStorage.getItem("tecnico");
-    if (!stored) { navigate("/tecnico/login"); return; }
-    try { setTecnico(JSON.parse(stored)); } catch { navigate("/tecnico/login"); }
+    const id = localStorage.getItem("tecnico_id");
+    if (!id) {
+      const stored = localStorage.getItem("tecnico");
+      if (!stored) { navigate("/tecnico/login"); return; }
+      try {
+        const t = JSON.parse(stored);
+        localStorage.setItem("tecnico_id", String(t.id));
+        localStorage.setItem("tecnico_nome", t.nome);
+        localStorage.setItem("tecnico_email", t.email);
+        setTecnicoId(t.id);
+      } catch { navigate("/tecnico/login"); }
+    } else {
+      setTecnicoId(Number(id));
+    }
   }, [navigate]);
 
   const escolaId = parseInt(params.id ?? "0");
-  const { data: escola, isLoading } = trpc.escolas.getById.useQuery(
-    { id: escolaId },
-    { enabled: !!escolaId }
+
+  // Usa o endpoint público do técnico (não requer OAuth)
+  const { data: escolas = [], isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+    { tecnicoId },
+    { enabled: !!tecnicoId && !!escolaId }
+  );
+
+  const escola = useMemo(
+    () => escolas.find((e: { id: number }) => e.id === escolaId) ?? null,
+    [escolas, escolaId]
   );
 
   const concluirMut = trpc.tecnicoAuth.concluirEscola.useMutation({
     onSuccess: () => {
       toast.success("Instalação concluída com sucesso!");
       utils.tecnicoAuth.minhasEscolas.invalidate();
-      utils.escolas.getById.invalidate({ id: escolaId });
       setOpenConcluir(false);
       navigate("/tecnico");
     },
@@ -51,24 +66,22 @@ export default function TecnicoOS() {
   function handleConcluir() {
     const ap = parseInt(qtdAp);
     if (isNaN(ap) || ap < 0) { toast.error("Informe a quantidade de APs instalados"); return; }
-    if (!tecnico) { toast.error("Sessão expirada. Faça login novamente."); navigate("/tecnico/login"); return; }
-    concluirMut.mutate({ escolaId, tecnicoId: tecnico.id, qtdApInstalado: ap, observacao });
+    if (!tecnicoId) { toast.error("Sessão expirada. Faça login novamente."); navigate("/tecnico/login"); return; }
+    concluirMut.mutate({ escolaId, tecnicoId, qtdApInstalado: ap, observacao });
   }
 
   const lat = parseFloat(String(escola?.latitude ?? ""));
   const lng = parseFloat(String(escola?.longitude ?? ""));
   const hasCoords = !isNaN(lat) && !isNaN(lng);
 
-  // Google Maps: abre rota de navegação se tiver coordenadas, senão busca por nome
   const mapsUrl = hasCoords
     ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
     : `https://www.google.com/maps/search/${encodeURIComponent((escola?.nome ?? "") + " " + (escola?.municipio ?? "Monte Santo BA"))}`;
 
-  // WhatsApp: usa telefoneWhatsApp (já formatado com 55) ou formata o telefone
   const whatsappNumber = escola?.telefoneWhatsApp
     ? escola.telefoneWhatsApp
     : escola?.telefone
-      ? "55" + escola.telefone.replace(/\D/g, "")
+      ? "55" + String(escola.telefone).replace(/\D/g, "")
       : null;
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Sou técnico da Eletrosat Digital e estou entrando em contato sobre a instalação de internet na ${escola?.nome}.`)}`
@@ -79,20 +92,20 @@ export default function TecnicoOS() {
   const isPending = concluirMut.isPending;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(180deg, oklch(0.10 0.04 240) 0%, oklch(0.13 0.06 240) 100%)" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#0a0f1e" }}>
       {/* Header */}
       <header className="px-4 pt-safe pb-3 pt-4 flex items-center gap-3 sticky top-0 z-10"
-        style={{ background: "oklch(0.10 0.04 240 / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid oklch(1 0 0 / 0.07)" }}>
+        style={{ background: "rgba(10,15,30,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <button onClick={() => navigate("/tecnico")}
           className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-          style={{ background: "oklch(1 0 0 / 0.08)", color: "white" }}>
+          style={{ background: "rgba(255,255,255,0.07)", color: "white" }}>
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm truncate" style={{ fontFamily: "var(--font-display)" }}>
+          <p className="text-white font-bold text-sm truncate">
             {isLoading ? "Carregando..." : escola?.nome ?? "Escola"}
           </p>
-          <p className="text-xs" style={{ color: "oklch(0.55 0.06 240)" }}>Detalhes da Ordem de Serviço</p>
+          <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Ordem de Serviço</p>
         </div>
         {escola && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0"
@@ -106,8 +119,9 @@ export default function TecnicoOS() {
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "oklch(0.50 0.18 162)", borderTopColor: "transparent" }} />
-            <p className="text-sm" style={{ color: "oklch(0.55 0.06 240)" }}>Carregando escola...</p>
+            <div className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: "#10b981", borderTopColor: "transparent" }} />
+            <p className="text-sm" style={{ color: "rgba(148,163,184,0.5)" }}>Carregando escola...</p>
           </div>
         </div>
       ) : !escola ? (
@@ -115,127 +129,164 @@ export default function TecnicoOS() {
           <div className="text-center px-6">
             <School className="w-12 h-12 mx-auto mb-3 opacity-30 text-white" />
             <p className="text-white font-semibold">Escola não encontrada</p>
-            <button onClick={() => navigate("/tecnico")} className="mt-4 text-sm underline" style={{ color: "oklch(0.50 0.18 162)" }}>
+            <button onClick={() => navigate("/tecnico")} className="mt-4 text-sm underline" style={{ color: "#10b981" }}>
               Voltar para a lista
             </button>
           </div>
         </div>
       ) : (
-        <div className="flex-1 px-4 py-5 space-y-4 pb-8">
+        <div className="flex-1 px-4 py-4 space-y-3 pb-24">
 
-          {/* Card principal da escola */}
-          <div className="rounded-2xl p-5" style={{ background: "oklch(1 0 0 / 0.06)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
-            <div className="flex items-start gap-3 mb-5">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.38 0.14 240))" }}>
-                <School className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-white font-bold text-base leading-tight" style={{ fontFamily: "var(--font-display)" }}>
-                  {escola.nome}
-                </h1>
-                <p className="text-xs mt-1" style={{ color: "oklch(0.55 0.06 240)" }}>
-                  {escola.municipio} — {escola.uf}
-                </p>
+          {/* Card principal - INEP + Nome + Endereço no topo */}
+          <div className="rounded-2xl overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}>
+            {/* Banner da escola */}
+            <div className="p-5 pb-4"
+              style={{ background: "linear-gradient(135deg, #0d1f3c 0%, #1e3a5f 100%)" }}>
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(255,255,255,0.10)" }}>
+                  <Building2 className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-white font-bold text-base leading-tight">{escola.nome}</h1>
+                  <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.6)" }}>
+                    {escola.municipio}{escola.uf ? ` — ${escola.uf}` : ""}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Info grid */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.94 0.04 240 / 0.3)" }}>
-                  <Hash className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.10 240)" }} />
+            {/* Dados principais */}
+            <div className="p-4 space-y-2.5">
+              {/* INEP */}
+              <div className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: "rgba(255,255,255,0.04)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(59,130,246,0.15)" }}>
+                  <Hash className="w-4 h-4" style={{ color: "#3b82f6" }} />
                 </div>
                 <div>
-                  <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Código INEP</p>
-                  <p className="text-sm font-semibold text-white">{escola.inep}</p>
+                  <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Código INEP</p>
+                  <p className="text-sm font-bold text-white tracking-wider">{escola.inep}</p>
                 </div>
               </div>
 
+              {/* Endereço */}
               {escola.endereco && (
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "oklch(0.94 0.04 240 / 0.3)" }}>
-                    <MapPin className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.10 240)" }} />
+                <div className="flex items-start gap-3 p-3 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: "rgba(245,158,11,0.15)" }}>
+                    <MapPin className="w-4 h-4" style={{ color: "#f59e0b" }} />
                   </div>
                   <div>
-                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Endereço</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Endereço</p>
                     <p className="text-sm text-white leading-snug">{escola.endereco}</p>
                   </div>
                 </div>
               )}
 
+              {/* APs e Velocidade */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.93 0.07 162 / 0.25)" }}>
-                    <Wifi className="w-3.5 h-3.5" style={{ color: "oklch(0.55 0.18 162)" }} />
+                <div className="flex items-center gap-2.5 p-3 rounded-xl"
+                  style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(16,185,129,0.15)" }}>
+                    <Wifi className="w-4 h-4" style={{ color: "#10b981" }} />
                   </div>
                   <div>
-                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Velocidade</p>
-                    <p className="text-sm font-bold text-white">{escola.velocidadeOfertada}</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Kits Wi-Fi</p>
+                    <p className="text-sm font-bold" style={{ color: "#10b981" }}>
+                      {escola.kitWifi ?? escola.qtdAp ?? 1}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.96 0.05 75 / 0.25)" }}>
-                    <Zap className="w-3.5 h-3.5" style={{ color: "oklch(0.60 0.16 75)" }} />
+                <div className="flex items-center gap-2.5 p-3 rounded-xl"
+                  style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(59,130,246,0.15)" }}>
+                    <Signal className="w-4 h-4" style={{ color: "#3b82f6" }} />
                   </div>
                   <div>
-                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Kits Wi-Fi</p>
-                    <p className="text-sm font-bold text-white">{escola.kitWifi ?? escola.qtdAp ?? 1}</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Velocidade</p>
+                    <p className="text-sm font-bold" style={{ color: "#3b82f6" }}>
+                      {escola.velocidadeOfertada || "—"}
+                    </p>
                   </div>
                 </div>
               </div>
 
+              {/* Telefone */}
               {escola.telefone && (
-                <div className="flex items-center gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.93 0.07 162 / 0.25)" }}>
-                    <Phone className="w-3.5 h-3.5" style={{ color: "oklch(0.55 0.18 162)" }} />
+                <div className="flex items-center gap-3 p-3 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(16,185,129,0.12)" }}>
+                    <Phone className="w-4 h-4" style={{ color: "#10b981" }} />
                   </div>
                   <div>
-                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Telefone da escola</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Telefone da escola</p>
                     <p className="text-sm font-semibold text-white">{escola.telefone}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Coordenadas GPS */}
+              {hasCoords && (
+                <div className="flex items-center gap-3 p-3 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(245,158,11,0.12)" }}>
+                    <Navigation className="w-4 h-4" style={{ color: "#f59e0b" }} />
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Coordenadas GPS</p>
+                    <p className="text-xs font-mono text-white">{lat.toFixed(5)}, {lng.toFixed(5)}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Botões de ação: WhatsApp e Google Maps */}
+          {/* Botões de ação: Google Maps e WhatsApp */}
           <div className="grid grid-cols-2 gap-3">
-            {/* Google Maps */}
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block">
               <button className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-95"
-                style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.38 0.16 240))", border: "1px solid oklch(1 0 0 / 0.10)" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.12)" }}>
+                style={{ background: "linear-gradient(135deg, #1e3a5f, #1d4ed8)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.12)" }}>
                   <Navigation className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-center">
-                  <p className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>Google Maps</p>
-                  <p className="text-xs" style={{ color: "oklch(0.65 0.08 240)" }}>
+                  <p className="text-white font-bold text-sm">Google Maps</p>
+                  <p className="text-xs" style={{ color: "rgba(147,197,253,0.7)" }}>
                     {hasCoords ? "Rota de navegação" : "Buscar escola"}
                   </p>
                 </div>
               </button>
             </a>
 
-            {/* WhatsApp */}
             {whatsappUrl ? (
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
                 <button className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-95"
-                  style={{ background: "linear-gradient(135deg, oklch(0.38 0.16 162), oklch(0.50 0.20 162))", border: "1px solid oklch(1 0 0 / 0.10)" }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.12)" }}>
+                  style={{ background: "linear-gradient(135deg, #059669, #10b981)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.12)" }}>
                     <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-center">
-                    <p className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>WhatsApp</p>
-                    <p className="text-xs" style={{ color: "oklch(0.70 0.08 162)" }}>Contatar escola</p>
+                    <p className="text-white font-bold text-sm">WhatsApp</p>
+                    <p className="text-xs" style={{ color: "rgba(167,243,208,0.7)" }}>Contatar escola</p>
                   </div>
                 </button>
               </a>
             ) : (
               <button disabled className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 opacity-30 cursor-not-allowed"
-                style={{ background: "oklch(1 0 0 / 0.06)", border: "1px solid oklch(1 0 0 / 0.08)" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.08)" }}>
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.08)" }}>
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-center">
@@ -252,25 +303,25 @@ export default function TecnicoOS() {
               onClick={() => setOpenConcluir(true)}
               className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-bold text-base text-white transition-all active:scale-98"
               style={{
-                background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))",
-                boxShadow: "0 8px 32px oklch(0.50 0.18 162 / 0.35)",
-                fontFamily: "var(--font-display)",
+                background: "linear-gradient(135deg, #059669, #10b981)",
+                boxShadow: "0 8px 32px rgba(16,185,129,0.30)",
               }}>
               <CheckCircle className="w-6 h-6" />
               Marcar como Concluído
             </button>
           ) : (
-            <div className="rounded-2xl p-5 text-center" style={{ background: "oklch(0.93 0.07 162 / 0.15)", border: "1px solid oklch(0.50 0.18 162 / 0.30)" }}>
+            <div className="rounded-2xl p-5 text-center"
+              style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))" }}>
+                style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}>
                 <CheckCircle className="w-7 h-7 text-white" />
               </div>
-              <p className="font-bold text-lg" style={{ color: "oklch(0.55 0.18 162)", fontFamily: "var(--font-display)" }}>
-                Instalação Concluída!
-              </p>
+              <p className="font-bold text-lg" style={{ color: "#10b981" }}>Instalação Concluída!</p>
               {escola.dataConclusao && (
-                <p className="text-sm mt-1" style={{ color: "oklch(0.55 0.10 162)" }}>
-                  Concluída em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                <p className="text-sm mt-1" style={{ color: "rgba(52,211,153,0.7)" }}>
+                  Concluída em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR", {
+                    day: "2-digit", month: "long", year: "numeric"
+                  })}
                 </p>
               )}
             </div>
@@ -280,27 +331,27 @@ export default function TecnicoOS() {
 
       {/* Modal de conclusão */}
       {openConcluir && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-0" style={{ background: "oklch(0 0 0 / 0.7)", backdropFilter: "blur(4px)" }}
+        <div className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
-          <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10 animate-slide-up"
-            style={{ background: "oklch(0.14 0.05 240)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
-            {/* Handle */}
-            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "oklch(1 0 0 / 0.15)" }} />
+          <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10"
+            style={{ background: "#0d1f3c", border: "1px solid rgba(255,255,255,0.10)" }}>
+            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "rgba(255,255,255,0.15)" }} />
 
             <div className="flex items-center gap-3 mb-6">
               <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))" }}>
+                style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}>
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Concluir Instalação</h3>
-                <p className="text-xs" style={{ color: "oklch(0.55 0.06 240)" }}>{escola?.nome}</p>
+                <h3 className="text-white font-bold text-lg">Concluir Instalação</h3>
+                <p className="text-xs" style={{ color: "rgba(148,163,184,0.6)" }}>{escola?.nome}</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "oklch(0.75 0.04 240)" }}>
+                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "rgba(148,163,184,0.8)" }}>
                   Quantidade de APs instalados *
                 </label>
                 <input
@@ -310,19 +361,19 @@ export default function TecnicoOS() {
                   onChange={e => setQtdAp(e.target.value)}
                   placeholder={`Ex: ${escola?.kitWifi ?? 1}`}
                   className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none"
-                  style={{ background: "oklch(1 0 0 / 0.08)", border: "1.5px solid oklch(1 0 0 / 0.12)" }}
-                  onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; }}
-                  onBlur={e => { e.target.style.borderColor = "oklch(1 0 0 / 0.12)"; }}
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.12)" }}
+                  onFocus={e => { e.currentTarget.style.borderColor = "#10b981"; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
                 />
                 {escola?.kitWifi && (
-                  <p className="text-xs mt-1" style={{ color: "oklch(0.50 0.06 240)" }}>
+                  <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.5)" }}>
                     Previsto: {escola.kitWifi} kit(s) Wi-Fi
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "oklch(0.75 0.04 240)" }}>
+                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "rgba(148,163,184,0.8)" }}>
                   Observação (opcional)
                 </label>
                 <textarea
@@ -331,9 +382,9 @@ export default function TecnicoOS() {
                   placeholder="Alguma observação sobre a instalação..."
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none resize-none"
-                  style={{ background: "oklch(1 0 0 / 0.08)", border: "1.5px solid oklch(1 0 0 / 0.12)" }}
-                  onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; }}
-                  onBlur={e => { e.target.style.borderColor = "oklch(1 0 0 / 0.12)"; }}
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1.5px solid rgba(255,255,255,0.12)" }}
+                  onFocus={e => { e.currentTarget.style.borderColor = "#10b981"; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
                 />
               </div>
             </div>
@@ -341,19 +392,25 @@ export default function TecnicoOS() {
             <div className="flex gap-3 mt-6">
               <button onClick={() => setOpenConcluir(false)}
                 className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition-colors"
-                style={{ background: "oklch(1 0 0 / 0.08)", color: "oklch(0.70 0.04 240)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(148,163,184,0.8)", border: "1px solid rgba(255,255,255,0.10)" }}>
                 Cancelar
               </button>
               <button onClick={handleConcluir} disabled={isPending}
                 className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all"
                 style={{
-                  background: isPending ? "oklch(0.40 0.18 162 / 0.5)" : "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))",
-                  boxShadow: isPending ? "none" : "0 6px 20px oklch(0.50 0.18 162 / 0.30)",
+                  background: isPending ? "rgba(16,185,129,0.4)" : "linear-gradient(135deg, #059669, #10b981)",
+                  boxShadow: isPending ? "none" : "0 4px 16px rgba(16,185,129,0.25)",
                 }}>
                 {isPending ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Salvando...
+                  </>
                 ) : (
-                  <><CheckCircle className="w-4 h-4" /> Confirmar</>
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Confirmar
+                  </>
                 )}
               </button>
             </div>
