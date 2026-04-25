@@ -89,12 +89,50 @@ export default function TecnicoHome() {
     { enabled: !!tecnicoId, refetchInterval: 30000 }
   );
 
-  const filtered = escolas?.filter(e =>
+  // Algoritmo nearest-neighbor: ordena escolas por proximidade GPS
+  function sortByRoute(list: typeof escolas) {
+    if (!list || list.length === 0) return [];
+    // Filtra escolas com coordenadas válidas
+    const withCoords = list.filter(e => (e as any).latitude && (e as any).longitude);
+    const withoutCoords = list.filter(e => !(e as any).latitude || !(e as any).longitude);
+    if (withCoords.length === 0) return list;
+
+    const dist = (a: any, b: any) => {
+      const R = 6371;
+      const aLat = parseFloat(a.latitude); const aLng = parseFloat(a.longitude);
+      const bLat = parseFloat(b.latitude); const bLng = parseFloat(b.longitude);
+      const dLat = (bLat - aLat) * Math.PI / 180;
+      const dLng = (bLng - aLng) * Math.PI / 180;
+      const aa = Math.sin(dLat/2)**2 + Math.cos(aLat * Math.PI/180) * Math.cos(bLat * Math.PI/180) * Math.sin(dLng/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1-aa));
+    };
+
+    const sorted: typeof withCoords = [];
+    const remaining = [...withCoords];
+    // Começa pela primeira escola (ou a mais ao norte)
+    let current = remaining.splice(0, 1)[0];
+    sorted.push(current);
+    while (remaining.length > 0) {
+      let nearestIdx = 0;
+      let nearestDist = dist(current, remaining[0]);
+      for (let i = 1; i < remaining.length; i++) {
+        const d = dist(current, remaining[i]);
+        if (d < nearestDist) { nearestDist = d; nearestIdx = i; }
+      }
+      current = remaining.splice(nearestIdx, 1)[0];
+      sorted.push(current);
+    }
+    return [...sorted, ...withoutCoords];
+  }
+
+  const sortedEscolas = sortByRoute(escolas);
+
+  const filtered = sortedEscolas.filter(e =>
     !search ||
     e.nome.toLowerCase().includes(search.toLowerCase()) ||
     e.inep.includes(search) ||
     (e.municipio ?? "").toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  );
 
   const total = escolas?.length ?? 0;
   const concluidas = escolas?.filter(e => e.status === "concluido").length ?? 0;
@@ -245,7 +283,7 @@ export default function TecnicoHome() {
                       {escola.endereco && (
                         <div className="flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: "rgba(148,163,184,0.4)" }} />
-                          <span className="text-xs truncate" style={{ color: "rgba(148,163,184,0.5)" }}>
+                          <span className="text-xs" style={{ color: "rgba(148,163,184,0.5)", wordBreak: "break-word", whiteSpace: "normal" }}>
                             {escola.endereco}
                           </span>
                         </div>

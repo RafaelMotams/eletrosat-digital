@@ -149,3 +149,8 @@
 - [ ] Dashboard admin: resultado técnico Rodrigo com dados reais (2 OS concluídas, 6 APs)
 - [ ] Dashboard admin: sync automático a cada 30s quando online, indicador de status
 - [ ] Relatorios admin: tornar publicProcedure para funcionar sem login OAuth
+
+## Correções v7
+- [x] Endereço completo sem truncar na OS (tela de detalhe)
+- [x] Endereço completo sem truncar na Home do técnico (lista de escolas)
+- [x] Ordenar escolas por rota (proximidade GPS nearest-neighbor) na Home do técnico
