@@ -1,197 +1,240 @@
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell, AreaChart, Area
+} from "recharts";
+
+const COLORS_BAR = [
+  "oklch(0.40 0.18 162)", "oklch(0.30 0.10 240)", "oklch(0.60 0.16 75)",
+  "oklch(0.50 0.20 290)", "oklch(0.42 0.16 200)"
+];
+
+function StatCard({ title, value, icon: Icon, variant, loading, subtitle }: {
+  title: string; value: number | string; icon: React.ElementType;
+  variant: "blue" | "green" | "gold" | "purple" | "teal";
+  loading?: boolean; subtitle?: string;
+}) {
+  return (
+    <div className={`stat-card stat-${variant} animate-fade-in-up`}>
+      <div className="relative z-10 flex items-start justify-between mb-4">
+        <div>
+          <p className="text-white/70 text-sm font-medium mb-1">{title}</p>
+          {loading ? (
+            <div className="h-9 w-20 bg-white/20 rounded-lg animate-pulse" />
+          ) : (
+            <p className="text-4xl font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>{value}</p>
+          )}
+          {subtitle && <p className="text-white/60 text-xs mt-1">{subtitle}</p>}
+        </div>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "oklch(1 0 0 / 0.15)" }}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xl text-sm">
+        <p className="font-semibold text-foreground mb-2">{label}</p>
+        {payload.map((p: any, i: number) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ background: p.fill }} />
+            <span className="text-muted-foreground">{p.name === "totalEscolas" ? "Escolas" : "APs"}:</span>
+            <span className="font-bold text-foreground">{p.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function AdminDashboard() {
   const { data: stats, isLoading: loadingStats } = trpc.dashboard.stats.useQuery();
   const { data: produtividade, isLoading: loadingProd } = trpc.dashboard.produtividade.useQuery();
 
-  const kpis = [
-    {
-      title: "Total de Escolas",
-      value: stats?.totalEscolas ?? 0,
-      icon: School,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
-      border: "border-blue-100",
-    },
-    {
-      title: "Concluídas",
-      value: stats?.concluidas ?? 0,
-      icon: CheckCircle,
-      color: "text-green-600",
-      bg: "bg-green-50",
-      border: "border-green-100",
-    },
-    {
-      title: "Pendentes",
-      value: stats?.pendentes ?? 0,
-      icon: Clock,
-      color: "text-yellow-600",
-      bg: "bg-yellow-50",
-      border: "border-yellow-100",
-    },
-    {
-      title: "APs Instalados",
-      value: stats?.totalApsInstalados ?? 0,
-      icon: Wifi,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
-      border: "border-purple-100",
-    },
-  ];
-
   const pct = stats?.totalEscolas
     ? Math.round((stats.concluidas / stats.totalEscolas) * 100)
     : 0;
 
+  const progressData = stats ? [
+    { name: "Concluídas", value: stats.concluidas, fill: "oklch(0.50 0.18 162)" },
+    { name: "Em Andamento", value: stats.emAndamento, fill: "oklch(0.30 0.10 240)" },
+    { name: "Pendentes", value: stats.pendentes, fill: "oklch(0.60 0.16 75)" },
+  ] : [];
+
   return (
     <AdminLayout title="Dashboard">
-      {/* KPI Cards */}
+      {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {kpis.map((kpi) => (
-          <Card key={kpi.title} className={`border ${kpi.border}`}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
-                <div className={`w-9 h-9 ${kpi.bg} rounded-lg flex items-center justify-center`}>
-                  <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
-                </div>
-              </div>
-              {loadingStats ? (
-                <div className="h-8 bg-muted rounded animate-pulse" />
-              ) : (
-                <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+        <StatCard title="Total de Escolas" value={stats?.totalEscolas ?? 0} icon={School} variant="blue" loading={loadingStats} subtitle="Monte Santo, BA" />
+        <StatCard title="Concluídas" value={stats?.concluidas ?? 0} icon={CheckCircle} variant="green" loading={loadingStats} subtitle={`${pct}% do total`} />
+        <StatCard title="Pendentes" value={stats?.pendentes ?? 0} icon={Clock} variant="gold" loading={loadingStats} subtitle="Aguardando instalação" />
+        <StatCard title="APs Instalados" value={stats?.totalApsInstalados ?? 0} icon={Wifi} variant="purple" loading={loadingStats} subtitle="Access Points" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Progresso geral */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              Progresso Geral
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingStats ? (
-              <div className="space-y-3">
-                <div className="h-4 bg-muted rounded animate-pulse" />
-                <div className="h-8 bg-muted rounded animate-pulse" />
-              </div>
-            ) : (
-              <>
-                <div className="flex items-end justify-between mb-2">
-                  <span className="text-4xl font-bold text-foreground">{pct}%</span>
-                  <span className="text-sm text-muted-foreground">concluído</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                  <div className="bg-green-50 border border-green-100 rounded-lg p-2 text-center">
-                    <p className="font-bold text-green-700">{stats?.concluidas ?? 0}</p>
-                    <p className="text-green-600 text-xs">Concluídas</p>
-                  </div>
-                  <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-2 text-center">
-                    <p className="font-bold text-yellow-700">{stats?.pendentes ?? 0}</p>
-                    <p className="text-yellow-600 text-xs">Pendentes</p>
-                  </div>
-                </div>
-                {(stats?.emAndamento ?? 0) > 0 && (
-                  <div className="mt-2 bg-blue-50 border border-blue-100 rounded-lg p-2 text-center">
-                    <p className="font-bold text-blue-700">{stats?.emAndamento}</p>
-                    <p className="text-blue-600 text-xs">Em andamento</p>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* ── Progresso Geral ── */}
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-fade-in-up delay-100">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.93 0.07 162)" }}>
+              <TrendingUp className="w-4 h-4" style={{ color: "oklch(0.40 0.18 162)" }} />
+            </div>
+            <h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Progresso Geral</h3>
+          </div>
 
-        {/* Produtividade por técnico */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-yellow-500" />
-              Produtividade por Técnico
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingProd ? (
-              <div className="h-48 bg-muted rounded animate-pulse" />
-            ) : !produtividade || produtividade.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-                Nenhum dado de produtividade disponível ainda.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={produtividade} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="tecnicoNome"
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(v) => v.split(" ")[0]}
-                  />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    formatter={(value, name) => [
-                      value,
-                      name === "totalEscolas" ? "Escolas" : "APs",
-                    ]}
-                  />
-                  <Bar dataKey="totalEscolas" fill="#1e3a5f" name="totalEscolas" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalAps" fill="#22c55e" name="totalAps" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Ranking */}
-      {produtividade && produtividade.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-yellow-500" />
-              Ranking de Técnicos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {loadingStats ? (
             <div className="space-y-3">
-              {produtividade.map((t, i) => (
-                <div key={t.tecnicoId} className="flex items-center gap-4 p-3 rounded-lg bg-muted/40">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
-                    i === 0 ? "bg-yellow-100 text-yellow-700" :
-                    i === 1 ? "bg-gray-100 text-gray-600" :
-                    i === 2 ? "bg-orange-100 text-orange-600" :
-                    "bg-muted text-muted-foreground"
-                  }`}>
-                    {i + 1}
+              <div className="h-16 bg-muted rounded-xl animate-pulse" />
+              <div className="h-4 bg-muted rounded animate-pulse" />
+              <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-end justify-between mb-3">
+                <div>
+                  <span className="text-5xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>{pct}</span>
+                  <span className="text-2xl font-bold text-muted-foreground">%</span>
+                </div>
+                <span className="text-sm text-muted-foreground pb-1">concluído</span>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full rounded-full h-3 overflow-hidden mb-4" style={{ background: "oklch(0.92 0.015 240)" }}>
+                <div
+                  className="h-3 rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    width: `${pct}%`,
+                    background: "linear-gradient(90deg, oklch(0.40 0.18 162), oklch(0.55 0.20 162))"
+                  }}
+                />
+              </div>
+
+              {/* Mini stats */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Concluídas", value: stats?.concluidas ?? 0, color: "oklch(0.40 0.18 162)", bg: "oklch(0.94 0.06 162)" },
+                  { label: "Andamento", value: stats?.emAndamento ?? 0, color: "oklch(0.30 0.10 240)", bg: "oklch(0.94 0.04 240)" },
+                  { label: "Pendentes", value: stats?.pendentes ?? 0, color: "oklch(0.55 0.16 75)", bg: "oklch(0.96 0.05 75)" },
+                ].map(s => (
+                  <div key={s.label} className="rounded-xl p-2.5 text-center" style={{ background: s.bg }}>
+                    <p className="text-lg font-bold" style={{ color: s.color, fontFamily: "var(--font-display)" }}>{s.value}</p>
+                    <p className="text-xs font-medium mt-0.5" style={{ color: s.color, opacity: 0.8 }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Produtividade por Técnico ── */}
+        <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-6 shadow-sm animate-fade-in-up delay-200">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.94 0.04 240)" }}>
+              <Activity className="w-4 h-4" style={{ color: "oklch(0.30 0.10 240)" }} />
+            </div>
+            <h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Produtividade por Técnico</h3>
+          </div>
+
+          {loadingProd ? (
+            <div className="h-52 bg-muted rounded-xl animate-pulse" />
+          ) : !produtividade || produtividade.length === 0 ? (
+            <div className="h-52 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "oklch(0.94 0.015 240)" }}>
+                <Activity className="w-7 h-7 opacity-40" />
+              </div>
+              <p className="text-sm">Nenhum dado de produtividade ainda</p>
+              <p className="text-xs opacity-60">Conclua instalações para ver o gráfico</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={210}>
+              <BarChart data={produtividade} margin={{ top: 4, right: 4, left: -16, bottom: 0 }} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.015 240)" vertical={false} />
+                <XAxis
+                  dataKey="tecnicoNome"
+                  tick={{ fontSize: 11, fill: "oklch(0.50 0.05 240)", fontFamily: "var(--font-sans)" }}
+                  tickFormatter={(v) => v.split(" ")[0]}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "oklch(0.50 0.05 240)", fontFamily: "var(--font-sans)" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "oklch(0.96 0.01 240)" }} />
+                <Bar dataKey="totalEscolas" name="totalEscolas" radius={[6, 6, 0, 0]} maxBarSize={32}>
+                  {produtividade.map((_, i) => (
+                    <Cell key={i} fill={COLORS_BAR[i % COLORS_BAR.length]} />
+                  ))}
+                </Bar>
+                <Bar dataKey="totalAps" name="totalAps" fill="oklch(0.50 0.18 162)" radius={[6, 6, 0, 0]} maxBarSize={32} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      {/* ── Ranking de Técnicos ── */}
+      {produtividade && produtividade.length > 0 && (
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-fade-in-up delay-300">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.96 0.05 75)" }}>
+              <Trophy className="w-4 h-4" style={{ color: "oklch(0.55 0.16 75)" }} />
+            </div>
+            <h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Ranking de Técnicos</h3>
+          </div>
+          <div className="space-y-2.5">
+            {produtividade.map((t, i) => {
+              const medals = [
+                { bg: "oklch(0.96 0.05 75)", color: "oklch(0.55 0.16 75)", label: "🥇" },
+                { bg: "oklch(0.94 0.015 240)", color: "oklch(0.45 0.06 240)", label: "🥈" },
+                { bg: "oklch(0.96 0.06 50)", color: "oklch(0.55 0.14 50)", label: "🥉" },
+              ];
+              const medal = medals[i] ?? { bg: "oklch(0.94 0.015 240)", color: "oklch(0.50 0.05 240)", label: `${i + 1}` };
+              const maxEscolas = produtividade[0]?.totalEscolas ?? 1;
+              const barWidth = Math.round((t.totalEscolas / maxEscolas) * 100);
+              return (
+                <div key={t.tecnicoId} className="flex items-center gap-4 p-3.5 rounded-xl transition-colors hover:bg-muted/40">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0"
+                    style={{ background: medal.bg, color: medal.color }}>
+                    {medal.label}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{t.tecnicoNome}</p>
-                  </div>
-                  <div className="flex gap-4 text-sm flex-shrink-0">
-                    <span className="text-muted-foreground">{t.totalEscolas} escolas</span>
-                    <span className="text-green-600 font-medium">{t.totalAps} APs</span>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <p className="font-semibold text-sm text-foreground truncate">{t.tecnicoNome}</p>
+                      <div className="flex gap-3 text-xs flex-shrink-0 ml-2">
+                        <span className="text-muted-foreground">{t.totalEscolas} escola{t.totalEscolas !== 1 ? 's' : ''}</span>
+                        <span className="font-bold" style={{ color: "oklch(0.40 0.18 162)" }}>{t.totalAps} APs</span>
+                      </div>
+                    </div>
+                    <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: "oklch(0.92 0.015 240)" }}>
+                      <div className="h-1.5 rounded-full transition-all duration-500"
+                        style={{ width: `${barWidth}%`, background: "linear-gradient(90deg, oklch(0.40 0.18 162), oklch(0.55 0.20 162))" }} />
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
+
+      {/* ── Status rápido ── */}
+      <div className="mt-6 p-4 rounded-2xl border border-border flex items-center gap-3 animate-fade-in-up delay-400"
+        style={{ background: "linear-gradient(135deg, oklch(0.97 0.008 240), oklch(0.98 0.004 162))" }}>
+        <div className="w-2 h-2 rounded-full animate-pulse-dot flex-shrink-0" style={{ background: "oklch(0.50 0.18 162)" }} />
+        <p className="text-sm text-muted-foreground">
+          Sistema sincronizado em tempo real · <span className="font-semibold text-foreground">{stats?.totalEscolas ?? 0} escolas</span> cadastradas ·
+          <span className="font-semibold" style={{ color: "oklch(0.40 0.18 162)" }}> {stats?.totalApsInstalados ?? 0} APs</span> instalados no total
+        </p>
+        <Zap className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: "oklch(0.55 0.16 75)" }} />
+      </div>
     </AdminLayout>
   );
 }

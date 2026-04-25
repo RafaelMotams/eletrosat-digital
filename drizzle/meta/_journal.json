@@ -22,6 +22,13 @@
       "when": 1777069269242,
       "tag": "0002_nosy_spyke",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1777078450176,
+      "tag": "0003_handy_green_goblin",
+      "breakpoints": true
     }
   ]
 }

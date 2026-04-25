@@ -4,22 +4,15 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
-  MessageCircle, Navigation, ClipboardList
+  MessageCircle, Navigation, ClipboardList, Zap, Hash
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 type TecnicoData = { id: number; nome: string; email: string };
 
-const statusLabel: Record<string, string> = { pendente: "Pendente", em_andamento: "Em andamento", concluido: "Concluído" };
-const statusClass: Record<string, string> = {
-  pendente: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-  em_andamento: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  concluido: "bg-green-500/20 text-green-300 border-green-500/30",
+const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  pendente:     { label: "Pendente",     bg: "oklch(0.95 0.05 75 / 0.15)",  text: "oklch(0.55 0.16 75)",  dot: "oklch(0.65 0.18 75)" },
+  em_andamento: { label: "Em andamento", bg: "oklch(0.94 0.06 240 / 0.15)", text: "oklch(0.50 0.18 240)", dot: "oklch(0.55 0.20 240)" },
+  concluido:    { label: "Concluído",    bg: "oklch(0.93 0.07 162 / 0.15)", text: "oklch(0.45 0.18 162)", dot: "oklch(0.52 0.20 162)" },
 };
 
 export default function TecnicoOS() {
@@ -44,7 +37,6 @@ export default function TecnicoOS() {
     { enabled: !!escolaId }
   );
 
-  // Buscar OS da escola para este técnico
   const { data: ordens } = trpc.ordens.list.useQuery(
     { tecnicoId: tecnico?.id },
     { enabled: !!tecnico }
@@ -53,7 +45,7 @@ export default function TecnicoOS() {
 
   const concluirMut = trpc.ordens.concluir.useMutation({
     onSuccess: () => {
-      toast.success("OS concluída com sucesso!");
+      toast.success("Instalação concluída com sucesso!");
       utils.escolas.list.invalidate();
       utils.ordens.list.invalidate();
       setOpenConcluir(false);
@@ -64,7 +56,7 @@ export default function TecnicoOS() {
 
   const criarEConcluirMut = trpc.ordens.criarEConcluir.useMutation({
     onSuccess: () => {
-      toast.success("OS concluída com sucesso!");
+      toast.success("Instalação concluída com sucesso!");
       utils.escolas.list.invalidate();
       utils.ordens.list.invalidate();
       setOpenConcluir(false);
@@ -76,11 +68,9 @@ export default function TecnicoOS() {
   function handleConcluir() {
     const ap = parseInt(qtdAp);
     if (isNaN(ap) || ap < 0) { toast.error("Informe a quantidade de APs instalados"); return; }
-
     if (osAberta) {
       concluirMut.mutate({ osId: osAberta.id, qtdApInstalado: ap, observacao });
     } else if (tecnico) {
-      // Criar e concluir em uma única operação atômica
       criarEConcluirMut.mutate({ escolaId, tecnicoId: tecnico.id, qtdApInstalado: ap, observacao });
     }
   }
@@ -88,116 +78,219 @@ export default function TecnicoOS() {
   const lat = parseFloat(String(escola?.latitude ?? ""));
   const lng = parseFloat(String(escola?.longitude ?? ""));
   const hasCoords = !isNaN(lat) && !isNaN(lng);
+
+  // Google Maps: abre rota de navegação se tiver coordenadas, senão busca por nome
   const mapsUrl = hasCoords
-    ? `https://www.google.com/maps?q=${lat},${lng}`
-    : `https://www.google.com/maps/search/${encodeURIComponent(escola?.nome ?? "")}`;
-  const whatsappUrl = escola?.telefone
-    ? `https://wa.me/55${escola.telefone.replace(/\D/g, "")}`
+    ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
+    : `https://www.google.com/maps/search/${encodeURIComponent((escola?.nome ?? "") + " " + (escola?.municipio ?? "Monte Santo BA"))}`;
+
+  // WhatsApp: usa telefoneWhatsApp (já formatado com 55) ou formata o telefone
+  const whatsappNumber = escola?.telefoneWhatsApp
+    ? escola.telefoneWhatsApp
+    : escola?.telefone
+      ? "55" + escola.telefone.replace(/\D/g, "")
+      : null;
+  const whatsappUrl = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Sou técnico da Eletrosat Digital e estou entrando em contato sobre a instalação de internet na ${escola?.nome}.`)}`
     : null;
 
+  const status = escola?.status ?? "pendente";
+  const sc = statusConfig[status] ?? statusConfig.pendente;
+  const isPending = concluirMut.isPending || criarEConcluirMut.isPending;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e3a5f] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(180deg, oklch(0.10 0.04 240) 0%, oklch(0.13 0.06 240) 100%)" }}>
       {/* Header */}
-      <header className="px-4 py-4 flex items-center gap-3 border-b border-white/10">
-        <button
-          onClick={() => navigate("/tecnico")}
-          className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-white/20"
-        >
+      <header className="px-4 pt-safe pb-3 pt-4 flex items-center gap-3 sticky top-0 z-10"
+        style={{ background: "oklch(0.10 0.04 240 / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid oklch(1 0 0 / 0.07)" }}>
+        <button onClick={() => navigate("/tecnico")}
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+          style={{ background: "oklch(1 0 0 / 0.08)", color: "white" }}>
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-semibold text-sm truncate">Detalhes da OS</p>
+          <p className="text-white font-bold text-sm truncate" style={{ fontFamily: "var(--font-display)" }}>
+            {isLoading ? "Carregando..." : escola?.nome ?? "Escola"}
+          </p>
+          <p className="text-xs" style={{ color: "oklch(0.55 0.06 240)" }}>Detalhes da Ordem de Serviço</p>
         </div>
+        {escola && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0"
+            style={{ background: sc.bg, color: sc.text }}>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
+            {sc.label}
+          </div>
+        )}
       </header>
 
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "oklch(0.50 0.18 162)", borderTopColor: "transparent" }} />
+            <p className="text-sm" style={{ color: "oklch(0.55 0.06 240)" }}>Carregando escola...</p>
+          </div>
         </div>
       ) : !escola ? (
-        <div className="flex-1 flex items-center justify-center text-white/60">Escola não encontrada.</div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center px-6">
+            <School className="w-12 h-12 mx-auto mb-3 opacity-30 text-white" />
+            <p className="text-white font-semibold">Escola não encontrada</p>
+            <button onClick={() => navigate("/tecnico")} className="mt-4 text-sm underline" style={{ color: "oklch(0.50 0.18 162)" }}>
+              Voltar para a lista
+            </button>
+          </div>
+        </div>
       ) : (
-        <div className="flex-1 px-4 py-5 space-y-4">
-          {/* Card da escola */}
-          <div className="bg-white/10 border border-white/10 rounded-2xl p-5">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-11 h-11 bg-primary/30 rounded-xl flex items-center justify-center flex-shrink-0">
-                <School className="w-6 h-6 text-blue-200" />
+        <div className="flex-1 px-4 py-5 space-y-4 pb-8">
+
+          {/* Card principal da escola */}
+          <div className="rounded-2xl p-5" style={{ background: "oklch(1 0 0 / 0.06)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.38 0.14 240))" }}>
+                <School className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-white font-bold text-base leading-tight">{escola.nome}</h1>
-                <p className="text-blue-300 text-xs mt-0.5">INEP: {escola.inep}</p>
+                <h1 className="text-white font-bold text-base leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+                  {escola.nome}
+                </h1>
+                <p className="text-xs mt-1" style={{ color: "oklch(0.55 0.06 240)" }}>
+                  {escola.municipio} — {escola.uf}
+                </p>
               </div>
-              <Badge className={`text-xs border flex-shrink-0 ${statusClass[escola.status]}`} variant="outline">
-                {statusLabel[escola.status]}
-              </Badge>
             </div>
 
-            <div className="space-y-2.5">
+            {/* Info grid */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.94 0.04 240 / 0.3)" }}>
+                  <Hash className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.10 240)" }} />
+                </div>
+                <div>
+                  <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Código INEP</p>
+                  <p className="text-sm font-semibold text-white">{escola.inep}</p>
+                </div>
+              </div>
+
               {escola.endereco && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <MapPin className="w-4 h-4 text-blue-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-blue-100">{escola.endereco}</span>
+                <div className="flex items-start gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "oklch(0.94 0.04 240 / 0.3)" }}>
+                    <MapPin className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.10 240)" }} />
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Endereço</p>
+                    <p className="text-sm text-white leading-snug">{escola.endereco}</p>
+                  </div>
                 </div>
               )}
-              <div className="flex items-center gap-2.5 text-sm">
-                <Wifi className="w-4 h-4 text-blue-300 flex-shrink-0" />
-                <span className="text-blue-100">{escola.tipoConexao} — {escola.velocidadeOfertada}Mbps</span>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.93 0.07 162 / 0.25)" }}>
+                    <Wifi className="w-3.5 h-3.5" style={{ color: "oklch(0.55 0.18 162)" }} />
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Velocidade</p>
+                    <p className="text-sm font-bold text-white">{escola.velocidadeOfertada}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.96 0.05 75 / 0.25)" }}>
+                    <Zap className="w-3.5 h-3.5" style={{ color: "oklch(0.60 0.16 75)" }} />
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Kits Wi-Fi</p>
+                    <p className="text-sm font-bold text-white">{escola.kitWifi ?? escola.qtdAp ?? 1}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 text-sm">
-                <ClipboardList className="w-4 h-4 text-blue-300 flex-shrink-0" />
-                <span className="text-blue-100">{escola.qtdAp} Access Point(s) a instalar</span>
-              </div>
+
               {escola.telefone && (
-                <div className="flex items-center gap-2.5 text-sm">
-                  <Phone className="w-4 h-4 text-blue-300 flex-shrink-0" />
-                  <span className="text-blue-100">{escola.telefone}</span>
+                <div className="flex items-center gap-2.5 p-2.5 rounded-xl" style={{ background: "oklch(1 0 0 / 0.04)" }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "oklch(0.93 0.07 162 / 0.25)" }}>
+                    <Phone className="w-3.5 h-3.5" style={{ color: "oklch(0.55 0.18 162)" }} />
+                  </div>
+                  <div>
+                    <p className="text-xs" style={{ color: "oklch(0.50 0.05 240)" }}>Telefone da escola</p>
+                    <p className="text-sm font-semibold text-white">{escola.telefone}</p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Botões de ação */}
+          {/* Botões de ação: WhatsApp e Google Maps */}
           <div className="grid grid-cols-2 gap-3">
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5">
-                <Navigation className="w-4 h-4 mr-2" />
-                Google Maps
-              </Button>
+            {/* Google Maps */}
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block">
+              <button className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.38 0.16 240))", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.12)" }}>
+                  <Navigation className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>Google Maps</p>
+                  <p className="text-xs" style={{ color: "oklch(0.65 0.08 240)" }}>
+                    {hasCoords ? "Rota de navegação" : "Buscar escola"}
+                  </p>
+                </div>
+              </button>
             </a>
+
+            {/* WhatsApp */}
             {whatsappUrl ? (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <Button className="w-full bg-[#25D366] hover:bg-[#1da851] text-white py-5">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  WhatsApp
-                </Button>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
+                <button className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 transition-all active:scale-95"
+                  style={{ background: "linear-gradient(135deg, oklch(0.38 0.16 162), oklch(0.50 0.20 162))", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.12)" }}>
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>WhatsApp</p>
+                    <p className="text-xs" style={{ color: "oklch(0.70 0.08 162)" }}>Contatar escola</p>
+                  </div>
+                </button>
               </a>
             ) : (
-              <Button disabled className="w-full py-5 opacity-50">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp
-              </Button>
+              <button disabled className="w-full py-4 rounded-2xl flex flex-col items-center gap-2 opacity-30 cursor-not-allowed"
+                style={{ background: "oklch(1 0 0 / 0.06)", border: "1px solid oklch(1 0 0 / 0.08)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "oklch(1 0 0 / 0.08)" }}>
+                  <MessageCircle className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-bold text-sm">WhatsApp</p>
+                  <p className="text-xs text-white/50">Sem telefone</p>
+                </div>
+              </button>
             )}
           </div>
 
-          {/* Botão concluir */}
-          {escola.status !== "concluido" && (
-            <Button
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-6 text-base font-semibold shadow-lg shadow-green-500/30"
+          {/* Botão concluir / status concluído */}
+          {escola.status !== "concluido" ? (
+            <button
               onClick={() => setOpenConcluir(true)}
-            >
-              <CheckCircle className="w-5 h-5 mr-2" />
+              className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-bold text-base text-white transition-all active:scale-98"
+              style={{
+                background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))",
+                boxShadow: "0 8px 32px oklch(0.50 0.18 162 / 0.35)",
+                fontFamily: "var(--font-display)",
+              }}>
+              <CheckCircle className="w-6 h-6" />
               Marcar como Concluído
-            </Button>
-          )}
-
-          {escola.status === "concluido" && (
-            <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-4 text-center">
-              <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <p className="text-green-300 font-semibold">Instalação Concluída!</p>
+            </button>
+          ) : (
+            <div className="rounded-2xl p-5 text-center" style={{ background: "oklch(0.93 0.07 162 / 0.15)", border: "1px solid oklch(0.50 0.18 162 / 0.30)" }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))" }}>
+                <CheckCircle className="w-7 h-7 text-white" />
+              </div>
+              <p className="font-bold text-lg" style={{ color: "oklch(0.55 0.18 162)", fontFamily: "var(--font-display)" }}>
+                Instalação Concluída!
+              </p>
               {escola.dataConclusao && (
-                <p className="text-green-400/70 text-xs mt-1">
-                  em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR")}
+                <p className="text-sm mt-1" style={{ color: "oklch(0.55 0.10 162)" }}>
+                  Concluída em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
                 </p>
               )}
             </div>
@@ -206,49 +299,87 @@ export default function TecnicoOS() {
       )}
 
       {/* Modal de conclusão */}
-      <Dialog open={openConcluir} onOpenChange={setOpenConcluir}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              Concluir Instalação
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label>Quantidade de APs instalados *</Label>
-              <Input
-                type="number"
-                min="0"
-                value={qtdAp}
-                onChange={e => setQtdAp(e.target.value)}
-                placeholder="Ex: 3"
-                className="mt-1"
-              />
+      {openConcluir && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-0" style={{ background: "oklch(0 0 0 / 0.7)", backdropFilter: "blur(4px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
+          <div className="w-full max-w-lg rounded-t-3xl p-6 pb-10 animate-slide-up"
+            style={{ background: "oklch(0.14 0.05 240)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+            {/* Handle */}
+            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "oklch(1 0 0 / 0.15)" }} />
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))" }}>
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Concluir Instalação</h3>
+                <p className="text-xs" style={{ color: "oklch(0.55 0.06 240)" }}>{escola?.nome}</p>
+              </div>
             </div>
-            <div>
-              <Label>Observação (opcional)</Label>
-              <Textarea
-                value={observacao}
-                onChange={e => setObservacao(e.target.value)}
-                placeholder="Alguma observação sobre a instalação..."
-                className="mt-1 resize-none"
-                rows={3}
-              />
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "oklch(0.75 0.04 240)" }}>
+                  Quantidade de APs instalados *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={qtdAp}
+                  onChange={e => setQtdAp(e.target.value)}
+                  placeholder={`Ex: ${escola?.kitWifi ?? 1}`}
+                  className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none"
+                  style={{ background: "oklch(1 0 0 / 0.08)", border: "1.5px solid oklch(1 0 0 / 0.12)" }}
+                  onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; }}
+                  onBlur={e => { e.target.style.borderColor = "oklch(1 0 0 / 0.12)"; }}
+                />
+                {escola?.kitWifi && (
+                  <p className="text-xs mt-1" style={{ color: "oklch(0.50 0.06 240)" }}>
+                    Previsto: {escola.kitWifi} kit(s) Wi-Fi
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold mb-1.5 block" style={{ color: "oklch(0.75 0.04 240)" }}>
+                  Observação (opcional)
+                </label>
+                <textarea
+                  value={observacao}
+                  onChange={e => setObservacao(e.target.value)}
+                  placeholder="Alguma observação sobre a instalação..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none resize-none"
+                  style={{ background: "oklch(1 0 0 / 0.08)", border: "1.5px solid oklch(1 0 0 / 0.12)" }}
+                  onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; }}
+                  onBlur={e => { e.target.style.borderColor = "oklch(1 0 0 / 0.12)"; }}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setOpenConcluir(false)}
+                className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition-colors"
+                style={{ background: "oklch(1 0 0 / 0.08)", color: "oklch(0.70 0.04 240)", border: "1px solid oklch(1 0 0 / 0.10)" }}>
+                Cancelar
+              </button>
+              <button onClick={handleConcluir} disabled={isPending}
+                className="flex-1 py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all"
+                style={{
+                  background: isPending ? "oklch(0.40 0.18 162 / 0.5)" : "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.22 162))",
+                  boxShadow: isPending ? "none" : "0 6px 20px oklch(0.50 0.18 162 / 0.30)",
+                }}>
+                {isPending ? (
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
+                ) : (
+                  <><CheckCircle className="w-4 h-4" /> Confirmar</>
+                )}
+              </button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenConcluir(false)}>Cancelar</Button>
-            <Button
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={handleConcluir}
-              disabled={concluirMut.isPending || criarEConcluirMut.isPending}
-            >
-              {concluirMut.isPending || criarEConcluirMut.isPending ? "Salvando..." : "Confirmar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 }

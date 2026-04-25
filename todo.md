@@ -77,4 +77,21 @@
 - [x] Frontend: confirmação e importação definitiva com feedback de progresso
 
 ## Bugs
-- [ ] Corrigir bug de criação de login de técnico no painel admin
+- [x] Corrigir bug de criação de login de técnico no painel admin
+
+## Importação Planilha + Botões App + Auto-preenchimento INEP
+- [x] Analisar planilha DOC-20260424-WA0261.xlsx e importar todas as escolas no banco
+- [x] Botão WhatsApp no app do técnico usando telefone da escola
+- [x] Botão Google Maps no app do técnico usando latitude/longitude da escola
+- [x] Auto-preenchimento ao selecionar INEP: nome, APs, velocidade ofertada
+
+## Redesign Visual Completo
+- [x] CSS global: nova paleta premium azul-marinho/grafite com acentos verde-esmeralda e dourado
+- [x] Tipografia: Inter para corpo, Sora para títulos via Google Fonts
+- [x] Sidebar admin: gradiente profundo, ícones com glow, avatar do usuário
+- [x] Dashboard admin: cards com gradiente, gráficos modernos, animações suaves
+- [x] Páginas admin: tabelas elegantes, badges coloridos, modais premium
+- [x] App técnico Login: tela splash com gradiente e logo animado
+- [x] App técnico Home: cards de OS com status visual, barra de progresso
+- [x] App técnico OS: botões WhatsApp verde e Maps azul com ícones grandes
+- [x] Landing page: hero section redesenhada com glassmorphism

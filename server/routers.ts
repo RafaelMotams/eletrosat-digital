@@ -15,6 +15,7 @@ import {
   deleteTecnico,
   getDashboardStats,
   getEscolaById,
+  getEscolaByInep,
   getOrdemById,
   getProdutividadePorTecnico,
   getRelatorioTecnico,
@@ -123,6 +124,9 @@ const escolasRouter = router({
   getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
     return getEscolaById(input.id);
   }),
+  getByInep: adminProcedure.input(z.object({ inep: z.string() })).query(async ({ input }) => {
+    return getEscolaByInep(input.inep);
+  }),
 
   update: adminProcedure
     .input(
@@ -132,7 +136,7 @@ const escolasRouter = router({
         endereco: z.string().optional(),
         municipio: z.string().optional(),
         tipoConexao: z.string().optional(),
-        velocidadeOfertada: z.number().optional(),
+        velocidadeOfertada: z.string().optional(),
         qtdAp: z.number().optional(),
         status: z.enum(["pendente", "em_andamento", "concluido"]).optional(),
       })
@@ -177,8 +181,8 @@ const escolasRouter = router({
           longitude: escola.longitude ? (escola.longitude as unknown as string) : undefined,
           qtdAp: escola.qtdAp ?? 1,
           telefone: escola.telefone,
-          velocidadeMinima: escola.velocidadeMinima,
-          velocidadeOfertada: escola.velocidadeOfertada,
+          velocidadeMinima: escola.velocidadeMinima ? String(escola.velocidadeMinima) : undefined,
+          velocidadeOfertada: escola.velocidadeOfertada ? String(escola.velocidadeOfertada) : undefined,
           tipoConexao: escola.tipoConexao ?? "Fibra",
           status: "pendente",
         });
