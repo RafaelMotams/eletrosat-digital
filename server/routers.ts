@@ -343,10 +343,10 @@ const dashboardRouter = router({
     return getProdutividadePorTecnico();
   }),
 });
-
-// ─── RELATÓRIOS ROUTER ────────────────────────────────────────────────────────
+// ─── RELATÓRIOS ROUTER ────────────────────────────────────────────────────────────────────────────────────
 const relatoriosRouter = router({
-  tecnico: adminProcedure
+  // Público para funcionar sem login OAuth no painel admin
+  tecnico: publicProcedure
     .input(
       z.object({
         tecnicoId: z.number(),
@@ -358,12 +358,12 @@ const relatoriosRouter = router({
       return getRelatorioTecnico(input.tecnicoId, input.dataInicio, input.dataFim);
     }),
 
-  ranking: adminProcedure.query(async () => {
+  ranking: publicProcedure.query(async () => {
     return getProdutividadePorTecnico();
   }),
 });
 
-// ─── PLANILHA ROUTER ────────────────────────────────────────────────────────────
+// ─── PLANILHA ROUTER ──────────────────────────────────────────────────────────
 const planilhaRouter = router({
   listar: adminProcedure.query(async () => {
     return listEscolas();

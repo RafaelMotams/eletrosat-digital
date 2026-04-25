@@ -1,6 +1,7 @@
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -55,8 +56,43 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function AdminDashboard() {
-  const { data: stats, isLoading: loadingStats } = trpc.dashboard.stats.useQuery();
-  const { data: produtividade, isLoading: loadingProd } = trpc.dashboard.produtividade.useQuery();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  const { data: stats, isLoading: loadingStats, refetch: refetchStats, dataUpdatedAt } = trpc.dashboard.stats.useQuery(
+    undefined,
+    {
+      refetchInterval: isOnline ? 30000 : false,
+      refetchIntervalInBackground: false,
+    }
+  );
+
+  useEffect(() => {
+    if (dataUpdatedAt) setLastUpdate(new Date(dataUpdatedAt));
+  }, [dataUpdatedAt]);
+  const { data: produtividade, isLoading: loadingProd, refetch: refetchProd } = trpc.dashboard.produtividade.useQuery(
+    undefined,
+    {
+      refetchInterval: isOnline ? 30000 : false,
+      refetchIntervalInBackground: false,
+    }
+  );
+
+  const handleRefresh = () => {
+    refetchStats();
+    refetchProd();
+  };
 
   const pct = stats?.totalEscolas
     ? Math.round((stats.concluidas / stats.totalEscolas) * 100)
@@ -69,6 +105,37 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Dashboard">
+      {/* ── Barra de status sync ── */}
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+          {isOnline ? (
+            <><WifiIcon className="w-4 h-4 text-emerald-500" /><span className="text-xs text-emerald-600 font-medium">Online — sincronizando a cada 30s</span></>
+          ) : (
+            <><WifiOff className="w-4 h-4 text-amber-500" /><span className="text-xs text-amber-600 font-medium">Offline — dados em cache</span></>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {lastUpdate && (
+            <span className="text-xs text-muted-foreground">
+              Atualizado: {lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={!isOnline || loadingStats}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{
+              background: isOnline ? "oklch(0.93 0.07 162)" : "oklch(0.94 0.015 240)",
+              color: isOnline ? "oklch(0.40 0.18 162)" : "oklch(0.50 0.05 240)",
+              opacity: (!isOnline || loadingStats) ? 0.5 : 1,
+            }}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingStats ? "animate-spin" : ""}`} />
+            Atualizar
+          </button>
+        </div>
+      </div>
+
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard

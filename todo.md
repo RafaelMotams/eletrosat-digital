@@ -140,3 +140,12 @@
 ## Funcionalidade - Apagar Escolas por Cidade
 - [x] Backend: endpoint escolas.deletarPorCidade (adminProcedure) com confirmação
 - [x] Frontend: botão "Apagar por Cidade" na página Escolas com modal de seleção de cidade e confirmação
+
+## Correções v6
+- [ ] WhatsApp: botão direto do banco (sem IA), link wa.me/5575+número, sem fallback de busca
+- [ ] Endereço completo sem truncar no app (Home e Mapa)
+- [ ] Lista "Todas as escolas" no Mapa: mostrar INEP, endereço e nome completo
+- [ ] Roteamento Google Maps por coordenadas ordenado por proximidade (nearest neighbor)
+- [ ] Dashboard admin: resultado técnico Rodrigo com dados reais (2 OS concluídas, 6 APs)
+- [ ] Dashboard admin: sync automático a cada 30s quando online, indicador de status
+- [ ] Relatorios admin: tornar publicProcedure para funcionar sem login OAuth

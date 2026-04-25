@@ -149,13 +149,40 @@ export default function TecnicoMapa() {
     }
   };
 
-  /** Abre rota no Google Maps com todas as escolas pendentes como waypoints */
+  /** Algoritmo nearest-neighbor: ordena escolas por proximidade geográfica */
+  function sortByProximity(schools: Escola[]): Escola[] {
+    if (schools.length <= 1) return schools;
+    const result: Escola[] = [];
+    const remaining = [...schools];
+    // Começa pela primeira escola (ou pela mais ao norte)
+    let current = remaining.splice(0, 1)[0];
+    result.push(current);
+    while (remaining.length > 0) {
+      const curLat = parseFloat(current.latitude!);
+      const curLng = parseFloat(current.longitude!);
+      let minDist = Infinity;
+      let minIdx = 0;
+      remaining.forEach((e, i) => {
+        const dLat = parseFloat(e.latitude!) - curLat;
+        const dLng = parseFloat(e.longitude!) - curLng;
+        const dist = dLat * dLat + dLng * dLng;
+        if (dist < minDist) { minDist = dist; minIdx = i; }
+      });
+      current = remaining.splice(minIdx, 1)[0];
+      result.push(current);
+    }
+    return result;
+  }
+
+  /** Abre rota no Google Maps com todas as escolas pendentes ordenadas por proximidade */
   const openRoute = () => {
-    const pendentes = escolasComCoordenadas.filter((e: Escola) => e.status !== "concluido");
-    if (pendentes.length === 0) {
+    const pendentesRaw = escolasComCoordenadas.filter((e: Escola) => e.status !== "concluido");
+    if (pendentesRaw.length === 0) {
       alert("Nenhuma escola pendente com coordenadas para roteirizar.");
       return;
     }
+    // Ordena por proximidade (nearest neighbor)
+    const pendentes = sortByProximity(pendentesRaw);
     if (pendentes.length === 1) {
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${pendentes[0].latitude},${pendentes[0].longitude}&travelmode=driving`,
@@ -163,16 +190,12 @@ export default function TecnicoMapa() {
       );
       return;
     }
-    // Monta URL com origem, waypoints e destino
-    const origin = `${pendentes[0].latitude},${pendentes[0].longitude}`;
-    const dest = `${pendentes[pendentes.length - 1].latitude},${pendentes[pendentes.length - 1].longitude}`;
-    const waypoints = pendentes
-      .slice(1, -1)
-      .map((e: Escola) => `${e.latitude},${e.longitude}`)
-      .join("|");
-    const url = waypoints
-      ? `https://www.google.com/maps/dir/${origin}/${waypoints}/${dest}`
-      : `https://www.google.com/maps/dir/${origin}/${dest}`;
+    // Google Maps aceita até 10 waypoints na URL
+    // Usa formato /dir/lat,lng/lat,lng/... para máxima compatibilidade
+    const pontos = pendentes.map((e: Escola) => `${parseFloat(e.latitude!).toFixed(6)},${parseFloat(e.longitude!).toFixed(6)}`);
+    // Limita a 10 pontos (1 origem + 8 waypoints + 1 destino)
+    const limitados = pontos.slice(0, 10);
+    const url = `https://www.google.com/maps/dir/${limitados.join("/")}`;
     window.open(url, "_blank");
   };
 
@@ -355,28 +378,54 @@ export default function TecnicoMapa() {
           style={{ color: "rgba(148,163,184,0.5)" }}>
           Todas as escolas ({escolas.length})
         </h3>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {escolas.map((escola: Escola) => (
             <button
               key={escola.id}
               onClick={() => focusEscola(escola)}
-              className="w-full flex items-center gap-3 py-2.5 px-3 rounded-xl text-left transition-all"
+              className="w-full flex items-start gap-3 py-3 px-3 rounded-xl text-left transition-all"
               style={{
-                background: selectedEscola?.id === escola.id ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.03)",
-                border: `1px solid ${selectedEscola?.id === escola.id ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.05)"}`,
+                background: selectedEscola?.id === escola.id ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
+                border: `1px solid ${selectedEscola?.id === escola.id ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.07)"}`,
               }}
             >
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: getStatusColor(escola.status) }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-xs font-semibold truncate">{escola.nome}</p>
-                <p className="text-xs truncate" style={{ color: "rgba(148,163,184,0.5)" }}>
-                  {escola.inep}{escola.municipio ? ` · ${escola.municipio}` : ""}
-                  {!escola.latitude && " · Sem GPS"}
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: getStatusColor(escola.status) }} />
+              <div className="flex-1">
+                {/* Nome completo — sem truncar */}
+                <p className="text-white text-xs font-bold leading-snug">{escola.nome}</p>
+                {/* INEP em destaque */}
+                <p className="text-xs font-mono mt-0.5" style={{ color: "#3b82f6" }}>
+                  INEP: {escola.inep}
                 </p>
+                {/* Cidade */}
+                {escola.municipio && (
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.6)" }}>
+                    📍 {escola.municipio}
+                  </p>
+                )}
+                {/* Endereço completo — sem truncar */}
+                {escola.endereco && (
+                  <p className="text-xs mt-0.5 leading-snug" style={{ color: "rgba(148,163,184,0.5)" }}>
+                    {escola.endereco}
+                  </p>
+                )}
+                {!escola.latitude && (
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(239,68,68,0.6)" }}>Sem GPS</p>
+                )}
               </div>
-              <span className="text-xs flex-shrink-0 font-medium" style={{ color: getStatusColor(escola.status) }}>
-                {escola.qtdAp || 1} AP
-              </span>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span className="text-xs font-bold" style={{ color: getStatusColor(escola.status) }}>
+                  {escola.qtdAp || 1} AP
+                </span>
+                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{
+                  background: `${getStatusColor(escola.status)}20`,
+                  color: getStatusColor(escola.status),
+                  fontSize: "9px",
+                  fontWeight: 600,
+                }}>
+                  {getStatusLabel(escola.status)}
+                </span>
+              </div>
             </button>
           ))}
         </div>
