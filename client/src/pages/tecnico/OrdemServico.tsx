@@ -54,6 +54,7 @@ export default function TecnicoOS() {
   const [fotoMime, setFotoMime] = useState("image/jpeg");
   const [uploadingFoto, setUploadingFoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Formulário de não instalada
   const [motivo, setMotivo] = useState<"escola_desativada" | "em_reforma" | "mudanca_endereco">("escola_desativada");
@@ -497,8 +498,17 @@ export default function TecnicoOS() {
                   <Camera className="w-3.5 h-3.5 inline mr-1" />
                   Foto do Mapa de Calor (opcional)
                 </label>
+                {/* Input galeria (sem capture) */}
                 <input
                   ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFotoChange}
+                />
+                {/* Input câmera (com capture) */}
+                <input
+                  ref={cameraInputRef}
                   type="file"
                   accept="image/*"
                   capture="environment"
@@ -510,7 +520,12 @@ export default function TecnicoOS() {
                     style={{ border: "1.5px solid rgba(16,185,129,0.3)" }}>
                     <img src={fotoPreview} alt="Mapa de calor" className="w-full max-h-48 object-cover" />
                     <button
-                      onClick={() => { setFotoPreview(null); setFotoBase64(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      onClick={() => {
+                        setFotoPreview(null);
+                        setFotoBase64(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                        if (cameraInputRef.current) cameraInputRef.current.value = "";
+                      }}
                       className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
                       style={{ background: "rgba(0,0,0,0.6)" }}>
                       <X className="w-4 h-4 text-white" />
@@ -521,14 +536,23 @@ export default function TecnicoOS() {
                     </div>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-4 rounded-xl flex flex-col items-center gap-2 transition-all active:scale-98"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(255,255,255,0.15)" }}>
-                    <Upload className="w-6 h-6" style={{ color: "rgba(148,163,184,0.5)" }} />
-                    <span className="text-sm" style={{ color: "rgba(148,163,184,0.6)" }}>Tirar foto ou selecionar da galeria</span>
-                    <span className="text-xs" style={{ color: "rgba(148,163,184,0.35)" }}>Máximo 5MB · JPG, PNG</span>
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="py-4 rounded-xl flex flex-col items-center gap-2 transition-all active:scale-98"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(255,255,255,0.15)" }}>
+                      <Camera className="w-6 h-6" style={{ color: "rgba(148,163,184,0.5)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "rgba(148,163,184,0.7)" }}>Câmera</span>
+                    </button>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="py-4 rounded-xl flex flex-col items-center gap-2 transition-all active:scale-98"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(255,255,255,0.15)" }}>
+                      <Upload className="w-6 h-6" style={{ color: "rgba(148,163,184,0.5)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "rgba(148,163,184,0.7)" }}>Galeria</span>
+                    </button>
+                    <p className="col-span-2 text-center text-xs" style={{ color: "rgba(148,163,184,0.35)" }}>Máximo 5MB · JPG, PNG</p>
+                  </div>
                 )}
               </div>
             </div>

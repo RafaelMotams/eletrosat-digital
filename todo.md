@@ -184,3 +184,9 @@
 - [x] Painel admin: escolas não instaladas aparecem em vermelho na lista de escolas
 - [x] Atribuição Manual: filtro por cidade
 - [x] CSV OS concluídas: colunas na ordem correta (Escola, INEP, APs instalados, Município, Técnico, Data, Observação)
+
+## Bug - Upload Foto Mapa de Calor
+- [x] Corrigir upload de foto do mapa de calor na OS do técnico (câmera e galeria não funcionam)
+  - Removido capture="environment" do input principal
+  - Adicionados dois inputs separados: Câmera (com capture) e Galeria (sem capture)
+  - Dois botões visuais no modal de conclusão
