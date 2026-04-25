@@ -95,3 +95,6 @@
 - [x] App técnico Home: cards de OS com status visual, barra de progresso
 - [x] App técnico OS: botões WhatsApp verde e Maps azul com ícones grandes
 - [x] Landing page: hero section redesenhada com glassmorphism
+
+## Bugs - Atribuição
+- [x] Corrigir NotFoundError: removeChild na página de Atribuições ao atribuir técnico
