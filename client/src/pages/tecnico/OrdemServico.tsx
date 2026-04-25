@@ -1,11 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
-  MessageCircle, Navigation, Hash, Building2, Signal
+  MessageCircle, Navigation, Hash, Building2, Signal, WifiOff, Clock
 } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import {
+  enqueueOfflineAction, useOfflineSyncQueue, getOfflineQueue, getCachedEscolas
+} from "@/hooks/useOfflineQueue";
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   pendente:     { label: "Pendente",     bg: "rgba(245,158,11,0.12)",  text: "#f59e0b", dot: "#f59e0b" },
@@ -32,6 +36,8 @@ export default function TecnicoOS() {
   const [openConcluir, setOpenConcluir] = useState(false);
   const [qtdAp, setQtdAp] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [pendingOffline, setPendingOffline] = useState(false);
+  const isOnline = useOnlineStatus();
 
   const utils = trpc.useUtils();
 
@@ -64,9 +70,35 @@ export default function TecnicoOS() {
       toast.success("Instalação marcada como concluída!");
       utils.tecnicoAuth.minhasEscolas.invalidate();
       setOpenConcluir(false);
+      setPendingOffline(false);
     },
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
   });
+
+  // Função de sync: executa ações da fila offline
+  const syncAction = useCallback(async (action: import("@/hooks/useOfflineQueue").OfflineAction) => {
+    if (action.type !== "concluirEscola") return false;
+    const { escolaId: eid, tecnicoId: tid, qtdApInstalado, observacoes } = action.payload;
+    try {
+      await utils.client.tecnicoAuth.concluirEscola.mutate({
+        escolaId: eid, tecnicoId: tid, qtdApInstalado, observacao: observacoes
+      });
+      utils.tecnicoAuth.minhasEscolas.invalidate();
+      toast.success("OS sincronizada com sucesso!");
+      return true;
+    } catch {
+      return false;
+    }
+  }, [utils]);
+
+  useOfflineSyncQueue(syncAction);
+
+  // Verifica se esta OS tem ação pendente na fila offline
+  useEffect(() => {
+    const queue = getOfflineQueue();
+    const hasPending = queue.some(a => a.payload.escolaId === escolaId);
+    setPendingOffline(hasPending);
+  }, [escolaId]);
 
   const lat = escola?.latitude ? parseFloat(escola.latitude) : null;
   const lng = escola?.longitude ? parseFloat(escola.longitude) : null;
@@ -114,6 +146,21 @@ export default function TecnicoOS() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#0a0f1e" }}>
+      {/* Banner offline */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 px-4 py-2 text-xs font-semibold"
+          style={{ background: "rgba(245,158,11,0.15)", borderBottom: "1px solid rgba(245,158,11,0.3)" }}>
+          <WifiOff className="w-3.5 h-3.5" style={{ color: "#f59e0b" }} />
+          <span style={{ color: "#f59e0b" }}>Sem internet — você pode finalizar a OS offline</span>
+        </div>
+      )}
+      {pendingOffline && isOnline && (
+        <div className="flex items-center gap-2 px-4 py-2 text-xs font-semibold"
+          style={{ background: "rgba(59,130,246,0.15)", borderBottom: "1px solid rgba(59,130,246,0.3)" }}>
+          <Clock className="w-3.5 h-3.5" style={{ color: "#3b82f6" }} />
+          <span style={{ color: "#3b82f6" }}>Sincronizando OS salva offline...</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-safe pt-4 pb-4 sticky top-0 z-10"
         style={{ background: "rgba(10,15,30,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -393,15 +440,35 @@ export default function TecnicoOS() {
                     toast.error("Informe a quantidade de APs instalados");
                     return;
                   }
+                  if (!isOnline) {
+                    // MODO OFFLINE: salva na fila local
+                    enqueueOfflineAction({
+                      type: "concluirEscola",
+                      payload: {
+                        escolaId,
+                        tecnicoId,
+                        qtdApInstalado: n,
+                        observacoes: observacao || undefined,
+                        dataHora: new Date().toISOString(),
+                      },
+                    });
+                    setPendingOffline(true);
+                    setOpenConcluir(false);
+                    toast.success("OS salva localmente! Será enviada ao servidor quando você tiver internet.", { duration: 5000 });
+                    return;
+                  }
+                  // MODO ONLINE: envia diretamente
                   concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
                 }}
                 disabled={concluirMut.isPending}
                 className="flex-1 py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}>
+                style={{ background: isOnline ? "linear-gradient(135deg, #059669, #10b981)" : "linear-gradient(135deg, #d97706, #f59e0b)" }}>
                 {concluirMut.isPending ? (
                   <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Salvando...</>
-                ) : (
+                ) : isOnline ? (
                   <><CheckCircle className="w-4 h-4" /> Confirmar</>
+                ) : (
+                  <><WifiOff className="w-4 h-4" /> Salvar Offline</>
                 )}
               </button>
             </div>

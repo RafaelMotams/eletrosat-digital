@@ -3,9 +3,11 @@ import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import {
   Wifi, MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
-  Search, Zap, RefreshCw, Phone, Hash, Building2
+  Search, Zap, RefreshCw, Phone, Hash, Building2, WifiOff
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { cacheEscolas, getCachedEscolas } from "@/hooks/useOfflineQueue";
 
 type Escola = {
   id: number;
@@ -63,6 +65,8 @@ export default function TecnicoHome() {
   const [tecnicoId, setTecnicoId] = useState(0);
   const [tecnicoNome, setTecnicoNome] = useState("Técnico");
   const [search, setSearch] = useState("");
+  const [offlineEscolas, setOfflineEscolas] = useState<unknown[] | null>(null);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     const id = localStorage.getItem("tecnico_id");
@@ -84,10 +88,31 @@ export default function TecnicoHome() {
     }
   }, [navigate]);
 
-  const { data: escolas, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+  const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId, refetchInterval: 30000 }
+    {
+      enabled: !!tecnicoId && isOnline,
+      refetchInterval: isOnline ? 30000 : false,
+      staleTime: 5 * 60 * 1000,
+    }
   );
+
+  // Salva cache quando receber dados online
+  useEffect(() => {
+    if (escolasOnline && tecnicoId) {
+      cacheEscolas(tecnicoId, escolasOnline);
+    }
+  }, [escolasOnline, tecnicoId]);
+
+  // Carrega cache offline quando sem internet
+  useEffect(() => {
+    if (!isOnline && tecnicoId && !escolasOnline) {
+      const cached = getCachedEscolas(tecnicoId);
+      if (cached) setOfflineEscolas(cached);
+    }
+  }, [isOnline, tecnicoId, escolasOnline]);
+
+  const escolas = (escolasOnline ?? offlineEscolas ?? []) as typeof escolasOnline;
 
   // Algoritmo nearest-neighbor: ordena escolas por proximidade GPS
   function sortByRoute(list: typeof escolas) {
@@ -144,6 +169,14 @@ export default function TecnicoHome() {
 
   return (
     <div className="min-h-screen flex flex-col pb-24" style={{ background: "#0a0f1e" }}>
+      {/* Banner offline */}
+      {!isOnline && (
+        <div className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold"
+          style={{ background: "rgba(245,158,11,0.15)", borderBottom: "1px solid rgba(245,158,11,0.3)" }}>
+          <WifiOff className="w-3.5 h-3.5" style={{ color: "#f59e0b" }} />
+          <span style={{ color: "#f59e0b" }}>Modo offline — exibindo dados salvos</span>
+        </div>
+      )}
       {/* Header */}
       <header className="px-4 pt-safe pt-5 pb-4 sticky top-0 z-10"
         style={{ background: "rgba(10,15,30,0.97)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

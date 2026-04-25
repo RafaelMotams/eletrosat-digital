@@ -40,7 +40,7 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
-// ─── TÉCNICOS ROUTER ──────────────────────────────────────────────────────────
+// === TÉCNICOS ROUTER ===
 const tecnicosRouter = router({
   list: adminProcedure.query(async () => {
     return listTecnicos();
@@ -100,7 +100,7 @@ const tecnicosRouter = router({
   }),
 });
 
-// ─── ESCOLAS ROUTER ───────────────────────────────────────────────────────────
+// === ESCOLAS ROUTER ===
 const escolasRouter = router({
   list: protectedProcedure
     .input(
@@ -205,7 +205,7 @@ const escolasRouter = router({
     }),
 });
 
-// ─── ATRIBUIÇÕES ROUTER ───────────────────────────────────────────────────────
+// === ATRIBUIÇÕES ROUTER ===
 const atribuicoesRouter = router({
   porEscola: adminProcedure
     .input(z.object({ escolaId: z.number(), tecnicoId: z.number().nullable() }))
@@ -224,7 +224,7 @@ const atribuicoesRouter = router({
     }),
 });
 
-// ─── ORDENS DE SERVIÇO ROUTER ─────────────────────────────────────────────────
+// === ORDENS DE SERVIÇO ROUTER ===
 const ordensRouter = router({
   list: protectedProcedure
     .input(
@@ -333,7 +333,7 @@ const ordensRouter = router({
     }),
 });
 
-// ─── DASHBOARD ROUTER ─────────────────────────────────────────────────────────
+// === DASHBOARD ROUTER ===
 const dashboardRouter = router({
   stats: publicProcedure.query(async () => {
     return getDashboardStats();
@@ -343,7 +343,7 @@ const dashboardRouter = router({
     return getProdutividadePorTecnico();
   }),
 });
-// ─── RELATÓRIOS ROUTER ────────────────────────────────────────────────────────────────────────────────────
+// === RELATÓRIOS ROUTER ===
 const relatoriosRouter = router({
   // Público para funcionar sem login OAuth no painel admin
   tecnico: publicProcedure
@@ -363,14 +363,14 @@ const relatoriosRouter = router({
   }),
 });
 
-// ─── PLANILHA ROUTER ──────────────────────────────────────────────────────────
+// === PLANILHA ROUTER ===
 const planilhaRouter = router({
   listar: adminProcedure.query(async () => {
     return listEscolas();
   }),
 });
 
-// ─── AUTH DO TÉCNICO (login por email/senha) ──────────────────────────────────
+// === AUTH DO TÉCNICO (login por email/senha) ===
 const tecnicoAuthRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string().email(), senha: z.string() }))
@@ -501,7 +501,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 });
 
-// ─── APP ROUTER ───────────────────────────────────────────────────────────────
+// === APP ROUTER ===
 export const appRouter = router({
   system: systemRouter,
   auth: router({

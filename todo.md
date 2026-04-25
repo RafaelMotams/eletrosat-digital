@@ -154,3 +154,10 @@
 - [x] Endereço completo sem truncar na OS (tela de detalhe)
 - [x] Endereço completo sem truncar na Home do técnico (lista de escolas)
 - [x] Ordenar escolas por rota (proximidade GPS nearest-neighbor) na Home do técnico
+
+## Suporte Offline App Técnico
+- [ ] Service Worker: cache de assets (HTML, JS, CSS) para funcionar sem internet
+- [ ] Cache local de escolas no localStorage ao carregar online
+- [ ] Home, Mapa e OS usam cache quando offline
+- [ ] Indicador visual de status offline no app
+- [ ] Fila de ações offline (concluir OS) sincroniza quando voltar online
