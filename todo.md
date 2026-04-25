@@ -121,9 +121,9 @@
 - [x] Importação: preview agora mostra coluna Telefone
 
 ## Correções v4
-- [ ] Mapa técnico: popup com endereço, cidade, INEP, nome completo + botão de rota funcional
-- [ ] Mapa técnico: botão Rota abre Google Maps com navegação GPS até a escola selecionada
-- [ ] Home técnico: lista de escolas com nome, INEP, endereço e cidade visíveis
-- [ ] WhatsApp: quando telefone ausente, mostrar link de busca Google pelo INEP da escola
-- [ ] Dashboard admin: contadores reais (total escolas, concluídas, APs instalados)
+- [x] Mapa técnico: popup com endereço, cidade, INEP, nome completo + botão de rota funcional
+- [x] Mapa técnico: botão Rota abre Google Maps com navegação GPS até a escola selecionada
+- [x] Home técnico: lista de escolas com nome, INEP, endereço e cidade visíveis
+- [x] WhatsApp: botão 'Buscar Tel. (IA)' chama LLM que busca e salva telefone automaticamente
+- [x] Dashboard admin: contadores reais (total escolas, concluídas, APs planejados vs instalados)
 - [x] Busca automática de telefone por INEP via IA (LLM + web search), salva no banco e exibe WhatsApp

@@ -286,14 +286,14 @@ export async function getDashboardStats() {
     .from(ordensServico)
     .where(eq(ordensServico.status, "concluida"));
 
-  // Total de APs planejados (soma de qtd_ap de todas as escolas)
+  // Total de APs planejados (soma de qtdAp de todas as escolas)
   const [totalApsPlanejados] = await db
-    .select({ total: sql<number>`COALESCE(SUM(qtd_ap), 0)` })
+    .select({ total: sql<number>`COALESCE(SUM(${escolas.qtdAp}), 0)` })
     .from(escolas);
 
   // Total de APs de escolas já concluídas
   const [totalApsConcluidos] = await db
-    .select({ total: sql<number>`COALESCE(SUM(qtd_ap), 0)` })
+    .select({ total: sql<number>`COALESCE(SUM(${escolas.qtdAp}), 0)` })
     .from(escolas)
     .where(eq(escolas.status, "concluido"));
 
