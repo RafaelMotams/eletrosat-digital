@@ -1,7 +1,6 @@
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Trophy, BarChart3, School, Wifi, TrendingUp, Calendar } from "lucide-react";
@@ -34,7 +33,7 @@ export default function AdminRelatorios() {
   const { data: ranking } = trpc.relatorios.ranking.useQuery();
 
   const [tecnicoSel, setTecnicoSel] = useState("");
-  const [periodo, setPeriodo] = useState("geral");  // Padrão: Geral (sem filtro de data)
+  const [periodo, setPeriodo] = useState("geral");
   const [dataInicio, setDataInicio] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -42,13 +41,13 @@ export default function AdminRelatorios() {
   });
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split("T")[0]);
 
-  // ✅ Estabilizar as datas com useMemo para evitar novas referências a cada render
+  // Estabilizar as datas com useMemo para evitar novas referências a cada render
   const dates = useMemo(() => {
     if (periodo === "geral") return { inicio: null, fim: null };
     return getDateRange(periodo, dataInicio, dataFim);
   }, [periodo, dataInicio, dataFim]);
 
-  // ✅ Estabilizar o tecnicoId como número
+  // Estabilizar o tecnicoId como número
   const tecnicoId = useMemo(() => (tecnicoSel ? Number(tecnicoSel) : 0), [tecnicoSel]);
 
   const { data: relatorio, isLoading } = trpc.relatorios.tecnico.useQuery(
@@ -59,7 +58,7 @@ export default function AdminRelatorios() {
   return (
     <AdminLayout title="Relatórios">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Filtros */}
+        {/* Filtros — usando <select> nativo para evitar bug removeChild do Radix UI */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -70,38 +69,37 @@ export default function AdminRelatorios() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Técnico</label>
-              <Select value={tecnicoSel} onValueChange={setTecnicoSel}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o técnico" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tecnicos?.map(t => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={tecnicoSel}
+                onChange={e => setTecnicoSel(e.target.value)}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Selecione o técnico</option>
+                {tecnicos?.map(t => (
+                  <option key={t.id} value={String(t.id)}>
+                    {t.nome}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Período</label>
-              <Select value={periodo} onValueChange={setPeriodo}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="geral">Geral (todo período)</SelectItem>
-                  <SelectItem value="dia">Hoje</SelectItem>
-                  <SelectItem value="semana">Última semana</SelectItem>
-                  <SelectItem value="mes">Este mês</SelectItem>
-                  <SelectItem value="custom">Personalizado</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={periodo}
+                onChange={e => setPeriodo(e.target.value)}
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="geral">Geral (todo período)</option>
+                <option value="dia">Hoje</option>
+                <option value="semana">Última semana</option>
+                <option value="mes">Este mês</option>
+                <option value="custom">Personalizado</option>
+              </select>
             </div>
             {periodo === "custom" && (
               <>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+                  <label className="text-sm font-medium mb-1.5 flex items-center gap-1 block">
                     <Calendar className="w-3.5 h-3.5" /> Data início
                   </label>
                   <Input
@@ -111,7 +109,7 @@ export default function AdminRelatorios() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+                  <label className="text-sm font-medium mb-1.5 flex items-center gap-1 block">
                     <Calendar className="w-3.5 h-3.5" /> Data fim
                   </label>
                   <Input
@@ -172,15 +170,11 @@ export default function AdminRelatorios() {
 
                 {relatorio.totalEscolas > 0 && (
                   <div className="rounded-xl border bg-muted/30 p-3">
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">Progresso do período</p>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full transition-all"
-                        style={{ width: `${Math.min(100, (relatorio.totalEscolas / Math.max(1, relatorio.totalEscolas)) * 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1.5">
-                      {relatorio.totalEscolas} escola{relatorio.totalEscolas !== 1 ? "s" : ""} concluída{relatorio.totalEscolas !== 1 ? "s" : ""} · {relatorio.totalAps} AP{relatorio.totalAps !== 1 ? "s" : ""} instalado{relatorio.totalAps !== 1 ? "s" : ""}
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">Resumo</p>
+                    <p className="text-sm text-foreground">
+                      <span className="font-semibold text-primary">{relatorio.totalEscolas}</span> escola{relatorio.totalEscolas !== 1 ? "s" : ""} concluída{relatorio.totalEscolas !== 1 ? "s" : ""} ·{" "}
+                      <span className="font-semibold text-green-600">{relatorio.totalAps}</span> AP{relatorio.totalAps !== 1 ? "s" : ""} instalado{relatorio.totalAps !== 1 ? "s" : ""} ·{" "}
+                      <span className="font-semibold text-yellow-600">{relatorio.mediaPorDia}</span> escola{relatorio.mediaPorDia !== 1 ? "s" : ""}/dia
                     </p>
                   </div>
                 )}
@@ -214,9 +208,9 @@ export default function AdminRelatorios() {
                     tick={{ fontSize: 11 }}
                     tickFormatter={(v: string) => v.split(" ")[0]}
                   />
-                  <YAxis tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} label={{ value: "Escolas", angle: -90, position: "insideLeft", offset: 20, style: { fontSize: 10 } }} />
                   <Tooltip
-                    formatter={(v: number, n: string) => [v, n === "totalEscolas" ? "Escolas" : "APs"]}
+                    formatter={(v: number, n: string) => [v, n === "totalEscolas" ? "Escolas concluídas" : "APs instalados"]}
                   />
                   <Bar dataKey="totalEscolas" fill="#1e3a5f" name="totalEscolas" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="totalAps" fill="#22c55e" name="totalAps" radius={[4, 4, 0, 0]} />
@@ -237,7 +231,7 @@ export default function AdminRelatorios() {
                       {i + 1}
                     </div>
                     <p className="flex-1 font-medium text-sm">{t.tecnicoNome}</p>
-                    <span className="text-sm text-muted-foreground">{t.totalEscolas} escola{t.totalEscolas !== 1 ? "s" : ""}</span>
+                    <span className="text-sm text-muted-foreground">{t.totalEscolas} escola{t.totalEscolas !== 1 ? "s" : ""} concluída{t.totalEscolas !== 1 ? "s" : ""}</span>
                     <span className="text-sm text-green-600 font-semibold">{t.totalAps} APs</span>
                   </div>
                 ))}
