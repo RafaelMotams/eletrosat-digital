@@ -127,3 +127,16 @@
 - [x] WhatsApp: botão 'Buscar Tel. (IA)' chama LLM que busca e salva telefone automaticamente
 - [x] Dashboard admin: contadores reais (total escolas, concluídas, APs planejados vs instalados)
 - [x] Busca automática de telefone por INEP via IA (LLM + web search), salva no banco e exibe WhatsApp
+
+## Correções v5
+- [ ] WhatsApp: link direto do banco (telefone/telefoneWhatsApp), sem IA, botão sempre visível
+- [ ] Endereço completo no app (sem truncar)
+- [ ] Mapa: popup com INEP, nome, endereço, cidade completos + roteamento por coordenadas GPS
+- [ ] Mapa "Todas Escolas": mostrar INEP, nome, endereço completo em cada item da lista
+- [ ] Dashboard admin: resultado técnico com dados reais (OS concluídas, APs instalados, média/dia)
+- [ ] Sync automático no painel admin (refetch a cada 30s quando online)
+- [ ] Roteamento Google Maps por coordenadas (lat/lng) em vez de endereço texto
+
+## Funcionalidade - Apagar Escolas por Cidade
+- [x] Backend: endpoint escolas.deletarPorCidade (adminProcedure) com confirmação
+- [x] Frontend: botão "Apagar por Cidade" na página Escolas com modal de seleção de cidade e confirmação

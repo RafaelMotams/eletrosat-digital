@@ -13,6 +13,7 @@ import {
   createOrdemServico,
   createTecnico,
   deleteTecnico,
+  deleteEscolasPorCidade,
   getDashboardStats,
   getEscolaById,
   getEscolaByInep,
@@ -22,6 +23,7 @@ import {
   getTecnicoByEmail,
   getTecnicoById,
   listEscolas,
+  listMunicipios,
   listOrdensServico,
   listTecnicos,
   setAtribuicaoManual,
@@ -189,6 +191,17 @@ const escolasRouter = router({
         importadas++;
       }
       return { success: true, importadas };
+    }),
+
+  listMunicipios: adminProcedure.query(async () => {
+    return listMunicipios();
+  }),
+
+  deletarPorCidade: adminProcedure
+    .input(z.object({ municipio: z.string() }))
+    .mutation(async ({ input }) => {
+      const total = await deleteEscolasPorCidade(input.municipio);
+      return { success: true, total };
     }),
 });
 

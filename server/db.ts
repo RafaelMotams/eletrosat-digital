@@ -356,3 +356,39 @@ export async function getRelatorioTecnico(tecnicoId: number, dataInicio: Date, d
 
   return { totalEscolas, totalAps, mediaPorDia: Math.round(mediaPorDia * 100) / 100 };
 }
+
+/** Lista todos os municípios distintos das escolas */
+export async function listMunicipios(): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .selectDistinct({ municipio: escolas.municipio })
+    .from(escolas)
+    .orderBy(escolas.municipio);
+  return rows.map(r => r.municipio).filter(Boolean) as string[];
+}
+
+/** Apaga todas as escolas de um município (e suas OS/atribuições associadas) */
+export async function deleteEscolasPorCidade(municipio: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  // Buscar IDs das escolas do município
+  const escolasList = await db
+    .select({ id: escolas.id })
+    .from(escolas)
+    .where(eq(escolas.municipio, municipio));
+
+  if (escolasList.length === 0) return 0;
+
+  const ids = escolasList.map(e => e.id);
+
+  // Apagar OS vinculadas
+  for (const id of ids) {
+    await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
+    await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
+    await db.delete(escolas).where(eq(escolas.id, id));
+  }
+
+  return ids.length;
+}

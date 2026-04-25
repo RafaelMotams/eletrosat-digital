@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState, useRef, useEffect } from "react";
-import { Upload, School, MapPin, Wifi, Search, FileSpreadsheet, Hash, Zap, Phone, CheckCircle, X } from "lucide-react";
+import { Upload, School, MapPin, Wifi, Search, FileSpreadsheet, Hash, Zap, Phone, CheckCircle, X, Trash2, AlertTriangle } from "lucide-react";
 import ImportacaoPlanilha from "@/components/ImportacaoPlanilha";
 import { toast } from "sonner";
 
@@ -27,6 +27,24 @@ export default function AdminEscolas() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [deleteCidadeOpen, setDeleteCidadeOpen] = useState(false);
+  const [cidadeSelecionada, setCidadeSelecionada] = useState("");
+  const [confirmText, setConfirmText] = useState("");
+
+  const { data: municipios } = trpc.escolas.listMunicipios.useQuery();
+
+  const deletarPorCidadeMut = trpc.escolas.deletarPorCidade.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.total} escola(s) de ${cidadeSelecionada} removidas com sucesso!`);
+      refetch();
+      setDeleteCidadeOpen(false);
+      setCidadeSelecionada("");
+      setConfirmText("");
+    },
+    onError: (err) => {
+      toast.error("Erro ao apagar escolas: " + err.message);
+    },
+  });
 
   // Auto-preenchimento por INEP
   const [inepBusca, setInepBusca] = useState("");
@@ -193,6 +211,15 @@ export default function AdminEscolas() {
           {filtered.length} escola(s)
           {escolas && escolas.length !== filtered.length && ` de ${escolas.length} total`}
         </p>
+        <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+          onClick={() => setDeleteCidadeOpen(true)}
+        >
+          <Trash2 className="w-4 h-4" />
+          Apagar por Cidade
+        </Button>
         <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -218,7 +245,81 @@ export default function AdminEscolas() {
             />
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Modal de apagar por cidade */}
+      {deleteCidadeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={e => { if (e.target === e.currentTarget) { setDeleteCidadeOpen(false); setConfirmText(""); } }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-foreground">Apagar Escolas por Cidade</h2>
+                <p className="text-sm text-muted-foreground">Esta ação é irreversível</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Selecionar Cidade</label>
+              <select
+                className="w-full border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-red-400"
+                value={cidadeSelecionada}
+                onChange={e => setCidadeSelecionada(e.target.value)}
+              >
+                <option value="">-- Escolha uma cidade --</option>
+                {municipios?.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            {cidadeSelecionada && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-sm text-red-700">
+                  Serão apagadas <strong>todas as escolas</strong> de <strong>{cidadeSelecionada}</strong>,
+                  incluindo ordens de serviço e atribuições vinculadas.
+                </p>
+                <p className="text-sm text-red-700 mt-2 font-medium">
+                  Para confirmar, digite: <code className="bg-red-100 px-1 rounded">APAGAR</code>
+                </p>
+                <input
+                  type="text"
+                  placeholder="Digite APAGAR para confirmar"
+                  value={confirmText}
+                  onChange={e => setConfirmText(e.target.value)}
+                  className="w-full mt-2 border border-red-300 rounded-lg px-3 py-2 text-sm bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => { setDeleteCidadeOpen(false); setConfirmText(""); setCidadeSelecionada(""); }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2"
+                disabled={!cidadeSelecionada || confirmText !== "APAGAR" || deletarPorCidadeMut.isPending}
+                onClick={() => deletarPorCidadeMut.mutate({ municipio: cidadeSelecionada })}
+              >
+                {deletarPorCidadeMut.isPending ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Apagando...</>
+                ) : (
+                  <><Trash2 className="w-4 h-4" /> Apagar Cidade</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
