@@ -34,7 +34,7 @@ export default function AdminRelatorios() {
   const { data: ranking } = trpc.relatorios.ranking.useQuery();
 
   const [tecnicoSel, setTecnicoSel] = useState("");
-  const [periodo, setPeriodo] = useState("mes");
+  const [periodo, setPeriodo] = useState("geral");  // Padrão: Geral (sem filtro de data)
   const [dataInicio, setDataInicio] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -43,10 +43,10 @@ export default function AdminRelatorios() {
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split("T")[0]);
 
   // ✅ Estabilizar as datas com useMemo para evitar novas referências a cada render
-  const dates = useMemo(
-    () => getDateRange(periodo, dataInicio, dataFim),
-    [periodo, dataInicio, dataFim]
-  );
+  const dates = useMemo(() => {
+    if (periodo === "geral") return { inicio: null, fim: null };
+    return getDateRange(periodo, dataInicio, dataFim);
+  }, [periodo, dataInicio, dataFim]);
 
   // ✅ Estabilizar o tecnicoId como número
   const tecnicoId = useMemo(() => (tecnicoSel ? Number(tecnicoSel) : 0), [tecnicoSel]);
@@ -90,6 +90,7 @@ export default function AdminRelatorios() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="geral">Geral (todo período)</SelectItem>
                   <SelectItem value="dia">Hoje</SelectItem>
                   <SelectItem value="semana">Última semana</SelectItem>
                   <SelectItem value="mes">Este mês</SelectItem>

@@ -333,28 +333,58 @@ export async function getProdutividadePorTecnico() {
   }));
 }
 
-export async function getRelatorioTecnico(tecnicoId: number, dataInicio: Date, dataFim: Date) {
+export async function getRelatorioTecnico(
+  tecnicoId: number,
+  dataInicio: Date | null,
+  dataFim: Date | null
+) {
   const db = await getDb();
   if (!db) return null;
+
+  // Filtro de data: usa dataConclusao se preenchido, caso contrário usa createdAt
+  // Se dataInicio/dataFim forem nulos, retorna todos os registros (período "Geral")
+  const conditions: ReturnType<typeof eq>[] = [
+    eq(ordensServico.tecnicoId, tecnicoId),
+    eq(ordensServico.status, "concluida"),
+  ];
+
+  if (dataInicio && dataFim) {
+    // Usa COALESCE(dataConclusao, createdAt) para garantir que OS sem dataConclusao também sejam encontradas
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) >= ${dataInicio}` as any
+    );
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) <= ${dataFim}` as any
+    );
+  }
 
   const oss = await db
     .select()
     .from(ordensServico)
-    .where(
-      and(
-        eq(ordensServico.tecnicoId, tecnicoId),
-        eq(ordensServico.status, "concluida"),
-        gte(ordensServico.dataConclusao, dataInicio),
-        lte(ordensServico.dataConclusao, dataFim)
-      )
-    );
+    .where(and(...conditions));
 
   const totalEscolas = oss.length;
   const totalAps = oss.reduce((acc, o) => acc + (o.qtdApInstalado ?? 0), 0);
-  const dias = Math.max(1, Math.ceil((dataFim.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)));
-  const mediaPorDia = totalEscolas / dias;
 
-  return { totalEscolas, totalAps, mediaPorDia: Math.round(mediaPorDia * 100) / 100 };
+  let mediaPorDia = 0;
+  if (dataInicio && dataFim) {
+    const dias = Math.max(1, Math.ceil((dataFim.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24)));
+    mediaPorDia = Math.round((totalEscolas / dias) * 100) / 100;
+  } else if (totalEscolas > 0 && oss.length > 0) {
+    // Calcular média com base na primeira e última OS
+    const datas = oss
+      .map(o => (o.dataConclusao ?? o.createdAt)?.getTime() ?? 0)
+      .filter(d => d > 0)
+      .sort();
+    if (datas.length >= 2) {
+      const diasTotal = Math.max(1, Math.ceil((datas[datas.length - 1] - datas[0]) / (1000 * 60 * 60 * 24)));
+      mediaPorDia = Math.round((totalEscolas / diasTotal) * 100) / 100;
+    } else {
+      mediaPorDia = totalEscolas;
+    }
+  }
+
+  return { totalEscolas, totalAps, mediaPorDia };
 }
 
 /** Lista todos os municípios distintos das escolas */
