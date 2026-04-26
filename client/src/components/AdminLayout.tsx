@@ -50,7 +50,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             <div className="absolute inset-0 rounded-2xl animate-ping opacity-20" style={{ background: "oklch(0.50 0.18 162)" }} />
           </div>
           <div className="flex flex-col items-center gap-2">
-            <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-display)" }}>Nestdrion</p>
+            <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-display)" }}>Netvionis</p>
             <div className="flex gap-1.5">
               {[0,1,2].map(i => (
                 <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: "oklch(0.50 0.18 162)", animationDelay: `${i * 0.2}s` }} />
@@ -108,7 +108,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             <div className="absolute inset-0 rounded-xl opacity-30" style={{ boxShadow: "0 0 20px oklch(0.50 0.18 162)" }} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-white font-bold text-sm leading-tight" style={{ fontFamily: "var(--font-display)" }}>Nestdrion</p>
+            <p className="text-white font-bold text-sm leading-tight" style={{ fontFamily: "var(--font-display)" }}>Netvionis</p>
             <p className="text-xs mt-0.5" style={{ color: "oklch(0.55 0.06 240)" }}>Gestão inteligente para equipes externas</p>
           </div>
           <button className="lg:hidden p-1 rounded-lg hover:bg-white/10 transition-colors" onClick={() => setSidebarOpen(false)}>

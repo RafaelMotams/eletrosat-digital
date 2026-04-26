@@ -1,6 +1,6 @@
-// Service Worker - Nestdrion
+// Service Worker - Netvionis
 // v3 - Network-first: sempre busca do servidor, usa cache só quando offline
-const CACHE_NAME = 'nestdrion-v3';
+const CACHE_NAME = 'netvionis-v3';
 
 // Assets essenciais para funcionar offline (apenas shell básico)
 const OFFLINE_ASSETS = ['/tecnico'];
@@ -17,7 +17,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    // Remove TODOS os caches antigos (inclusive nestdrion-v1 e nestdrion-v2)
+    // Remove TODOS os caches antigos (inclusive netvionis-v1 e netvionis-v2)
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => {
         console.log('[SW] Removendo cache antigo:', k);

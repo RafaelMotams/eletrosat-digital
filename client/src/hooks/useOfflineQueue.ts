@@ -13,8 +13,8 @@ export type OfflineAction = {
   createdAt: number;
 };
 
-const QUEUE_KEY = "nestdrion_offline_queue";
-const ESCOLAS_CACHE_KEY = "nestdrion_escolas_cache";
+const QUEUE_KEY = "netvionis_offline_queue";
+const ESCOLAS_CACHE_KEY = "netvionis_escolas_cache";
 
 /** Lê a fila do localStorage */
 export function getOfflineQueue(): OfflineAction[] {

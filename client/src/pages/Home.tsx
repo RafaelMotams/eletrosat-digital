@@ -17,7 +17,7 @@ export default function Home() {
             <Wifi className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-xl leading-tight">Nestdrion</h1>
+            <h1 className="text-white font-bold text-xl leading-tight">Netvionis</h1>
             <p className="text-blue-300 text-xs">Gestão inteligente para equipes externas</p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function Home() {
       </main>
 
       <footer className="text-center py-4 text-blue-400/60 text-sm border-t border-white/10">
-        Nestdrion © {new Date().getFullYear()} — Gestão inteligente para equipes externas
+        Netvionis © {new Date().getFullYear()} — Gestão inteligente para equipes externas
       </footer>
     </div>
   );

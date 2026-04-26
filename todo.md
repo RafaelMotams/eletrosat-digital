@@ -202,3 +202,9 @@
 - [x] Atualizar index.html (title, meta description, manifest)
 - [x] Atualizar todos os componentes React com o nome antigo
 - [x] Atualizar chaves de localStorage e nomes de arquivo exportado
+
+## Renomeação para Netvionis
+- [x] Substituir Nestdrion → Netvionis em todos os arquivos do projeto
+- [x] Atualizar index.html (title, meta description, og:title)
+- [x] Atualizar AdminLayout, Home, Login técnico, sw.js, useOfflineQueue
+- [x] Gerar novo APK com nome Netvionis (v5)
