@@ -195,3 +195,10 @@
 - [x] Service Worker atualizado para network-first (sempre busca versão mais recente do servidor)
 - [x] Remove caches antigos automaticamente (v1, v2)
 - [x] APK v5 gerado com SW v3
+
+## Renomeação para Nestdrion
+- [x] Atualizar nome "Eletrosat Digital" → "Nestdrion" em todo o projeto
+- [x] Atualizar slogan → "Gestão inteligente para equipes externas"
+- [x] Atualizar index.html (title, meta description, manifest)
+- [x] Atualizar todos os componentes React com o nome antigo
+- [x] Atualizar chaves de localStorage e nomes de arquivo exportado

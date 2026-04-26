@@ -17,8 +17,8 @@ export default function Home() {
             <Wifi className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-xl leading-tight">Eletrosat Digital</h1>
-            <p className="text-blue-300 text-xs">Sistema de Gestão de Instalações</p>
+            <h1 className="text-white font-bold text-xl leading-tight">Nestdrion</h1>
+            <p className="text-blue-300 text-xs">Gestão inteligente para equipes externas</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -52,7 +52,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
         <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-full px-4 py-1.5 mb-6">
           <CheckCircle className="w-4 h-4 text-green-400" />
-          <span className="text-green-300 text-sm font-medium">Sistema profissional de gestão</span>
+          <span className="text-green-300 text-sm font-medium">Gestão inteligente para equipes externas</span>
         </div>
 
         <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight max-w-3xl">
@@ -114,7 +114,7 @@ export default function Home() {
       </main>
 
       <footer className="text-center py-4 text-blue-400/60 text-sm border-t border-white/10">
-        Eletrosat Digital © {new Date().getFullYear()} — Sistema de Gestão de Instalações de Rede
+        Nestdrion © {new Date().getFullYear()} — Gestão inteligente para equipes externas
       </footer>
     </div>
   );

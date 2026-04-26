@@ -55,7 +55,7 @@ export default function TecnicoLogin() {
           >
             <Wifi className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-white font-bold text-2xl tracking-tight">Eletrosat Digital</h1>
+          <h1 className="text-white font-bold text-2xl tracking-tight">Nestdrion</h1>
           <p className="text-sm mt-1" style={{ color: "rgba(148, 163, 184, 0.8)" }}>
             Área do Técnico de Campo
           </p>

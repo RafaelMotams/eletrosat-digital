@@ -92,7 +92,7 @@ export default function AdminPlanilha() {
     const ws = XLSX.utils.json_to_sheet(getRows());
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Escolas");
-    XLSX.writeFile(wb, `eletrosat-escolas-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `nestdrion-escolas-${new Date().toISOString().slice(0, 10)}.xlsx`);
     toast.success(`${escolasFiltradas.length} registros exportados em Excel!`);
   }
 
@@ -113,7 +113,7 @@ export default function AdminPlanilha() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `eletrosat-escolas-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `nestdrion-escolas-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`${escolasFiltradas.length} registros exportados em CSV!`);
