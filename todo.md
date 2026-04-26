@@ -215,3 +215,13 @@
 - [x] OS técnico: visual elegante com botões coloridos, badges de status, seções bem definidas
 - [x] Histórico: cards premium com badges coloridos por status (verde/roxo/vermelho/amarelo)
 - [x] TecnicoBottomNav: ícones com gradiente colorido no estado ativo (roxo/ciano/verde/dourado)
+
+## Melhorias v10 - Roteirizador e INEP
+- [x] Home técnico: roteirizador nearest-neighbor por GPS (ordenar escolas pela mais próxima sequencialmente)
+- [x] Home técnico: botão "Abrir Rota Completa" que abre Google Maps com todas as escolas pendentes como waypoints
+- [x] Home técnico: botão "Ir até" em cada card para navegar até a escola individualmente
+- [x] Home técnico: botão "Localizar-me" para reordenar rota pela localização atual do técnico
+- [x] Home técnico: INEP em destaque grande com gradiente roxo nos cards de escola
+- [x] Home técnico: numeração de ordem na rota (1, 2, 3...) no avatar do card
+- [x] Importação de planilha: ordenar escolas automaticamente por coordenadas (nearest-neighbor) ao importar
+- [x] Importação: toast confirmando quantas escolas foram ordenadas por GPS

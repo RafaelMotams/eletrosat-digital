@@ -171,15 +171,49 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
     setEtapa("preview");
   };
 
+  // Nearest-neighbor TSP sort by GPS coordinates
+  function sortByRouteCoords<T extends { latitude?: string; longitude?: string }>(list: T[]): T[] {
+    const withCoords = list.filter(e => e.latitude && e.longitude);
+    const withoutCoords = list.filter(e => !e.latitude || !e.longitude);
+    if (withCoords.length === 0) return list;
+    const dist = (a: T, b: T) => {
+      const R = 6371;
+      const lat1 = parseFloat(a.latitude!), lat2 = parseFloat(b.latitude!);
+      const lng1 = parseFloat(a.longitude!), lng2 = parseFloat(b.longitude!);
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const aa = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+    };
+    const sorted: T[] = [];
+    const remaining = [...withCoords];
+    let current = remaining.splice(0, 1)[0];
+    sorted.push(current);
+    while (remaining.length > 0) {
+      let ni = 0, nd = dist(current, remaining[0]);
+      for (let i = 1; i < remaining.length; i++) { const d = dist(current, remaining[i]); if (d < nd) { nd = d; ni = i; } }
+      current = remaining.splice(ni, 1)[0];
+      sorted.push(current);
+    }
+    return [...sorted, ...withoutCoords];
+  }
+
   const confirmarImportacao = () => {
     if (!dados) return;
-    const escolasData = dados.rows
+    const raw = dados.rows
       .map(row => converterLinha(row, mapeamento))
       .filter(e => e.inep && e.nome);
 
-    if (escolasData.length === 0) {
+    if (raw.length === 0) {
       toast.error("Nenhuma escola válida encontrada. Verifique o mapeamento de INEP e Nome.");
       return;
+    }
+
+    // Ordenar por rota otimizada (nearest-neighbor) se houver coordenadas
+    const comCoords = raw.filter(e => e.latitude && e.longitude).length;
+    const escolasData = comCoords > 0 ? sortByRouteCoords(raw) : raw;
+    if (comCoords > 0) {
+      toast.success(`📍 Rota otimizada: ${comCoords} escolas ordenadas por proximidade GPS`, { duration: 4000 });
     }
 
     importarMut.mutate({ escolas: escolasData });
