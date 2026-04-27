@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +56,7 @@ export default function AdminOrdens() {
   }
 
   return (
-    <AdminLayout title="Ordens de Serviço">
+    <AdminLayoutAuto title="Ordens de Serviço">
       <div className="flex items-center justify-between mb-6">
         <p className="text-muted-foreground text-sm">{filtered.length} OS encontrada(s)</p>
         <Button onClick={() => setOpen(true)}>
@@ -221,6 +221,6 @@ export default function AdminOrdens() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

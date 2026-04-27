@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
@@ -125,7 +125,7 @@ export default function AdminPlanilha() {
   }
 
   return (
-    <AdminLayout title="Planilha de Escolas">
+    <AdminLayoutAuto title="Planilha de Escolas">
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -375,6 +375,6 @@ export default function AdminPlanilha() {
           )}
         </CardContent>
       </Card>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

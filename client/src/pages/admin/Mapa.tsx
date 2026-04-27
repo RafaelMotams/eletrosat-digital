@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { MapView } from "@/components/Map";
 import { useState, useCallback } from "react";
@@ -92,7 +92,7 @@ export default function AdminMapa() {
   };
 
   return (
-    <AdminLayout title="Mapa de Escolas">
+    <AdminLayoutAuto title="Mapa de Escolas">
       {/* Legenda */}
       <div className="flex flex-wrap gap-3 mb-4">
         {[
@@ -148,6 +148,6 @@ export default function AdminMapa() {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

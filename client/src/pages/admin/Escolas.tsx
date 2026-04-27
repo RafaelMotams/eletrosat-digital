@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,7 +89,7 @@ export default function AdminEscolas() {
   const pendentes = escolas?.filter(e => e.status !== "concluido" && e.status !== "nao_instalada").length ?? 0;
 
   return (
-    <AdminLayout title="Gestão de Escolas">
+    <AdminLayoutAuto title="Gestão de Escolas">
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -437,6 +437,6 @@ export default function AdminEscolas() {
           ))}
         </div>
       )}
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

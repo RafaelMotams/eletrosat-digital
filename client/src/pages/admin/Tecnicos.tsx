@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export default function AdminTecnicos() {
   const getInitials = (nome: string) => nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
   return (
-    <AdminLayout title="Técnicos">
+    <AdminLayoutAuto title="Técnicos">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -222,6 +222,6 @@ export default function AdminTecnicos() {
           </div>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

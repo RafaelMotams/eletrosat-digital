@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff } from "lucide-react";
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
   const pctAps = totalApsExibir > 0 ? Math.round((totalApsConcluidos / totalApsExibir) * 100) : 0;
 
   return (
-    <AdminLayout title="Dashboard">
+    <AdminLayoutAuto title="Dashboard">
       {/* ── Barra de status sync ── */}
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
@@ -357,6 +357,6 @@ export default function AdminDashboard() {
         </p>
         <Zap className="w-4 h-4 ml-auto flex-shrink-0" style={{ color: "oklch(0.55 0.16 75)" }} />
       </div>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

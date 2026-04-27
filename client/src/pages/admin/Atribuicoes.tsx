@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -163,7 +163,7 @@ export default function AdminAtribuicoes() {
     : escolasPendentes;
 
   return (
-    <AdminLayout title="Atribuições">
+    <AdminLayoutAuto title="Atribuições">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Atribuição por cidade */}
         <Card className="lg:col-span-1">
@@ -397,6 +397,6 @@ export default function AdminAtribuicoes() {
           )}
         </CardContent>
       </Card>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }

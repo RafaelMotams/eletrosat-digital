@@ -3,6 +3,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { superadminRouter } from "./routers/superadmin";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -618,6 +619,7 @@ export const appRouter = router({
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
   planilha: planilhaRouter,
+  superadmin: superadminRouter,
 });
 
 export type AppRouter = typeof appRouter;

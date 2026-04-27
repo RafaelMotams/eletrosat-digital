@@ -24,12 +24,56 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+// ============================================================
+// SISTEMA MULTI-TENANT (Revenda)
+// ============================================================
+
+// Tabela de Tenants (Clientes/Empresas que contratam o sistema)
+export const tenants = mysqlTable("tenants", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(), // identificador único ex: "eletrosat", "telecom-ba"
+  plano: mysqlEnum("plano", ["basico", "profissional", "enterprise"]).default("basico").notNull(),
+  status: mysqlEnum("status", ["ativo", "suspenso", "cancelado"]).default("ativo").notNull(),
+  contato: varchar("contato", { length: 255 }), // nome do responsável
+  email: varchar("email", { length: 320 }),
+  telefone: varchar("telefone", { length: 30 }),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = typeof tenants.$inferInsert;
+
+// Tabela de Admins de cada Tenant (usuários do painel administrativo)
+export const tenantAdmins = mysqlTable("tenant_admins", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  senhaHash: varchar("senhaHash", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ["admin", "viewer"]).default("admin").notNull(), // admin = acesso total, viewer = só leitura
+  ativo: boolean("ativo").default(true).notNull(),
+  ultimoLogin: timestamp("ultimoLogin"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TenantAdmin = typeof tenantAdmins.$inferSelect;
+export type InsertTenantAdmin = typeof tenantAdmins.$inferInsert;
+
+// ============================================================
+// TABELAS PRINCIPAIS (com tenant_id para isolamento)
+// ============================================================
+
 // Tabela de Técnicos
 export const tecnicos = mysqlTable("tecnicos", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().default(1), // isolamento por tenant
   nome: varchar("nome", { length: 255 }).notNull(),
   telefone: varchar("telefone", { length: 20 }),
-  email: varchar("email", { length: 320 }).notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull(),
   senhaHash: varchar("senhaHash", { length: 255 }).notNull(),
   cidadeResponsavel: varchar("cidadeResponsavel", { length: 255 }),
   ativo: boolean("ativo").default(true).notNull(),
@@ -43,7 +87,8 @@ export type InsertTecnico = typeof tecnicos.$inferInsert;
 // Tabela de Escolas
 export const escolas = mysqlTable("escolas", {
   id: int("id").autoincrement().primaryKey(),
-  inep: varchar("inep", { length: 20 }).notNull().unique(),
+  tenantId: int("tenantId").notNull().default(1), // isolamento por tenant
+  inep: varchar("inep", { length: 20 }).notNull(),
   uf: varchar("uf", { length: 2 }),
   municipio: varchar("municipio", { length: 255 }),
   nome: varchar("nome", { length: 255 }).notNull(),
@@ -58,7 +103,6 @@ export const escolas = mysqlTable("escolas", {
   velocidadeMinima: varchar("velocidadeMinima", { length: 20 }),
   velocidadeOfertada: varchar("velocidadeOfertada", { length: 20 }),
   tipoConexao: varchar("tipoConexao", { length: 50 }).default("Fibra"),
-  // status agora inclui "nao_instalada" para escolas que não puderam ser instaladas
   status: mysqlEnum("status", ["pendente", "em_andamento", "concluido", "nao_instalada"]).default("pendente").notNull(),
   tecnicoId: int("tecnicoId"),
   dataAtribuicao: timestamp("dataAtribuicao"),
@@ -73,6 +117,7 @@ export type InsertEscola = typeof escolas.$inferInsert;
 // Tabela de Atribuições Manuais (sobrescreve regra de cidade)
 export const atribuicoesManual = mysqlTable("atribuicoes_manual", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().default(1),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -84,15 +129,13 @@ export type InsertAtribuicaoManual = typeof atribuicoesManual.$inferInsert;
 // Tabela de Ordens de Serviço
 export const ordensServico = mysqlTable("ordens_servico", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().default(1),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
-  // status inclui "nao_instalada" para OS que não puderam ser concluídas
   status: mysqlEnum("status", ["aberta", "em_andamento", "concluida", "nao_instalada"]).default("aberta").notNull(),
   qtdApInstalado: int("qtdApInstalado"),
   observacao: text("observacao"),
-  // Motivo de não instalação: escola_desativada, em_reforma, mudanca_endereco
   motivoNaoInstalacao: mysqlEnum("motivoNaoInstalacao", ["escola_desativada", "em_reforma", "mudanca_endereco"]),
-  // URL da foto do mapa de calor (armazenada no S3)
   fotoMapaCalorUrl: text("fotoMapaCalorUrl"),
   fotoMapaCalorKey: varchar("fotoMapaCalorKey", { length: 500 }),
   dataAbertura: timestamp("dataAbertura").defaultNow().notNull(),

@@ -19,12 +19,16 @@ import TecnicoMapa from "./pages/tecnico/Mapa";
 import TecnicoPerfil from "./pages/tecnico/Perfil";
 import TecnicoHistorico from "./pages/tecnico/Historico";
 import Home from "./pages/Home";
+import SuperAdminLogin from "./pages/superadmin/Login";
+import SuperAdminDashboard from "./pages/superadmin/Dashboard";
+import AdminLogin from "./pages/admin/Login";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       {/* Admin routes */}
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/tecnicos" component={AdminTecnicos} />
       <Route path="/admin/escolas" component={AdminEscolas} />
@@ -33,6 +37,10 @@ function Router() {
       <Route path="/admin/relatorios" component={AdminRelatorios} />
       <Route path="/admin/mapa" component={AdminMapa} />
       <Route path="/admin/planilha" component={AdminPlanilha} />
+      {/* Superadmin routes */}
+      <Route path="/superadmin/login" component={SuperAdminLogin} />
+      <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />
+      <Route path="/superadmin" component={SuperAdminLogin} />
       {/* Técnico app routes */}
       <Route path="/tecnico/login" component={TecnicoLogin} />
       <Route path="/tecnico" component={TecnicoHome} />

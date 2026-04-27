@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -111,7 +111,7 @@ export default function AdminRelatorios() {
   }
 
   return (
-    <AdminLayout title="Relatórios">
+    <AdminLayoutAuto title="Relatórios">
       {/* Filtros */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
@@ -369,6 +369,6 @@ export default function AdminRelatorios() {
           )}
         </CardContent>
       </Card>
-    </AdminLayout>
+    </AdminLayoutAuto>
   );
 }
