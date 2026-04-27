@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -46,15 +46,19 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 // === TÉCNICOS ROUTER ===
 const tecnicosRouter = router({
-  list: adminProcedure.query(async () => {
-    return listTecnicos();
+  list: tenantAdminProcedure.query(async ({ ctx }) => {
+    return listTecnicos((ctx as any).tenantId);
   }),
 
-  getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    return getTecnicoById(input.id);
+  getById: tenantAdminProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
+    const tecnico = await getTecnicoById(input.id);
+    if (!tecnico) return undefined;
+    const tenantId = (ctx as any).tenantId;
+    if (tenantId !== undefined && tecnico.tenantId !== tenantId) return undefined;
+    return tecnico;
   }),
 
-  create: adminProcedure
+  create: tenantAdminProcedure
     .input(
       z.object({
         nome: z.string().min(2),
@@ -64,7 +68,7 @@ const tecnicosRouter = router({
         cidadeResponsavel: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const senhaHash = await bcrypt.hash(input.senha, 10);
       await createTecnico({
         nome: input.nome,
@@ -73,11 +77,12 @@ const tecnicosRouter = router({
         senhaHash,
         cidadeResponsavel: input.cidadeResponsavel,
         ativo: true,
+        tenantId: (ctx as any).tenantId,
       });
       return { success: true };
     }),
 
-  update: adminProcedure
+  update: tenantAdminProcedure
     .input(
       z.object({
         id: z.number(),
@@ -88,7 +93,12 @@ const tecnicosRouter = router({
         cidadeResponsavel: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined) {
+        const tecnico = await getTecnicoById(input.id);
+        if (!tecnico || tecnico.tenantId !== tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
       const { id, senha, ...rest } = input;
       const data: Record<string, unknown> = { ...rest };
       if (senha) {
@@ -98,7 +108,12 @@ const tecnicosRouter = router({
       return { success: true };
     }),
 
-  delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  delete: tenantAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+    const tenantId = (ctx as any).tenantId;
+    if (tenantId !== undefined) {
+      const tecnico = await getTecnicoById(input.id);
+      if (!tecnico || tecnico.tenantId !== tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+    }
     await deleteTecnico(input.id);
     return { success: true };
   }),
@@ -106,7 +121,7 @@ const tecnicosRouter = router({
 
 // === ESCOLAS ROUTER ===
 const escolasRouter = router({
-  list: protectedProcedure
+  list: tenantAdminProcedure
     .input(
       z
         .object({
@@ -117,24 +132,29 @@ const escolasRouter = router({
         .optional()
     )
     .query(async ({ input, ctx }) => {
-      // Técnico só vê suas próprias escolas
-      if (ctx.user.role !== "admin") {
-        // Buscar técnico pelo email do usuário logado
+      // Técnico OAuth só vê suas próprias escolas
+      if (ctx.user && ctx.user.role !== "admin") {
         const tecnico = await getTecnicoByEmail(ctx.user.email ?? "");
         if (!tecnico) return [];
         return listEscolas({ tecnicoId: tecnico.id });
       }
-      return listEscolas(input);
+      // Admin OAuth ou tenant admin via JWT - filtrar por tenantId
+      const tenantId = (ctx as any).tenantId;
+      return listEscolas({ ...input, tenantId });
     }),
 
-  getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    return getEscolaById(input.id);
+  getById: tenantAdminProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
+    const escola = await getEscolaById(input.id);
+    if (!escola) return undefined;
+    const tenantId = (ctx as any).tenantId;
+    if (tenantId !== undefined && escola.tenantId !== tenantId) return undefined;
+    return escola;
   }),
-  getByInep: adminProcedure.input(z.object({ inep: z.string() })).query(async ({ input }) => {
+  getByInep: tenantAdminProcedure.input(z.object({ inep: z.string() })).query(async ({ input }) => {
     return getEscolaByInep(input.inep);
   }),
 
-  update: adminProcedure
+  update: tenantAdminProcedure
     .input(
       z.object({
         id: z.number(),
@@ -147,13 +167,18 @@ const escolasRouter = router({
         status: z.enum(["pendente", "em_andamento", "concluido"]).optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined) {
+        const escola = await getEscolaById(input.id);
+        if (!escola || escola.tenantId !== tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
       const { id, ...data } = input;
       await updateEscola(id, data);
       return { success: true };
     }),
 
-  importar: adminProcedure
+  importar: tenantAdminProcedure
     .input(
       z.object({
         escolas: z.array(
@@ -174,8 +199,9 @@ const escolasRouter = router({
         ),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       let importadas = 0;
+      const tenantId = (ctx as any).tenantId;
       for (const escola of input.escolas) {
         await createEscola({
           inep: escola.inep,
@@ -191,17 +217,18 @@ const escolasRouter = router({
           velocidadeOfertada: escola.velocidadeOfertada ? String(escola.velocidadeOfertada) : undefined,
           tipoConexao: escola.tipoConexao ?? "Fibra",
           status: "pendente",
+          tenantId,
         });
         importadas++;
       }
       return { success: true, importadas };
     }),
 
-  listMunicipios: adminProcedure.query(async () => {
-    return listMunicipios();
+  listMunicipios: tenantAdminProcedure.query(async ({ ctx }) => {
+    return listMunicipios((ctx as any).tenantId);
   }),
 
-  deletarPorCidade: adminProcedure
+  deletarPorCidade: tenantAdminProcedure
     .input(z.object({ municipio: z.string() }))
     .mutation(async ({ input }) => {
       const total = await deleteEscolasPorCidade(input.municipio);
@@ -211,14 +238,14 @@ const escolasRouter = router({
 
 // === ATRIBUIÇÕES ROUTER ===
 const atribuicoesRouter = router({
-  porEscola: adminProcedure
+  porEscola: tenantAdminProcedure
     .input(z.object({ escolaId: z.number(), tecnicoId: z.number().nullable() }))
     .mutation(async ({ input }) => {
       await setAtribuicaoManual(input.escolaId, input.tecnicoId!);
       return { success: true };
     }),
 
-  porCidade: adminProcedure
+  porCidade: tenantAdminProcedure
     .input(z.object({ cidade: z.string(), tecnicoId: z.number() }))
     .mutation(async ({ input }) => {
       await atribuirPorCidade(input.cidade, input.tecnicoId);
@@ -230,7 +257,7 @@ const atribuicoesRouter = router({
 
 // === ORDENS DE SERVIÇO ROUTER ===
 const ordensRouter = router({
-  list: protectedProcedure
+  list: tenantAdminProcedure
     .input(
       z
         .object({
@@ -242,33 +269,41 @@ const ordensRouter = router({
         .optional()
     )
     .query(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") {
+      // Técnico OAuth só vê suas próprias OS
+      if (ctx.user && ctx.user.role !== "admin") {
         const tecnico = await getTecnicoByEmail(ctx.user.email ?? "");
         if (!tecnico) return [];
         return listOrdensServico({ tecnicoId: tecnico.id });
       }
-      return listOrdensServico(input);
+      // Admin OAuth ou tenant admin via JWT - filtrar por tenantId
+      const tenantId = (ctx as any).tenantId;
+      return listOrdensServico({ ...input, tenantId });
     }),
 
-  getById: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    return getOrdemById(input.id);
+  getById: tenantAdminProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
+    const ordem = await getOrdemById(input.id);
+    if (!ordem) return undefined;
+    const tenantId = (ctx as any).tenantId;
+    if (tenantId !== undefined && ordem.tenantId !== tenantId) return undefined;
+    return ordem;
   }),
 
-  criar: adminProcedure
+  criar: tenantAdminProcedure
     .input(z.object({ escolaId: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await createOrdemServico({
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId,
         status: "aberta",
         dataAbertura: new Date(),
+        tenantId: (ctx as any).tenantId,
       });
       // Atualizar status da escola
       await updateEscola(input.escolaId, { status: "em_andamento" });
       return { success: true };
     }),
 
-  criarEConcluir: protectedProcedure
+  criarEConcluir: tenantAdminProcedure
     .input(
       z.object({
         escolaId: z.number(),
@@ -277,13 +312,14 @@ const ordensRouter = router({
         observacao: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Criar OS
       await createOrdemServico({
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId,
         status: "aberta",
         dataAbertura: new Date(),
+        tenantId: (ctx as any).tenantId,
       });
       // Buscar a OS recém-criada
       const ordens = await listOrdensServico({ tecnicoId: input.tecnicoId });
@@ -339,18 +375,18 @@ const ordensRouter = router({
 
 // === DASHBOARD ROUTER ===
 const dashboardRouter = router({
-  stats: publicProcedure.query(async () => {
-    return getDashboardStats();
+  stats: tenantAdminProcedure.query(async ({ ctx }) => {
+    return getDashboardStats((ctx as any).tenantId);
   }),
 
-  produtividade: publicProcedure.query(async () => {
-    return getProdutividadePorTecnico();
+  produtividade: tenantAdminProcedure.query(async ({ ctx }) => {
+    return getProdutividadePorTecnico((ctx as any).tenantId);
   }),
 });
 // === RELATÓRIOS ROUTER ===
 const relatoriosRouter = router({
-  // Público para funcionar sem login OAuth no painel admin
-  tecnico: publicProcedure
+  // Usa tenantAdminProcedure para filtrar por tenant
+  tecnico: tenantAdminProcedure
     .input(
       z.object({
         tecnicoId: z.number(),
@@ -359,17 +395,17 @@ const relatoriosRouter = router({
         dataFim: z.string().nullable().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
       const fim = input.dataFim ? new Date(input.dataFim) : null;
-      return getRelatorioTecnico(input.tecnicoId, inicio, fim);
+      return getRelatorioTecnico(input.tecnicoId, inicio, fim, (ctx as any).tenantId);
     }),
 
-  ranking: publicProcedure.query(async () => {
-    return getProdutividadePorTecnico();
+  ranking: tenantAdminProcedure.query(async ({ ctx }) => {
+    return getProdutividadePorTecnico((ctx as any).tenantId);
   }),
 
-  osDetalhadas: publicProcedure
+  osDetalhadas: tenantAdminProcedure
     .input(
       z.object({
         tecnicoId: z.number().optional(), // 0 = todos os técnicos
@@ -377,18 +413,18 @@ const relatoriosRouter = router({
         dataFim: z.string().nullable().optional(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
       const fim = input.dataFim ? new Date(input.dataFim) : null;
       const tecnicoId = input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
-      return getOsDetalhadas({ tecnicoId, dataInicio: inicio, dataFim: fim });
+      return getOsDetalhadas({ tecnicoId, dataInicio: inicio, dataFim: fim, tenantId: (ctx as any).tenantId });
     }),
 });
 
 // === PLANILHA ROUTER ===
 const planilhaRouter = router({
-  listar: adminProcedure.query(async () => {
-    return listEscolas();
+  listar: tenantAdminProcedure.query(async ({ ctx }) => {
+    return listEscolas({ tenantId: (ctx as any).tenantId });
   }),
 });
 

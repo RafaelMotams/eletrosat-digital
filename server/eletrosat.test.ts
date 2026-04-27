@@ -42,6 +42,7 @@ vi.mock("./_core/notification", () => ({
 function createAdminCtx(): TrpcContext {
   return {
     user: { id: 1, openId: "admin-1", name: "Admin", email: "admin@test.com", role: "admin", loginMethod: "manus", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() },
+    tenantSession: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
@@ -50,6 +51,7 @@ function createAdminCtx(): TrpcContext {
 function createUserCtx(): TrpcContext {
   return {
     user: { id: 2, openId: "user-1", name: "Técnico", email: "rodrigo@test.com", role: "user", loginMethod: "manus", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() },
+    tenantSession: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
@@ -80,9 +82,10 @@ describe("Técnicos", () => {
     expect(list[0].nome).toBe("Rodrigo Silva");
   });
 
-  it("bloqueia acesso de usuário comum", async () => {
+  it("bloqueia acesso de usuário comum (sem tenant JWT)", async () => {
     const caller = appRouter.createCaller(createUserCtx());
-    await expect(caller.tecnicos.list()).rejects.toThrow("Acesso restrito a administradores");
+    // tenantAdminProcedure exige admin OAuth ou JWT de tenant; usuário comum OAuth recebe UNAUTHORIZED
+    await expect(caller.tecnicos.list()).rejects.toThrow();
   });
 });
 
@@ -129,7 +132,8 @@ describe("Relatórios", () => {
 
 describe("Auth do Técnico", () => {
   it("falha login com credenciais inválidas", async () => {
-    const caller = appRouter.createCaller({ user: null, req: { protocol: "https", headers: {} } as TrpcContext["req"], res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"] });
+    const caller = appRouter.createCaller({ user: null, tenantSession: null, req: { protocol: "https", headers: {} } as TrpcContext["req"], res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"] });
     await expect(caller.tecnicoAuth.login({ email: "wrong@test.com", senha: "wrongpass" })).rejects.toThrow();
   });
 });
+

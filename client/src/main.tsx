@@ -13,12 +13,13 @@ const queryClient = new QueryClient();
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
-
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
-
-  window.location.href = getLoginUrl();
+  // Só redireciona para login OAuth se não houver token de tenant
+  const tenantToken = localStorage.getItem("tenant_admin_token");
+  if (!tenantToken) {
+    window.location.href = getLoginUrl();
+  }
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -42,6 +43,14 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
+      async headers() {
+        // Enviar token JWT do tenant admin se disponível
+        const tenantToken = localStorage.getItem("tenant_admin_token");
+        if (tenantToken) {
+          return { Authorization: `Bearer ${tenantToken}` };
+        }
+        return {};
+      },
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),

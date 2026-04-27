@@ -52,7 +52,8 @@
 - [x] Seed de técnicos de exemplo
 
 ## Testes
-- [x] Testes vitest para routers principais (11 testes passando)
+- [x] Testes vitest para routers principais (30 testes passando)
+- [x] Testes de isolamento multi-tenant (20 testes: listagem, getById, update, delete, dashboard, acesso não autenticado)
 
 ## APK Android (Capacitor)
 - [x] Criar projeto React standalone do app do técnico
@@ -227,15 +228,15 @@
 - [x] Importação: toast confirmando quantas escolas foram ordenadas por GPS
 
 ## Sistema de Revenda SaaS Multi-Tenant
-- [ ] Schema: tabela tenants (id, nome, slug, plano, status, criado_em)
-- [ ] Schema: tabela tenant_admins (id, tenant_id, nome, email, senha_hash, role: superadmin|admin)
-- [ ] Schema: adicionar tenant_id em escolas, tecnicos, ordens_servico
-- [ ] Backend: superadminRouter (criar/listar/editar/suspender tenants)
-- [ ] Backend: tenantAdminRouter (criar/listar/editar usuários admin por tenant)
-- [ ] Backend: isolamento de dados por tenant_id em todos os routers existentes
-- [ ] Frontend: painel superadmin (/superadmin) com lista de clientes
-- [ ] Frontend: criar/editar cliente com nome, slug, plano, status
-- [ ] Frontend: criar usuário admin para cada cliente (email + senha)
-- [ ] Frontend: login do painel admin por email/senha (sem OAuth Manus)
-- [ ] Frontend: cada cliente acessa /admin com seus próprios dados isolados
-- [ ] Frontend: página de login unificada que detecta o tenant pelo slug ou email
+- [x] Schema: tabela tenants (id, nome, slug, plano, status, criado_em)
+- [x] Schema: tabela tenant_admins (id, tenant_id, nome, email, senha_hash, role: superadmin|admin)
+- [x] Schema: adicionar tenant_id em escolas, tecnicos, ordens_servico
+- [x] Backend: superadminRouter (criar/listar/editar/suspender tenants)
+- [x] Backend: tenantAdminRouter (criar/listar/editar usuários admin por tenant)
+- [x] Backend: isolamento de dados por tenant_id em todos os routers existentes (tenantAdminProcedure + filtros por tenantId em todos os routers)
+- [x] Frontend: painel superadmin (/superadmin) com lista de clientes
+- [x] Frontend: criar/editar cliente com nome, slug, plano, status
+- [x] Frontend: criar usuário admin para cada cliente (email + senha)
+- [x] Frontend: login do painel admin por email/senha (sem OAuth Manus)
+- [x] Frontend: cada cliente acessa /admin com seus próprios dados isolados (AdminLayoutAuto detecta JWT vs OAuth)
+- [x] Frontend: página de login unificada que detecta o tenant pelo slug ou email

@@ -1,28 +1,39 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
+import { verifyTenantToken, extractBearerToken, type TenantSession } from "./tenantAuth";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
   user: User | null;
+  tenantSession: TenantSession | null;
 };
 
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
   let user: User | null = null;
+  let tenantSession: TenantSession | null = null;
 
+  // Tentar autenticar via Manus OAuth (cookie)
   try {
     user = await sdk.authenticateRequest(opts.req);
-  } catch (error) {
-    // Authentication is optional for public procedures.
+  } catch {
     user = null;
+  }
+
+  // Tentar autenticar via JWT de tenant admin (header Authorization)
+  const authHeader = opts.req.headers.authorization;
+  const token = extractBearerToken(authHeader);
+  if (token) {
+    tenantSession = await verifyTenantToken(token);
   }
 
   return {
     req: opts.req,
     res: opts.res,
     user,
+    tenantSession,
   };
 }

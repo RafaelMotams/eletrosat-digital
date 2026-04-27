@@ -72,10 +72,12 @@ export async function getUserByOpenId(openId: string) {
 
 // ─── TÉCNICOS ─────────────────────────────────────────────────────────────────
 
-export async function listTecnicos() {
+export async function listTecnicos(tenantId?: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(tecnicos).where(eq(tecnicos.ativo, true)).orderBy(tecnicos.nome);
+  const conditions: ReturnType<typeof eq>[] = [eq(tecnicos.ativo, true)];
+  if (tenantId !== undefined) conditions.push(eq(tecnicos.tenantId, tenantId));
+  return db.select().from(tecnicos).where(and(...conditions)).orderBy(tecnicos.nome);
 }
 
 export async function getTecnicoById(id: number) {
@@ -113,10 +115,11 @@ export async function deleteTecnico(id: number) {
 
 // ─── ESCOLAS ──────────────────────────────────────────────────────────────────
 
-export async function listEscolas(filters?: { tecnicoId?: number; status?: string; municipio?: string }) {
+export async function listEscolas(filters?: { tecnicoId?: number; status?: string; municipio?: string; tenantId?: number }) {
   const db = await getDb();
   if (!db) return [];
-  const conditions = [];
+  const conditions: any[] = [];
+  if (filters?.tenantId !== undefined) conditions.push(eq(escolas.tenantId, filters.tenantId));
   if (filters?.tecnicoId) conditions.push(eq(escolas.tecnicoId, filters.tecnicoId));
   if (filters?.status) conditions.push(eq(escolas.status, filters.status as "pendente" | "em_andamento" | "concluido"));
   if (filters?.municipio) conditions.push(eq(escolas.municipio, filters.municipio));
@@ -126,7 +129,6 @@ export async function listEscolas(filters?: { tecnicoId?: number; status?: strin
   }
   return query.orderBy(escolas.nome);
 }
-
 export async function getEscolaById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
@@ -213,10 +215,12 @@ export async function listOrdensServico(filters?: {
   status?: string;
   dataInicio?: Date;
   dataFim?: Date;
+  tenantId?: number;
 }) {
   const db = await getDb();
   if (!db) return [];
-  const conditions = [];
+  const conditions: any[] = [];
+  if (filters?.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
   if (filters?.tecnicoId) conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
   if (filters?.status) conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida"));
   if (filters?.dataInicio) conditions.push(gte(ordensServico.dataAbertura, filters.dataInicio));
@@ -306,38 +310,41 @@ export async function concluirOrdemServico(id: number, qtdApInstalado: number, o
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 
-export async function getDashboardStats() {
+export async function getDashboardStats(tenantId?: number) {
   const db = await getDb();
   if (!db) return null;
 
-  const [totalEscolas] = await db.select({ count: sql<number>`count(*)` }).from(escolas);
+  const tFilter = tenantId !== undefined ? eq(escolas.tenantId, tenantId) : undefined;
+  const tOsFilter = tenantId !== undefined ? eq(ordensServico.tenantId, tenantId) : undefined;
+  const [totalEscolas] = await db.select({ count: sql<number>`count(*)` }).from(escolas).where(tFilter);
   const [concluidas] = await db
     .select({ count: sql<number>`count(*)` })
     .from(escolas)
-    .where(eq(escolas.status, "concluido"));
+    .where(tFilter ? and(tFilter, eq(escolas.status, "concluido")) : eq(escolas.status, "concluido"));
   const [pendentes] = await db
     .select({ count: sql<number>`count(*)` })
     .from(escolas)
-    .where(eq(escolas.status, "pendente"));
+    .where(tFilter ? and(tFilter, eq(escolas.status, "pendente")) : eq(escolas.status, "pendente"));
   const [emAndamento] = await db
     .select({ count: sql<number>`count(*)` })
     .from(escolas)
-    .where(eq(escolas.status, "em_andamento"));
+    .where(tFilter ? and(tFilter, eq(escolas.status, "em_andamento")) : eq(escolas.status, "em_andamento"));
   const [totalAps] = await db
     .select({ total: sql<number>`COALESCE(SUM(${ordensServico.qtdApInstalado}), 0)` })
     .from(ordensServico)
-    .where(eq(ordensServico.status, "concluida"));
+    .where(tOsFilter ? and(tOsFilter, eq(ordensServico.status, "concluida")) : eq(ordensServico.status, "concluida"));
 
   // Total de APs planejados (soma de qtdAp de todas as escolas)
   const [totalApsPlanejados] = await db
     .select({ total: sql<number>`COALESCE(SUM(${escolas.qtdAp}), 0)` })
-    .from(escolas);
+    .from(escolas)
+    .where(tFilter);
 
   // Total de APs de escolas já concluídas
   const [totalApsConcluidos] = await db
     .select({ total: sql<number>`COALESCE(SUM(${escolas.qtdAp}), 0)` })
     .from(escolas)
-    .where(eq(escolas.status, "concluido"));
+    .where(tFilter ? and(tFilter, eq(escolas.status, "concluido")) : eq(escolas.status, "concluido"));
 
   return {
     totalEscolas: Number(totalEscolas?.count ?? 0),
@@ -350,10 +357,12 @@ export async function getDashboardStats() {
   };
 }
 
-export async function getProdutividadePorTecnico() {
+export async function getProdutividadePorTecnico(tenantId?: number) {
   const db = await getDb();
   if (!db) return [];
 
+  const prodConditions: any[] = [eq(ordensServico.status, "concluida")];
+  if (tenantId !== undefined) prodConditions.push(eq(ordensServico.tenantId, tenantId));
   const result = await db
     .select({
       tecnicoId: ordensServico.tecnicoId,
@@ -363,7 +372,7 @@ export async function getProdutividadePorTecnico() {
     })
     .from(ordensServico)
     .leftJoin(tecnicos, eq(ordensServico.tecnicoId, tecnicos.id))
-    .where(eq(ordensServico.status, "concluida"))
+    .where(and(...prodConditions))
     .groupBy(ordensServico.tecnicoId, tecnicos.nome)
     .orderBy(desc(sql`count(*)`));
 
@@ -378,17 +387,19 @@ export async function getProdutividadePorTecnico() {
 export async function getRelatorioTecnico(
   tecnicoId: number,
   dataInicio: Date | null,
-  dataFim: Date | null
+  dataFim: Date | null,
+  tenantId?: number
 ) {
   const db = await getDb();
   if (!db) return null;
 
   // Filtro de data: usa dataConclusao se preenchido, caso contrário usa createdAt
   // Se dataInicio/dataFim forem nulos, retorna todos os registros (período "Geral")
-  const conditions: ReturnType<typeof eq>[] = [
+  const conditions: any[] = [
     eq(ordensServico.tecnicoId, tecnicoId),
     eq(ordensServico.status, "concluida"),
   ];
+  if (tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, tenantId));
 
   if (dataInicio && dataFim) {
     // Usa COALESCE(dataConclusao, createdAt) para garantir que OS sem dataConclusao também sejam encontradas
@@ -430,13 +441,13 @@ export async function getRelatorioTecnico(
 }
 
 /** Lista todos os municípios distintos das escolas */
-export async function listMunicipios(): Promise<string[]> {
+export async function listMunicipios(tenantId?: number): Promise<string[]> {
   const db = await getDb();
   if (!db) return [];
-  const rows = await db
-    .selectDistinct({ municipio: escolas.municipio })
-    .from(escolas)
-    .orderBy(escolas.municipio);
+  const query = db.selectDistinct({ municipio: escolas.municipio }).from(escolas);
+  const rows = tenantId !== undefined
+    ? await query.where(eq(escolas.tenantId, tenantId)).orderBy(escolas.municipio)
+    : await query.orderBy(escolas.municipio);
   return rows.map(r => r.municipio).filter(Boolean) as string[];
 }
 
@@ -470,11 +481,13 @@ export async function getOsDetalhadas(filters: {
   tecnicoId?: number;
   dataInicio?: Date | null;
   dataFim?: Date | null;
+  tenantId?: number;
 }) {
   const db = await getDb();
   if (!db) return [];
 
   const conditions: any[] = [eq(ordensServico.status, "concluida")];
+  if (filters.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
 
   if (filters.tecnicoId) {
     conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
