@@ -97,6 +97,7 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
     onSuccess: (r) => {
       toast.success(`✅ ${r.importadas} escola(s) importada(s) com sucesso!`);
       utils.escolas.list.invalidate();
+      utils.planilha.listar.invalidate();
       setEtapa("concluido");
       onConcluido?.(r.importadas);
     },

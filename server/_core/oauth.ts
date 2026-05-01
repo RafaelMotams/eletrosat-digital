@@ -28,12 +28,23 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      // Promover a admin se for o owner (por openId ou por email)
+      const OWNER_EMAILS = ["rafael2020ms@gmail.com"];
+      const isOwnerEmail = OWNER_EMAILS.includes(userInfo.email ?? "");
+      const isOwnerOpenId = userInfo.openId === process.env.OWNER_OPEN_ID;
+      const roleToAssign: "admin" | undefined = (isOwnerEmail || isOwnerOpenId) ? "admin" : undefined;
+
+      if (isOwnerEmail) {
+        console.log(`[OAuth] Owner email detectado (${userInfo.email}), openId: ${userInfo.openId} — promovendo a admin`);
+      }
+
       await db.upsertUser({
         openId: userInfo.openId,
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
+        ...(roleToAssign ? { role: roleToAssign } : {}),
       });
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {

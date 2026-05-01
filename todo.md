@@ -55,6 +55,13 @@
 - [x] Testes vitest para routers principais (30 testes passando)
 - [x] Testes de isolamento multi-tenant (20 testes: listagem, getById, update, delete, dashboard, acesso não autenticado)
 
+## Atualização do ZIP (28/04/2026)
+- [x] Aplicar arquivos modificados do ZIP: App.tsx, Home.tsx, Login.tsx, Planilha.tsx, Relatorios.tsx, Historico.tsx, tecnico/Home.tsx, tecnico/Mapa.tsx, ImportacaoPlanilha.tsx, superadmin/Dashboard.tsx
+- [x] Aplicar arquivos de servidor modificados: routers.ts, db.ts, db-tenant.ts, trpc.ts
+- [x] Adicionar novo teste: cliente.login.test.ts
+- [x] Verificar TypeScript e testes (37 testes passando)
+- [x] Atualizar APK com novas páginas do técnico (Login, Home, Mapa, OrdemServico, Historico, Perfil) — netvionis-tecnico-v2.apk
+
 ## APK Android (Capacitor)
 - [x] Criar projeto React standalone do app do técnico
 - [x] Instalar Capacitor e configurar Android

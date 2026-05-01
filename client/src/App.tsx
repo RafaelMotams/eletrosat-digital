@@ -29,7 +29,18 @@ function Router() {
       <Route path="/" component={Home} />
       {/* Admin routes */}
       <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={AdminLogin} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
+      {/* Cliente routes - Link único para cliente */}
+      <Route path="/cliente" component={AdminLogin} />
+      <Route path="/cliente/dashboard" component={AdminDashboard} />
+      <Route path="/cliente/tecnicos" component={AdminTecnicos} />
+      <Route path="/cliente/escolas" component={AdminEscolas} />
+      <Route path="/cliente/atribuicoes" component={AdminAtribuicoes} />
+      <Route path="/cliente/ordens" component={AdminOrdens} />
+      <Route path="/cliente/relatorios" component={AdminRelatorios} />
+      <Route path="/cliente/mapa" component={AdminMapa} />
+      <Route path="/cliente/planilha" component={AdminPlanilha} />
       <Route path="/admin/tecnicos" component={AdminTecnicos} />
       <Route path="/admin/escolas" component={AdminEscolas} />
       <Route path="/admin/atribuicoes" component={AdminAtribuicoes} />

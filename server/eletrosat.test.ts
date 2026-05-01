@@ -8,7 +8,7 @@ vi.mock("./db", () => ({
     { id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", telefone: "75999999999", cidadeResponsavel: "Monte Santo", ativo: true, senhaHash: "", createdAt: new Date(), updatedAt: new Date() }
   ]),
   getTecnicoByEmail: vi.fn().mockResolvedValue({
-    id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", senhaHash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y", cidadeResponsavel: "Monte Santo", ativo: true, createdAt: new Date(), updatedAt: new Date()
+    id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", senhaHash: "$2b$10$UZb8KmWemWMH8oKDbZ7F.eWVKWnW25E9KB55RvaLaDRRNk8bmmDYm", cidadeResponsavel: "Monte Santo", ativo: true, createdAt: new Date(), updatedAt: new Date()
   }),
   getTecnicoById: vi.fn().mockResolvedValue({ id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com" }),
   createTecnico: vi.fn().mockResolvedValue({}),
@@ -135,5 +135,13 @@ describe("Auth do Técnico", () => {
     const caller = appRouter.createCaller({ user: null, tenantSession: null, req: { protocol: "https", headers: {} } as TrpcContext["req"], res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"] });
     await expect(caller.tecnicoAuth.login({ email: "wrong@test.com", senha: "wrongpass" })).rejects.toThrow();
   });
-});
 
+  it("sucesso login com credenciais válidas", async () => {
+    const caller = appRouter.createCaller({ user: null, tenantSession: null, req: { protocol: "https", headers: {} } as TrpcContext["req"], res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"] });
+    const result = await caller.tecnicoAuth.login({ email: "rodrigo@test.com", senha: "password123" });
+    expect(result).toBeDefined();
+    expect(result.id).toBe(1);
+    expect(result.nome).toBe("Rodrigo Silva");
+    expect(result.email).toBe("rodrigo@test.com");
+  });
+});

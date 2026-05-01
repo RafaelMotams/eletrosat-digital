@@ -46,13 +46,13 @@ export const tenantAdminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    // Caso 1: Admin OAuth do sistema (acesso total, tenantId=1 por padrão)
+    // Caso 1: Admin OAuth do sistema (acesso total, vê todos os tenants)
     if (ctx.user && ctx.user.role === 'admin') {
       return next({
         ctx: {
           ...ctx,
-          tenantId: 1, // Admin OAuth vê o tenant padrão
-          isSuperAdmin: false,
+          tenantId: undefined, // Admin OAuth vê todos os tenants
+          isSuperAdmin: true,
         },
       });
     }

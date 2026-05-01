@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -19,7 +19,12 @@ export default function AdminLogin() {
         // Admin de tenant vai para o painel admin
         localStorage.setItem("tenant_admin_token", data.token);
         localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
-        navigate("/admin");
+        const currentPath = window.location.pathname;
+        if (currentPath.includes("/cliente")) {
+          navigate("/cliente/dashboard");
+        } else {
+          navigate("/admin/dashboard");
+        }
       }
     },
     onError: (err) => {
@@ -32,6 +37,31 @@ export default function AdminLogin() {
     if (!email || !senha) return toast.error("Preencha todos os campos");
     loginMutation.mutate({ email, senha });
   };
+
+  // Verificar se já está autenticado
+  useEffect(() => {
+    const token = localStorage.getItem("tenant_admin_token");
+    const superadminToken = localStorage.getItem("superadmin_token");
+    const currentPath = window.location.pathname;
+    
+    // Se está em /admin/login ou /cliente/login, NÃO redireciona (mostra página de login)
+    if (currentPath.includes("/admin/login") || currentPath.includes("/cliente/login")) {
+      return; // Mostra a página de login
+    }
+    
+    // Se tem token de tenant admin, redireciona para dashboard
+    if (token && !superadminToken) {
+      if (currentPath.includes("/cliente")) {
+        navigate("/cliente/dashboard");
+      } else if (currentPath.includes("/admin")) {
+        navigate("/admin/dashboard");
+      }
+    }
+    // Se tem token de superadmin, redireciona para superadmin
+    else if (superadminToken) {
+      navigate("/superadmin/dashboard");
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{
@@ -48,7 +78,7 @@ export default function AdminLogin() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white">Netvionis</h1>
-          <p className="text-purple-300 mt-1">Painel Administrativo</p>
+          <p className="text-purple-300 mt-1">Painel Administrativo do Cliente</p>
         </div>
 
         {/* Card de login */}

@@ -63,16 +63,16 @@ export default function TecnicoHistorico() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white font-bold text-sm truncate">{escola.nome}</p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.55)" }}>
+          <p className="text-xs mt-0.5 text-white">
             INEP: {escola.inep} · {escola.qtdAp || 1} AP{(escola.qtdAp || 1) > 1 ? "s" : ""}
           </p>
           {escola.municipio && (
-            <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }}>{escola.municipio}</p>
+            <p className="text-xs mt-0.5 text-white">{escola.municipio}</p>
           )}
           {escola.dataConclusao && (
             <div className="flex items-center gap-1 mt-1">
-              <Calendar className="w-3 h-3" style={{ color: "rgba(148,163,184,0.4)" }} />
-              <span className="text-xs" style={{ color: "rgba(148,163,184,0.45)" }}>
+              <Calendar className="w-3 h-3 text-white" />
+              <span className="text-xs text-white">
                 {new Date(escola.dataConclusao).toLocaleDateString("pt-BR")}
               </span>
             </div>
