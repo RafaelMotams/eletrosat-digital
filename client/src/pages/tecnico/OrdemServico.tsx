@@ -470,7 +470,8 @@ export default function TecnicoOS() {
 
   const osAtiva = useMemo(() => {
     if (!ordensData) return null;
-    return ordensData.find(o => o.escolaId === escolaId) ?? null;
+    // Priorizar OS em_andamento ou aberta para garantir que o upload vai para a OS correta
+    return ordensData.find(o => o.escolaId === escolaId && (o.status === "em_andamento" || o.status === "aberta")) ?? null;
   }, [ordensData, escolaId]);
 
   const osId = osAtiva?.id ?? 0;

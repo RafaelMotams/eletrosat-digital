@@ -616,22 +616,36 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .mutation(async ({ input }) => {
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
-      const os = await createOrdemServico({
-        escolaId: input.escolaId,
-        tecnicoId: input.tecnicoId,
-        qtdApInstalado: input.qtdApInstalado,
-        observacao: input.observacao ?? "",
-        status: "concluida",
-        fotoMapaCalorUrl: input.fotoMapaCalorUrl,
-        fotoMapaCalorKey: input.fotoMapaCalorKey,
-      });
+      // Buscar OS existente em_andamento ou aberta para este técnico+escola
+      const ordensExistentes = await listOrdensServico({ tecnicoId: input.tecnicoId });
+      const osExistente = ordensExistentes.find(
+        o => o.escolaId === input.escolaId && (o.status === "em_andamento" || o.status === "aberta")
+      );
+      let osId: number;
+      if (osExistente) {
+        // Atualizar a OS existente para concluída
+        await concluirOrdemServico(osExistente.id, input.qtdApInstalado, input.observacao ?? "");
+        osId = osExistente.id;
+      } else {
+        // Criar nova OS já concluída (fallback)
+        const os = await createOrdemServico({
+          escolaId: input.escolaId,
+          tecnicoId: input.tecnicoId,
+          qtdApInstalado: input.qtdApInstalado,
+          observacao: input.observacao ?? "",
+          status: "concluida",
+          fotoMapaCalorUrl: input.fotoMapaCalorUrl,
+          fotoMapaCalorKey: input.fotoMapaCalorKey,
+        });
+        osId = (os as any).insertId;
+      }
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
       const tecnico = await getTecnicoById(input.tecnicoId);
       await notifyOwner({
         title: `✅ OS Concluída: ${escola.nome}`,
         content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
       });
-      return os;
+      return { osId };
     }),
 
   // Upload de foto do mapa de calor para uma OS
