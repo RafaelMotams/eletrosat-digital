@@ -261,3 +261,11 @@
 - [x] Frontend: login do painel admin por email/senha (sem OAuth Manus)
 - [x] Frontend: cada cliente acessa /admin com seus próprios dados isolados (AdminLayoutAuto detecta JWT vs OAuth)
 - [x] Frontend: página de login unificada que detecta o tenant pelo slug ou email
+
+## Redesign Enterprise Painel Admin (02/05/2026)
+- [x] Login do admin: layout split com painel de branding + formulário premium
+- [x] Sidebar enterprise: grupos de navegação, busca ⌘K, resumo rápido, colapso
+- [x] Página de Configurações: alterar senha, informações da conta, sobre o sistema
+- [x] Página de Ordens: tabela profissional com filtros avançados, badges de status
+- [x] Router tenantAdmin.alterarSenha: endpoint para alterar senha do admin
+- [x] Rota /admin/configuracoes adicionada ao App.tsx e menu de navegação

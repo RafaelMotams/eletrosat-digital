@@ -132,6 +132,12 @@ export async function deleteTenantAdmin(id: number) {
   return db.delete(tenantAdmins).where(eq(tenantAdmins.id, id));
 }
 
+
+export async function updateTenantAdminPassword(id: number, novaSenha: string) {
+  const senhaHash = await bcrypt.hash(novaSenha, 10);
+  return db.update(tenantAdmins).set({ senhaHash }).where(eq(tenantAdmins.id, id));
+}
+
 export async function verifyTenantAdminPassword(
   email: string,
   senha: string

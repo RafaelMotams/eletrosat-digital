@@ -22,6 +22,7 @@ import Home from "./pages/Home";
 import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
+import AdminConfiguracoes from "./pages/admin/Configuracoes";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/admin/relatorios" component={AdminRelatorios} />
       <Route path="/admin/mapa" component={AdminMapa} />
       <Route path="/admin/planilha" component={AdminPlanilha} />
+      <Route path="/admin/configuracoes" component={AdminConfiguracoes} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />

@@ -637,6 +637,25 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
 });
 
 // === APP ROUTER ===
+
+const tenantAdminSelfRouter = router({
+  alterarSenha: tenantAdminProcedure
+    .input(z.object({ senhaAtual: z.string(), novaSenha: z.string().min(6) }))
+    .mutation(async ({ input, ctx }) => {
+      const { tenantSession } = ctx as any;
+      if (!tenantSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Não autenticado" });
+      const { updateTenantAdminPassword, getTenantAdminByEmail } = await import("./db-tenant");
+      // Verificar senha atual
+      const admin = await getTenantAdminByEmail(tenantSession.email);
+      if (!admin) throw new TRPCError({ code: "NOT_FOUND", message: "Admin não encontrado" });
+      const valid = await bcrypt.compare(input.senhaAtual, admin.senhaHash);
+      if (!valid) throw new TRPCError({ code: "UNAUTHORIZED", message: "Senha atual incorreta" });
+      // Atualizar senha
+      await updateTenantAdminPassword(admin.id, input.novaSenha);
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -656,6 +675,7 @@ export const appRouter = router({
   tecnicoAuth: tecnicoAuthRouter,
   planilha: planilhaRouter,
   superadmin: superadminRouter,
+  tenantAdmin: tenantAdminSelfRouter,
 });
 
 export type AppRouter = typeof appRouter;
