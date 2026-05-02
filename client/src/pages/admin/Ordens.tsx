@@ -27,11 +27,10 @@ const MOTIVO_LABEL: Record<string, string> = {
 
 const CATS_FOTOS = [
   { id: "mapa_calor",             label: "Mapa de Calor",  icon: "🌡️", color: "#f97316" },
-  { id: "fotos_ap",               label: "Fotos dos APs",  icon: "📡", color: "#3b82f6" },
-  { id: "etiqueta_serial_ap",     label: "Serial do AP",   icon: "🏷️", color: "#8b5cf6" },
+  { id: "fotos_ap",               label: "Etiqueta do AP", icon: "🏷️", color: "#8b5cf6" },
   { id: "etiqueta_controladora",  label: "Controladora",   icon: "🖥️", color: "#06b6d4" },
-  { id: "etiqueta_nobreak",    label: "Nobreak",           icon: "🔋", color: "#10b981" },
-  { id: "etiqueta_switch",      label: "Switch",            icon: "🔀", color: "#f59e0b" },
+  { id: "etiqueta_nobreak",       label: "Nobreak",        icon: "🔋", color: "#10b981" },
+  { id: "etiqueta_switch",        label: "Switch",         icon: "🔀", color: "#f59e0b" },
 ] as const;
 
 function StatusBadge({ status }: { status: string }) {

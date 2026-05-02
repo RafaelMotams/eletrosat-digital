@@ -655,7 +655,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       osId: z.number(),
       escolaId: z.number(),
       tecnicoId: z.number(),
-      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]),
+      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]),
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
     }))
@@ -696,7 +696,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .query(async ({ input }) => {
       const { countOsFotosByCategoria } = await import("./db");
       const counts = await countOsFotosByCategoria(input.osId);
-      const categorias = ["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
+      const categorias = ["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
       const resultado: Record<string, boolean> = {};
       for (const cat of categorias) {
         resultado[cat] = (counts[cat] ?? 0) > 0;

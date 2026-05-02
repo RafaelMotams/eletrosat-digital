@@ -69,7 +69,7 @@ const MOTIVOS = [
 ] as const;
 
 // ─── Categorias de fotos obrigatórias ────────────────────────────────────────
-type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_serial_ap" | "etiqueta_controladora" | "etiqueta_nobreak" | "etiqueta_switch";
+type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_controladora" | "etiqueta_nobreak" | "etiqueta_switch";
 
 const CATEGORIAS_FOTOS: {
   id: FotoCategoria;
@@ -93,23 +93,13 @@ const CATEGORIAS_FOTOS: {
   },
   {
     id: "fotos_ap",
-    label: "Fotos dos APs",
-    desc: "Até 15 fotos dos access points instalados",
-    icon: "📡",
-    color: "#3b82f6",
-    bg: "rgba(59,130,246,0.08)",
-    border: "rgba(59,130,246,0.25)",
-    maxFotos: 15,
-  },
-  {
-    id: "etiqueta_serial_ap",
-    label: "Etiqueta Serial do AP",
-    desc: "Foto da etiqueta com número de série do AP",
+    label: "Etiqueta do AP",
+    desc: "Até 15 fotos da etiqueta dos access points instalados",
     icon: "🏷️",
     color: "#8b5cf6",
     bg: "rgba(139,92,246,0.08)",
     border: "rgba(139,92,246,0.25)",
-    maxFotos: 1,
+    maxFotos: 15,
   },
   {
     id: "etiqueta_controladora",

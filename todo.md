@@ -289,9 +289,9 @@
 - [x] Gerar novo APK com ícone correto da Netvionis (v6)
 
 ## Sistema de Fotos Obrigatórias na OS
-- [ ] Adicionar tabela os_fotos no schema (os_id, categoria, url, key, created_at)
-- [ ] Adicionar procedure uploadOsFoto e getOsFotos no router
-- [ ] Implementar componente de upload câmera/galeria no OrdemServico.tsx
-- [ ] Seções de fotos: mapa de calor, fotos APs (até 15), etiqueta serial AP, etiqueta controladora, etiqueta nobreak
-- [ ] Bloquear conclusão da OS se alguma seção obrigatória não tiver foto
-- [ ] Visualizador de fotos por categoria no painel admin (OrdemServicoDetalhe ou similar)
+- [x] Adicionar tabela os_fotos no schema (os_id, categoria, url, key, created_at)
+- [x] Adicionar procedure uploadOsFoto e getOsFotos no router
+- [x] Implementar componente de upload câmera/galeria no OrdemServico.tsx
+- [x] Seções de fotos: mapa de calor, fotos APs (até 15), etiqueta serial AP, etiqueta controladora, etiqueta nobreak
+- [x] Bloquear conclusão da OS se alguma seção obrigatória não tiver foto
+- [x] Visualizador de fotos por categoria no painel admin (OrdemServicoDetalhe ou similar)
