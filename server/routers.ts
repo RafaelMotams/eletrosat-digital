@@ -7,6 +7,8 @@ import { superadminRouter } from "./routers/superadmin";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
+  deleteAllOrdensServico,
+  resetEscolasStatusAposExcluirOS,
   atribuirPorCidade,
   atribuirTecnicoEscola,
   concluirOrdemServico,
@@ -337,6 +339,16 @@ const ordensRouter = router({
       return { success: true };
     }),
 
+  deletarTodas: tenantAdminProcedure
+    .input(z.object({ confirmacao: z.literal("CONFIRMAR") }))
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      // Excluir todas as OS do tenant
+      const total = await deleteAllOrdensServico(tenantId);
+      // Resetar status das escolas para "pendente" após excluir todas as OS
+      await resetEscolasStatusAposExcluirOS(tenantId);
+      return { success: true, total };
+    }),
   concluir: protectedProcedure
     .input(
       z.object({

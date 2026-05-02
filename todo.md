@@ -269,3 +269,7 @@
 - [x] Página de Ordens: tabela profissional com filtros avançados, badges de status
 - [x] Router tenantAdmin.alterarSenha: endpoint para alterar senha do admin
 - [x] Rota /admin/configuracoes adicionada ao App.tsx e menu de navegação
+
+## Funcionalidade - Excluir Todas as OS
+- [x] Backend: endpoint ordens.deletarTodas (tenantAdminProcedure) com confirmação
+- [x] Frontend: botão "Excluir Todas" na página de Ordens com modal de confirmação (digitar "CONFIRMAR")

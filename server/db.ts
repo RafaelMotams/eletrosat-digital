@@ -480,6 +480,34 @@ export async function deleteEscolasPorCidade(municipio: string): Promise<number>
 }
 
 /** Retorna lista detalhada de OS concluídas com dados da escola, para relatório */
+
+export async function deleteAllOrdensServico(tenantId?: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  if (tenantId !== undefined) {
+    const result = await db.delete(ordensServico).where(eq(ordensServico.tenantId, tenantId));
+    return (result as any)[0]?.affectedRows ?? 0;
+  }
+  const result = await db.delete(ordensServico);
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
+
+export async function resetEscolasStatusAposExcluirOS(tenantId?: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  // Resetar escolas que estavam "em_andamento" para "pendente"
+  if (tenantId !== undefined) {
+    await db.update(escolas)
+      .set({ status: "pendente" })
+      .where(and(eq(escolas.tenantId, tenantId), eq(escolas.status, "em_andamento")));
+  } else {
+    await db.update(escolas)
+      .set({ status: "pendente" })
+      .where(eq(escolas.status, "em_andamento"));
+  }
+}
+
 export async function getOsDetalhadas(filters: {
   tecnicoId?: number;
   dataInicio?: Date | null;

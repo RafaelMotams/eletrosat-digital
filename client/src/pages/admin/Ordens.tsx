@@ -8,7 +8,7 @@ import {
   ClipboardList, Plus, School, User, Calendar, Image,
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
   Search, Filter, Download, RefreshCw, ChevronDown,
-  Wifi, Eye, MoreHorizontal, TrendingUp
+  Wifi, Eye, MoreHorizontal, TrendingUp, Trash2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -61,6 +61,18 @@ export default function AdminOrdens() {
   const [searchQuery, setSearchQuery] = useState("");
   const [fotoModal, setFotoModal] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const deletarTodasMut = trpc.ordens.deletarTodas.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.total} OS excluídas com sucesso!`);
+      utils.ordens.list.invalidate();
+      utils.dashboard.stats.invalidate();
+      setDeleteAllOpen(false);
+      setDeleteConfirmText("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   function getEscolaNome(id: number) { return escolas?.find(e => e.id === id)?.nome ?? `Escola #${id}`; }
   function getTecnicoNome(id: number) { return tecnicos?.find(t => t.id === id)?.nome ?? `Técnico #${id}`; }
@@ -159,6 +171,11 @@ export default function AdminOrdens() {
             <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl gap-1.5"
               style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.36 0.14 240))", color: "white", border: "none" }}>
               <Plus className="w-4 h-4" /> Nova OS
+            </Button>
+            <Button variant="outline" size="sm"
+              onClick={() => { setDeleteAllOpen(true); setDeleteConfirmText(""); }}
+              className="rounded-xl gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">
+              <Trash2 className="w-3.5 h-3.5" /> Excluir Todas
             </Button>
           </div>
         </div>
@@ -317,6 +334,51 @@ export default function AdminOrdens() {
           </div>
         </div>
       )}
+
+      {/* Modal excluir todas as OS */}
+      <Dialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100">
+                <Trash2 className="w-4 h-4 text-red-600" />
+              </div>
+              Excluir Todas as OS
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-900">
+              <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                ⚠️ Esta ação é <strong>irreversível</strong>. Todas as <strong>{counts.todos} ordens de serviço</strong> serão permanentemente excluídas.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">
+                Digite <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-red-600">CONFIRMAR</span> para prosseguir
+              </label>
+              <input
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="CONFIRMAR"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 transition-all font-mono"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteAllOpen(false)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => deletarTodasMut.mutate({ confirmacao: "CONFIRMAR" })}
+              disabled={deleteConfirmText !== "CONFIRMAR" || deletarTodasMut.isPending}
+              className="rounded-xl gap-2 bg-red-600 hover:bg-red-700 text-white border-none">
+              {deletarTodasMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Excluindo...</>
+              ) : (
+                <><Trash2 className="w-4 h-4" />Excluir Todas ({counts.todos})</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal criar OS */}
       <Dialog open={open} onOpenChange={setOpen}>
