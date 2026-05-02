@@ -90,7 +90,10 @@ export async function getTecnicoById(id: number) {
 export async function getTecnicoByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(tecnicos).where(eq(tecnicos.email, email)).limit(1);
+  // Prioriza o registro ativo; se não houver ativo, retorna undefined
+  const result = await db.select().from(tecnicos)
+    .where(and(eq(tecnicos.email, email), eq(tecnicos.ativo, true)))
+    .limit(1);
   return result[0];
 }
 

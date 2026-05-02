@@ -97,6 +97,9 @@
 - [x] App técnico OS: botões WhatsApp verde e Maps azul com ícones grandes
 - [x] Landing page: hero section redesenhada com glassmorphism
 
+## Bug - Login Técnico (duplicata inativa)
+- [x] Corrigir getTecnicoByEmail para filtrar apenas registros ativos (técnicos com mesmo email duplicado causavam falha de login)
+
 ## Bugs - Atribuição
 - [x] Corrigir NotFoundError: removeChild na página de Atribuições ao atribuir técnico
 
