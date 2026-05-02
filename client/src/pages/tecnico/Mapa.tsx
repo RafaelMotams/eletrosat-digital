@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import {
-  MapPin, Navigation, Route, CheckCircle, Clock, AlertCircle,
+  MapPin, Navigation, CheckCircle, Clock, AlertCircle,
   ExternalLink, ArrowLeft, Phone, X, Building2
 } from "lucide-react";
 import { MapView } from "@/components/Map";
@@ -174,30 +174,6 @@ export default function TecnicoMapa() {
     return result;
   }
 
-  /** Abre rota no Google Maps com todas as escolas pendentes ordenadas por proximidade */
-  const openRoute = () => {
-    const pendentesRaw = escolasComCoordenadas.filter((e: Escola) => e.status !== "concluido");
-    if (pendentesRaw.length === 0) {
-      alert("Nenhuma escola pendente com coordenadas para roteirizar.");
-      return;
-    }
-    // Ordena por proximidade (nearest neighbor)
-    const pendentes = sortByProximity(pendentesRaw);
-    if (pendentes.length === 1) {
-      window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${pendentes[0].latitude},${pendentes[0].longitude}&travelmode=driving`,
-        "_blank"
-      );
-      return;
-    }
-    // Google Maps aceita até 10 waypoints na URL
-    // Usa formato /dir/lat,lng/lat,lng/... para máxima compatibilidade
-    const pontos = pendentes.map((e: Escola) => `${parseFloat(e.latitude!).toFixed(6)},${parseFloat(e.longitude!).toFixed(6)}`);
-    // Limita a 10 pontos (1 origem + 8 waypoints + 1 destino)
-    const limitados = pontos.slice(0, 10);
-    const url = `https://www.google.com/maps/dir/${limitados.join("/")}`;
-    window.open(url, "_blank");
-  };
 
   const stats = {
     total: escolas.length,
@@ -220,14 +196,7 @@ export default function TecnicoMapa() {
             {escolasComCoordenadas.length} escolas no mapa
           </p>
         </div>
-        <button
-          onClick={openRoute}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs text-white"
-          style={{ background: "linear-gradient(135deg, #059669, #10b981)" }}
-        >
-          <Route className="w-4 h-4" />
-          Rota
-        </button>
+        <div className="w-10 h-10" />
       </div>
 
       {/* Stats */}

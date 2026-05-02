@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
-  TrendingUp, Navigation, Route, LocateFixed, X, Wifi,
+  TrendingUp, Navigation, LocateFixed, X, Wifi,
   Filter, Bell, ChevronDown
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
@@ -71,18 +71,7 @@ function sortByRoute(list: Escola[]): Escola[] {
   return [...sorted, ...withoutCoords];
 }
 
-function buildGoogleMapsRoute(escolas: Escola[]): string {
-  const pending = escolas.filter(e => e.status === "pendente" || e.status === "em_andamento");
-  const withCoords = pending.filter(e => e.latitude && e.longitude);
-  if (withCoords.length === 0) return "";
-  const sorted = sortByRoute(withCoords);
-  if (sorted.length === 1) return `https://www.google.com/maps/dir/?api=1&destination=${sorted[0].latitude},${sorted[0].longitude}`;
-  const origin = `${sorted[0].latitude},${sorted[0].longitude}`;
-  const destination = `${sorted[sorted.length - 1].latitude},${sorted[sorted.length - 1].longitude}`;
-  const waypoints = sorted.slice(1, -1).map(e => `${e.latitude},${e.longitude}`).join("|");
-  const base = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-  return waypoints ? `${base}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving` : `${base}&travelmode=driving`;
-}
+
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: typeof CheckCircle }> = {
   pendente:     { label: "Pendente",     color: "#f59e0b", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.2)",  icon: AlertCircle },
@@ -227,8 +216,7 @@ export default function TecnicoHome() {
   const totalAps = escolas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
   const apsInstalados = escolas.filter(e => e.status === "concluido").reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
 
-  const routeUrl = buildGoogleMapsRoute(finalSorted);
-  const pendingCount = escolas.filter(e => e.status === "pendente" || e.status === "em_andamento").length;
+
 
   const getInitials = (nome: string) =>
     nome.split(" ").filter(Boolean).slice(0, 2).map(n => n[0]).join("").toUpperCase();
@@ -340,15 +328,7 @@ export default function TecnicoHome() {
           ))}
         </div>
 
-        {/* Route button */}
-        {routeUrl && pendingCount > 0 && (
-          <a href={routeUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white mb-4 transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg, #0891b2, #06b6d4)", boxShadow: "0 6px 20px rgba(6,182,212,0.25)" }}>
-            <Route className="w-4 h-4" />
-            Abrir rota otimizada ({pendingCount} escolas)
-          </a>
-        )}
+
       </div>
 
       {/* Search + Filter */}
@@ -424,7 +404,7 @@ export default function TecnicoHome() {
             className="flex items-center gap-1 text-xs font-medium"
             style={{ color: "#06b6d4" }}>
             <LocateFixed className="w-3 h-3" />
-            Por rota
+            Limpar GPS
           </button>
         )}
       </div>

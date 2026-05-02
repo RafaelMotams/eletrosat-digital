@@ -273,3 +273,10 @@
 ## Funcionalidade - Excluir Todas as OS
 - [x] Backend: endpoint ordens.deletarTodas (tenantAdminProcedure) com confirmação
 - [x] Frontend: botão "Excluir Todas" na página de Ordens com modal de confirmação (digitar "CONFIRMAR")
+
+## App do Técnico - Melhorias (02/05/2026)
+- [x] Remover opção "Abrir Rota Otimizada" do app (Home.tsx e Mapa.tsx)
+- [x] Redesenhar tela de Ordem de Serviço (OrdemServico.tsx) com visual enterprise premium
+- [x] Stepper visual aprimorado com animações e cores dinâmicas
+- [x] Cards de informação da escola com layout mais elegante
+- [x] Modais de conclusão e não-instalada com design premium
