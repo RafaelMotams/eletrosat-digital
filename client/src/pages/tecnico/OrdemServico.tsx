@@ -580,6 +580,18 @@ export default function TecnicoOS() {
     return count;
   }
 
+  // Verifica se TODAS as categorias obrigatórias têm pelo menos 1 foto
+  const todasCategoriasFotos = CATEGORIAS_FOTOS.every(cat => {
+    const pendentes = fotosPorCategoria[cat.id].length;
+    const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
+    return pendentes > 0 || enviadas > 0;
+  });
+  const categoriasFaltando = CATEGORIAS_FOTOS.filter(cat => {
+    const pendentes = fotosPorCategoria[cat.id].length;
+    const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
+    return pendentes === 0 && enviadas === 0;
+  });
+
   // ─── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -1012,12 +1024,29 @@ export default function TecnicoOS() {
 
               {/* Aviso se não pode confirmar */}
               {!qtdAp && (
-                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-2"
                   style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
                   <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
                   <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>
                     Informe a quantidade de APs instalados para concluir
                   </p>
+                </div>
+              )}
+              {/* Aviso de fotos obrigatórias faltando */}
+              {categoriasFaltando.length > 0 && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
+                  style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#f87171" }} />
+                  <div>
+                    <p className="text-xs font-bold mb-0.5" style={{ color: "rgba(248,113,113,0.95)" }}>
+                      Fotos obrigatórias faltando:
+                    </p>
+                    {categoriasFaltando.map(cat => (
+                      <p key={cat.id} className="text-xs" style={{ color: "rgba(248,113,113,0.75)" }}>
+                        {cat.icon} {cat.label}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -1103,16 +1132,16 @@ export default function TecnicoOS() {
                       setUploadingAll(false);
                     }
                   }}
-                  disabled={concluirMut.isPending || uploadingAll || !qtdAp}
+                  disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
-                    background: !qtdAp
+                    background: (!qtdAp || !todasCategoriasFotos)
                       ? "rgba(16,185,129,0.15)"
                       : isOnline
                       ? "linear-gradient(135deg, #059669, #10b981)"
                       : "linear-gradient(135deg, #d97706, #f59e0b)",
-                    boxShadow: !qtdAp ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
-                    opacity: !qtdAp ? 0.5 : 1,
+                    boxShadow: (!qtdAp || !todasCategoriasFotos) ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
+                    opacity: (!qtdAp || !todasCategoriasFotos) ? 0.5 : 1,
                   }}>
                   {uploadingAll ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando fotos...</>
