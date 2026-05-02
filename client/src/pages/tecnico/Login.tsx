@@ -1,186 +1,211 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Wifi } from "lucide-react";
+
+// Splash screen component
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center z-50"
+      style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 50%, #050d1f 100%)" }}>
+      {/* Animated rings */}
+      <div className="relative flex items-center justify-center">
+        <div className="absolute w-40 h-40 rounded-full border border-blue-500/10 animate-ping" style={{ animationDuration: "2s" }} />
+        <div className="absolute w-28 h-28 rounded-full border border-blue-400/15 animate-ping" style={{ animationDuration: "1.5s", animationDelay: "0.3s" }} />
+        <div className="relative w-24 h-24 rounded-2xl overflow-hidden shadow-2xl"
+          style={{ boxShadow: "0 0 60px rgba(59,130,246,0.4), 0 0 120px rgba(59,130,246,0.15)" }}>
+          <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
+        </div>
+      </div>
+      <div className="mt-8 text-center">
+        <h1 className="text-2xl font-black text-white tracking-tight">Netvionis</h1>
+        <p className="text-sm text-blue-400/70 mt-1 font-medium">Área do Técnico</p>
+      </div>
+      {/* Loading bar */}
+      <div className="absolute bottom-16 w-32 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+        <div className="h-full rounded-full animate-pulse" style={{ background: "linear-gradient(90deg, #3b82f6, #6366f1)", width: "100%", animation: "loadbar 2s ease-in-out forwards" }} />
+      </div>
+      <style>{`
+        @keyframes loadbar { from { width: 0% } to { width: 100% } }
+      `}</style>
+    </div>
+  );
+}
 
 export default function TecnicoLogin() {
   const [, navigate] = useLocation();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
-  const [error, setError] = useState("");
-  const [focusEmail, setFocusEmail] = useState(false);
-  const [focusSenha, setFocusSenha] = useState(false);
+  const [erro, setErro] = useState("");
+  const [showSplash, setShowSplash] = useState(true);
+  const [focusedField, setFocusedField] = useState<"email" | "senha" | null>(null);
 
-  const loginMut = trpc.tecnicoAuth.login.useMutation({
+  const loginMutation = trpc.tecnicoAuth.login.useMutation({
     onSuccess: (data) => {
-      localStorage.setItem("tecnico", JSON.stringify(data));
-      localStorage.setItem("tecnico_id", String(data.id));
-      localStorage.setItem("tecnico_nome", data.nome);
-      localStorage.setItem("tecnico_email", data.email);
-      navigate("/tecnico");
+      if (data?.id) {
+        const isFirstLogin = !localStorage.getItem("tecnico_ever_logged");
+        localStorage.setItem("tecnico_id", String(data.id));
+        localStorage.setItem("tecnico_nome", data.nome);
+        localStorage.setItem("tecnico_email", data.email);
+        localStorage.setItem("tecnico", JSON.stringify(data));
+        if (isFirstLogin) {
+          localStorage.setItem("tecnico_ever_logged", "1");
+          localStorage.setItem("tecnico_show_welcome", "1");
+        }
+        navigate("/tecnico");
+      } else {
+        setErro("Email ou senha inválidos");
+      }
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setErro(e.message || "Email ou senha inválidos"),
   });
 
-  function handleLogin(e: React.FormEvent) {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!email || !senha) { setError("Preencha email e senha"); return; }
-    loginMut.mutate({ email, senha });
-  }
+    setErro("");
+    if (!email || !senha) { setErro("Preencha todos os campos"); return; }
+    loginMutation.mutate({ email: email.trim(), senha });
+  };
+
+  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 relative overflow-hidden"
-      style={{ background: "linear-gradient(145deg, #060b18 0%, #0d1a35 40%, #091428 70%, #060b18 100%)" }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-5 relative overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 60%, #050d1f 100%)" }}>
 
-      {/* Orbs decorativos */}
-      <div className="absolute top-0 left-0 w-72 h-72 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)", transform: "translate(-30%, -30%)" }} />
-      <div className="absolute top-1/4 right-0 w-64 h-64 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)", transform: "translateX(40%)" }} />
-      <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)", transform: "translateY(40%)" }} />
-      <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%)" }} />
-
-      {/* Grid pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #3b82f6, transparent)" }} />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-8"
+          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full opacity-5"
+          style={{ background: "radial-gradient(circle, #0ea5e9, transparent)" }} />
+        {/* Grid pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
 
       <div className="w-full max-w-sm relative z-10">
-        {/* Logo */}
+        {/* Logo section */}
         <div className="flex flex-col items-center mb-10">
-          {/* Logo Netvionis */}
           <div className="relative mb-5">
-            <div className="absolute inset-0 rounded-3xl opacity-30 blur-xl"
-              style={{ background: "linear-gradient(135deg, #0d1a35, #1a3a6b)", transform: "scale(1.4)" }} />
-            <div className="relative w-24 h-24 rounded-3xl overflow-hidden flex items-center justify-center"
-              style={{ boxShadow: "0 20px 60px rgba(13,26,53,0.6), 0 0 0 1px rgba(255,255,255,0.1)" }}>
-              <img
-                src="/manus-storage/netvionis-logo_1c60afaf.webp"
-                alt="Netvionis"
-                className="w-full h-full object-cover"
-              />
+            <div className="absolute inset-0 rounded-2xl blur-2xl opacity-40"
+              style={{ background: "radial-gradient(circle, #3b82f6, #6366f1)" }} />
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden"
+              style={{ boxShadow: "0 8px 32px rgba(59,130,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)" }}>
+              <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full"
-            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#6366f1" }} />
-            <span className="text-xs font-medium" style={{ color: "rgba(165,180,252,0.9)" }}>Área do Técnico de Campo</span>
+          <h1 className="text-2xl font-black text-white tracking-tight">Netvionis</h1>
+          <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full"
+            style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}>
+            <Wifi className="w-3 h-3 text-blue-400" />
+            <span className="text-xs font-medium text-blue-300">Área do Técnico de Campo</span>
           </div>
         </div>
 
-        {/* Card do formulário */}
-        <div className="rounded-3xl p-7 relative overflow-hidden"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            backdropFilter: "blur(24px)",
-            boxShadow: "0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
-          }}>
-          {/* Gradiente interno sutil */}
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.5), rgba(16,185,129,0.5), transparent)" }} />
+        {/* Card */}
+        <div className="rounded-2xl p-6 backdrop-blur-sm"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
 
-          <h2 className="text-white font-bold text-xl mb-1">Bem-vindo de volta</h2>
-          <p className="text-sm mb-7" style={{ color: "rgba(148,163,184,0.6)" }}>
-            Entre com suas credenciais para continuar
-          </p>
+          <h2 className="text-lg font-bold text-white mb-1">Entrar na conta</h2>
+          <p className="text-sm text-slate-400 mb-6">Acesse com suas credenciais</p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="text-xs font-bold mb-2 block uppercase tracking-wider"
-                style={{ color: focusEmail ? "rgba(165,180,252,0.9)" : "rgba(148,163,184,0.6)" }}>
-                E-mail
-              </label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: focusEmail ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.06)" }}>
-                  <Mail className="w-4 h-4" style={{ color: focusEmail ? "#818cf8" : "rgba(100,116,139,0.7)" }} />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Mail className="w-4 h-4" style={{ color: focusedField === "email" ? "#60a5fa" : "rgba(148,163,184,0.5)" }} />
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  onFocus={() => setFocusEmail(true)}
-                  onBlur={() => setFocusEmail(false)}
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="seu@email.com"
-                  className="w-full pl-14 pr-4 py-4 rounded-2xl text-white text-sm outline-none transition-all duration-200"
-                  style={{
-                    background: focusEmail ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.05)",
-                    border: `1.5px solid ${focusEmail ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.08)"}`,
-                    boxShadow: focusEmail ? "0 0 0 3px rgba(99,102,241,0.1)" : "none",
-                  }}
                   autoComplete="email"
+                  className="w-full pl-10 pr-4 py-3.5 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all"
+                  style={{
+                    background: focusedField === "email" ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.05)",
+                    border: focusedField === "email" ? "1px solid rgba(59,130,246,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                    boxShadow: focusedField === "email" ? "0 0 0 3px rgba(59,130,246,0.1)" : "none",
+                  }}
                 />
               </div>
             </div>
 
             {/* Senha */}
             <div>
-              <label className="text-xs font-bold mb-2 block uppercase tracking-wider"
-                style={{ color: focusSenha ? "rgba(165,180,252,0.9)" : "rgba(148,163,184,0.6)" }}>
-                Senha
-              </label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Senha</label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: focusSenha ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.06)" }}>
-                  <Lock className="w-4 h-4" style={{ color: focusSenha ? "#818cf8" : "rgba(100,116,139,0.7)" }} />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Lock className="w-4 h-4" style={{ color: focusedField === "senha" ? "#60a5fa" : "rgba(148,163,184,0.5)" }} />
                 </div>
                 <input
                   type={showSenha ? "text" : "password"}
                   value={senha}
                   onChange={e => setSenha(e.target.value)}
-                  onFocus={() => setFocusSenha(true)}
-                  onBlur={() => setFocusSenha(false)}
+                  onFocus={() => setFocusedField("senha")}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="••••••••"
-                  className="w-full pl-14 pr-12 py-4 rounded-2xl text-white text-sm outline-none transition-all duration-200"
-                  style={{
-                    background: focusSenha ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.05)",
-                    border: `1.5px solid ${focusSenha ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.08)"}`,
-                    boxShadow: focusSenha ? "0 0 0 3px rgba(99,102,241,0.1)" : "none",
-                  }}
                   autoComplete="current-password"
+                  className="w-full pl-10 pr-12 py-3.5 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all"
+                  style={{
+                    background: focusedField === "senha" ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.05)",
+                    border: focusedField === "senha" ? "1px solid rgba(59,130,246,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                    boxShadow: focusedField === "senha" ? "0 0 0 3px rgba(59,130,246,0.1)" : "none",
+                  }}
                 />
                 <button type="button" onClick={() => setShowSenha(!showSenha)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(100,116,139,0.7)" }}>
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors"
+                  style={{ color: "rgba(148,163,184,0.6)" }}>
                   {showSenha ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Erro */}
-            {error && (
-              <div className="rounded-2xl px-4 py-3 text-sm flex items-start gap-2"
-                style={{ background: "rgba(239,68,68,0.10)", color: "rgba(252,165,165,0.95)", border: "1px solid rgba(239,68,68,0.20)" }}>
-                <span className="mt-0.5">⚠</span>
-                <span>{error}</span>
+            {/* Error */}
+            {erro && (
+              <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl text-sm"
+                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                {erro}
               </div>
             )}
 
-            {/* Botão */}
-            <button
-              type="submit"
-              disabled={loginMut.isPending}
-              className="w-full py-4 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2.5 transition-all duration-200 mt-2 relative overflow-hidden"
+            {/* Submit */}
+            <button type="submit" disabled={loginMutation.isPending}
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-bold text-sm text-white transition-all active:scale-[0.98] mt-2"
               style={{
-                background: loginMut.isPending
-                  ? "rgba(99,102,241,0.4)"
-                  : "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #10b981 100%)",
-                boxShadow: loginMut.isPending ? "none" : "0 8px 32px rgba(99,102,241,0.4), 0 2px 8px rgba(0,0,0,0.3)",
-                transform: loginMut.isPending ? "scale(0.98)" : "scale(1)",
+                background: loginMutation.isPending
+                  ? "rgba(59,130,246,0.4)"
+                  : "linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)",
+                boxShadow: loginMutation.isPending ? "none" : "0 8px 24px rgba(37,99,235,0.35)",
               }}>
-              {loginMut.isPending ? (
+              {loginMutation.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Entrando...</span>
+                  Entrando...
                 </>
               ) : (
                 <>
-                  <span>Entrar na conta</span>
+                  Entrar
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -188,8 +213,9 @@ export default function TecnicoLogin() {
           </form>
         </div>
 
-        <p className="text-center text-xs mt-6" style={{ color: "rgba(100,116,139,0.5)" }}>
-          Problemas de acesso? Contate o administrador.
+        {/* Footer */}
+        <p className="text-center text-xs text-slate-600 mt-6">
+          Netvionis Tecnologia © {new Date().getFullYear()}
         </p>
       </div>
     </div>

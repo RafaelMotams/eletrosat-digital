@@ -97,6 +97,19 @@
 - [x] App técnico OS: botões WhatsApp verde e Maps azul com ícones grandes
 - [x] Landing page: hero section redesenhada com glassmorphism
 
+## Redesign Enterprise App Técnico (02/05/2026)
+- [x] Login: visual premium com animações, logo centralizada, fundo com gradiente profissional
+- [x] Splash screen: tela de carregamento com logo ao abrir o app
+- [x] Boas-vindas apenas no primeiro login (flag no localStorage)
+- [x] Home: dashboard com cards de métricas, progresso visual, lista de OS redesenhada
+- [x] Home: filtros rápidos por status (Todos / Pendentes / Em andamento / Concluídos)
+- [x] Home: card de escola com avatar colorido, badge de APs destacado, ações rápidas
+- [x] Bottom Nav: design moderno com indicador ativo animado
+- [x] Tela de OS: visual de etapas (stepper) para iniciar/concluir
+- [x] Perfil: tela com avatar, estatísticas pessoais, botão de logout estilizado
+- [x] Histórico: lista de OS concluídas com filtro por data
+- [x] APK com ícone Netvionis atualizado (netvionis-tecnico-v3.apk, 4.3MB)
+
 ## Atualização App Técnico (02/05/2026)
 - [x] Logo Netvionis na tela de login do app do técnico
 - [x] Logo Netvionis no ícone do app (favicon/manifest)

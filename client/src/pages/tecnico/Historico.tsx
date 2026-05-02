@@ -1,7 +1,8 @@
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
-import { CheckCircle, Clock, Wifi, Zap, Calendar, ArrowRight, XCircle, Play } from "lucide-react";
+import { CheckCircle, Clock, Wifi, Zap, Calendar, ArrowRight, XCircle, Play, Filter, ChevronDown } from "lucide-react";
 
 type Escola = {
   id: number;
@@ -16,32 +17,70 @@ type Escola = {
 };
 
 const statusMap: Record<string, { label: string; color: string; bg: string; icon: typeof CheckCircle }> = {
-  concluido:     { label: "Concluído",    color: "#34d399", bg: "rgba(16,185,129,0.12)",  icon: CheckCircle },
-  em_andamento:  { label: "Em andamento", color: "#818cf8", bg: "rgba(99,102,241,0.12)",  icon: Play        },
-  nao_instalada: { label: "Não instalada",color: "#f87171", bg: "rgba(239,68,68,0.12)",   icon: XCircle     },
-  pendente:      { label: "Pendente",     color: "#fbbf24", bg: "rgba(245,158,11,0.12)",  icon: Clock       },
+  concluido:     { label: "Concluído",     color: "#34d399", bg: "rgba(16,185,129,0.12)",  icon: CheckCircle },
+  em_andamento:  { label: "Em andamento",  color: "#818cf8", bg: "rgba(99,102,241,0.12)",  icon: Play        },
+  nao_instalada: { label: "Não instalada", color: "#f87171", bg: "rgba(239,68,68,0.12)",   icon: XCircle     },
+  pendente:      { label: "Pendente",      color: "#fbbf24", bg: "rgba(245,158,11,0.12)",  icon: Clock       },
 };
+
+const PERIODOS = [
+  { value: "todos",    label: "Todos" },
+  { value: "hoje",     label: "Hoje" },
+  { value: "semana",   label: "Esta semana" },
+  { value: "mes",      label: "Este mês" },
+  { value: "custom",   label: "Período..." },
+] as const;
+
+type Periodo = typeof PERIODOS[number]["value"];
+
+function startOfDay(d: Date) { const r = new Date(d); r.setHours(0,0,0,0); return r; }
+function startOfWeek(d: Date) { const r = startOfDay(d); r.setDate(r.getDate() - r.getDay()); return r; }
+function startOfMonth(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1); }
 
 export default function TecnicoHistorico() {
   const [, navigate] = useLocation();
   const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
+  const [periodo, setPeriodo] = useState<Periodo>("todos");
+  const [showPeriodo, setShowPeriodo] = useState(false);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
 
   const { data: escolas = [], isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
     { enabled: !!tecnicoId }
   );
 
-  const concluidas    = escolas.filter((e: Escola) => e.status === "concluido");
-  const emAndamento   = escolas.filter((e: Escola) => e.status === "em_andamento");
-  const naoInstaladas = escolas.filter((e: Escola) => e.status === "nao_instalada");
-  const pendentes     = escolas.filter((e: Escola) => e.status === "pendente");
+  const escolasFiltradas = useMemo(() => {
+    if (periodo === "todos") return escolas as Escola[];
+    const now = new Date();
+    let from: Date | null = null;
+    let to: Date | null = null;
+    if (periodo === "hoje")   { from = startOfDay(now);  to = now; }
+    if (periodo === "semana") { from = startOfWeek(now); to = now; }
+    if (periodo === "mes")    { from = startOfMonth(now); to = now; }
+    if (periodo === "custom" && dataInicio) {
+      from = startOfDay(new Date(dataInicio + "T00:00:00"));
+      to = dataFim ? new Date(dataFim + "T23:59:59") : now;
+    }
+    if (!from) return escolas as Escola[];
+    return (escolas as Escola[]).filter(e => {
+      const d = e.dataConclusao ? new Date(e.dataConclusao) : null;
+      if (!d) return false;
+      return d >= from! && d <= to!;
+    });
+  }, [escolas, periodo, dataInicio, dataFim]);
 
-  const totalAps = concluidas.reduce((acc: number, e: Escola) => acc + (e.qtdAp || 1), 0);
+  const concluidas    = escolasFiltradas.filter(e => e.status === "concluido");
+  const emAndamento   = escolasFiltradas.filter(e => e.status === "em_andamento");
+  const naoInstaladas = escolasFiltradas.filter(e => e.status === "nao_instalada");
+  const pendentes     = escolasFiltradas.filter(e => e.status === "pendente");
+
+  const totalAps = concluidas.reduce((acc, e) => acc + (e.qtdAp || 1), 0);
 
   const stats = [
-    { label: "Concluídas",    value: concluidas.length,    gradient: "linear-gradient(135deg, #059669, #10b981)", glow: "rgba(16,185,129,0.35)", icon: CheckCircle },
-    { label: "Pendentes",     value: pendentes.length + emAndamento.length, gradient: "linear-gradient(135deg, #d97706, #f59e0b)", glow: "rgba(245,158,11,0.35)", icon: Clock },
-    { label: "APs Instalados",value: totalAps,             gradient: "linear-gradient(135deg, #2563eb, #3b82f6)", glow: "rgba(59,130,246,0.35)", icon: Zap },
+    { label: "Concluídas",     value: concluidas.length,                     gradient: "linear-gradient(135deg, #059669, #10b981)", glow: "rgba(16,185,129,0.35)", icon: CheckCircle },
+    { label: "Pendentes",      value: pendentes.length + emAndamento.length,  gradient: "linear-gradient(135deg, #d97706, #f59e0b)", glow: "rgba(245,158,11,0.35)", icon: Clock },
+    { label: "APs Instalados", value: totalAps,                               gradient: "linear-gradient(135deg, #2563eb, #3b82f6)", glow: "rgba(59,130,246,0.35)", icon: Zap },
   ];
 
   function EscolaCard({ escola }: { escola: Escola }) {
@@ -51,11 +90,7 @@ export default function TecnicoHistorico() {
       <button
         onClick={() => navigate(`/tecnico/os/${escola.id}`)}
         className="w-full text-left rounded-3xl p-4 flex items-center gap-3.5 transition-all active:scale-[0.98]"
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          border: `1px solid ${st.color}22`,
-          boxShadow: `0 4px 20px ${st.color}10`,
-        }}
+        style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${st.color}22`, boxShadow: `0 4px 20px ${st.color}10` }}
       >
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
           style={{ background: st.bg }}>
@@ -79,8 +114,7 @@ export default function TecnicoHistorico() {
           )}
         </div>
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full"
-            style={{ background: st.bg }}>
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: st.bg }}>
             <Icon className="w-3 h-3" style={{ color: st.color }} />
             <span className="text-xs font-bold" style={{ color: st.color }}>{st.label}</span>
           </div>
@@ -90,23 +124,76 @@ export default function TecnicoHistorico() {
     );
   }
 
+  const periodoLabel = PERIODOS.find(p => p.value === periodo)?.label ?? "Todos";
+
   return (
     <div className="min-h-screen pb-28"
       style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 60%, #060b18 100%)" }}>
 
       {/* Header */}
-      <div className="px-4 pt-safe pt-6 pb-5 sticky top-0 z-10"
+      <div className="px-4 pt-safe pt-6 pb-4 sticky top-0 z-10"
         style={{ background: "rgba(6,11,24,0.95)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 6px 20px rgba(16,185,129,0.4)" }}>
-            <CheckCircle className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 6px 20px rgba(16,185,129,0.4)" }}>
+              <CheckCircle className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-white font-black text-xl">Histórico</h1>
+              <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Suas ordens de serviço</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-white font-black text-xl">Histórico</h1>
-            <p className="text-xs" style={{ color: "rgba(148,163,184,0.5)" }}>Suas ordens de serviço</p>
-          </div>
+          {/* Botão filtro período */}
+          <button
+            onClick={() => setShowPeriodo(v => !v)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all active:scale-95"
+            style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", color: "#818cf8" }}>
+            <Filter className="w-3.5 h-3.5" />
+            {periodoLabel}
+            <ChevronDown className="w-3.5 h-3.5" style={{ transform: showPeriodo ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+          </button>
         </div>
+
+        {/* Dropdown de período */}
+        {showPeriodo && (
+          <div className="rounded-2xl overflow-hidden mb-1"
+            style={{ background: "rgba(15,23,42,0.98)", border: "1px solid rgba(99,102,241,0.2)" }}>
+            {PERIODOS.map(p => (
+              <button key={p.value}
+                onClick={() => { setPeriodo(p.value); if (p.value !== "custom") setShowPeriodo(false); }}
+                className="w-full text-left px-4 py-3 text-sm font-semibold transition-all"
+                style={{
+                  color: periodo === p.value ? "#818cf8" : "rgba(148,163,184,0.7)",
+                  background: periodo === p.value ? "rgba(99,102,241,0.08)" : "transparent",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                }}>
+                {p.label}
+              </button>
+            ))}
+            {periodo === "custom" && (
+              <div className="px-4 py-3 flex gap-3">
+                <div className="flex-1">
+                  <p className="text-xs mb-1" style={{ color: "rgba(148,163,184,0.5)" }}>De</p>
+                  <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
+                    className="w-full rounded-xl px-3 py-2 text-xs text-white"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs mb-1" style={{ color: "rgba(148,163,184,0.5)" }}>Até</p>
+                  <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
+                    className="w-full rounded-xl px-3 py-2 text-xs text-white"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                </div>
+                <button onClick={() => setShowPeriodo(false)}
+                  className="self-end px-3 py-2 rounded-xl text-xs font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)" }}>
+                  OK
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="px-4 py-4 space-y-5">
@@ -138,15 +225,15 @@ export default function TecnicoHistorico() {
         )}
 
         {/* Vazio */}
-        {!isLoading && escolas.length === 0 && (
+        {!isLoading && escolasFiltradas.length === 0 && (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <Wifi className="w-8 h-8" style={{ color: "rgba(148,163,184,0.3)" }} />
+              <Calendar className="w-8 h-8" style={{ color: "rgba(148,163,184,0.3)" }} />
             </div>
-            <p className="text-white font-bold text-lg">Nenhuma escola atribuída</p>
+            <p className="text-white font-bold text-lg">Nenhum resultado</p>
             <p className="text-sm mt-2" style={{ color: "rgba(148,163,184,0.5)" }}>
-              Aguarde a atribuição pelo administrador
+              {periodo === "todos" ? "Aguarde a atribuição pelo administrador" : "Nenhuma OS no período selecionado"}
             </p>
           </div>
         )}
@@ -155,18 +242,16 @@ export default function TecnicoHistorico() {
         {concluidas.length > 0 && (
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(16,185,129,0.15)" }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}>
                 <CheckCircle className="w-4 h-4" style={{ color: "#34d399" }} />
               </div>
               <h2 className="text-white font-black text-sm">Concluídas</h2>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                style={{ background: "rgba(16,185,129,0.12)", color: "#34d399" }}>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(16,185,129,0.12)", color: "#34d399" }}>
                 {concluidas.length}
               </span>
             </div>
             <div className="space-y-2.5">
-              {concluidas.map((escola: Escola) => <EscolaCard key={escola.id} escola={escola} />)}
+              {concluidas.map(e => <EscolaCard key={e.id} escola={e} />)}
             </div>
           </div>
         )}
@@ -175,18 +260,16 @@ export default function TecnicoHistorico() {
         {emAndamento.length > 0 && (
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(99,102,241,0.15)" }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)" }}>
                 <Play className="w-4 h-4" style={{ color: "#818cf8" }} />
               </div>
               <h2 className="text-white font-black text-sm">Em Andamento</h2>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                style={{ background: "rgba(99,102,241,0.12)", color: "#818cf8" }}>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(99,102,241,0.12)", color: "#818cf8" }}>
                 {emAndamento.length}
               </span>
             </div>
             <div className="space-y-2.5">
-              {emAndamento.map((escola: Escola) => <EscolaCard key={escola.id} escola={escola} />)}
+              {emAndamento.map(e => <EscolaCard key={e.id} escola={e} />)}
             </div>
           </div>
         )}
@@ -195,18 +278,16 @@ export default function TecnicoHistorico() {
         {naoInstaladas.length > 0 && (
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(239,68,68,0.15)" }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.15)" }}>
                 <XCircle className="w-4 h-4" style={{ color: "#f87171" }} />
               </div>
               <h2 className="text-white font-black text-sm">Não Instaladas</h2>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                style={{ background: "rgba(239,68,68,0.12)", color: "#f87171" }}>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(239,68,68,0.12)", color: "#f87171" }}>
                 {naoInstaladas.length}
               </span>
             </div>
             <div className="space-y-2.5">
-              {naoInstaladas.map((escola: Escola) => <EscolaCard key={escola.id} escola={escola} />)}
+              {naoInstaladas.map(e => <EscolaCard key={e.id} escola={e} />)}
             </div>
           </div>
         )}
@@ -215,18 +296,16 @@ export default function TecnicoHistorico() {
         {pendentes.length > 0 && (
           <div>
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(245,158,11,0.15)" }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,158,11,0.15)" }}>
                 <Clock className="w-4 h-4" style={{ color: "#fbbf24" }} />
               </div>
               <h2 className="text-white font-black text-sm">Pendentes</h2>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                style={{ background: "rgba(245,158,11,0.12)", color: "#fbbf24" }}>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(245,158,11,0.12)", color: "#fbbf24" }}>
                 {pendentes.length}
               </span>
             </div>
             <div className="space-y-2.5">
-              {pendentes.map((escola: Escola) => <EscolaCard key={escola.id} escola={escola} />)}
+              {pendentes.map(e => <EscolaCard key={e.id} escola={e} />)}
             </div>
           </div>
         )}

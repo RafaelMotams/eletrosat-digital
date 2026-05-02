@@ -247,6 +247,41 @@ export default function TecnicoOS() {
         </div>
       )}
 
+      {/* Stepper visual de etapas */}
+      <div className="px-4 py-3" style={{ background: "rgba(6,11,24,0.7)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="flex items-center">
+          {([
+            { key: "pendente",     label: "Pendente",  step: 1 },
+            { key: "em_andamento", label: "Andamento", step: 2 },
+            { key: "concluido",    label: "Concluído", step: 3 },
+          ] as { key: string; label: string; step: number }[]).map((s, i, arr) => {
+            const isActive = escola.status === s.key || (escola.status === "nao_instalada" && s.step === 3);
+            const isPast = (s.step === 1 && ["em_andamento","concluido","nao_instalada"].includes(escola.status ?? ""))
+                        || (s.step === 2 && ["concluido","nao_instalada"].includes(escola.status ?? ""));
+            const stepColor = isActive ? sc.text : isPast ? "#10b981" : "rgba(71,85,105,0.5)";
+            return (
+              <div key={s.key} className="flex items-center" style={{ flex: i < arr.length - 1 ? 1 : 0 }}>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
+                    style={{
+                      background: isActive ? `${sc.text}20` : isPast ? "rgba(16,185,129,0.15)" : "rgba(71,85,105,0.1)",
+                      border: `1.5px solid ${stepColor}`,
+                      color: stepColor,
+                    }}>
+                    {isPast ? "✓" : s.step}
+                  </div>
+                  <span className="text-[9px] font-semibold" style={{ color: stepColor }}>{s.label}</span>
+                </div>
+                {i < arr.length - 1 && (
+                  <div className="flex-1 h-0.5 mx-2 mb-3 rounded-full"
+                    style={{ background: isPast ? "rgba(16,185,129,0.4)" : "rgba(71,85,105,0.2)" }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-safe pt-4 pb-4 sticky top-0 z-10"
         style={{ background: "rgba(6,11,24,0.95)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

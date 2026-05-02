@@ -4,7 +4,8 @@ import { useLocation } from "wouter";
 import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
-  Sparkles, TrendingUp, Navigation, Route, LocateFixed
+  TrendingUp, Navigation, Route, LocateFixed, X, Wifi,
+  Filter, Bell, ChevronDown
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -37,7 +38,6 @@ function formatWhatsApp(raw: string | null | undefined): string | null {
   return `5575${local}`;
 }
 
-// Haversine distance in km
 function haversine(a: Escola, b: Escola): number {
   const R = 6371;
   const lat1 = parseFloat(a.latitude ?? "0");
@@ -50,7 +50,6 @@ function haversine(a: Escola, b: Escola): number {
   return R * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
 }
 
-// Nearest-neighbor TSP approximation
 function sortByRoute(list: Escola[]): Escola[] {
   if (!list || list.length === 0) return [];
   const withCoords = list.filter(e => e.latitude && e.longitude);
@@ -72,15 +71,12 @@ function sortByRoute(list: Escola[]): Escola[] {
   return [...sorted, ...withoutCoords];
 }
 
-// Build Google Maps route URL with waypoints
 function buildGoogleMapsRoute(escolas: Escola[]): string {
   const pending = escolas.filter(e => e.status === "pendente" || e.status === "em_andamento");
   const withCoords = pending.filter(e => e.latitude && e.longitude);
   if (withCoords.length === 0) return "";
   const sorted = sortByRoute(withCoords);
-  if (sorted.length === 1) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${sorted[0].latitude},${sorted[0].longitude}`;
-  }
+  if (sorted.length === 1) return `https://www.google.com/maps/dir/?api=1&destination=${sorted[0].latitude},${sorted[0].longitude}`;
   const origin = `${sorted[0].latitude},${sorted[0].longitude}`;
   const destination = `${sorted[sorted.length - 1].latitude},${sorted[sorted.length - 1].longitude}`;
   const waypoints = sorted.slice(1, -1).map(e => `${e.latitude},${e.longitude}`).join("|");
@@ -88,46 +84,40 @@ function buildGoogleMapsRoute(escolas: Escola[]): string {
   return waypoints ? `${base}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving` : `${base}&travelmode=driving`;
 }
 
-const statusConfig: Record<string, {
-  label: string; icon: typeof CheckCircle;
-  gradient: string; glow: string;
-  badgeBg: string; badgeText: string;
-  cardBg: string; cardBorder: string;
-  avatarGradient: string;
-}> = {
-  pendente: {
-    label: "Pendente", icon: AlertCircle,
-    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-    glow: "rgba(245,158,11,0.25)",
-    badgeBg: "rgba(245,158,11,0.15)", badgeText: "#fbbf24",
-    cardBg: "rgba(245,158,11,0.04)", cardBorder: "rgba(245,158,11,0.18)",
-    avatarGradient: "linear-gradient(135deg, #92400e, #d97706)",
-  },
-  em_andamento: {
-    label: "Em andamento", icon: Clock,
-    gradient: "linear-gradient(135deg, #3b82f6, #6366f1)",
-    glow: "rgba(99,102,241,0.25)",
-    badgeBg: "rgba(99,102,241,0.15)", badgeText: "#818cf8",
-    cardBg: "rgba(99,102,241,0.04)", cardBorder: "rgba(99,102,241,0.22)",
-    avatarGradient: "linear-gradient(135deg, #1e1b4b, #4f46e5)",
-  },
-  concluido: {
-    label: "Concluído", icon: CheckCircle,
-    gradient: "linear-gradient(135deg, #10b981, #059669)",
-    glow: "rgba(16,185,129,0.25)",
-    badgeBg: "rgba(16,185,129,0.15)", badgeText: "#34d399",
-    cardBg: "rgba(16,185,129,0.04)", cardBorder: "rgba(16,185,129,0.22)",
-    avatarGradient: "linear-gradient(135deg, #064e3b, #10b981)",
-  },
-  nao_instalada: {
-    label: "Não instalada", icon: AlertCircle,
-    gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
-    glow: "rgba(239,68,68,0.25)",
-    badgeBg: "rgba(239,68,68,0.15)", badgeText: "#f87171",
-    cardBg: "rgba(239,68,68,0.04)", cardBorder: "rgba(239,68,68,0.22)",
-    avatarGradient: "linear-gradient(135deg, #7f1d1d, #dc2626)",
-  },
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: typeof CheckCircle }> = {
+  pendente:     { label: "Pendente",     color: "#f59e0b", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.2)",  icon: AlertCircle },
+  em_andamento: { label: "Em andamento", color: "#3b82f6", bg: "rgba(59,130,246,0.1)",  border: "rgba(59,130,246,0.2)",  icon: Clock },
+  concluido:    { label: "Concluído",    color: "#10b981", bg: "rgba(16,185,129,0.1)",  border: "rgba(16,185,129,0.2)",  icon: CheckCircle },
+  nao_instalada:{ label: "Não instalada",color: "#ef4444", bg: "rgba(239,68,68,0.1)",   border: "rgba(239,68,68,0.2)",   icon: AlertCircle },
 };
+
+type FilterType = "todos" | "pendente" | "em_andamento" | "concluido" | "nao_instalada";
+
+// Welcome modal — shows only on first login
+function WelcomeModal({ nome, onClose }: { nome: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+      <div className="w-full max-w-sm rounded-3xl p-6 text-center"
+        style={{ background: "linear-gradient(160deg, #0d1a35, #0a1225)", border: "1px solid rgba(59,130,246,0.2)", boxShadow: "0 32px 80px rgba(0,0,0,0.6)" }}>
+        <div className="w-16 h-16 rounded-2xl mx-auto mb-4 overflow-hidden"
+          style={{ boxShadow: "0 8px 32px rgba(59,130,246,0.3)" }}>
+          <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
+        </div>
+        <div className="text-2xl mb-2">👋</div>
+        <h2 className="text-xl font-black text-white mb-2">Bem-vindo, {nome.split(" ")[0]}!</h2>
+        <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+          Você está na <span className="text-blue-400 font-semibold">Área do Técnico Netvionis</span>. Aqui você gerencia suas ordens de serviço, registra instalações e acompanha seu progresso.
+        </p>
+        <button onClick={onClose}
+          className="w-full py-3.5 rounded-2xl font-bold text-white text-sm transition-all active:scale-95"
+          style={{ background: "linear-gradient(135deg, #2563eb, #4f46e5)", boxShadow: "0 8px 24px rgba(37,99,235,0.4)" }}>
+          Começar agora
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function TecnicoHome() {
   const [, navigate] = useLocation();
@@ -139,6 +129,8 @@ export default function TecnicoHome() {
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
   const [locating, setLocating] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
+  const [showWelcome, setShowWelcome] = useState(false);
   const isOnline = useOnlineStatus();
 
   useEffect(() => {
@@ -159,6 +151,11 @@ export default function TecnicoHome() {
       setTecnicoId(Number(id));
       setTecnicoNome(nome || "Técnico");
     }
+    // Show welcome only on first login
+    if (localStorage.getItem("tecnico_show_welcome") === "1") {
+      setShowWelcome(true);
+      localStorage.removeItem("tecnico_show_welcome");
+    }
   }, [navigate]);
 
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
@@ -178,17 +175,13 @@ export default function TecnicoHome() {
   }, [isOnline, tecnicoId, escolasOnline]);
 
   const escolas = ((escolasOnline ?? offlineEscolas ?? []) as Escola[]);
-
-  // Sort all escolas by nearest-neighbor route
   const sortedEscolas = sortByRoute(escolas);
 
-  // If user location is available, re-sort starting from nearest to user
   const routeEscolas = useCallback(() => {
     if (userLat !== null && userLng !== null && sortedEscolas.length > 0) {
       const withCoords = sortedEscolas.filter(e => e.latitude && e.longitude);
       const withoutCoords = sortedEscolas.filter(e => !e.latitude || !e.longitude);
       if (withCoords.length === 0) return sortedEscolas;
-      // Find nearest to user as starting point
       const userPoint = { latitude: String(userLat), longitude: String(userLng) } as Escola;
       let ni = 0, nd = haversine(userPoint, withCoords[0]);
       for (let i = 1; i < withCoords.length; i++) {
@@ -215,7 +208,12 @@ export default function TecnicoHome() {
 
   const finalSorted = routeEscolas();
 
-  const filtered = finalSorted.filter(e =>
+  // Apply filter
+  const filteredByStatus = activeFilter === "todos"
+    ? finalSorted
+    : finalSorted.filter(e => e.status === activeFilter);
+
+  const filtered = filteredByStatus.filter(e =>
     !search || e.nome.toLowerCase().includes(search.toLowerCase()) ||
     e.inep.includes(search) || (e.municipio ?? "").toLowerCase().includes(search.toLowerCase())
   );
@@ -224,7 +222,10 @@ export default function TecnicoHome() {
   const concluidas = escolas.filter(e => e.status === "concluido").length;
   const emAndamento = escolas.filter(e => e.status === "em_andamento").length;
   const pendentes = escolas.filter(e => e.status === "pendente").length;
+  const naoInstaladas = escolas.filter(e => e.status === "nao_instalada").length;
   const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+  const totalAps = escolas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
+  const apsInstalados = escolas.filter(e => e.status === "concluido").reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
 
   const routeUrl = buildGoogleMapsRoute(finalSorted);
   const pendingCount = escolas.filter(e => e.status === "pendente" || e.status === "em_andamento").length;
@@ -245,296 +246,286 @@ export default function TecnicoHome() {
     );
   }
 
-  return (
-    <div className="min-h-screen flex flex-col pb-24"
-      style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 60%, #060b18 100%)" }}>
+  const filterTabs: { key: FilterType; label: string; count: number; color: string }[] = [
+    { key: "todos",        label: "Todos",       count: total,        color: "#94a3b8" },
+    { key: "pendente",     label: "Pendentes",   count: pendentes,    color: "#f59e0b" },
+    { key: "em_andamento", label: "Andamento",   count: emAndamento,  color: "#3b82f6" },
+    { key: "concluido",    label: "Concluídos",  count: concluidas,   color: "#10b981" },
+    { key: "nao_instalada",label: "Não inst.",   count: naoInstaladas,color: "#ef4444" },
+  ];
 
-      {/* Banner offline */}
+  return (
+    <div className="min-h-screen flex flex-col pb-28"
+      style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 60%, #050d1f 100%)" }}>
+
+      {/* Welcome modal */}
+      {showWelcome && <WelcomeModal nome={tecnicoNome} onClose={() => setShowWelcome(false)} />}
+
+      {/* Offline banner */}
       {!isOnline && (
         <div className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold"
-          style={{ background: "linear-gradient(90deg, rgba(245,158,11,0.15), rgba(245,158,11,0.08))", borderBottom: "1px solid rgba(245,158,11,0.25)" }}>
-          <WifiOff className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
-          <span style={{ color: "#fbbf24" }}>Modo offline — exibindo dados salvos</span>
+          style={{ background: "rgba(245,158,11,0.1)", borderBottom: "1px solid rgba(245,158,11,0.15)", color: "#fbbf24" }}>
+          <WifiOff className="w-3.5 h-3.5" />
+          Modo offline — dados em cache
         </div>
       )}
 
       {/* Header */}
-      <header className="px-4 pt-safe pt-5 pb-4 sticky top-0 z-10"
-        style={{ background: "rgba(6,11,24,0.95)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-
-        {/* Saudação */}
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-4 pt-5 pb-4">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base text-white"
-                style={{ background: "linear-gradient(135deg, #4f46e5, #10b981)", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" }}>
-                {getInitials(tecnicoNome)}
-              </div>
-              {isOnline && (
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
-                  style={{ background: "#10b981", borderColor: "#060b18" }} />
-              )}
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
+              style={{ boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}>
+              <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
             </div>
             <div>
-              <p className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.5)" }}>{saudacao},</p>
-              <p className="text-white font-bold text-base leading-tight">{tecnicoNome.split(" ")[0]}</p>
+              <p className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>{saudacao}</p>
+              <h1 className="text-base font-black text-white leading-tight">{tecnicoNome.split(" ")[0]}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Localizar-me */}
-            <button onClick={handleLocate}
-              className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all active:scale-95"
-              style={{
-                background: userLat ? "rgba(16,185,129,0.15)" : "rgba(99,102,241,0.12)",
-                border: `1px solid ${userLat ? "rgba(16,185,129,0.3)" : "rgba(99,102,241,0.2)"}`,
-              }}
-              title="Usar minha localização para ordenar rota">
-              {locating
-                ? <RefreshCw className="w-4 h-4 animate-spin" style={{ color: "#818cf8" }} />
-                : <LocateFixed className="w-4 h-4" style={{ color: userLat ? "#34d399" : "#818cf8" }} />
-              }
-            </button>
-            <button onClick={() => refetch()}
-              className="w-10 h-10 rounded-2xl flex items-center justify-center transition-all active:scale-95"
-              style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.2)" }}>
-              <RefreshCw className="w-4 h-4" style={{ color: "#818cf8" }} />
-            </button>
+            {isOnline && (
+              <button onClick={() => refetch()}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} style={{ color: "rgba(148,163,184,0.6)" }} />
+              </button>
+            )}
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white"
+                style={{ background: "linear-gradient(135deg, #2563eb, #4f46e5)" }}>
+                {getInitials(tecnicoNome)}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        {/* Progress card */}
+        <div className="rounded-2xl p-4 mb-4"
+          style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(79,70,229,0.1))", border: "1px solid rgba(59,130,246,0.15)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs font-medium text-slate-400 mb-0.5">Progresso do dia</p>
+              <p className="text-2xl font-black text-white">{progresso}<span className="text-sm font-bold text-slate-400">%</span></p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-slate-400 mb-0.5">APs instalados</p>
+              <p className="text-lg font-black" style={{ color: "#3b82f6" }}>{apsInstalados}<span className="text-xs text-slate-400 font-medium">/{totalAps}</span></p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+            <div className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #2563eb, #4f46e5)" }} />
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-slate-500">{concluidas} concluídas</span>
+            <span className="text-xs text-slate-500">{total} total</span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "Total", value: total, gradient: "linear-gradient(135deg, #3b82f6, #6366f1)", glow: "rgba(99,102,241,0.3)" },
-            { label: "Pendentes", value: pendentes, gradient: "linear-gradient(135deg, #f59e0b, #d97706)", glow: "rgba(245,158,11,0.3)" },
-            { label: "Andamento", value: emAndamento, gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)", glow: "rgba(139,92,246,0.3)" },
-            { label: "Feitas", value: concluidas, gradient: "linear-gradient(135deg, #10b981, #059669)", glow: "rgba(16,185,129,0.3)" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-2xl p-2.5 text-center relative overflow-hidden"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="absolute inset-0 opacity-5 rounded-2xl" style={{ background: s.gradient }} />
-              <p className="text-lg font-black relative" style={{ background: s.gradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                {s.value}
-              </p>
-              <p className="text-xs relative" style={{ color: "rgba(148,163,184,0.5)", fontSize: "10px" }}>{s.label}</p>
+            { label: "Pendentes", value: pendentes, color: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.15)" },
+            { label: "Andamento", value: emAndamento, color: "#3b82f6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.15)" },
+            { label: "Concluídas", value: concluidas, color: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.15)" },
+          ].map(s => (
+            <div key={s.label} className="rounded-xl p-3 text-center"
+              style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+              <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
+              <p className="text-[10px] font-medium text-slate-500 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Barra de progresso */}
-        {total > 0 && (
-          <div className="mb-3 p-3 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
-                <span className="text-xs font-semibold" style={{ color: "rgba(148,163,184,0.7)" }}>Progresso geral</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3" style={{ color: "#fbbf24" }} />
-                <span className="text-sm font-black" style={{ background: "linear-gradient(90deg, #10b981, #6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {progresso}%
-                </span>
-              </div>
-            </div>
-            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-              <div className="h-full rounded-full transition-all duration-1000 relative overflow-hidden"
-                style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #4f46e5, #10b981, #059669)" }}>
-                <div className="absolute inset-0 animate-pulse" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)" }} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Botão Rota Completa */}
+        {/* Route button */}
         {routeUrl && pendingCount > 0 && (
           <a href={routeUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl mb-3 font-bold text-sm transition-all active:scale-[0.98]"
-            style={{
-              background: "linear-gradient(135deg, #1d4ed8, #4f46e5)",
-              boxShadow: "0 4px 20px rgba(79,70,229,0.4)",
-              color: "white",
-              textDecoration: "none",
-            }}>
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white mb-4 transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg, #0891b2, #06b6d4)", boxShadow: "0 6px 20px rgba(6,182,212,0.25)" }}>
             <Route className="w-4 h-4" />
-            Abrir Rota Completa no Maps
-            <span className="px-2 py-0.5 rounded-full text-xs font-black"
-              style={{ background: "rgba(255,255,255,0.2)" }}>
-              {pendingCount} escolas
-            </span>
+            Abrir rota otimizada ({pendingCount} escolas)
           </a>
         )}
+      </div>
 
-        {/* Indicador de localização ativa */}
-        {userLat && (
-          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl"
-            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
-            <Navigation className="w-3.5 h-3.5" style={{ color: "#34d399" }} />
-            <span className="text-xs font-medium" style={{ color: "#34d399" }}>
-              Rota ordenada pela sua localização atual
-            </span>
-          </div>
-        )}
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors"
-            style={{ color: searchFocus ? "#818cf8" : "rgba(100,116,139,0.5)" }} />
+      {/* Search + Filter */}
+      <div className="px-4 mb-3">
+        <div className="relative mb-3">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+            style={{ color: searchFocus ? "#3b82f6" : "rgba(100,116,139,0.5)" }} />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             onFocus={() => setSearchFocus(true)}
             onBlur={() => setSearchFocus(false)}
-            placeholder="Buscar escola, INEP ou cidade..."
-            className="w-full pl-11 pr-4 py-3 rounded-2xl text-sm outline-none text-white transition-all duration-200"
+            placeholder="Buscar escola, INEP ou município..."
+            className="w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all"
             style={{
-              background: searchFocus ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.05)",
-              border: `1.5px solid ${searchFocus ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.07)"}`,
-              boxShadow: searchFocus ? "0 0 0 3px rgba(99,102,241,0.08)" : "none",
+              background: searchFocus ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.05)",
+              border: searchFocus ? "1px solid rgba(59,130,246,0.4)" : "1px solid rgba(255,255,255,0.07)",
             }}
           />
+          {search && (
+            <button onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg"
+              style={{ color: "rgba(100,116,139,0.6)" }}>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-      </header>
 
-      {/* Lista */}
-      <div className="flex-1 px-4 py-4 space-y-3">
-
-        {/* Cabeçalho da lista com info de rota */}
-        {!isLoading && filtered.length > 0 && !search && (
-          <div className="flex items-center justify-between px-1 mb-1">
-            <div className="flex items-center gap-2">
-              <Route className="w-3.5 h-3.5" style={{ color: "#818cf8" }} />
-              <span className="text-xs font-semibold" style={{ color: "rgba(148,163,184,0.6)" }}>
-                Ordenado por rota otimizada
+        {/* Filter tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {filterTabs.map(f => (
+            <button key={f.key} onClick={() => setActiveFilter(f.key)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95"
+              style={{
+                background: activeFilter === f.key ? `${f.color}20` : "rgba(255,255,255,0.04)",
+                border: activeFilter === f.key ? `1px solid ${f.color}40` : "1px solid rgba(255,255,255,0.07)",
+                color: activeFilter === f.key ? f.color : "rgba(100,116,139,0.7)",
+              }}>
+              {f.label}
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black"
+                style={{
+                  background: activeFilter === f.key ? `${f.color}25` : "rgba(255,255,255,0.06)",
+                  color: activeFilter === f.key ? f.color : "rgba(100,116,139,0.6)",
+                }}>
+                {f.count}
               </span>
-            </div>
-            <span className="text-xs" style={{ color: "rgba(148,163,184,0.4)" }}>
-              {filtered.length} escolas
-            </span>
-          </div>
-        )}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {isLoading ? (
+      {/* Locate button */}
+      {!userLat && (
+        <div className="px-4 mb-3">
+          <button onClick={handleLocate} disabled={locating}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(148,163,184,0.7)" }}>
+            <LocateFixed className={`w-3.5 h-3.5 ${locating ? "animate-pulse" : ""}`} style={{ color: "#06b6d4" }} />
+            {locating ? "Localizando..." : "Ordenar por proximidade"}
+          </button>
+        </div>
+      )}
+
+      {/* List header */}
+      <div className="px-4 mb-2 flex items-center justify-between">
+        <p className="text-xs font-semibold text-slate-500">
+          {filtered.length} {filtered.length === 1 ? "escola" : "escolas"}
+          {activeFilter !== "todos" && ` · ${filterTabs.find(f => f.key === activeFilter)?.label}`}
+        </p>
+        {userLat && (
+          <button onClick={() => { setUserLat(null); setUserLng(null); }}
+            className="flex items-center gap-1 text-xs font-medium"
+            style={{ color: "#06b6d4" }}>
+            <LocateFixed className="w-3 h-3" />
+            Por rota
+          </button>
+        )}
+      </div>
+
+      {/* OS List */}
+      <div className="px-4 space-y-3">
+        {isLoading && !offlineEscolas ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-3xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+            <div key={i} className="rounded-2xl h-28 animate-pulse"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }} />
           ))
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-            <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
-              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
-              <Search className="w-9 h-9" style={{ color: "rgba(129,140,248,0.5)" }} />
+          <div className="flex flex-col items-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <Wifi className="w-7 h-7" style={{ color: "rgba(100,116,139,0.4)" }} />
             </div>
-            <div>
-              <p className="text-white font-bold text-lg">
-                {search ? "Nenhuma escola encontrada" : "Nenhuma escola atribuída"}
-              </p>
-              <p className="text-sm mt-1" style={{ color: "rgba(148,163,184,0.5)" }}>
-                {search ? "Tente outro termo de busca" : "Aguarde o administrador atribuir escolas"}
-              </p>
-            </div>
+            <p className="text-sm font-semibold text-slate-400">Nenhuma escola encontrada</p>
+            <p className="text-xs text-slate-600 mt-1">Tente outro filtro ou termo de busca</p>
           </div>
         ) : (
           filtered.map((escola, idx) => {
-            const sc = statusConfig[escola.status] ?? statusConfig.pendente;
+            const sc = STATUS_CONFIG[escola.status] ?? STATUS_CONFIG.pendente;
             const StatusIcon = sc.icon;
             const whatsNum = formatWhatsApp(escola.telefoneWhatsApp || escola.telefone);
-            const routeIdx = idx + 1; // número na rota
 
             return (
-              <div key={escola.id} className="rounded-3xl overflow-hidden transition-all duration-200 active:scale-[0.99]"
-                style={{ background: sc.cardBg, border: `1px solid ${sc.cardBorder}`, boxShadow: `0 4px 24px ${sc.glow}` }}>
+              <div key={escola.id}
+                className="rounded-2xl overflow-hidden transition-all duration-200"
+                style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${sc.border}` }}>
 
-                {/* Conteúdo principal */}
-                <button onClick={() => navigate(`/tecnico/os/${escola.id}`)} className="w-full p-4 text-left">
+                {/* Card body */}
+                <button onClick={() => navigate(`/tecnico/os/${escola.id}`)}
+                  className="w-full text-left p-4 active:opacity-80 transition-opacity">
                   <div className="flex items-start gap-3">
-
-                    {/* Número de ordem na rota */}
-                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm text-white relative"
-                        style={{ background: sc.avatarGradient, boxShadow: `0 4px 16px ${sc.glow}` }}>
-                        {!search ? (
-                          <span className="text-base font-black">{routeIdx}</span>
-                        ) : (
-                          getInitials(escola.nome)
-                        )}
-                      </div>
-                      {!search && escola.latitude && escola.longitude && (
-                        <div className="flex items-center gap-0.5">
-                          <MapPin className="w-2.5 h-2.5" style={{ color: "rgba(148,163,184,0.3)" }} />
-                        </div>
-                      )}
+                    {/* Avatar colorido com iniciais da escola */}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-black text-white"
+                      style={{
+                        background: `linear-gradient(135deg, ${sc.color}30, ${sc.color}15)`,
+                        border: `1px solid ${sc.color}35`,
+                        color: sc.color,
+                        letterSpacing: "-0.5px",
+                      }}>
+                      {escola.nome.split(" ").filter((w: string) => w.length > 2).slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() || escola.nome.slice(0, 2).toUpperCase()}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      {/* Nome da escola */}
-                      <p className="text-white font-bold text-sm leading-tight mb-2">{escola.nome}</p>
-
-                      {/* INEP em destaque grande */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl mb-2"
-                        style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)" }}>
-                        <span className="text-xs font-semibold" style={{ color: "rgba(129,140,248,0.7)" }}>INEP</span>
-                        <span className="text-base font-black tracking-wider" style={{
-                          background: "linear-gradient(90deg, #818cf8, #a78bfa)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          letterSpacing: "0.08em",
-                        }}>
-                          {escola.inep}
-                        </span>
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">{escola.nome}</h3>
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: sc.bg, border: `1px solid ${sc.border}` }}>
+                          <StatusIcon className="w-2.5 h-2.5" style={{ color: sc.color }} />
+                          <span className="text-[10px] font-bold" style={{ color: sc.color }}>{sc.label}</span>
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {escola.inep && (
+                          <span className="text-[10px] font-mono font-bold" style={{ color: "rgba(148,163,184,0.4)" }}>
+                            #{escola.inep}
+                          </span>
+                        )}
                         {escola.municipio && (
                           <div className="flex items-center gap-1">
-                            <Building2 className="w-3 h-3 flex-shrink-0" style={{ color: "rgba(148,163,184,0.4)" }} />
-                            <span className="text-xs" style={{ color: "rgba(148,163,184,0.55)" }}>{escola.municipio}</span>
+                            <Building2 className="w-2.5 h-2.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.35)" }} />
+                            <span className="text-[10px]" style={{ color: "rgba(148,163,184,0.5)" }}>{escola.municipio}</span>
                           </div>
                         )}
                         {escola.velocidadeOfertada && (
                           <div className="flex items-center gap-1">
-                            <Zap className="w-3 h-3 flex-shrink-0" style={{ color: "#fbbf24" }} />
-                            <span className="text-xs font-semibold" style={{ color: "#fbbf24" }}>{escola.velocidadeOfertada} Mbps</span>
+                            <Zap className="w-2.5 h-2.5 flex-shrink-0" style={{ color: "#fbbf24" }} />
+                            <span className="text-[10px] font-semibold" style={{ color: "#fbbf24" }}>{escola.velocidadeOfertada} Mbps</span>
                           </div>
                         )}
                         {escola.qtdAp != null && escola.qtdAp > 0 && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
-                            <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
-                              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
-                              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-                              <circle cx="12" cy="20" r="1" fill="#818cf8" stroke="none" />
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                            style={{ background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)" }}>
+                            <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12.55a11 11 0 0 1 14.08 0" /><path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><circle cx="12" cy="20" r="1" fill="#818cf8" stroke="none" />
                             </svg>
-                            <span className="text-xs font-bold" style={{ color: "#818cf8" }}>{escola.qtdAp} AP{(escola.qtdAp as number) > 1 ? "s" : ""}</span>
+                            <span className="text-[10px] font-bold" style={{ color: "#818cf8" }}>{escola.qtdAp} AP{(escola.qtdAp as number) > 1 ? "s" : ""}</span>
                           </div>
                         )}
                       </div>
 
                       {escola.endereco && (
-                        <div className="flex items-start gap-1 mt-1">
-                          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }} />
-                          <span className="text-xs" style={{ color: "rgba(148,163,184,0.5)", wordBreak: "break-word" }}>{escola.endereco}</span>
+                        <div className="flex items-start gap-1 mt-1.5">
+                          <MapPin className="w-2.5 h-2.5 flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.3)" }} />
+                          <span className="text-[10px] leading-relaxed" style={{ color: "rgba(148,163,184,0.4)", wordBreak: "break-word" }}>{escola.endereco}</span>
                         </div>
                       )}
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                        style={{ background: sc.badgeBg, color: sc.badgeText, border: `1px solid ${sc.badgeText}22` }}>
-                        <StatusIcon className="w-3 h-3" />
-                        <span>{sc.label}</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4" style={{ color: "rgba(148,163,184,0.2)" }} />
                     </div>
                   </div>
                 </button>
 
-                {/* Barra de ações */}
-                <div className="flex" style={{ borderTop: `1px solid ${sc.cardBorder}` }}>
+                {/* Action bar */}
+                <div className="flex" style={{ borderTop: `1px solid ${sc.border}` }}>
                   {whatsNum ? (
                     <a href={`https://wa.me/${whatsNum}`} target="_blank" rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all active:opacity-70"
                       style={{ color: "#25d366" }} onClick={e => e.stopPropagation()}>
                       <Phone className="w-3.5 h-3.5" />
                       WhatsApp
@@ -542,31 +533,30 @@ export default function TecnicoHome() {
                   ) : (
                     <a href={`https://www.google.com/search?q=${encodeURIComponent(escola.nome + " " + escola.inep + " telefone")}`}
                       target="_blank" rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold"
-                      style={{ color: "rgba(148,163,184,0.4)" }} onClick={e => e.stopPropagation()}>
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium"
+                      style={{ color: "rgba(100,116,139,0.5)" }} onClick={e => e.stopPropagation()}>
                       <Phone className="w-3.5 h-3.5" />
                       Buscar tel.
                     </a>
                   )}
-                  <div style={{ width: "1px", background: sc.cardBorder }} />
-                  {/* Ir até esta escola */}
+                  <div style={{ width: "1px", background: sc.border }} />
                   {escola.latitude && escola.longitude && (
                     <>
                       <a href={`https://www.google.com/maps/dir/?api=1&destination=${escola.latitude},${escola.longitude}&travelmode=driving`}
                         target="_blank" rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all"
-                        style={{ color: "#60a5fa" }} onClick={e => e.stopPropagation()}>
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all active:opacity-70"
+                        style={{ color: "#06b6d4" }} onClick={e => e.stopPropagation()}>
                         <Navigation className="w-3.5 h-3.5" />
                         Ir até
                       </a>
-                      <div style={{ width: "1px", background: sc.cardBorder }} />
+                      <div style={{ width: "1px", background: sc.border }} />
                     </>
                   )}
                   <button onClick={() => navigate(`/tecnico/os/${escola.id}`)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold transition-all"
-                    style={{ color: sc.badgeText }}>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all active:opacity-70"
+                    style={{ color: sc.color }}>
                     Ver OS
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
