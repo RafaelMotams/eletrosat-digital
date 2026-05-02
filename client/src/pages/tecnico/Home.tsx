@@ -528,7 +528,7 @@ export default function TecnicoHome() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all active:opacity-70"
                         style={{ color: "#06b6d4" }} onClick={e => e.stopPropagation()}>
                         <Navigation className="w-3.5 h-3.5" />
-                        Ir até
+                        Google Maps
                       </a>
                       <div style={{ width: "1px", background: sc.border }} />
                     </>

@@ -526,7 +526,7 @@ export default function TecnicoOS() {
                 <Navigation className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-white font-black text-sm">Maps</p>
+                <p className="text-white font-black text-sm">Google Maps</p>
                 <p className="text-xs font-medium" style={{ color: "rgba(186,230,253,0.8)" }}>{hasCoords ? "Rota GPS" : "Buscar"}</p>
               </div>
             </div>
