@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
@@ -133,6 +133,9 @@ const CATEGORIAS_FOTOS: {
   },
 ];
 
+// Tipo para cada foto pendente
+type FotoPendente = { base64: string; mime: string; preview: string };
+
 function formatWhatsApp(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, "");
@@ -212,141 +215,88 @@ function InfoCard({
   );
 }
 
-// ─── Componente de Upload de Foto por Categoria ───────────────────────────────
-export interface FotoUploadCardHandle {
-  uploadPendentes: () => Promise<number>;
-  temFotosPendentes: () => boolean;
-}
-
-const FotoUploadCard = forwardRef<FotoUploadCardHandle, {
-  categoria: typeof CATEGORIAS_FOTOS[0];
-  osId: number;
-  escolaId: number;
-  tecnicoId: number;
-  onUploadSuccess: () => void;
-}>(function FotoUploadCard({
+// ─── Componente simples de upload por categoria ───────────────────────────────
+function CategoriaUploadCard({
   categoria,
-  osId,
-  escolaId,
-  tecnicoId,
-  onUploadSuccess,
-}, ref) {
-  const [fotos, setFotos] = useState<{ preview: string; base64: string; mime: string }[]>([]);
-  const [uploading, setUploading] = useState(false);
+  fotos,
+  onAddFotos,
+  onRemoveFoto,
+}: {
+  categoria: typeof CATEGORIAS_FOTOS[0];
+  fotos: FotoPendente[];
+  onAddFotos: (novas: FotoPendente[]) => void;
+  onRemoveFoto: (idx: number) => void;
+}) {
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const uploadMut = trpc.tecnicoAuth.uploadOsFoto.useMutation({
-    onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
-  });
-
-  useImperativeHandle(ref, () => ({
-    temFotosPendentes: () => fotos.length > 0,
-    uploadPendentes: async () => {
-      if (!fotos.length) return 0;
-      setUploading(true);
-      let sucesso = 0;
-      for (const foto of fotos) {
-        try {
-          await uploadMut.mutateAsync({
-            osId, escolaId, tecnicoId,
-            categoria: categoria.id,
-            imageBase64: foto.base64,
-            mimeType: foto.mime,
-          });
-          sucesso++;
-        } catch { /* continua */ }
-      }
-      setUploading(false);
-      if (sucesso > 0) { setFotos([]); onUploadSuccess(); }
-      return sucesso;
-    },
-  }));
+  const canAdd = fotos.length < categoria.maxFotos;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
-
     const remaining = categoria.maxFotos - fotos.length;
     const toProcess = files.slice(0, remaining);
-
+    const novas: FotoPendente[] = [];
+    let processed = 0;
     for (const file of toProcess) {
-      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: máximo 10MB por foto`); continue; }
+      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: máximo 10MB por foto`); processed++; continue; }
       const mime = file.type || "image/jpeg";
       const reader = new FileReader();
       reader.onload = (ev) => {
         const result = ev.target?.result as string;
-        setFotos(prev => [...prev, { preview: result, base64: result.split(",")[1], mime }]);
+        novas.push({ preview: result, base64: result.split(",")[1], mime });
+        processed++;
+        if (processed === toProcess.length) {
+          onAddFotos(novas);
+        }
       };
       reader.readAsDataURL(file);
     }
     e.target.value = "";
   }
 
-  async function handleUploadAll() {
-    if (!fotos.length) return;
-    setUploading(true);
-    let sucesso = 0;
-    for (const foto of fotos) {
-      try {
-        await uploadMut.mutateAsync({
-          osId,
-          escolaId,
-          tecnicoId,
-          categoria: categoria.id,
-          imageBase64: foto.base64,
-          mimeType: foto.mime,
-        });
-        sucesso++;
-      } catch { /* continua */ }
-    }
-    setUploading(false);
-    if (sucesso > 0) {
-      toast.success(`${sucesso} foto${sucesso > 1 ? "s" : ""} enviada${sucesso > 1 ? "s" : ""}!`);
-      setFotos([]);
-      onUploadSuccess();
-    }
-  }
-
-  const podeAdicionarMais = fotos.length < categoria.maxFotos;
-
   return (
     <>
-      <div className="rounded-2xl overflow-hidden" style={{ background: categoria.bg, border: fotos.length > 0 ? `2px solid ${categoria.color}88` : `1.5px solid ${categoria.border}` }}>
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3.5">
-          <span className="text-2xl">{categoria.icon}</span>
+      <div className="rounded-2xl overflow-hidden"
+        style={{ background: categoria.bg, border: `1.5px solid ${categoria.border}` }}>
+        {/* Header da categoria */}
+        <div className="flex items-center gap-3 px-4 py-3.5"
+          style={{ borderBottom: `1px solid ${categoria.border}` }}>
+          <span className="text-xl">{categoria.icon}</span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-black text-white">{categoria.label}</p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.55)" }}>{categoria.desc}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: "rgba(148,163,184,0.5)" }}>{categoria.desc}</p>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold"
-            style={{ background: fotos.length > 0 ? `${categoria.color}22` : "rgba(255,255,255,0.06)", color: fotos.length > 0 ? categoria.color : "rgba(148,163,184,0.4)" }}>
-            {fotos.length > 0 && <span className="text-[10px]">⏳</span>}
-            {fotos.length}/{categoria.maxFotos}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+            style={{
+              background: fotos.length > 0 ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.05)",
+              border: `1px solid ${fotos.length > 0 ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.08)"}`,
+            }}>
+            <span className="text-xs font-black" style={{ color: fotos.length > 0 ? "#34d399" : "rgba(148,163,184,0.4)" }}>
+              {fotos.length}/{categoria.maxFotos}
+            </span>
           </div>
         </div>
 
-        {/* Fotos selecionadas */}
+        {/* Prévia das fotos */}
         {fotos.length > 0 && (
-          <div className="px-4 pb-3">
+          <div className="px-4 pt-3 pb-2">
             <div className="grid grid-cols-3 gap-2">
-              {fotos.map((f, i) => (
-                <div key={i} className="relative aspect-square rounded-xl overflow-hidden"
-                  style={{ border: `1px solid ${categoria.border}` }}>
-                  <img src={f.preview} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
-                  <button
+              {fotos.map((f, idx) => (
+                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden"
+                  style={{ border: `1.5px solid ${categoria.border}` }}>
+                  <img
+                    src={f.preview}
+                    alt={`Foto ${idx + 1}`}
+                    className="w-full h-full object-cover cursor-pointer"
                     onClick={() => setLightboxImg(f.preview)}
-                    className="absolute top-1 left-1 w-6 h-6 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(0,0,0,0.6)" }}>
-                    <Eye className="w-3 h-3 text-white" />
-                  </button>
+                  />
                   <button
-                    onClick={() => setFotos(prev => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(239,68,68,0.8)" }}>
-                    <Trash2 className="w-3 h-3 text-white" />
+                    onClick={() => onRemoveFoto(idx)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(0,0,0,0.7)" }}>
+                    <X className="w-3.5 h-3.5 text-white" />
                   </button>
                 </div>
               ))}
@@ -354,59 +304,42 @@ const FotoUploadCard = forwardRef<FotoUploadCardHandle, {
           </div>
         )}
 
-        {/* Botões de ação */}
-        <div className="px-4 pb-4 space-y-2">
-          {/* Inputs ocultos */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple={categoria.maxFotos > 1}
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-
-          {podeAdicionarMais && (
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => cameraInputRef.current?.click()}
-                className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <Camera className="w-4 h-4" style={{ color: categoria.color }} />
-                <span className="text-xs font-bold text-white">Câmera</span>
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <Image className="w-4 h-4" style={{ color: categoria.color }} />
-                <span className="text-xs font-bold text-white">Galeria</span>
-              </button>
-            </div>
-          )}
-
-          {fotos.length > 0 && (
+        {/* Botões câmera/galeria */}
+        {canAdd && (
+          <div className="grid grid-cols-2 gap-2 px-4 py-3">
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple={categoria.maxFotos > 1}
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple={categoria.maxFotos > 1}
+              className="hidden"
+              onChange={handleFileChange}
+            />
             <button
-              onClick={handleUploadAll}
-              disabled={uploading}
-              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-black text-sm text-white transition-all active:scale-95"
-              style={{ background: `linear-gradient(135deg, ${categoria.color}cc, ${categoria.color})`, boxShadow: `0 6px 20px ${categoria.color}33` }}>
-              {uploading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando...</>
-              ) : (
-                <><Upload className="w-4 h-4" /> Enviar {fotos.length} foto{fotos.length > 1 ? "s" : ""}</>
-              )}
+              onClick={() => cameraInputRef.current?.click()}
+              className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <Camera className="w-4 h-4" style={{ color: categoria.color }} />
+              <span className="text-xs font-bold text-white">Câmera</span>
             </button>
-          )}
-        </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <Image className="w-4 h-4" style={{ color: categoria.color }} />
+              <span className="text-xs font-bold text-white">Galeria</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Lightbox */}
@@ -426,9 +359,9 @@ const FotoUploadCard = forwardRef<FotoUploadCardHandle, {
       )}
     </>
   );
-});
+}
 
-// ─── Componente de Fotos Já Enviadas ─────────────────────────────────────────
+// ─── Fotos já enviadas (do servidor) ─────────────────────────────────────────
 function FotosEnviadas({
   fotos,
   categoria,
@@ -444,7 +377,7 @@ function FotosEnviadas({
     <>
       <div className="mt-2">
         <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(148,163,184,0.4)" }}>
-          {fotosDaCategoria.length} foto{fotosDaCategoria.length > 1 ? "s" : ""} enviada{fotosDaCategoria.length > 1 ? "s" : ""}
+          {fotosDaCategoria.length} foto{fotosDaCategoria.length > 1 ? "s" : ""} já enviada{fotosDaCategoria.length > 1 ? "s" : ""}
         </p>
         <div className="grid grid-cols-3 gap-2">
           {fotosDaCategoria.map((f) => (
@@ -485,20 +418,22 @@ export default function TecnicoOS() {
 
   const [openConcluir, setOpenConcluir] = useState(false);
   const [openNaoInstalada, setOpenNaoInstalada] = useState(false);
-  const [openFotos, setOpenFotos] = useState(false);
   const [uploadingAll, setUploadingAll] = useState(false);
 
-  // Refs para cada card de upload — permite upload automático ao confirmar conclusão
-  const fotoCardRefs = useRef<(React.RefObject<FotoUploadCardHandle | null>)[]>(
-    CATEGORIAS_FOTOS.map(() => ({ current: null }))
-  );
+  // Estado simples de fotos por categoria — um array de FotoPendente por categoria
+  const [fotosPorCategoria, setFotosPorCategoria] = useState<Record<FotoCategoria, FotoPendente[]>>({
+    mapa_calor: [],
+    fotos_ap: [],
+    etiqueta_controladora: [],
+    etiqueta_nobreak: [],
+    etiqueta_switch: [],
+  });
 
   const [qtdAp, setQtdAp] = useState("");
   const [observacao, setObservacao] = useState("");
   const [motivo, setMotivo] = useState<"escola_desativada" | "em_reforma" | "mudanca_endereco">("escola_desativada");
   const [obsNaoInstalada, setObsNaoInstalada] = useState("");
   const [pendingOffline, setPendingOffline] = useState(false);
-  const [fotosRefreshKey, setFotosRefreshKey] = useState(0);
 
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
@@ -540,25 +475,16 @@ export default function TecnicoOS() {
 
   const osId = osAtiva?.id ?? 0;
 
-  // Fotos já enviadas
+  // Fotos já enviadas ao servidor
   const { data: fotosEnviadas = [], refetch: refetchFotos } = trpc.tecnicoAuth.getOsFotos.useQuery(
     { osId },
     { enabled: !!osId && osId > 0 }
   );
 
-  // Verifica se todas as categorias têm foto
-  const { data: fotosStatus, refetch: refetchFotosStatus } = trpc.tecnicoAuth.verificarFotosObrigatorias.useQuery(
-    { osId },
-    { enabled: !!osId && osId > 0 }
-  );
-
-  const todasFotosOk = fotosStatus?.todasPreenchidas ?? false;
-
-  function handleFotoUploadSuccess() {
-    setFotosRefreshKey(k => k + 1);
-    refetchFotos();
-    refetchFotosStatus();
-  }
+  // Mutation de upload de foto
+  const uploadOsFotoMut = trpc.tecnicoAuth.uploadOsFoto.useMutation({
+    onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
+  });
 
   const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
     onSuccess: () => { toast.success("OS iniciada com sucesso!"); utils.tecnicoAuth.minhasEscolas.invalidate(); utils.tecnicoAuth.minhasOrdens.invalidate(); },
@@ -623,6 +549,35 @@ export default function TecnicoOS() {
   const isEmAndamento = escola?.status === "em_andamento";
 
   const stepActive = isPendente ? 1 : isEmAndamento ? 2 : 3;
+
+  // Helpers para manipular fotos por categoria
+  function addFotos(catId: FotoCategoria, novas: FotoPendente[]) {
+    setFotosPorCategoria(prev => ({
+      ...prev,
+      [catId]: [...prev[catId], ...novas].slice(0, CATEGORIAS_FOTOS.find(c => c.id === catId)!.maxFotos),
+    }));
+  }
+
+  function removeFoto(catId: FotoCategoria, idx: number) {
+    setFotosPorCategoria(prev => ({
+      ...prev,
+      [catId]: prev[catId].filter((_, i) => i !== idx),
+    }));
+  }
+
+  // Contagem total de fotos pendentes
+  const totalFotosPendentes = Object.values(fotosPorCategoria).reduce((acc, arr) => acc + arr.length, 0);
+
+  // Verifica quantas categorias têm fotos (pendentes ou já enviadas)
+  function categoriasComFoto(): number {
+    let count = 0;
+    for (const cat of CATEGORIAS_FOTOS) {
+      const pendentes = fotosPorCategoria[cat.id].length;
+      const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
+      if (pendentes > 0 || enviadas > 0) count++;
+    }
+    return count;
+  }
 
   // ─── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -741,99 +696,92 @@ export default function TecnicoOS() {
               labelColor="rgba(248,113,113,0.7)"
               fullWidth
             />
-
             {/* Município */}
             <InfoCard
               icon={<Building2 className="w-5 h-5" />}
               label="Município"
-              value={escola.municipio ?? "—"}
-              iconBg="rgba(99,102,241,0.15)"
-              iconColor="#818cf8"
-              labelColor="rgba(129,140,248,0.7)"
-            />
-
-            {/* Velocidade */}
-            <InfoCard
-              icon={<Gauge className="w-5 h-5" />}
-              label="Velocidade"
-              value={escola.velocidadeOfertada ? `${escola.velocidadeOfertada} Mbps` : "—"}
+              value={escola.municipio ?? "Não informado"}
               iconBg="rgba(59,130,246,0.15)"
               iconColor="#60a5fa"
               labelColor="rgba(96,165,250,0.7)"
             />
-
-            {/* Telefone - full width */}
+            {/* Velocidade */}
             <InfoCard
-              icon={<PhoneCall className="w-5 h-5" />}
-              label="Telefone"
-              value={telDisplay || "Não cadastrado"}
-              iconBg="rgba(16,185,129,0.15)"
-              iconColor="#34d399"
-              labelColor="rgba(52,211,153,0.7)"
-              fullWidth
-              large
+              icon={<Gauge className="w-5 h-5" />}
+              label="Velocidade"
+              value={(escola as any).velocidade ?? "Não informado"}
+              iconBg="rgba(168,85,247,0.15)"
+              iconColor="#c084fc"
+              labelColor="rgba(192,132,252,0.7)"
             />
-
-            {/* GPS - full width */}
-            {hasCoords && (
-              <InfoCard
-                icon={<LocateFixed className="w-5 h-5" />}
-                label="Coordenadas GPS"
-                value={`${lat?.toFixed(5)}, ${lng?.toFixed(5)}`}
-                iconBg="rgba(245,158,11,0.15)"
-                iconColor="#fbbf24"
-                labelColor="rgba(251,191,36,0.7)"
-                fullWidth
-              />
-            )}
           </div>
 
-          {/* Botões Maps e WhatsApp */}
-          <div className="grid grid-cols-2 gap-2.5 mt-4">
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-4 rounded-2xl transition-all active:scale-95"
-              style={{ background: "linear-gradient(135deg, #1d4ed8, #3b82f6)", boxShadow: "0 6px 20px rgba(59,130,246,0.3)" }}>
+          {/* Telefone - full width */}
+          {telDisplay ? (
+            <div className="mt-2.5">
+              <a
+                href={`tel:${escola.telefone || escola.telefoneWhatsApp}`}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl w-full transition-all active:scale-[0.98]"
+                style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(16,185,129,0.15)" }}>
+                  <PhoneCall className="w-5 h-5" style={{ color: "#34d399" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.7)" }}>Telefone</p>
+                  <p className="font-bold text-white text-sm">{telDisplay}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(52,211,153,0.4)" }} />
+              </a>
+            </div>
+          ) : (
+            <div className="mt-2.5 flex items-center gap-3 px-4 py-4 rounded-2xl"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.15)" }}>
-                <LocateFixed className="w-4.5 h-4.5 text-white" />
+                style={{ background: "rgba(255,255,255,0.05)" }}>
+                <Phone className="w-4.5 h-4.5" style={{ color: "rgba(148,163,184,0.3)" }} />
               </div>
               <div>
-                <p className="text-sm font-black text-white">Google Maps</p>
-                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>Rota GPS</p>
+                <p className="text-sm font-bold" style={{ color: "rgba(148,163,184,0.4)" }}>Telefone</p>
+                <p className="text-xs" style={{ color: "rgba(100,116,139,0.3)" }}>Não cadastrado</p>
               </div>
+            </div>
+          )}
+
+          {/* Botões de ação rápida */}
+          <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+            {/* Google Maps */}
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]"
+              style={{ background: "rgba(59,130,246,0.1)", border: "1.5px solid rgba(59,130,246,0.25)", color: "#60a5fa" }}>
+              <LocateFixed className="w-4 h-4" />
+              Google Maps
             </a>
 
+            {/* WhatsApp */}
             {whatsappUrl ? (
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-4 rounded-2xl transition-all active:scale-95"
-                style={{ background: "linear-gradient(135deg, #15803d, #16a34a)", boxShadow: "0 6px 20px rgba(22,163,74,0.3)" }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.15)" }}>
-                  <MessageCircle className="w-4.5 h-4.5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-white">WhatsApp</p>
-                  <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.6)" }}>{telDisplay}</p>
-                </div>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]"
+                style={{ background: "rgba(37,211,102,0.1)", border: "1.5px solid rgba(37,211,102,0.25)", color: "#25d366" }}>
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
               </a>
             ) : (
-              <div className="flex items-center gap-3 px-4 py-4 rounded-2xl"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.05)" }}>
-                  <Phone className="w-4.5 h-4.5" style={{ color: "rgba(148,163,184,0.3)" }} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: "rgba(148,163,184,0.4)" }}>WhatsApp</p>
-                  <p className="text-xs" style={{ color: "rgba(100,116,139,0.3)" }}>Não cadastrado</p>
-                </div>
+              <div className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1.5px solid rgba(255,255,255,0.07)", color: "rgba(100,116,139,0.3)" }}>
+                <Phone className="w-4 h-4" />
+                WhatsApp
               </div>
             )}
           </div>
         </div>
       </div>
-
-
 
       {/* ─── Ações da OS ─── */}
       <div className="mx-4 mt-6">
@@ -931,7 +879,7 @@ export default function TecnicoOS() {
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
           <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
           <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
-            Ao clicar em “Marcar como Concluído”, você deverá enviar todas as fotos obrigatórias e informar a quantidade de APs instalados.
+            Ao clicar em "Marcar como Concluído", você deverá enviar as fotos obrigatórias e informar a quantidade de APs instalados.
           </p>
         </div>
       </div>
@@ -969,23 +917,25 @@ export default function TecnicoOS() {
               {/* Barra de progresso geral */}
               <div className="px-4 py-3 rounded-2xl mb-5"
                 style={{
-                  background: todasFotosOk ? "rgba(16,185,129,0.07)" : "rgba(245,158,11,0.07)",
-                  border: `1px solid ${todasFotosOk ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
                 }}>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-1.5">
-                    <Camera className="w-3.5 h-3.5" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }} />
-                    <p className="text-xs font-black uppercase tracking-wider" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
-                      {todasFotosOk ? "Fotos completas" : "Fotos obrigatórias"}
+                    <Camera className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
+                    <p className="text-xs font-black uppercase tracking-wider" style={{ color: "#fbbf24" }}>
+                      Fotos por categoria
                     </p>
                   </div>
-                  <span className="text-xs font-bold" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
-                    {CATEGORIAS_FOTOS.filter(c => fotosStatus?.resultado?.[c.id]).length}/{CATEGORIAS_FOTOS.length}
+                  <span className="text-xs font-bold" style={{ color: "rgba(148,163,184,0.6)" }}>
+                    {totalFotosPendentes} foto{totalFotosPendentes !== 1 ? "s" : ""} selecionada{totalFotosPendentes !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <div className="grid grid-cols-5 gap-1.5">
                   {CATEGORIAS_FOTOS.map(cat => {
-                    const temFoto = fotosStatus?.resultado?.[cat.id] ?? false;
+                    const pendentes = fotosPorCategoria[cat.id].length;
+                    const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
+                    const temFoto = pendentes > 0 || enviadas > 0;
                     return (
                       <div key={cat.id} className="flex flex-col items-center gap-1 py-2 rounded-xl"
                         style={{
@@ -1002,18 +952,15 @@ export default function TecnicoOS() {
                 </div>
               </div>
 
-              {/* Cards de upload por categoria */}
+              {/* Cards de upload por categoria — sem forwardRef, estado direto no pai */}
               <div className="space-y-3 mb-5">
-                {CATEGORIAS_FOTOS.map((cat, idx) => (
+                {CATEGORIAS_FOTOS.map((cat) => (
                   <div key={cat.id}>
-                    <FotoUploadCard
-                      key={`${cat.id}-${fotosRefreshKey}`}
-                      ref={fotoCardRefs.current[idx] as React.Ref<FotoUploadCardHandle>}
+                    <CategoriaUploadCard
                       categoria={cat}
-                      osId={osId}
-                      escolaId={escolaId}
-                      tecnicoId={tecnicoId}
-                      onUploadSuccess={handleFotoUploadSuccess}
+                      fotos={fotosPorCategoria[cat.id]}
+                      onAddFotos={(novas) => addFotos(cat.id, novas)}
+                      onRemoveFoto={(idx) => removeFoto(cat.id, idx)}
                     />
                     <FotosEnviadas
                       fotos={fotosEnviadas as { id: number; url: string; categoria: string }[]}
@@ -1072,15 +1019,6 @@ export default function TecnicoOS() {
                   </p>
                 </div>
               )}
-              {!todasFotosOk && qtdAp && (
-                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
-                  style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)" }}>
-                  <Camera className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#60a5fa" }} />
-                  <p className="text-xs" style={{ color: "rgba(96,165,250,0.9)" }}>
-                    As fotos pendentes serão enviadas automaticamente ao confirmar
-                  </p>
-                </div>
-              )}
 
               {/* Botões */}
               <div className="flex gap-3">
@@ -1092,42 +1030,67 @@ export default function TecnicoOS() {
                 <button
                   onClick={async () => {
                     const n = parseInt(qtdAp);
-                    if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
+                    if (!qtdAp || isNaN(n) || n < 1) {
+                      toast.error("Informe a quantidade de APs instalados");
+                      return;
+                    }
 
-                    // 1. Fazer upload automático de todas as fotos pendentes nos cards
-                    const temPendentes = fotoCardRefs.current.some(r => r.current?.temFotosPendentes());
-                    if (temPendentes) {
+                    // ── Upload sequencial de todas as fotos pendentes ──
+                    const todasFotos: { catId: FotoCategoria; foto: FotoPendente }[] = [];
+                    for (const cat of CATEGORIAS_FOTOS) {
+                      for (const foto of fotosPorCategoria[cat.id]) {
+                        todasFotos.push({ catId: cat.id, foto });
+                      }
+                    }
+
+                    if (todasFotos.length > 0 && isOnline) {
                       setUploadingAll(true);
-                      toast.loading("Enviando fotos...", { id: "upload-all" });
-                      let totalEnviadas = 0;
-                      for (const r of fotoCardRefs.current) {
-                        if (r.current?.temFotosPendentes()) {
-                          const n2 = await r.current.uploadPendentes();
-                          totalEnviadas += n2;
+                      toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
+                      let enviadas = 0;
+                      for (const { catId, foto } of todasFotos) {
+                        try {
+                          await uploadOsFotoMut.mutateAsync({
+                            osId,
+                            escolaId,
+                            tecnicoId,
+                            categoria: catId,
+                            imageBase64: foto.base64,
+                            mimeType: foto.mime,
+                          });
+                          enviadas++;
+                        } catch {
+                          // continua mesmo se uma foto falhar
                         }
                       }
                       toast.dismiss("upload-all");
                       setUploadingAll(false);
-                      // Aguardar refetch do status de fotos
-                      await refetchFotosStatus();
-                      if (totalEnviadas > 0) {
-                        toast.success(`${totalEnviadas} foto${totalEnviadas > 1 ? "s" : ""} enviada${totalEnviadas > 1 ? "s" : ""} com sucesso!`);
+                      if (enviadas > 0) {
+                        toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
+                        // Limpar fotos pendentes após upload
+                        setFotosPorCategoria({
+                          mapa_calor: [],
+                          fotos_ap: [],
+                          etiqueta_controladora: [],
+                          etiqueta_nobreak: [],
+                          etiqueta_switch: [],
+                        });
+                        refetchFotos();
                       }
                     }
 
-                    // 2. Verificar se todas as fotos foram enviadas
-                    const statusAtual = await refetchFotosStatus();
-                    if (!statusAtual.data?.todasPreenchidas) {
-                      toast.error("Envie pelo menos 1 foto em cada categoria obrigatória", { duration: 4000 });
-                      return;
-                    }
-
+                    // ── Modo offline ──
                     if (!isOnline) {
-                      enqueueOfflineAction({ type: "concluirEscola", payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() } });
-                      setPendingOffline(true); setOpenConcluir(false);
+                      enqueueOfflineAction({
+                        type: "concluirEscola",
+                        payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() },
+                      });
+                      setPendingOffline(true);
+                      setOpenConcluir(false);
                       toast.success("OS salva localmente! Será enviada ao servidor quando você tiver internet.", { duration: 5000 });
                       return;
                     }
+
+                    // ── Concluir OS ──
                     concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
                   }}
                   disabled={concluirMut.isPending || uploadingAll || !qtdAp}
