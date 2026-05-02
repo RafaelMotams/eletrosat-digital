@@ -808,93 +808,7 @@ export default function TecnicoOS() {
         </div>
       </div>
 
-      {/* ─── Seção de Fotos da OS ─── */}
-      {!isConcluida && !isNaoInstalada && osId > 0 && (
-        <div className="mx-4 mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(59,130,246,0.15)" }}>
-                <Camera className="w-4 h-4" style={{ color: "#60a5fa" }} />
-              </div>
-              <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.6)" }}>
-                Fotos da OS
-              </p>
-            </div>
-            <button
-              onClick={() => setOpenFotos(!openFotos)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{
-                background: todasFotosOk ? "rgba(16,185,129,0.12)" : "rgba(59,130,246,0.12)",
-                color: todasFotosOk ? "#34d399" : "#60a5fa",
-                border: `1px solid ${todasFotosOk ? "rgba(16,185,129,0.25)" : "rgba(59,130,246,0.25)"}`,
-              }}>
-              {todasFotosOk ? (
-                <><CheckCircle className="w-3.5 h-3.5" /> Completo</>
-              ) : (
-                <><Camera className="w-3.5 h-3.5" /> {openFotos ? "Fechar" : "Adicionar"}</>
-              )}
-            </button>
-          </div>
 
-          {/* Status das categorias */}
-          <div className="grid grid-cols-5 gap-1.5 mb-3">
-            {CATEGORIAS_FOTOS.map(cat => {
-              const temFoto = fotosStatus?.resultado?.[cat.id] ?? false;
-              const qtdEnviadas = (fotosEnviadas as { categoria: string }[]).filter(f => f.categoria === cat.id).length;
-              return (
-                <div key={cat.id} className="flex flex-col items-center gap-1 p-2 rounded-xl"
-                  style={{
-                    background: temFoto ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${temFoto ? "rgba(16,185,129,0.25)" : "rgba(255,255,255,0.06)"}`,
-                  }}>
-                  <span className="text-base">{cat.icon}</span>
-                  {temFoto ? (
-                    <CheckCircle className="w-3 h-3" style={{ color: "#34d399" }} />
-                  ) : (
-                    <div className="w-3 h-3 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />
-                  )}
-                  {qtdEnviadas > 0 && (
-                    <span className="text-[9px] font-bold" style={{ color: "rgba(148,163,184,0.5)" }}>{qtdEnviadas}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {!todasFotosOk && (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-3"
-              style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
-              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#fbbf24" }} />
-              <p className="text-xs" style={{ color: "rgba(251,191,36,0.8)" }}>
-                Todas as fotos são obrigatórias para concluir a OS
-              </p>
-            </div>
-          )}
-
-          {/* Cards de upload por categoria */}
-          {openFotos && (
-            <div className="space-y-3">
-              {CATEGORIAS_FOTOS.map(cat => (
-                <div key={cat.id}>
-                  <FotoUploadCard
-                    key={`${cat.id}-${fotosRefreshKey}`}
-                    categoria={cat}
-                    osId={osId}
-                    escolaId={escolaId}
-                    tecnicoId={tecnicoId}
-                    onUploadSuccess={handleFotoUploadSuccess}
-                  />
-                  <FotosEnviadas
-                    fotos={fotosEnviadas as { id: number; url: string; categoria: string }[]}
-                    categoria={cat}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ─── Ações da OS ─── */}
       <div className="mx-4 mt-6">
@@ -959,43 +873,16 @@ export default function TecnicoOS() {
               </button>
             )}
 
-            {/* Botão de fotos */}
-            {osId > 0 && !todasFotosOk && (
-              <button
-                onClick={() => { setOpenFotos(true); setTimeout(() => document.getElementById("fotos-section")?.scrollIntoView({ behavior: "smooth" }), 100); }}
-                className="w-full py-4 rounded-3xl flex items-center justify-center gap-3 font-bold text-sm text-white transition-all active:scale-[0.97]"
-                style={{
-                  background: "rgba(59,130,246,0.1)",
-                  border: "1.5px solid rgba(59,130,246,0.3)",
-                  color: "#60a5fa",
-                }}>
-                <Camera className="w-4.5 h-4.5" />
-                Adicionar Fotos Obrigatórias
-                <ChevronRight className="w-4 h-4 ml-auto" />
-              </button>
-            )}
-
             <button
-              onClick={() => {
-                if (osId > 0 && !todasFotosOk) {
-                  toast.error("Adicione todas as fotos obrigatórias antes de concluir a OS", { duration: 4000 });
-                  setOpenFotos(true);
-                  return;
-                }
-                setOpenConcluir(true);
-              }}
+              onClick={() => setOpenConcluir(true)}
               className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
               style={{
-                background: (osId > 0 && !todasFotosOk)
-                  ? "rgba(16,185,129,0.15)"
-                  : "linear-gradient(135deg, #065f46, #059669, #10b981)",
-                boxShadow: (osId > 0 && !todasFotosOk) ? "none" : "0 12px 40px rgba(16,185,129,0.3)",
-                border: (osId > 0 && !todasFotosOk) ? "1.5px solid rgba(16,185,129,0.2)" : "1px solid rgba(16,185,129,0.25)",
-                opacity: (osId > 0 && !todasFotosOk) ? 0.6 : 1,
+                background: "linear-gradient(135deg, #065f46, #059669, #10b981)",
+                boxShadow: "0 12px 40px rgba(16,185,129,0.3)",
+                border: "1px solid rgba(16,185,129,0.25)",
               }}>
               <CheckCircle className="w-5 h-5" />
               Marcar como Concluído
-              {osId > 0 && !todasFotosOk && <span className="text-xs ml-1 opacity-60">(fotos pendentes)</span>}
             </button>
 
             <button
@@ -1019,7 +906,7 @@ export default function TecnicoOS() {
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
           <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
           <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
-            Todas as 5 categorias de fotos são obrigatórias para concluir a OS. Em caso de problemas, use "Não Instalada" com o motivo correto.
+            Ao clicar em “Marcar como Concluído”, você deverá enviar todas as fotos obrigatórias e informar a quantidade de APs instalados.
           </p>
         </div>
       </div>
@@ -1027,112 +914,145 @@ export default function TecnicoOS() {
       {/* ─── Modal de Conclusão ─── */}
       {openConcluir && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}
+          style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
-          <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[94vh] relative"
+          <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[96vh] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
             <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-[2.5rem]"
               style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
             <div className="w-10 h-1 rounded-full mx-auto mt-5 mb-1" style={{ background: "rgba(255,255,255,0.12)" }} />
 
-            <div className="px-6 pb-10 pt-4">
-              <div className="flex items-center gap-3 mb-6">
+            <div className="px-5 pb-10 pt-4">
+              {/* Cabeçalho */}
+              <div className="flex items-center gap-3 mb-5">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 8px 24px rgba(16,185,129,0.3)" }}>
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-white font-black text-xl">Confirmar Conclusão</h3>
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.5)" }}>Preencha os dados da instalação</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-5"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <School className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(148,163,184,0.5)" }} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{escola.nome}</p>
-                  <p className="text-xs" style={{ color: "rgba(148,163,184,0.4)" }}>INEP: {escola.inep}</p>
+                  <h3 className="text-white font-black text-xl">Concluir OS</h3>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(148,163,184,0.5)" }}>{escola.nome}</p>
                 </div>
+                <button onClick={() => setOpenConcluir(false)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <X className="w-4 h-4 text-white" />
+                </button>
               </div>
 
-              {/* Status das fotos no modal */}
-              <div className="px-4 py-3 rounded-2xl mb-4"
+              {/* Barra de progresso geral */}
+              <div className="px-4 py-3 rounded-2xl mb-5"
                 style={{
-                  background: todasFotosOk ? "rgba(16,185,129,0.06)" : "rgba(245,158,11,0.06)",
+                  background: todasFotosOk ? "rgba(16,185,129,0.07)" : "rgba(245,158,11,0.07)",
                   border: `1px solid ${todasFotosOk ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
                 }}>
-                <div className="flex items-center gap-2 mb-2">
-                  {todasFotosOk ? (
-                    <CheckCircle className="w-4 h-4" style={{ color: "#34d399" }} />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4" style={{ color: "#fbbf24" }} />
-                  )}
-                  <p className="text-xs font-bold" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
-                    {todasFotosOk ? "Todas as fotos enviadas ✓" : "Fotos pendentes"}
-                  </p>
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }} />
+                    <p className="text-xs font-black uppercase tracking-wider" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
+                      {todasFotosOk ? "Fotos completas" : "Fotos obrigatórias"}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
+                    {CATEGORIAS_FOTOS.filter(c => fotosStatus?.resultado?.[c.id]).length}/{CATEGORIAS_FOTOS.length}
+                  </span>
                 </div>
-                <div className="grid grid-cols-5 gap-1">
+                <div className="grid grid-cols-5 gap-1.5">
                   {CATEGORIAS_FOTOS.map(cat => {
                     const temFoto = fotosStatus?.resultado?.[cat.id] ?? false;
                     return (
-                      <div key={cat.id} className="flex flex-col items-center gap-0.5">
+                      <div key={cat.id} className="flex flex-col items-center gap-1 py-2 rounded-xl"
+                        style={{
+                          background: temFoto ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
+                          border: `1px solid ${temFoto ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.07)"}`,
+                        }}>
                         <span className="text-sm">{cat.icon}</span>
-                        <div className="w-4 h-4 rounded-full flex items-center justify-center"
-                          style={{ background: temFoto ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.15)" }}>
-                          {temFoto ? (
-                            <CheckCircle className="w-2.5 h-2.5" style={{ color: "#34d399" }} />
-                          ) : (
-                            <X className="w-2.5 h-2.5" style={{ color: "#fbbf24" }} />
-                          )}
-                        </div>
+                        <p className="text-[8px] font-bold text-center px-1 leading-tight" style={{ color: temFoto ? "#34d399" : "rgba(148,163,184,0.4)" }}>
+                          {cat.label.split(" ").slice(-1)[0]}
+                        </p>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(52,211,153,0.9)" }}>
-                    <Wifi className="w-3.5 h-3.5" /> APs Instalados *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number" min="1" max="99"
-                      value={qtdAp}
-                      onChange={e => setQtdAp(e.target.value)}
-                      placeholder={`Previsto: ${escola.qtdAp ?? 1} AP${(escola.qtdAp ?? 1) > 1 ? "s" : ""}`}
-                      className="w-full px-5 py-4 rounded-2xl text-white text-xl font-black outline-none transition-all"
-                      style={{
-                        background: "rgba(16,185,129,0.07)",
-                        border: qtdAp ? "1.5px solid rgba(16,185,129,0.4)" : "1.5px solid rgba(16,185,129,0.2)",
-                      }}
+              {/* Cards de upload por categoria */}
+              <div className="space-y-3 mb-5">
+                {CATEGORIAS_FOTOS.map(cat => (
+                  <div key={cat.id}>
+                    <FotoUploadCard
+                      key={`${cat.id}-${fotosRefreshKey}`}
+                      categoria={cat}
+                      osId={osId}
+                      escolaId={escolaId}
+                      tecnicoId={tecnicoId}
+                      onUploadSuccess={handleFotoUploadSuccess}
                     />
-                    {qtdAp && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-bold"
-                        style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>✓</div>
-                    )}
+                    <FotosEnviadas
+                      fotos={fotosEnviadas as { id: number; url: string; categoria: string }[]}
+                      categoria={cat}
+                    />
                   </div>
-                </div>
+                ))}
+              </div>
 
-                <div>
-                  <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    <FileText className="w-3.5 h-3.5" /> Observações (opcional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={observacao}
-                    onChange={e => setObservacao(e.target.value)}
-                    placeholder="Alguma observação sobre a instalação..."
-                    className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
+              {/* Campo de APs */}
+              <div className="mb-4">
+                <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(52,211,153,0.9)" }}>
+                  <Wifi className="w-3.5 h-3.5" /> Quantidade de APs Instalados *
+                </label>
+                <div className="relative">
+                  <input
+                    type="number" min="1" max="99"
+                    value={qtdAp}
+                    onChange={e => setQtdAp(e.target.value)}
+                    placeholder={`Previsto: ${escola.qtdAp ?? 1} AP${(escola.qtdAp ?? 1) > 1 ? "s" : ""}`}
+                    className="w-full px-5 py-4 rounded-2xl text-white text-xl font-black outline-none transition-all"
+                    style={{
+                      background: "rgba(16,185,129,0.07)",
+                      border: qtdAp ? "1.5px solid rgba(16,185,129,0.4)" : "1.5px solid rgba(16,185,129,0.2)",
+                    }}
                   />
+                  {qtdAp && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-bold"
+                      style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>✓</div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              {/* Observações */}
+              <div className="mb-5">
+                <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
+                  <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={observacao}
+                  onChange={e => setObservacao(e.target.value)}
+                  placeholder="Alguma observação sobre a instalação..."
+                  className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
+                />
+              </div>
+
+              {/* Aviso se não pode confirmar */}
+              {(!todasFotosOk || !qtdAp) && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
+                  style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
+                  <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>
+                    {!todasFotosOk && !qtdAp
+                      ? "Envie todas as fotos e informe a quantidade de APs para concluir"
+                      : !todasFotosOk
+                      ? "Envie todas as fotos obrigatórias para concluir"
+                      : "Informe a quantidade de APs instalados para concluir"}
+                  </p>
+                </div>
+              )}
+
+              {/* Botões */}
+              <div className="flex gap-3">
                 <button onClick={() => setOpenConcluir(false)}
                   className="flex-1 py-4 rounded-2xl font-semibold text-sm transition-all active:scale-95"
                   style={{ background: "rgba(255,255,255,0.05)", color: "rgba(148,163,184,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -1143,10 +1063,7 @@ export default function TecnicoOS() {
                     const n = parseInt(qtdAp);
                     if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
                     if (osId > 0 && !todasFotosOk) {
-                      toast.error("Adicione todas as fotos obrigatórias antes de concluir");
-                      setOpenConcluir(false);
-                      setOpenFotos(true);
-                      return;
+                      toast.error("Envie todas as fotos obrigatórias antes de confirmar", { duration: 4000 }); return;
                     }
                     if (!isOnline) {
                       enqueueOfflineAction({ type: "concluirEscola", payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() } });
@@ -1156,11 +1073,16 @@ export default function TecnicoOS() {
                     }
                     concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
                   }}
-                  disabled={concluirMut.isPending}
+                  disabled={concluirMut.isPending || !todasFotosOk || !qtdAp}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
-                    background: isOnline ? "linear-gradient(135deg, #059669, #10b981)" : "linear-gradient(135deg, #d97706, #f59e0b)",
-                    boxShadow: isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
+                    background: (!todasFotosOk || !qtdAp)
+                      ? "rgba(16,185,129,0.15)"
+                      : isOnline
+                      ? "linear-gradient(135deg, #059669, #10b981)"
+                      : "linear-gradient(135deg, #d97706, #f59e0b)",
+                    boxShadow: (!todasFotosOk || !qtdAp) ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
+                    opacity: (!todasFotosOk || !qtdAp) ? 0.5 : 1,
                   }}>
                   {concluirMut.isPending ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
