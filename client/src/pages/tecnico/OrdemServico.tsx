@@ -6,7 +6,7 @@ import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
   MessageCircle, Navigation, Hash, Building2, Signal, WifiOff, Clock,
   Play, XCircle, Camera, Upload, X, AlertTriangle, Zap, Star,
-  Info, FileText, Layers
+  Info, FileText, Layers, PhoneCall, Gauge, LocateFixed
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
@@ -25,7 +25,6 @@ const statusConfig: Record<string, {
     gradient: "linear-gradient(135deg, #7c3aed, #a855f7)",
     glow: "rgba(168,85,247,0.18)",
     cardBorder: "rgba(168,85,247,0.2)",
-    // Badge especial para pendente: roxo vibrante
     badgeBg: "linear-gradient(135deg, #6d28d9, #7c3aed)",
     badgeText: "#ffffff",
     badgeBorder: "rgba(168,85,247,0.4)",
@@ -79,20 +78,20 @@ function formatWhatsApp(raw: string | null | undefined): string | null {
   return `5575${local}`;
 }
 
-// Formata número de telefone para exibição: (75) 99999-9999
 function formatTelDisplay(raw: string | null | undefined): string {
   if (!raw) return "";
   const digits = raw.replace(/\D/g, "");
   if (digits.length === 11) return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
   if (digits.length === 10) return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`;
-  return digits;
+  if (digits.length >= 8) return digits;
+  return raw;
 }
 
 // ─── Stepper ─────────────────────────────────────────────────────────────────
 function OSStep({ step, label, active, done }: { step: number; label: string; active: boolean; done: boolean }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all"
+      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black transition-all"
         style={{
           background: done
             ? "linear-gradient(135deg, #059669, #10b981)"
@@ -102,9 +101,9 @@ function OSStep({ step, label, active, done }: { step: number; label: string; ac
           border: done || active ? "none" : "1.5px solid rgba(255,255,255,0.1)",
           color: done || active ? "white" : "rgba(100,116,139,0.4)",
           boxShadow: done
-            ? "0 4px 16px rgba(16,185,129,0.35)"
+            ? "0 4px 16px rgba(16,185,129,0.4)"
             : active
-            ? "0 4px 16px rgba(168,85,247,0.4)"
+            ? "0 4px 16px rgba(168,85,247,0.45)"
             : "none",
         }}>
         {done ? "✓" : step}
@@ -115,6 +114,34 @@ function OSStep({ step, label, active, done }: { step: number; label: string; ac
         }}>
         {label}
       </span>
+    </div>
+  );
+}
+
+// ─── InfoCard ─────────────────────────────────────────────────────────────────
+function InfoCard({
+  icon, label, value, iconBg, iconColor, labelColor, fullWidth = false, large = false
+}: {
+  icon: React.ReactNode; label: string; value: string;
+  iconBg: string; iconColor: string; labelColor: string;
+  fullWidth?: boolean; large?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3.5 px-4 py-4 rounded-2xl${fullWidth ? " col-span-2" : ""}`}
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+    >
+      <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+        style={{ background: iconBg }}>
+        <span style={{ color: iconColor }}>{icon}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: labelColor }}>{label}</p>
+        <p className={`font-bold text-white leading-snug${large ? " text-base" : " text-sm"}`}
+          style={{ wordBreak: "break-word" }}>
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
@@ -316,72 +343,73 @@ export default function TecnicoOS() {
 
       {/* ─── Header ─── */}
       <div className="flex items-center gap-3 px-4 pt-safe pt-5 pb-4 sticky top-0 z-20"
-        style={{ background: "rgba(5,12,26,0.95)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        style={{ background: "rgba(5,12,26,0.97)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <button onClick={() => navigate("/tecnico")}
           className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
           style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-[9px] font-bold uppercase tracking-[0.15em] mb-0.5" style={{ color: "rgba(148,163,184,0.35)" }}>Ordem de Serviço</p>
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] mb-0.5" style={{ color: "rgba(148,163,184,0.4)" }}>Ordem de Serviço</p>
           <h1 className="text-white font-black text-base leading-tight truncate">{escola.nome}</h1>
         </div>
-        {/* Badge de status com gradiente */}
         <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black flex-shrink-0"
           style={{
             background: sc.badgeBg,
             color: sc.badgeText,
             border: `1px solid ${sc.badgeBorder}`,
-            boxShadow: `0 4px 12px ${sc.glow}`,
+            boxShadow: `0 4px 14px ${sc.glow}`,
           }}>
-          <div className="w-1.5 h-1.5 rounded-full bg-white opacity-80" />
+          <div className="w-1.5 h-1.5 rounded-full bg-white opacity-90 animate-pulse" />
           {sc.label}
         </div>
       </div>
 
       {/* ─── Stepper ─── */}
-      <div className="px-6 py-4" style={{ background: "rgba(5,12,26,0.7)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      <div className="px-6 py-5" style={{ background: "rgba(5,12,26,0.6)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <div className="flex items-start justify-between">
           <OSStep step={1} label="Pendente" active={stepStatus.s1active} done={stepStatus.s1done} />
-          <div className="flex-1 mt-4 mx-2">
-            <div className="h-px rounded-full" style={{ background: stepStatus.s1done ? "linear-gradient(90deg, #10b981, #a855f7)" : "rgba(255,255,255,0.07)" }} />
+          <div className="flex-1 mt-5 mx-2">
+            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s1done ? "linear-gradient(90deg, #10b981, #a855f7)" : "rgba(255,255,255,0.07)" }} />
           </div>
           <OSStep step={2} label="Andamento" active={stepStatus.s2active} done={stepStatus.s2done} />
-          <div className="flex-1 mt-4 mx-2">
-            <div className="h-px rounded-full" style={{ background: stepStatus.s2done ? "linear-gradient(90deg, #a855f7, #10b981)" : "rgba(255,255,255,0.07)" }} />
+          <div className="flex-1 mt-5 mx-2">
+            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s2done ? "linear-gradient(90deg, #a855f7, #10b981)" : "rgba(255,255,255,0.07)" }} />
           </div>
           <OSStep step={3} label="Concluído" active={stepStatus.s3active || stepStatus.s3done} done={stepStatus.s3done} />
         </div>
       </div>
 
       {/* ─── Conteúdo ─── */}
-      <div className="flex-1 overflow-y-auto pb-10">
+      <div className="flex-1 overflow-y-auto pb-12">
 
-        {/* Card principal da escola */}
+        {/* ─── Card Hero da Escola ─── */}
         <div className="mx-4 mt-5 rounded-3xl overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.025)",
-            border: `1px solid ${sc.cardBorder}`,
-            boxShadow: `0 16px 56px ${sc.glow}`,
+            background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
+            border: `1.5px solid ${sc.cardBorder}`,
+            boxShadow: `0 20px 60px ${sc.glow}`,
           }}>
           {/* Barra de cor no topo */}
           <div className="h-1.5" style={{ background: sc.gradient }} />
 
-          {/* Identidade */}
-          <div className="p-5 pb-4">
-            <div className="flex items-start gap-4">
+          {/* Identidade da escola */}
+          <div className="p-5">
+            <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
                 style={{ background: sc.gradient, boxShadow: `0 8px 28px ${sc.glow}` }}>
                 <School className="w-8 h-8 text-white" />
               </div>
-              <div className="flex-1 min-w-0 pt-0.5">
-                <h2 className="text-white font-black text-base leading-snug mb-2.5">{escola.nome}</h2>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-white font-black text-lg leading-snug mb-2">{escola.nome}</h2>
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                    style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.2)" }}>
-                    <Hash className="w-3 h-3" style={{ color: "#818cf8" }} />
-                    <span className="text-xs font-black font-mono" style={{ color: "#818cf8" }}>INEP {escola.inep}</span>
-                  </div>
+                  {escola.inep && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                      style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.2)" }}>
+                      <Hash className="w-3 h-3" style={{ color: "#818cf8" }} />
+                      <span className="text-xs font-black font-mono" style={{ color: "#818cf8" }}>INEP {escola.inep}</span>
+                    </div>
+                  )}
                   {escola.qtdAp && (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
                       style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
@@ -392,88 +420,90 @@ export default function TecnicoOS() {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Divider */}
-          <div className="mx-5 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+            {/* Divider */}
+            <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.06)" }} />
 
-          {/* Dados */}
-          <div className="p-5 space-y-2.5">
+            {/* Grid de informações */}
+            <div className="space-y-2.5">
 
-            {/* Endereço — full width, texto branco */}
-            {escola.endereco && (
-              <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl"
-                style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.15)" }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: "rgba(239,68,68,0.18)" }}>
-                  <MapPin className="w-4 h-4" style={{ color: "#f87171" }} />
+              {/* Endereço — full width */}
+              {escola.endereco && (
+                <div className="flex items-start gap-3.5 px-4 py-4 rounded-2xl"
+                  style={{ background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.15)" }}>
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: "rgba(248,113,113,0.15)" }}>
+                    <MapPin className="w-5 h-5" style={{ color: "#f87171" }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(248,113,113,0.7)" }}>Endereço</p>
+                    <p className="text-sm font-semibold text-white leading-relaxed">{escola.endereco}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(248,113,113,0.7)" }}>Endereço</p>
-                  <p className="text-sm font-semibold text-white leading-relaxed">{escola.endereco}</p>
-                </div>
+              )}
+
+              {/* Grid 2 colunas */}
+              <div className="grid grid-cols-2 gap-2.5">
+
+                {/* Município */}
+                {escola.municipio && (
+                  <div className="flex items-center gap-3 px-3.5 py-4 rounded-2xl"
+                    style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(139,92,246,0.18)" }}>
+                      <Building2 className="w-5 h-5" style={{ color: "#a78bfa" }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Município</p>
+                      <p className="text-sm font-bold text-white leading-tight">{escola.municipio}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Velocidade */}
+                {escola.velocidadeOfertada && (
+                  <div className="flex items-center gap-3 px-3.5 py-4 rounded-2xl"
+                    style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.15)" }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(59,130,246,0.18)" }}>
+                      <Gauge className="w-5 h-5" style={{ color: "#60a5fa" }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(96,165,250,0.6)" }}>Velocidade</p>
+                      <p className="text-sm font-bold text-white">{escola.velocidadeOfertada} <span className="text-xs font-medium" style={{ color: "rgba(96,165,250,0.7)" }}>Mbps</span></p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Grid 2 colunas */}
-            <div className="grid grid-cols-2 gap-2.5">
-
-              {/* Município */}
-              {escola.municipio && (
-                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
-                  style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.15)" }}>
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(139,92,246,0.18)" }}>
-                    <Building2 className="w-4 h-4" style={{ color: "#a78bfa" }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Município</p>
-                    <p className="text-sm font-bold text-white leading-tight">{escola.municipio}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Velocidade */}
-              {escola.velocidadeOfertada && (
-                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
-                  style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.15)" }}>
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(59,130,246,0.18)" }}>
-                    <Signal className="w-4 h-4" style={{ color: "#60a5fa" }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(96,165,250,0.6)" }}>Velocidade</p>
-                    <p className="text-sm font-bold text-white">{escola.velocidadeOfertada} Mbps</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Telefone — formatado e com truncate */}
-              {escola.telefone && (
-                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
-                  style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.15)" }}>
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+              {/* Telefone — full width, bem visível */}
+              {(escola.telefone || escola.telefoneWhatsApp) && (
+                <div className="flex items-center gap-3.5 px-4 py-4 rounded-2xl"
+                  style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ background: "rgba(16,185,129,0.18)" }}>
-                    <Phone className="w-4 h-4" style={{ color: "#34d399" }} />
+                    <PhoneCall className="w-5 h-5" style={{ color: "#34d399" }} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.6)" }}>Telefone</p>
-                    <p className="text-sm font-bold text-white truncate">{telDisplay || escola.telefone}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(52,211,153,0.65)" }}>Telefone</p>
+                    <p className="text-base font-black text-white tracking-wide">
+                      {telDisplay || escola.telefone || escola.telefoneWhatsApp}
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* GPS */}
+              {/* GPS — full width */}
               {hasCoords && (
-                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
+                <div className="flex items-center gap-3.5 px-4 py-4 rounded-2xl"
                   style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.15)" }}>
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ background: "rgba(245,158,11,0.18)" }}>
-                    <Navigation className="w-4 h-4" style={{ color: "#fbbf24" }} />
+                    <LocateFixed className="w-5 h-5" style={{ color: "#fbbf24" }} />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(251,191,36,0.6)" }}>GPS</p>
-                    <p className="text-xs font-mono font-bold text-white truncate">{lat!.toFixed(4)}, {lng!.toFixed(4)}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(251,191,36,0.65)" }}>Coordenadas GPS</p>
+                    <p className="text-sm font-bold text-white font-mono">{lat!.toFixed(5)}, {lng!.toFixed(5)}</p>
                   </div>
                 </div>
               )}
@@ -481,35 +511,37 @@ export default function TecnicoOS() {
           </div>
         </div>
 
-        {/* ─── Botões Maps e WhatsApp ─── */}
+        {/* ─── Botões de Ação Rápida ─── */}
         <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+          {/* Google Maps */}
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block">
-            <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95"
+            <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95 h-full"
               style={{
-                background: "linear-gradient(135deg, rgba(29,78,216,0.9), rgba(59,130,246,0.7))",
-                border: "1px solid rgba(59,130,246,0.35)",
+                background: "linear-gradient(135deg, rgba(29,78,216,0.85), rgba(59,130,246,0.65))",
+                border: "1px solid rgba(59,130,246,0.3)",
                 boxShadow: "0 8px 28px rgba(37,99,235,0.25)",
               }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: "rgba(255,255,255,0.15)" }}>
                 <Navigation className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-white font-black text-sm">Google Maps</p>
-                <p className="text-xs font-medium" style={{ color: "rgba(186,230,253,0.8)" }}>{hasCoords ? "Rota GPS" : "Buscar escola"}</p>
+                <p className="text-white font-black text-sm">Maps</p>
+                <p className="text-xs font-medium" style={{ color: "rgba(186,230,253,0.8)" }}>{hasCoords ? "Rota GPS" : "Buscar"}</p>
               </div>
             </div>
           </a>
 
+          {/* WhatsApp */}
           {whatsappUrl ? (
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
-              <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95"
+              <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95 h-full"
                 style={{
-                  background: "linear-gradient(135deg, rgba(6,95,70,0.9), rgba(16,185,129,0.7))",
-                  border: "1px solid rgba(16,185,129,0.35)",
-                  boxShadow: "0 8px 28px rgba(16,185,129,0.25)",
+                  background: "linear-gradient(135deg, rgba(6,95,70,0.85), rgba(16,185,129,0.65))",
+                  border: "1px solid rgba(16,185,129,0.3)",
+                  boxShadow: "0 8px 28px rgba(16,185,129,0.22)",
                 }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "rgba(255,255,255,0.15)" }}>
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
@@ -520,9 +552,9 @@ export default function TecnicoOS() {
               </div>
             </a>
           ) : (
-            <div className="rounded-2xl p-4 flex items-center gap-3"
+            <div className="rounded-2xl p-4 flex items-center gap-3 h-full"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: "rgba(255,255,255,0.05)" }}>
                 <Phone className="w-5 h-5" style={{ color: "rgba(100,116,139,0.4)" }} />
               </div>
@@ -535,18 +567,18 @@ export default function TecnicoOS() {
         </div>
 
         {/* ─── Ações da OS ─── */}
-        <div className="mx-4 mt-5">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-5 rounded-md flex items-center justify-center"
-              style={{ background: "rgba(168,85,247,0.15)" }}>
-              <Zap className="w-3 h-3" style={{ color: "#c084fc" }} />
+        <div className="mx-4 mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(168,85,247,0.18)" }}>
+              <Zap className="w-3.5 h-3.5" style={{ color: "#c084fc" }} />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.45)" }}>Ações da OS</p>
+            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.5)" }}>Ações da OS</p>
           </div>
 
           {isConcluida ? (
             <div className="rounded-3xl p-7 text-center relative overflow-hidden"
-              style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", boxShadow: "0 12px 48px rgba(16,185,129,0.12)" }}>
+              style={{ background: "rgba(16,185,129,0.06)", border: "1.5px solid rgba(16,185,129,0.22)", boxShadow: "0 12px 48px rgba(16,185,129,0.12)" }}>
               <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
                 style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 16px 48px rgba(16,185,129,0.4)" }}>
@@ -567,7 +599,7 @@ export default function TecnicoOS() {
 
           ) : isNaoInstalada ? (
             <div className="rounded-3xl p-7 text-center relative overflow-hidden"
-              style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", boxShadow: "0 12px 48px rgba(239,68,68,0.12)" }}>
+              style={{ background: "rgba(239,68,68,0.06)", border: "1.5px solid rgba(239,68,68,0.22)", boxShadow: "0 12px 48px rgba(239,68,68,0.12)" }}>
               <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
                 style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 16px 48px rgba(239,68,68,0.4)" }}>
@@ -625,7 +657,7 @@ export default function TecnicoOS() {
         </div>
 
         {/* Nota */}
-        <div className="mx-4 mt-4 mb-2">
+        <div className="mx-4 mt-5 mb-2">
           <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl"
             style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
             <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
@@ -640,7 +672,7 @@ export default function TecnicoOS() {
       {/* ─── Modal de Conclusão ─── */}
       {openConcluir && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(14px)" }}
+          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[94vh] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -809,7 +841,7 @@ export default function TecnicoOS() {
       {/* ─── Modal de Não Instalada ─── */}
       {openNaoInstalada && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(14px)" }}
+          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenNaoInstalada(false); }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
