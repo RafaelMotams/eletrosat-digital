@@ -58,7 +58,7 @@ function FotosOsModal({
   const [tab, setTab] = useState<string>("mapa_calor");
   const [lightbox, setLightbox] = useState<string | null>(null);
 
-  const { data: fotos, isLoading } = trpc.tecnicoAuth.getOsFotos.useQuery({ osId });
+  const { data: fotos, isLoading } = trpc.ordens.getOsFotos.useQuery({ osId });
 
   const fotosAba = (fotos ?? []).filter((f: { categoria: string }) => f.categoria === tab);
 

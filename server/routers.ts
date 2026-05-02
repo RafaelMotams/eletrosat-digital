@@ -382,8 +382,20 @@ const ordensRouter = router({
         title: `✅ OS Concluída: ${escola?.nome ?? "Escola"}`,
         content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola?.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
       });
-
       return { success: true };
+    }),
+  // Busca fotos de uma OS pelo admin
+  getOsFotos: tenantAdminProcedure
+    .input(z.object({ osId: z.number() }))
+    .query(async ({ input }) => {
+      return listOsFotos(input.osId);
+    }),
+  // Busca fotos de uma escola (todas as OS) pelo admin
+  getOsFotosByEscola: tenantAdminProcedure
+    .input(z.object({ escolaId: z.number() }))
+    .query(async ({ input }) => {
+      const { listOsFotosByEscola } = await import("./db");
+      return listOsFotosByEscola(input.escolaId);
     }),
 });
 
