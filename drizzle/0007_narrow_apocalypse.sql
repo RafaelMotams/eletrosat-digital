@@ -1,0 +1,1 @@
+ALTER TABLE `os_fotos` MODIFY COLUMN `categoria` enum('mapa_calor','fotos_ap','etiqueta_serial_ap','etiqueta_controladora','etiqueta_nobreak','etiqueta_switch') NOT NULL;

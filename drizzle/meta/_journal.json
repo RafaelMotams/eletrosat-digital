@@ -50,6 +50,13 @@
       "when": 1777752654361,
       "tag": "0006_aspiring_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1777753441284,
+      "tag": "0007_narrow_apocalypse",
+      "breakpoints": true
     }
   ]
 }

@@ -69,7 +69,7 @@ const MOTIVOS = [
 ] as const;
 
 // ─── Categorias de fotos obrigatórias ────────────────────────────────────────
-type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_serial_ap" | "etiqueta_controladora" | "etiqueta_nobreak";
+type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_serial_ap" | "etiqueta_controladora" | "etiqueta_nobreak" | "etiqueta_switch";
 
 const CATEGORIAS_FOTOS: {
   id: FotoCategoria;
@@ -130,6 +130,16 @@ const CATEGORIAS_FOTOS: {
     bg: "rgba(16,185,129,0.08)",
     border: "rgba(16,185,129,0.25)",
     maxFotos: 1,
+  },
+  {
+    id: "etiqueta_switch",
+    label: "Etiqueta do Switch",
+    desc: "Foto da etiqueta do switch de rede (até 3 fotos)",
+    icon: "🔀",
+    color: "#f59e0b",
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.25)",
+    maxFotos: 3,
   },
 ];
 
