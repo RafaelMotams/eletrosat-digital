@@ -99,27 +99,15 @@ export async function createTenantAdmin(data: {
   senha: string;
   role?: "admin" | "viewer";
 }) {
-  // Validar que senha não está vazia
-  if (!data.senha) {
-    throw new Error("Senha é obrigatória");
-  }
-  
   const senhaHash = await bcrypt.hash(data.senha, 10);
-  console.log("Admin criado com sucesso:", { email: data.email, tenantId: data.tenantId });
-  
-  try {
-    return db.insert(tenantAdmins).values({
-      tenantId: data.tenantId,
-      nome: data.nome,
-      email: data.email,
-      senhaHash,
-      role: data.role ?? "admin",
-      ativo: true,
-    });
-  } catch (error) {
-    console.error("Erro ao criar admin:", error);
-    throw error;
-  }
+  return db.insert(tenantAdmins).values({
+    tenantId: data.tenantId,
+    nome: data.nome,
+    email: data.email,
+    senhaHash,
+    role: data.role ?? "admin",
+    ativo: true,
+  });
 }
 
 export async function updateTenantAdmin(

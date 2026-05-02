@@ -284,16 +284,16 @@ export default function TecnicoMapa() {
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0 pr-2">
               <h3 className="text-white font-bold text-sm leading-tight">{selectedEscola.nome}</h3>
-              <p className="text-xs mt-1 text-white">
+              <p className="text-xs mt-1" style={{ color: "rgba(148,163,184,0.6)" }}>
                 INEP: <span className="font-mono">{selectedEscola.inep}</span>
               </p>
               {selectedEscola.municipio && (
-                <p className="text-xs mt-0.5 flex items-center gap-1 text-white">
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: "rgba(148,163,184,0.6)" }}>
                   <Building2 className="w-3 h-3" /> {selectedEscola.municipio}
                 </p>
               )}
               {selectedEscola.endereco && (
-                <p className="text-xs mt-0.5 flex items-center gap-1 text-white">
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: "rgba(148,163,184,0.6)" }}>
                   <MapPin className="w-3 h-3" /> {selectedEscola.endereco}
                 </p>
               )}

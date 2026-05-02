@@ -263,14 +263,11 @@ describe("Isolamento Multi-Tenant: Acesso não autenticado", () => {
   });
 });
 
-describe("Isolamento Multi-Tenant: Admin OAuth (acesso a todos os tenants)", () => {
-  it("admin OAuth acessa todos os tenants", async () => {
+describe("Isolamento Multi-Tenant: Admin OAuth (acesso ao tenant padrão)", () => {
+  it("admin OAuth acessa o tenant padrão (tenantId=1)", async () => {
     const caller = appRouter.createCaller(createOAuthAdminContext());
     const result = await caller.tecnicos.list();
-    // Admin OAuth vê técnicos de todos os tenants (não apenas tenant 1)
-    expect(result.length > 0).toBe(true);
-    // Pode ter técnicos de diferentes tenants
-    const tenantIds = new Set(result.map(t => t.tenantId));
-    expect(tenantIds.size >= 1).toBe(true);
+    // Admin OAuth vê apenas o tenant 1 (padrão)
+    expect(result.every(t => t.tenantId === 1)).toBe(true);
   });
 });

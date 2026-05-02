@@ -24,22 +24,6 @@ export default function Home() {
         <div className="flex gap-3">
           <Button
             variant="outline"
-            className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 bg-transparent"
-            onClick={() => navigate("/cliente")}
-          >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Painel Cliente
-          </Button>
-          <Button
-            variant="outline"
-            className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 bg-transparent"
-            onClick={() => navigate("/superadmin/login")}
-          >
-            <Shield className="w-4 h-4 mr-2" />
-            Painel Superadmin
-          </Button>
-          <Button
-            variant="outline"
             className="border-white/20 text-white hover:bg-white/10 bg-transparent"
             onClick={() => navigate("/tecnico/login")}
           >
@@ -84,13 +68,13 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4 mb-16">
           {isAuthenticated ? (
-          <Button
-            size="lg"
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-6 text-lg"
-            onClick={() => navigate("/admin/login")}
-          >
-            Acessar Painel Admin
-          </Button>
+            <Button
+              size="lg"
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-6 text-lg"
+              onClick={() => navigate("/admin")}
+            >
+              Acessar Painel Admin
+            </Button>
           ) : (
             <Button
               size="lg"

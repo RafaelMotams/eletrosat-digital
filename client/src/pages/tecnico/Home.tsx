@@ -487,8 +487,8 @@ export default function TecnicoHome() {
                       <div className="flex flex-wrap gap-x-3 gap-y-1">
                         {escola.municipio && (
                           <div className="flex items-center gap-1">
-                            <Building2 className="w-3 h-3 flex-shrink-0 text-white" />
-                            <span className="text-xs text-white">{escola.municipio}</span>
+                            <Building2 className="w-3 h-3 flex-shrink-0" style={{ color: "rgba(148,163,184,0.4)" }} />
+                            <span className="text-xs" style={{ color: "rgba(148,163,184,0.55)" }}>{escola.municipio}</span>
                           </div>
                         )}
                         {escola.velocidadeOfertada && (
@@ -501,8 +501,8 @@ export default function TecnicoHome() {
 
                       {escola.endereco && (
                         <div className="flex items-start gap-1 mt-1">
-                          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5 text-white" />
-                          <span className="text-xs text-white" style={{ wordBreak: "break-word" }}>{escola.endereco}</span>
+                          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }} />
+                          <span className="text-xs" style={{ color: "rgba(148,163,184,0.5)", wordBreak: "break-word" }}>{escola.endereco}</span>
                         </div>
                       )}
                     </div>

@@ -97,20 +97,8 @@ export async function getTecnicoByEmail(email: string) {
 export async function createTecnico(data: InsertTecnico) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  
-  // Validar que senhaHash não está vazio
-  if (!data.senhaHash) {
-    throw new Error("senhaHash é obrigatório");
-  }
-  
-  try {
-    const result = await db.insert(tecnicos).values(data);
-    console.log("Técnico criado com sucesso:", { email: data.email, tenantId: data.tenantId });
-    return result;
-  } catch (error) {
-    console.error("Erro ao criar técnico:", error);
-    throw error;
-  }
+  const result = await db.insert(tecnicos).values(data);
+  return result;
 }
 
 export async function updateTecnico(id: number, data: Partial<InsertTecnico>) {
@@ -158,37 +146,23 @@ export async function getEscolaByInep(inep: string) {
 export async function createEscola(data: InsertEscola) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  // Verificar se já existe escola com mesmo INEP e tenantId
-  const existente = await db
-    .select()
-    .from(escolas)
-    .where(and(eq(escolas.inep, data.inep), eq(escolas.tenantId, data.tenantId ?? 1)))
-    .limit(1);
-  
-  if (existente.length > 0) {
-    // Atualizar escola existente
-    await db
-      .update(escolas)
-      .set({
-        nome: data.nome,
-        endereco: data.endereco,
-        municipio: data.municipio,
-        uf: data.uf,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        qtdAp: data.qtdAp,
-        kitWifi: data.kitWifi,
-        apAdicional: data.apAdicional,
-        telefone: data.telefone,
-        velocidadeMinima: data.velocidadeMinima,
-        velocidadeOfertada: data.velocidadeOfertada,
-        tipoConexao: data.tipoConexao,
-      })
-      .where(eq(escolas.id, existente[0].id));
-  } else {
-    // Criar nova escola
-    await db.insert(escolas).values(data);
-  }
+  await db.insert(escolas).values(data).onDuplicateKeyUpdate({
+    set: {
+      nome: data.nome,
+      endereco: data.endereco,
+      municipio: data.municipio,
+      uf: data.uf,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      qtdAp: data.qtdAp,
+      kitWifi: data.kitWifi,
+      apAdicional: data.apAdicional,
+      telefone: data.telefone,
+      velocidadeMinima: data.velocidadeMinima,
+      velocidadeOfertada: data.velocidadeOfertada,
+      tipoConexao: data.tipoConexao,
+    },
+  });
 }
 
 export async function updateEscola(id: number, data: Partial<InsertEscola>) {
@@ -475,23 +449,6 @@ export async function listMunicipios(tenantId?: number): Promise<string[]> {
     ? await query.where(eq(escolas.tenantId, tenantId)).orderBy(escolas.municipio)
     : await query.orderBy(escolas.municipio);
   return rows.map(r => r.municipio).filter(Boolean) as string[];
-}
-
-/** Apaga uma escola individual (e suas OS/atribuições associadas) */
-export async function deleteEscola(id: number): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
-
-  try {
-    // Apagar OS vinculadas
-    await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
-    await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
-    await db.delete(escolas).where(eq(escolas.id, id));
-    return true;
-  } catch (error) {
-    console.error("Erro ao deletar escola:", error);
-    return false;
-  }
 }
 
 /** Apaga todas as escolas de um município (e suas OS/atribuições associadas) */

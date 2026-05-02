@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -5,7 +6,6 @@ import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } fro
 import { superadminRouter } from "./routers/superadmin";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
 import {
   atribuirPorCidade,
   atribuirTecnicoEscola,
@@ -16,7 +16,6 @@ import {
   createOrdemServico,
   createTecnico,
   deleteTecnico,
-  deleteEscola,
   deleteEscolasPorCidade,
   getDashboardStats,
   getEscolaById,
@@ -36,7 +35,6 @@ import {
   updateTecnico,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
-import { tecnicoCreateValidations } from "./routers-tecnico-validado";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -71,48 +69,16 @@ const tecnicosRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Validar nome
-      const nomeValidation = tecnicoCreateValidations.validateNome(input.nome);
-      if (!nomeValidation.valid) throw new TRPCError({ code: "BAD_REQUEST", message: nomeValidation.error });
-      
-      // Validar email
-      const emailValidation = tecnicoCreateValidations.validateEmail(input.email);
-      if (!emailValidation.valid) throw new TRPCError({ code: "BAD_REQUEST", message: emailValidation.error });
-      
-      // Validar senha
-      const senhaValidation = tecnicoCreateValidations.validateSenha(input.senha);
-      if (!senhaValidation.valid) throw new TRPCError({ code: "BAD_REQUEST", message: senhaValidation.error });
-      
-      // Gerar hash da senha
-      let senhaHash: string;
-      try {
-        senhaHash = await bcrypt.hash(input.senha, 10);
-      } catch (error) {
-        console.error("[TECNICO] Erro ao fazer hash da senha:", error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao processar senha" });
-      }
-      
-      // Validar hash gerado
-      const hashValidation = tecnicoCreateValidations.validateHash(senhaHash);
-      if (!hashValidation.valid) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: hashValidation.error });
-      
-      // Criar tecnico
-      try {
-        await createTecnico({
-          nome: input.nome,
-          telefone: input.telefone,
-          email: input.email,
-          senhaHash,
-          cidadeResponsavel: input.cidadeResponsavel,
-          ativo: true,
-          tenantId: (ctx as any).tenantId,
-        });
-        console.log(`[TECNICO] Criado com sucesso: ${input.email} | Hash: ${senhaHash.substring(0, 20)}... | TenantId: ${(ctx as any).tenantId}`);
-      } catch (error) {
-        console.error(`[TECNICO] Erro ao criar tecnico ${input.email}:`, error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao criar tecnico" });
-      }
-      
+      const senhaHash = await bcrypt.hash(input.senha, 10);
+      await createTecnico({
+        nome: input.nome,
+        telefone: input.telefone,
+        email: input.email,
+        senhaHash,
+        cidadeResponsavel: input.cidadeResponsavel,
+        ativo: true,
+        tenantId: (ctx as any).tenantId,
+      });
       return { success: true };
     }),
 
@@ -174,12 +140,7 @@ const escolasRouter = router({
       }
       // Admin OAuth ou tenant admin via JWT - filtrar por tenantId
       const tenantId = (ctx as any).tenantId;
-      return listEscolas({
-        tecnicoId: input?.tecnicoId,
-        status: input?.status,
-        municipio: input?.municipio,
-        tenantId,
-      });
+      return listEscolas({ ...input, tenantId });
     }),
 
   getById: tenantAdminProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
@@ -272,33 +233,6 @@ const escolasRouter = router({
     .mutation(async ({ input }) => {
       const total = await deleteEscolasPorCidade(input.municipio);
       return { success: true, total };
-    }),
-
-  deletar: tenantAdminProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      const tenantId = (ctx as any).tenantId;
-      const escola = await getEscolaById(input.id);
-      if (!escola || escola.tenantId !== tenantId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
-      const success = await deleteEscola(input.id);
-      return { success };
-    }),
-
-  deletarTodos: tenantAdminProcedure
-    .input(z.object({ ids: z.array(z.number()) }))
-    .mutation(async ({ input, ctx }) => {
-      const tenantId = (ctx as any).tenantId;
-      let deletadas = 0;
-      for (const id of input.ids) {
-        const escola = await getEscolaById(id);
-        if (escola && escola.tenantId === tenantId) {
-          await deleteEscola(id);
-          deletadas++;
-        }
-      }
-      return { success: true, total: deletadas };
     }),
 });
 

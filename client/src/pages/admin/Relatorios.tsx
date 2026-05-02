@@ -47,7 +47,6 @@ export default function AdminRelatorios() {
 
   const [tecnicoSel, setTecnicoSel] = useState("");
   const [periodo, setPeriodo] = useState("geral");
-  const [statusFiltro, setStatusFiltro] = useState("");
   const [dataInicio, setDataInicio] = useState(() => {
     const d = new Date();
     d.setDate(1);
@@ -122,7 +121,7 @@ export default function AdminRelatorios() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Técnico</label>
               <select value={tecnicoSel} onChange={e => setTecnicoSel(e.target.value)} className={SELECT_CLASS}>
@@ -130,16 +129,6 @@ export default function AdminRelatorios() {
                 {tecnicos?.map(t => (
                   <option key={t.id} value={String(t.id)}>{t.nome}</option>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Status</label>
-              <select value={statusFiltro} onChange={e => setStatusFiltro(e.target.value)} className={SELECT_CLASS}>
-                <option value="">Todos os status</option>
-                <option value="concluido">Concluído</option>
-                <option value="em_andamento">Em Andamento</option>
-                <option value="pendente">Pendente</option>
-                <option value="nao_instalada">Não Instalada</option>
               </select>
             </div>
             <div>

@@ -12,7 +12,6 @@ import {
   Package,
   Filter,
   FileSpreadsheet,
-  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,76 +33,10 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function AdminPlanilha() {
-  const { data: escolas, isLoading, refetch } = trpc.planilha.listar.useQuery();
+  const { data: escolas, isLoading } = trpc.planilha.listar.useQuery();
   const [busca, setBusca] = useState("");
   const [filtroVelocidade, setFiltroVelocidade] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [selecionadas, setSelecionadas] = useState<Set<number>>(new Set());
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const deletarMut = trpc.escolas.deletar.useMutation({
-    onSuccess: () => {
-      toast.success("Escola deletada com sucesso!");
-      refetch();
-    },
-    onError: (err) => {
-      toast.error("Erro ao deletar: " + err.message);
-    },
-  });
-
-  const deletarTodosMut = trpc.escolas.deletarTodos.useMutation({
-    onSuccess: (data) => {
-      toast.success(`${data.total} escola(s) deletada(s) com sucesso!`);
-      setSelecionadas(new Set());
-      setShowDeleteModal(false);
-      refetch();
-    },
-    onError: (err) => {
-      toast.error("Erro ao deletar: " + err.message);
-    },
-  });
-
-  function handleDeletarEscola(id: number, nome: string) {
-    if (window.confirm(`Tem certeza que deseja deletar a escola "${nome}"? Esta ação é irreversível.`)) {
-      deletarMut.mutate({ id });
-    }
-  }
-
-  function handleToggleSelecionada(id: number) {
-    const novo = new Set(selecionadas);
-    if (novo.has(id)) {
-      novo.delete(id);
-    } else {
-      novo.add(id);
-    }
-    setSelecionadas(novo);
-  }
-
-  function handleSelecionarTodas() {
-    if (selecionadas.size === escolasFiltradas.length) {
-      setSelecionadas(new Set());
-    } else {
-      setSelecionadas(new Set(escolasFiltradas.map(e => e.id)));
-    }
-  }
-
-  function handleDeletarSelecionadas() {
-    if (selecionadas.size === 0) {
-      toast.error("Nenhuma escola selecionada");
-      return;
-    }
-    setShowDeleteModal(true);
-  }
-
-  function confirmarDeletarSelecionadas() {
-    deletarTodosMut.mutate({ ids: Array.from(selecionadas) });
-  }
-
-  function handleDeletarTodas() {
-    if (window.confirm(`Tem certeza que deseja deletar TODAS as ${escolas?.length || 0} escolas? Esta ação é irreversível!`)) {
-      deletarTodosMut.mutate({ ids: escolas?.map(e => e.id) || [] });
-    }
-  }
 
   const velocidades = useMemo(() => {
     if (!escolas) return [];
@@ -201,7 +134,7 @@ export default function AdminPlanilha() {
             Dados completos das {escolas?.length ?? 0} escolas — Monte Santo, BA
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           <Button onClick={exportarCSV} variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             CSV
@@ -209,16 +142,6 @@ export default function AdminPlanilha() {
           <Button onClick={exportarExcel} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
             <FileSpreadsheet className="w-4 h-4" />
             Excel (.xlsx)
-          </Button>
-          {selecionadas.size > 0 && (
-            <Button onClick={handleDeletarSelecionadas} className="gap-2 bg-red-600 hover:bg-red-700 text-white">
-              <Trash2 className="w-4 h-4" />
-              Deletar {selecionadas.size}
-            </Button>
-          )}
-          <Button onClick={handleDeletarTodas} variant="outline" className="gap-2 border-red-200 text-red-600 hover:bg-red-50">
-            <Trash2 className="w-4 h-4" />
-            Excluir Todas
           </Button>
         </div>
       </div>
@@ -341,14 +264,6 @@ export default function AdminPlanilha() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">
-                      <input
-                        type="checkbox"
-                        checked={selecionadas.size === escolasFiltradas.length && escolasFiltradas.length > 0}
-                        onChange={handleSelecionarTodas}
-                        className="w-4 h-4 cursor-pointer"
-                      />
-                    </th>
                     <th className="text-left px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">#</th>
                     <th className="text-left px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">INEP</th>
                     <th className="text-left px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">UF</th>
@@ -365,27 +280,18 @@ export default function AdminPlanilha() {
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Solução</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Status</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Mapa</th>
-                    <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {escolasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={18} className="text-center py-12 text-muted-foreground">
+                      <td colSpan={16} className="text-center py-12 text-muted-foreground">
                         Nenhuma escola encontrada com os filtros aplicados.
                       </td>
                     </tr>
                   ) : (
                     escolasFiltradas.map((escola, idx) => (
                       <tr key={escola.id} className="border-b hover:bg-muted/30 transition-colors">
-                        <td className="px-3 py-2.5 text-center">
-                          <input
-                            type="checkbox"
-                            checked={selecionadas.has(escola.id)}
-                            onChange={() => handleToggleSelecionada(escola.id)}
-                            className="w-4 h-4 cursor-pointer"
-                          />
-                        </td>
                         <td className="px-3 py-2.5 text-muted-foreground font-mono text-xs">{idx + 1}</td>
                         <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground whitespace-nowrap">{escola.inep}</td>
                         <td className="px-3 py-2.5 text-xs font-medium">{escola.uf ?? "BA"}</td>
@@ -449,15 +355,6 @@ export default function AdminPlanilha() {
                             <MapPin className="w-3.5 h-3.5" />
                           </button>
                         </td>
-                        <td className="px-3 py-2.5 text-center">
-                          <button
-                            onClick={() => handleDeletarEscola(escola.id, escola.nome)}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
-                            title="Deletar escola"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
                       </tr>
                     ))
                   )}
@@ -465,11 +362,11 @@ export default function AdminPlanilha() {
                 {escolasFiltradas.length > 0 && (
                   <tfoot>
                     <tr className="border-t bg-muted/30 font-semibold">
-                      <td colSpan={11} className="px-3 py-3 text-sm text-muted-foreground">
+                      <td colSpan={10} className="px-3 py-3 text-sm text-muted-foreground">
                         Total ({escolasFiltradas.length} escolas)
                       </td>
                       <td className="px-3 py-3 text-center text-blue-700 font-bold">{totais.totalKits}</td>
-                      <td colSpan={6} />
+                      <td colSpan={5} />
                     </tr>
                   </tfoot>
                 )}
@@ -478,52 +375,6 @@ export default function AdminPlanilha() {
           )}
         </CardContent>
       </Card>
-
-      {/* Modal de confirmação para exclusão em massa */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                <Trash2 className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h2 className="font-bold text-lg text-foreground">Deletar Escolas</h2>
-                <p className="text-sm text-muted-foreground">Esta ação é irreversível</p>
-              </div>
-            </div>
-
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200">
-              <p className="text-sm text-red-700">
-                Tem certeza que deseja deletar <strong>{selecionadas.size} escola(s)</strong>?
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2"
-                disabled={deletarTodosMut.isPending}
-                onClick={confirmarDeletarSelecionadas}
-              >
-                {deletarTodosMut.isPending ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Deletando...</>
-                ) : (
-                  <><Trash2 className="w-4 h-4" /> Deletar {selecionadas.size}</>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayoutAuto>
   );
 }

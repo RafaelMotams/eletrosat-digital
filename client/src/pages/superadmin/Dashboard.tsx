@@ -55,8 +55,6 @@ export default function SuperAdminDashboard() {
   });
   const [adminForm, setAdminForm] = useState({ nome: "", email: "", senha: "", role: "admin" as "admin" | "viewer" });
   const [editStatus, setEditStatus] = useState<{ id: number; status: "ativo" | "suspenso" | "cancelado" } | null>(null);
-  const [editTenant, setEditTenant] = useState<Tenant | null>(null);
-  const [editForm, setEditForm] = useState({ nome: "", slug: "", plano: "basico" as "basico" | "profissional" | "enterprise", contato: "", email: "", telefone: "", observacoes: "" });
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -312,28 +310,6 @@ export default function SuperAdminDashboard() {
                     </select>
                     <button
                       onClick={() => {
-                        setEditTenant(tenant);
-                        setEditForm({
-                          nome: tenant.nome,
-                          slug: tenant.slug,
-                          plano: tenant.plano,
-                          contato: tenant.contato || "",
-                          email: tenant.email || "",
-                          telefone: tenant.telefone || "",
-                          observacoes: tenant.observacoes || "",
-                        });
-                      }}
-                      className="px-3 py-2 rounded-xl text-sm font-medium transition-all"
-                      style={{
-                        background: "rgba(59,130,246,0.15)",
-                        border: "1px solid rgba(59,130,246,0.3)",
-                        color: "#93c5fd",
-                      }}
-                    >
-                      ✏️ Editar
-                    </button>
-                    <button
-                      onClick={() => {
                         if (confirm(`Remover cliente "${tenant.nome}"? Esta ação não pode ser desfeita.`)) {
                           deleteTenantMut.mutate({ token: token!, id: tenant.id });
                         }
@@ -492,367 +468,178 @@ export default function SuperAdminDashboard() {
         )}
       </div>
 
-      {/* Modal criar tenant - MELHORADO */}
+      {/* Modal criar tenant */}
       {showCreateTenant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{
           background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)",
         }}>
-          <div className="w-full max-w-2xl rounded-3xl p-8 max-h-[90vh] overflow-y-auto" style={{
+          <div className="w-full max-w-lg rounded-3xl p-6 max-h-[90vh] overflow-y-auto" style={{
             background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
             border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           }}>
-            {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                }}>
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6H6" />
-                  </svg>
+            <h3 className="text-xl font-bold text-white mb-6">Novo Cliente</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Nome da Empresa *
+                </label>
+                <input
+                  placeholder="Ex: Telecom Bahia"
+                  value={form.nome}
+                  onChange={(e) => {
+                    const nome = e.target.value;
+                    const slug = nome.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    setForm(f => ({ ...f, nome, slug }));
+                  }}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Slug (identificador único) *
+                </label>
+                <input
+                  placeholder="telecom-bahia"
+                  value={form.slug}
+                  onChange={(e) => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
+                <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  Apenas letras minúsculas, números e hífens
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Plano *
+                </label>
+                <select
+                  value={form.plano}
+                  onChange={(e) => setForm(f => ({ ...f, plano: e.target.value as "basico" | "profissional" | "enterprise" }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                >
+                  <option value="basico">Básico</option>
+                  <option value="profissional">Profissional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                    Responsável
+                  </label>
+                  <input
+                    placeholder="Nome do responsável"
+                    value={form.contato}
+                    onChange={(e) => setForm(f => ({ ...f, contato: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                  />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">Novo Cliente</h3>
-                  <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>Crie um cliente e seu usuário admin em um único fluxo</p>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                    Telefone
+                  </label>
+                  <input
+                    placeholder="(75) 99999-9999"
+                    value={form.telefone}
+                    onChange={(e) => setForm(f => ({ ...f, telefone: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Email de contato
+                </label>
+                <input
+                  placeholder="contato@empresa.com"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
+              </div>
+
+              {/* Divisor */}
+              <div className="pt-2 pb-1">
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  👤 Usuário Admin do Painel
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  Credenciais de acesso ao painel administrativo deste cliente
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Nome do Admin *
+                </label>
+                <input
+                  placeholder="Nome completo"
+                  value={form.adminNome}
+                  onChange={(e) => setForm(f => ({ ...f, adminNome: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Email do Admin *
+                </label>
+                <input
+                  placeholder="admin@empresa.com"
+                  type="email"
+                  value={form.adminEmail}
+                  onChange={(e) => setForm(f => ({ ...f, adminEmail: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Senha do Admin *
+                </label>
+                <input
+                  placeholder="Mínimo 6 caracteres"
+                  type="password"
+                  value={form.adminSenha}
+                  onChange={(e) => setForm(f => ({ ...f, adminSenha: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
+                />
               </div>
             </div>
 
-            {/* Seção 1: Dados da Empresa */}
-            <div className="mb-8 pb-8" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-              <h4 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.8)" }}>
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(102,126,234,0.3)", color: "#a5b4fc" }}>1</span>
-                Dados da Empresa
-              </h4>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    Nome da Empresa *
-                  </label>
-                  <input
-                    placeholder="Ex: Eletrosat Digital"
-                    value={form.nome}
-                    onChange={(e) => {
-                      const nome = e.target.value;
-                      const slug = nome.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-                      setForm(f => ({ ...f, nome, slug }));
-                    }}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                    onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    Slug (identificador único) *
-                  </label>
-                  <input
-                    placeholder="eletrosat-digital"
-                    value={form.slug}
-                    onChange={(e) => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                    onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                  />
-                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>💡 Apenas letras minúsculas, números e hífens</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                      Plano *
-                    </label>
-                    <select
-                      value={form.plano}
-                      onChange={(e) => setForm(f => ({ ...f, plano: e.target.value as "basico" | "profissional" | "enterprise" }))}
-                      className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                      onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                    >
-                      <option value="basico">📦 Básico</option>
-                      <option value="profissional">⭐ Profissional</option>
-                      <option value="enterprise">🏆 Enterprise</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                      Responsável
-                    </label>
-                    <input
-                      placeholder="Nome do responsável"
-                      value={form.contato}
-                      onChange={(e) => setForm(f => ({ ...f, contato: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                      onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                      Telefone
-                    </label>
-                    <input
-                      placeholder="(75) 99999-9999"
-                      value={form.telefone}
-                      onChange={(e) => setForm(f => ({ ...f, telefone: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                      onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                      Email de contato
-                    </label>
-                    <input
-                      placeholder="contato@empresa.com"
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                      style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                      onFocus={(e) => e.target.style.borderColor = "rgba(102,126,234,0.5)"}
-                      onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Seção 2: Usuário Admin */}
-            <div className="mb-8">
-              <h4 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ color: "rgba(255,255,255,0.8)" }}>
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: "rgba(34,197,94,0.3)", color: "#86efac" }}>2</span>
-                Usuário Admin do Painel
-              </h4>
-              <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>🔑 Credenciais de acesso ao painel administrativo deste cliente</p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    Nome do Admin *
-                  </label>
-                  <input
-                    placeholder="Ex: João Silva"
-                    value={form.adminNome}
-                    onChange={(e) => setForm(f => ({ ...f, adminNome: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                    onFocus={(e) => e.target.style.borderColor = "rgba(34,197,94,0.5)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    Email do Admin *
-                  </label>
-                  <input
-                    placeholder="admin@empresa.com"
-                    type="email"
-                    value={form.adminEmail}
-                    onChange={(e) => setForm(f => ({ ...f, adminEmail: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                    onFocus={(e) => e.target.style.borderColor = "rgba(34,197,94,0.5)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-                    Senha do Admin *
-                  </label>
-                  <input
-                    placeholder="Mínimo 6 caracteres (recomendado: 12+)"
-                    type="password"
-                    value={form.adminSenha}
-                    onChange={(e) => setForm(f => ({ ...f, adminSenha: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none transition-all"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                    onFocus={(e) => e.target.style.borderColor = "rgba(34,197,94,0.5)"}
-                    onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.15)"}
-                  />
-                  <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>🔒 Senha forte recomendada para segurança</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Validação */}
-            {(!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha) && (
-              <div className="mb-6 px-4 py-3 rounded-xl text-sm" style={{
-                background: "rgba(245,158,11,0.15)",
-                border: "1px solid rgba(245,158,11,0.3)",
-                color: "#fcd34d",
-              }}>
-                ⚠️ Preencha todos os campos obrigatórios (*) para criar o cliente
-              </div>
-            )}
-
-            {/* Botões */}
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={() => createTenantMut.mutate({ token: token!, ...form })}
                 disabled={createTenantMut.isPending || !form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha}
-                className="flex-1 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold text-white transition-all"
                 style={{
                   background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   opacity: (!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha) ? 0.5 : 1,
-                  cursor: (!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha) ? "not-allowed" : "pointer",
                 }}
               >
-                {createTenantMut.isPending ? (
-                  <>
-                    <span className="animate-spin">⏳</span>
-                    Criando...
-                  </>
-                ) : (
-                  <>
-                    <span>✨</span>
-                    Criar Cliente
-                  </>
-                )}
+                {createTenantMut.isPending ? "Criando..." : "Criar Cliente"}
               </button>
               <button
                 onClick={() => setShowCreateTenant(false)}
-                className="px-6 py-3 rounded-xl font-medium transition-all"
+                className="px-6 py-3 rounded-xl font-medium"
                 style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
               >
                 Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Editar Tenant */}
-      {editTenant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
-          <div className="rounded-2xl p-8 max-w-2xl w-full" style={{
-            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-          }}>
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white">Editar Cliente</h3>
-              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>Atualize os dados do cliente</p>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Nome da Empresa</label>
-                <input
-                  value={editForm.nome}
-                  onChange={(e) => setEditForm(f => ({ ...f, nome: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Slug</label>
-                <input
-                  value={editForm.slug}
-                  onChange={(e) => setEditForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
-                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Plano</label>
-                  <select
-                    value={editForm.plano}
-                    onChange={(e) => setEditForm(f => ({ ...f, plano: e.target.value as "basico" | "profissional" | "enterprise" }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  >
-                    <option value="basico">Básico</option>
-                    <option value="profissional">Profissional</option>
-                    <option value="enterprise">Enterprise</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Responsável</label>
-                  <input
-                    value={editForm.contato}
-                    onChange={(e) => setEditForm(f => ({ ...f, contato: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Email</label>
-                  <input
-                    value={editForm.email}
-                    onChange={(e) => setEditForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Telefone</label>
-                  <input
-                    value={editForm.telefone}
-                    onChange={(e) => setEditForm(f => ({ ...f, telefone: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>Observações</label>
-                <textarea
-                  value={editForm.observacoes}
-                  onChange={(e) => setEditForm(f => ({ ...f, observacoes: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl text-white outline-none"
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setEditTenant(null)}
-                className="px-4 py-2 rounded-xl text-sm font-medium"
-                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  if (editTenant) {
-                    updateTenantMut.mutate({
-                      token: token!,
-                      id: editTenant.id,
-                      nome: editForm.nome,
-                      slug: editForm.slug,
-                      plano: editForm.plano,
-                      contato: editForm.contato,
-                      email: editForm.email,
-                      telefone: editForm.telefone,
-                      observacoes: editForm.observacoes,
-                    });
-                    setEditTenant(null);
-                  }
-                }}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-white"
-                style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
-              >
-                Salvar Alterações
               </button>
             </div>
           </div>
