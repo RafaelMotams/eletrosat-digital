@@ -5,11 +5,13 @@ import {
   atribuicoesManual,
   escolas,
   ordensServico,
+  osFotos,
   tecnicos,
   users,
   type InsertEscola,
   type InsertOrdemServico,
   type InsertTecnico,
+  type InsertOsFoto,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -568,4 +570,35 @@ export async function getOsDetalhadas(filters: {
     dataConclusao: r.dataConclusao ?? r.createdAt ?? null,
     observacao: r.observacao ?? "",
   }));
+}
+
+// ─── OS FOTOS ────────────────────────────────────────────────────────────────
+
+export async function insertOsFoto(data: InsertOsFoto): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(osFotos).values(data);
+}
+
+export async function listOsFotos(osId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(osFotos).where(eq(osFotos.osId, osId)).orderBy(osFotos.createdAt);
+}
+
+export async function listOsFotosByEscola(escolaId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(osFotos).where(eq(osFotos.escolaId, escolaId)).orderBy(osFotos.createdAt);
+}
+
+export async function countOsFotosByCategoria(osId: number): Promise<Record<string, number>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db.select().from(osFotos).where(eq(osFotos.osId, osId));
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    counts[row.categoria] = (counts[row.categoria] ?? 0) + 1;
+  }
+  return counts;
 }

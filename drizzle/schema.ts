@@ -146,3 +146,19 @@ export const ordensServico = mysqlTable("ordens_servico", {
 
 export type OrdemServico = typeof ordensServico.$inferSelect;
 export type InsertOrdemServico = typeof ordensServico.$inferInsert;
+
+// Tabela de Fotos das Ordens de Serviço (por categoria)
+export const osFotos = mysqlTable("os_fotos", {
+  id: int("id").autoincrement().primaryKey(),
+  osId: int("osId").notNull(),
+  escolaId: int("escolaId").notNull(),
+  tecnicoId: int("tecnicoId").notNull(),
+  // Categorias: mapa_calor | fotos_ap | etiqueta_serial_ap | etiqueta_controladora | etiqueta_nobreak
+  categoria: mysqlEnum("categoria", ["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak"]).notNull(),
+  url: text("url").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type OsFoto = typeof osFotos.$inferSelect;
+export type InsertOsFoto = typeof osFotos.$inferInsert;

@@ -5,10 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import {
-  ClipboardList, Plus, School, User, Calendar, Image,
+  ClipboardList, Plus, Calendar, Image,
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
-  Search, Filter, Download, RefreshCw, ChevronDown,
-  Wifi, Eye, MoreHorizontal, TrendingUp, Trash2
+  Search, Filter, RefreshCw,
+  Wifi, TrendingUp, Trash2, Camera, X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -25,6 +25,14 @@ const MOTIVO_LABEL: Record<string, string> = {
   mudanca_endereco: "Mudança de endereço",
 };
 
+const CATS_FOTOS = [
+  { id: "mapa_calor",             label: "Mapa de Calor",  icon: "🌡️", color: "#f97316" },
+  { id: "fotos_ap",               label: "Fotos dos APs",  icon: "📡", color: "#3b82f6" },
+  { id: "etiqueta_serial_ap",     label: "Serial do AP",   icon: "🏷️", color: "#8b5cf6" },
+  { id: "etiqueta_controladora",  label: "Controladora",   icon: "🖥️", color: "#06b6d4" },
+  { id: "etiqueta_nobreak",       label: "Nobreak",        icon: "🔋", color: "#10b981" },
+] as const;
+
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.aberta;
   const Icon = cfg.icon;
@@ -37,6 +45,157 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// ─── Modal de fotos por categoria ─────────────────────────────────────────────
+function FotosOsModal({
+  osId,
+  escolaNome,
+  onClose,
+}: {
+  osId: number;
+  escolaNome: string;
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<string>("mapa_calor");
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  const { data: fotos, isLoading } = trpc.tecnicoAuth.getOsFotos.useQuery({ osId });
+
+  const fotosAba = (fotos ?? []).filter((f: { categoria: string }) => f.categoria === tab);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(16px)" }}
+        onClick={onClose}>
+        <div className="relative w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col"
+          style={{
+            background: "linear-gradient(160deg, #0f172a 0%, #1e293b 100%)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            maxHeight: "90vh",
+          }}
+          onClick={e => e.stopPropagation()}>
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(59,130,246,0.15)" }}>
+                <Camera className="w-4 h-4" style={{ color: "#60a5fa" }} />
+              </div>
+              <div>
+                <p className="text-white font-black text-sm">Fotos da OS #{osId}</p>
+                <p className="text-xs truncate max-w-xs" style={{ color: "rgba(148,163,184,0.5)" }}>{escolaNome}</p>
+              </div>
+            </div>
+            <button onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+              style={{ background: "rgba(255,255,255,0.07)" }}>
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-1.5 px-4 py-3 overflow-x-auto"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            {CATS_FOTOS.map(cat => {
+              const qtd = (fotos ?? []).filter((f: { categoria: string }) => f.categoria === cat.id).length;
+              const ativa = tab === cat.id;
+              return (
+                <button key={cat.id}
+                  onClick={() => setTab(cat.id)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex-shrink-0"
+                  style={{
+                    background: ativa ? `${cat.color}22` : "rgba(255,255,255,0.04)",
+                    border: ativa ? `1.5px solid ${cat.color}66` : "1px solid rgba(255,255,255,0.07)",
+                    color: ativa ? cat.color : "rgba(148,163,184,0.5)",
+                  }}>
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                  {qtd > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black"
+                      style={{ background: "rgba(16,185,129,0.2)", color: "#34d399" }}>
+                      {qtd}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Conteúdo */}
+          <div className="flex-1 overflow-y-auto p-5">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              </div>
+            ) : fotosAba.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <Camera className="w-7 h-7" style={{ color: "rgba(148,163,184,0.2)" }} />
+                </div>
+                <p className="text-sm font-semibold" style={{ color: "rgba(148,163,184,0.4)" }}>
+                  Nenhuma foto enviada nesta categoria
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {fotosAba.map((f: { id: number; url: string }) => (
+                  <button key={f.id}
+                    onClick={() => setLightbox(f.url)}
+                    className="aspect-square rounded-2xl overflow-hidden transition-all hover:scale-105 active:scale-95"
+                    style={{ border: "1.5px solid rgba(255,255,255,0.08)" }}>
+                    <img src={f.url} alt="Foto OS" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-3 flex items-center justify-between"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <p className="text-xs" style={{ color: "rgba(148,163,184,0.4)" }}>
+              Total: <span className="font-bold text-white">{(fotos ?? []).length}</span> foto{(fotos ?? []).length !== 1 ? "s" : ""}
+            </p>
+            <div className="flex gap-1">
+              {CATS_FOTOS.map(cat => {
+                const temFoto = (fotos ?? []).some((f: { categoria: string }) => f.categoria === cat.id);
+                return (
+                  <div key={cat.id}
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                    style={{
+                      background: temFoto ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)",
+                      color: temFoto ? "#34d399" : "rgba(148,163,184,0.3)",
+                    }}>
+                    {temFoto ? "✓" : "·"}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.96)" }}
+          onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="Foto" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <button className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+            onClick={() => setLightbox(null)}>
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function AdminOrdens() {
   const utils = trpc.useUtils();
   const { data: ordens, isLoading, refetch } = trpc.ordens.list.useQuery({});
@@ -60,9 +219,10 @@ export default function AdminOrdens() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [fotoModal, setFotoModal] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
   const deletarTodasMut = trpc.ordens.deletarTodas.useMutation({
     onSuccess: (data) => {
       toast.success(`${data.total} OS excluídas com sucesso!`);
@@ -111,7 +271,7 @@ export default function AdminOrdens() {
 
   return (
     <AdminLayoutAuto title="Ordens de Serviço">
-      {/* Header com métricas rápidas */}
+      {/* Métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Total", value: counts.todos, color: "oklch(0.30 0.10 240)", bg: "oklch(0.94 0.05 240)" },
@@ -139,7 +299,6 @@ export default function AdminOrdens() {
       <div className="bg-card rounded-2xl border border-border p-4 mb-4 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="flex flex-1 gap-2 min-w-0">
-            {/* Busca */}
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
@@ -149,7 +308,6 @@ export default function AdminOrdens() {
                 className="w-full pl-9 pr-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
-            {/* Filtro de status */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40 rounded-xl">
                 <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
@@ -213,14 +371,12 @@ export default function AdminOrdens() {
         </div>
       ) : (
         <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-          {/* Table header */}
           <div className="hidden lg:grid grid-cols-[2.5rem_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-border"
             style={{ background: "oklch(0.97 0.008 240)" }}>
             {["#", "Escola", "Técnico", "Status", "Data / APs", "Ações"].map(h => (
               <p key={h} className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{h}</p>
             ))}
           </div>
-          {/* Rows */}
           <div className="divide-y divide-border">
             {filtered.map((os, idx) => {
               const cfg = STATUS_CONFIG[os.status] ?? STATUS_CONFIG.aberta;
@@ -284,16 +440,23 @@ export default function AdminOrdens() {
                     )}
                   </div>
                   {/* Ações */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {hasFoto && (
                       <button
                         onClick={() => setFotoModal((os as any).fotoMapaCalorUrl)}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                         style={{ background: "oklch(0.93 0.07 162)", color: "oklch(0.34 0.16 162)", border: "1px solid oklch(0.82 0.10 162)" }}>
                         <Image className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Mapa de calor</span>
+                        <span className="hidden sm:inline">Mapa</span>
                       </button>
                     )}
+                    <button
+                      onClick={() => setFotosOsModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId) })}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                      style={{ background: "oklch(0.94 0.05 240)", color: "oklch(0.30 0.14 240)", border: "1px solid oklch(0.84 0.08 240)" }}>
+                      <Camera className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Fotos OS</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -313,12 +476,21 @@ export default function AdminOrdens() {
         </div>
       )}
 
-      {/* Modal foto mapa de calor */}
+      {/* Modal fotos por categoria */}
+      {fotosOsModal && (
+        <FotosOsModal
+          osId={fotosOsModal.osId}
+          escolaNome={fotosOsModal.escolaNome}
+          onClose={() => setFotosOsModal(null)}
+        />
+      )}
+
+      {/* Modal foto mapa de calor (legado) */}
       {fotoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
           onClick={() => setFotoModal(null)}>
-          <div className="relative max-w-2xl w-full animate-scale-in" onClick={e => e.stopPropagation()}>
+          <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-white font-bold flex items-center gap-2 text-sm">
                 <Image className="w-4 h-4" /> Mapa de Calor Wi-Fi
@@ -335,7 +507,7 @@ export default function AdminOrdens() {
         </div>
       )}
 
-      {/* Modal excluir todas as OS */}
+      {/* Modal excluir todas */}
       <Dialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

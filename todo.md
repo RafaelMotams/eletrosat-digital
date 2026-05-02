@@ -287,3 +287,11 @@
 - [x] Badge "Pendente" com cor mais bonita e diferente
 - [x] Visual geral da OS mais profissional e elegante
 - [x] Gerar novo APK com ícone correto da Netvionis (v6)
+
+## Sistema de Fotos Obrigatórias na OS
+- [ ] Adicionar tabela os_fotos no schema (os_id, categoria, url, key, created_at)
+- [ ] Adicionar procedure uploadOsFoto e getOsFotos no router
+- [ ] Implementar componente de upload câmera/galeria no OrdemServico.tsx
+- [ ] Seções de fotos: mapa de calor, fotos APs (até 15), etiqueta serial AP, etiqueta controladora, etiqueta nobreak
+- [ ] Bloquear conclusão da OS se alguma seção obrigatória não tiver foto
+- [ ] Visualizador de fotos por categoria no painel admin (OrdemServicoDetalhe ou similar)

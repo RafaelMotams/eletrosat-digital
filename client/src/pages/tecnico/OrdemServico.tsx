@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
-  MessageCircle, Navigation, Hash, Building2, Signal, WifiOff, Clock,
+  MessageCircle, Hash, Building2, Signal, WifiOff, Clock,
   Play, XCircle, Camera, Upload, X, AlertTriangle, Zap, Star,
-  Info, FileText, Layers, PhoneCall, Gauge, LocateFixed
+  Info, FileText, Layers, PhoneCall, Gauge, LocateFixed, Image,
+  ChevronRight, Eye, Trash2
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
@@ -66,6 +67,71 @@ const MOTIVOS = [
   { value: "em_reforma",        label: "Em reforma",        icon: "🔨", desc: "Obras ou reformas em andamento" },
   { value: "mudanca_endereco",  label: "Mudança de endereço", icon: "📍", desc: "A escola mudou de localização" },
 ] as const;
+
+// ─── Categorias de fotos obrigatórias ────────────────────────────────────────
+type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_serial_ap" | "etiqueta_controladora" | "etiqueta_nobreak";
+
+const CATEGORIAS_FOTOS: {
+  id: FotoCategoria;
+  label: string;
+  desc: string;
+  icon: string;
+  color: string;
+  bg: string;
+  border: string;
+  maxFotos: number;
+}[] = [
+  {
+    id: "mapa_calor",
+    label: "Mapa de Calor",
+    desc: "Foto do mapa de calor do Wi-Fi",
+    icon: "🌡️",
+    color: "#f97316",
+    bg: "rgba(249,115,22,0.08)",
+    border: "rgba(249,115,22,0.25)",
+    maxFotos: 1,
+  },
+  {
+    id: "fotos_ap",
+    label: "Fotos dos APs",
+    desc: "Até 15 fotos dos access points instalados",
+    icon: "📡",
+    color: "#3b82f6",
+    bg: "rgba(59,130,246,0.08)",
+    border: "rgba(59,130,246,0.25)",
+    maxFotos: 15,
+  },
+  {
+    id: "etiqueta_serial_ap",
+    label: "Etiqueta Serial do AP",
+    desc: "Foto da etiqueta com número de série do AP",
+    icon: "🏷️",
+    color: "#8b5cf6",
+    bg: "rgba(139,92,246,0.08)",
+    border: "rgba(139,92,246,0.25)",
+    maxFotos: 1,
+  },
+  {
+    id: "etiqueta_controladora",
+    label: "Etiqueta da Controladora",
+    desc: "Foto da etiqueta da controladora",
+    icon: "🖥️",
+    color: "#06b6d4",
+    bg: "rgba(6,182,212,0.08)",
+    border: "rgba(6,182,212,0.25)",
+    maxFotos: 1,
+  },
+  {
+    id: "etiqueta_nobreak",
+    label: "Etiqueta do Nobreak",
+    desc: "Foto da etiqueta do nobreak",
+    icon: "🔋",
+    color: "#10b981",
+    bg: "rgba(16,185,129,0.08)",
+    border: "rgba(16,185,129,0.25)",
+    maxFotos: 1,
+  },
+];
 
 function formatWhatsApp(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -146,6 +212,242 @@ function InfoCard({
   );
 }
 
+// ─── Componente de Upload de Foto por Categoria ───────────────────────────────
+function FotoUploadCard({
+  categoria,
+  osId,
+  escolaId,
+  tecnicoId,
+  onUploadSuccess,
+}: {
+  categoria: typeof CATEGORIAS_FOTOS[0];
+  osId: number;
+  escolaId: number;
+  tecnicoId: number;
+  onUploadSuccess: () => void;
+}) {
+  const [fotos, setFotos] = useState<{ preview: string; base64: string; mime: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadMut = trpc.tecnicoAuth.uploadOsFoto.useMutation({
+    onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
+  });
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+
+    const remaining = categoria.maxFotos - fotos.length;
+    const toProcess = files.slice(0, remaining);
+
+    for (const file of toProcess) {
+      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: máximo 10MB por foto`); continue; }
+      const mime = file.type || "image/jpeg";
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const result = ev.target?.result as string;
+        setFotos(prev => [...prev, { preview: result, base64: result.split(",")[1], mime }]);
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = "";
+  }
+
+  async function handleUploadAll() {
+    if (!fotos.length) return;
+    setUploading(true);
+    let sucesso = 0;
+    for (const foto of fotos) {
+      try {
+        await uploadMut.mutateAsync({
+          osId,
+          escolaId,
+          tecnicoId,
+          categoria: categoria.id,
+          imageBase64: foto.base64,
+          mimeType: foto.mime,
+        });
+        sucesso++;
+      } catch { /* continua */ }
+    }
+    setUploading(false);
+    if (sucesso > 0) {
+      toast.success(`${sucesso} foto${sucesso > 1 ? "s" : ""} enviada${sucesso > 1 ? "s" : ""}!`);
+      setFotos([]);
+      onUploadSuccess();
+    }
+  }
+
+  const podeAdicionarMais = fotos.length < categoria.maxFotos;
+
+  return (
+    <>
+      <div className="rounded-2xl overflow-hidden" style={{ background: categoria.bg, border: `1.5px solid ${categoria.border}` }}>
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <span className="text-2xl">{categoria.icon}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-black text-white">{categoria.label}</p>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.55)" }}>{categoria.desc}</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold"
+            style={{ background: "rgba(255,255,255,0.06)", color: fotos.length > 0 ? categoria.color : "rgba(148,163,184,0.4)" }}>
+            {fotos.length}/{categoria.maxFotos}
+          </div>
+        </div>
+
+        {/* Fotos selecionadas */}
+        {fotos.length > 0 && (
+          <div className="px-4 pb-3">
+            <div className="grid grid-cols-3 gap-2">
+              {fotos.map((f, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden"
+                  style={{ border: `1px solid ${categoria.border}` }}>
+                  <img src={f.preview} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setLightboxImg(f.preview)}
+                    className="absolute top-1 left-1 w-6 h-6 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(0,0,0,0.6)" }}>
+                    <Eye className="w-3 h-3 text-white" />
+                  </button>
+                  <button
+                    onClick={() => setFotos(prev => prev.filter((_, idx) => idx !== i))}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(239,68,68,0.8)" }}>
+                    <Trash2 className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Botões de ação */}
+        <div className="px-4 pb-4 space-y-2">
+          {/* Inputs ocultos */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple={categoria.maxFotos > 1}
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+
+          {podeAdicionarMais && (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => cameraInputRef.current?.click()}
+                className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <Camera className="w-4 h-4" style={{ color: categoria.color }} />
+                <span className="text-xs font-bold text-white">Câmera</span>
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <Image className="w-4 h-4" style={{ color: categoria.color }} />
+                <span className="text-xs font-bold text-white">Galeria</span>
+              </button>
+            </div>
+          )}
+
+          {fotos.length > 0 && (
+            <button
+              onClick={handleUploadAll}
+              disabled={uploading}
+              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 font-black text-sm text-white transition-all active:scale-95"
+              style={{ background: `linear-gradient(135deg, ${categoria.color}cc, ${categoria.color})`, boxShadow: `0 6px 20px ${categoria.color}33` }}>
+              {uploading ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando...</>
+              ) : (
+                <><Upload className="w-4 h-4" /> Enviar {fotos.length} foto{fotos.length > 1 ? "s" : ""}</>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Lightbox */}
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.95)" }}
+          onClick={() => setLightboxImg(null)}>
+          <img src={lightboxImg} alt="Foto" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <button
+            className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+            onClick={() => setLightboxImg(null)}>
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Componente de Fotos Já Enviadas ─────────────────────────────────────────
+function FotosEnviadas({
+  fotos,
+  categoria,
+}: {
+  fotos: { id: number; url: string; categoria: string }[];
+  categoria: typeof CATEGORIAS_FOTOS[0];
+}) {
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const fotosDaCategoria = fotos.filter(f => f.categoria === categoria.id);
+  if (!fotosDaCategoria.length) return null;
+
+  return (
+    <>
+      <div className="mt-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(148,163,184,0.4)" }}>
+          {fotosDaCategoria.length} foto{fotosDaCategoria.length > 1 ? "s" : ""} enviada{fotosDaCategoria.length > 1 ? "s" : ""}
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {fotosDaCategoria.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setLightboxImg(f.url)}
+              className="aspect-square rounded-xl overflow-hidden transition-all active:scale-95"
+              style={{ border: `1.5px solid ${categoria.border}` }}>
+              <img src={f.url} alt="Foto enviada" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.95)" }}
+          onClick={() => setLightboxImg(null)}>
+          <img src={lightboxImg} alt="Foto" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <button
+            className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+            onClick={() => setLightboxImg(null)}>
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function TecnicoOS() {
   const params = useParams<{ id: string }>();
@@ -154,20 +456,15 @@ export default function TecnicoOS() {
 
   const [openConcluir, setOpenConcluir] = useState(false);
   const [openNaoInstalada, setOpenNaoInstalada] = useState(false);
+  const [openFotos, setOpenFotos] = useState(false);
 
   const [qtdAp, setQtdAp] = useState("");
   const [observacao, setObservacao] = useState("");
-  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
-  const [fotoBase64, setFotoBase64] = useState<string | null>(null);
-  const [fotoMime, setFotoMime] = useState("image/jpeg");
-  const [uploadingFoto, setUploadingFoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-
   const [motivo, setMotivo] = useState<"escola_desativada" | "em_reforma" | "mudanca_endereco">("escola_desativada");
   const [obsNaoInstalada, setObsNaoInstalada] = useState("");
-
   const [pendingOffline, setPendingOffline] = useState(false);
+  const [fotosRefreshKey, setFotosRefreshKey] = useState(0);
+
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
 
@@ -195,8 +492,41 @@ export default function TecnicoOS() {
     { enabled: !!tecnicoId, select: (data) => data?.find(e => e.id === escolaId) }
   );
 
+  // Busca OS ativa da escola
+  const { data: ordensData } = trpc.tecnicoAuth.minhasOrdens.useQuery(
+    { tecnicoId },
+    { enabled: !!tecnicoId && !!escolaId }
+  );
+
+  const osAtiva = useMemo(() => {
+    if (!ordensData) return null;
+    return ordensData.find(o => o.escolaId === escolaId) ?? null;
+  }, [ordensData, escolaId]);
+
+  const osId = osAtiva?.id ?? 0;
+
+  // Fotos já enviadas
+  const { data: fotosEnviadas = [], refetch: refetchFotos } = trpc.tecnicoAuth.getOsFotos.useQuery(
+    { osId },
+    { enabled: !!osId && osId > 0 }
+  );
+
+  // Verifica se todas as categorias têm foto
+  const { data: fotosStatus, refetch: refetchFotosStatus } = trpc.tecnicoAuth.verificarFotosObrigatorias.useQuery(
+    { osId },
+    { enabled: !!osId && osId > 0 }
+  );
+
+  const todasFotosOk = fotosStatus?.todasPreenchidas ?? false;
+
+  function handleFotoUploadSuccess() {
+    setFotosRefreshKey(k => k + 1);
+    refetchFotos();
+    refetchFotosStatus();
+  }
+
   const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
-    onSuccess: () => { toast.success("OS iniciada com sucesso!"); utils.tecnicoAuth.minhasEscolas.invalidate(); },
+    onSuccess: () => { toast.success("OS iniciada com sucesso!"); utils.tecnicoAuth.minhasEscolas.invalidate(); utils.tecnicoAuth.minhasOrdens.invalidate(); },
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
   });
 
@@ -219,10 +549,6 @@ export default function TecnicoOS() {
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
   });
 
-  const uploadFotoMut = trpc.tecnicoAuth.uploadFotoMapaCalor.useMutation({
-    onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
-  });
-
   const syncAction = useCallback(async (action: import("@/hooks/useOfflineQueue").OfflineAction) => {
     if (action.type !== "concluirEscola") return false;
     const { escolaId: eid, tecnicoId: tid, qtdApInstalado, observacoes } = action.payload;
@@ -241,20 +567,6 @@ export default function TecnicoOS() {
     setPendingOffline(queue.some(a => a.payload.escolaId === escolaId));
   }, [escolaId]);
 
-  function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Foto muito grande. Máximo 5MB."); return; }
-    setFotoMime(file.type || "image/jpeg");
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setFotoPreview(result);
-      setFotoBase64(result.split(",")[1]);
-    };
-    reader.readAsDataURL(file);
-  }
-
   const lat = escola?.latitude ? parseFloat(escola.latitude) : null;
   const lng = escola?.longitude ? parseFloat(escola.longitude) : null;
   const hasCoords = lat !== null && lng !== null && !isNaN(lat!) && !isNaN(lng!);
@@ -270,6 +582,13 @@ export default function TecnicoOS() {
 
   const sc = statusConfig[escola?.status ?? "pendente"] ?? statusConfig.pendente;
 
+  const isConcluida = escola?.status === "concluido";
+  const isNaoInstalada = escola?.status === "nao_instalada";
+  const isPendente = escola?.status === "pendente";
+  const isEmAndamento = escola?.status === "em_andamento";
+
+  const stepActive = isPendente ? 1 : isEmAndamento ? 2 : 3;
+
   // ─── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -280,8 +599,7 @@ export default function TecnicoOS() {
             style={{ background: "linear-gradient(135deg, #6d28d9, #10b981)", boxShadow: "0 16px 48px rgba(168,85,247,0.4)" }}>
             <div className="w-7 h-7 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
-          <p className="text-white font-bold text-base">Carregando OS...</p>
-          <p className="text-sm mt-1" style={{ color: "rgba(148,163,184,0.4)" }}>Aguarde um momento</p>
+          <p className="text-sm font-bold" style={{ color: "rgba(148,163,184,0.5)" }}>Carregando OS...</p>
         </div>
       </div>
     );
@@ -291,382 +609,409 @@ export default function TecnicoOS() {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
-        <div className="text-center px-8">
-          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <School className="w-10 h-10" style={{ color: "rgba(148,163,184,0.3)" }} />
+        <div className="text-center px-6">
+          <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: "rgba(239,68,68,0.12)", border: "1.5px solid rgba(239,68,68,0.25)" }}>
+            <XCircle className="w-8 h-8" style={{ color: "#f87171" }} />
           </div>
-          <p className="text-white font-bold text-lg mb-1">Escola não encontrada</p>
-          <p className="text-sm mb-6" style={{ color: "rgba(148,163,184,0.5)" }}>Esta OS não está disponível para você</p>
+          <p className="text-white font-black text-xl mb-2">Escola não encontrada</p>
           <button onClick={() => navigate("/tecnico")}
-            className="px-8 py-3.5 rounded-2xl text-sm font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #6d28d9, #a855f7)", boxShadow: "0 8px 24px rgba(168,85,247,0.3)" }}>
-            Voltar ao início
+            className="mt-4 px-6 py-3 rounded-2xl font-bold text-sm text-white"
+            style={{ background: "linear-gradient(135deg, #6d28d9, #7c3aed)" }}>
+            Voltar
           </button>
         </div>
       </div>
     );
   }
 
-  const isConcluida = escola.status === "concluido";
-  const isNaoInstalada = escola.status === "nao_instalada";
-  const isPendente = escola.status === "pendente";
-
-  const stepStatus = {
-    s1done: ["em_andamento","concluido","nao_instalada"].includes(escola.status ?? ""),
-    s1active: escola.status === "pendente",
-    s2done: ["concluido","nao_instalada"].includes(escola.status ?? ""),
-    s2active: escola.status === "em_andamento",
-    s3done: escola.status === "concluido",
-    s3active: escola.status === "nao_instalada",
-  };
+  const iniciais = escola.nome.split(" ").filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join("").toUpperCase() || escola.nome.slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col"
-      style={{ background: "linear-gradient(160deg, #050c1a 0%, #0a1428 55%, #050c1a 100%)" }}>
-
-      {/* ─── Status banners ─── */}
-      {!isOnline && (
-        <div className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold"
-          style={{ background: "linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.06))", borderBottom: "1px solid rgba(245,158,11,0.2)" }}>
-          <WifiOff className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#fbbf24" }} />
-          <span style={{ color: "#fbbf24" }}>Sem internet — você pode finalizar a OS offline</span>
-        </div>
-      )}
-      {pendingOffline && isOnline && (
-        <div className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold"
-          style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.18), rgba(99,102,241,0.06))", borderBottom: "1px solid rgba(99,102,241,0.2)" }}>
-          <Clock className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" style={{ color: "#818cf8" }} />
-          <span style={{ color: "#818cf8" }}>Sincronizando OS salva offline...</span>
-        </div>
-      )}
+    <div className="min-h-screen pb-10" style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
 
       {/* ─── Header ─── */}
-      <div className="flex items-center gap-3 px-4 pt-safe pt-5 pb-4 sticky top-0 z-20"
-        style={{ background: "rgba(5,12,26,0.97)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <button onClick={() => navigate("/tecnico")}
-          className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-          style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-[9px] font-bold uppercase tracking-[0.15em] mb-0.5" style={{ color: "rgba(148,163,184,0.4)" }}>Ordem de Serviço</p>
-          <h1 className="text-white font-black text-base leading-tight truncate">{escola.nome}</h1>
-        </div>
-        <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black flex-shrink-0"
-          style={{
-            background: sc.badgeBg,
-            color: sc.badgeText,
-            border: `1px solid ${sc.badgeBorder}`,
-            boxShadow: `0 4px 14px ${sc.glow}`,
-          }}>
-          <div className="w-1.5 h-1.5 rounded-full bg-white opacity-90 animate-pulse" />
-          {sc.label}
+      <div className="sticky top-0 z-30 px-4 pt-5 pb-4"
+        style={{ background: "rgba(6,11,24,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/tecnico")}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}>
+            <ArrowLeft className="w-4.5 h-4.5 text-white" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] mb-0.5" style={{ color: "rgba(148,163,184,0.45)" }}>Ordem de Serviço</p>
+            <p className="text-base font-black text-white truncate">{escola.nome}</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl flex-shrink-0"
+            style={{ background: sc.badgeBg, boxShadow: `0 4px 16px ${sc.glow}`, border: `1px solid ${sc.badgeBorder}` }}>
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: sc.badgeText }} />
+            <span className="text-xs font-black" style={{ color: sc.badgeText }}>{sc.label}</span>
+          </div>
         </div>
       </div>
 
       {/* ─── Stepper ─── */}
-      <div className="px-6 py-5" style={{ background: "rgba(5,12,26,0.6)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="flex items-start justify-between">
-          <OSStep step={1} label="Pendente" active={stepStatus.s1active} done={stepStatus.s1done} />
-          <div className="flex-1 mt-5 mx-2">
-            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s1done ? "linear-gradient(90deg, #10b981, #a855f7)" : "rgba(255,255,255,0.07)" }} />
-          </div>
-          <OSStep step={2} label="Andamento" active={stepStatus.s2active} done={stepStatus.s2done} />
-          <div className="flex-1 mt-5 mx-2">
-            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s2done ? "linear-gradient(90deg, #a855f7, #10b981)" : "rgba(255,255,255,0.07)" }} />
-          </div>
-          <OSStep step={3} label="Concluído" active={stepStatus.s3active || stepStatus.s3done} done={stepStatus.s3done} />
+      <div className="mx-4 mt-5 px-5 py-4 rounded-2xl"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center justify-between">
+          <OSStep step={1} label="Pendente" active={stepActive === 1} done={stepActive > 1} />
+          <div className="flex-1 h-0.5 mx-2 rounded-full"
+            style={{ background: stepActive > 1 ? "linear-gradient(90deg, #10b981, #3b82f6)" : "rgba(255,255,255,0.06)" }} />
+          <OSStep step={2} label="Andamento" active={stepActive === 2} done={stepActive > 2} />
+          <div className="flex-1 h-0.5 mx-2 rounded-full"
+            style={{ background: stepActive > 2 ? "linear-gradient(90deg, #3b82f6, #10b981)" : "rgba(255,255,255,0.06)" }} />
+          <OSStep step={3} label="Concluído" active={stepActive === 3} done={isConcluida} />
         </div>
       </div>
 
-      {/* ─── Conteúdo ─── */}
-      <div className="flex-1 overflow-y-auto pb-12">
+      {/* ─── Card principal da escola ─── */}
+      <div className="mx-4 mt-5 rounded-3xl overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.03)", border: `1.5px solid ${sc.cardBorder}`, boxShadow: `0 8px 40px ${sc.glow}` }}>
+        <div className="h-1" style={{ background: sc.gradient }} />
 
-        {/* ─── Card Hero da Escola ─── */}
-        <div className="mx-4 mt-5 rounded-3xl overflow-hidden"
-          style={{
-            background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-            border: `1.5px solid ${sc.cardBorder}`,
-            boxShadow: `0 20px 60px ${sc.glow}`,
-          }}>
-          {/* Barra de cor no topo */}
-          <div className="h-1.5" style={{ background: sc.gradient }} />
-
-          {/* Identidade da escola */}
-          <div className="p-5">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-                style={{ background: sc.gradient, boxShadow: `0 8px 28px ${sc.glow}` }}>
-                <School className="w-8 h-8 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-white font-black text-lg leading-snug mb-2">{escola.nome}</h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  {escola.inep && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                      style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.2)" }}>
-                      <Hash className="w-3 h-3" style={{ color: "#818cf8" }} />
-                      <span className="text-xs font-black font-mono" style={{ color: "#818cf8" }}>INEP {escola.inep}</span>
-                    </div>
-                  )}
-                  {escola.qtdAp && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                      style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                      <Wifi className="w-3 h-3" style={{ color: "#34d399" }} />
-                      <span className="text-xs font-black" style={{ color: "#34d399" }}>{escola.qtdAp} AP{escola.qtdAp > 1 ? "s" : ""}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+        <div className="p-5">
+          {/* Nome e badges */}
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl font-black text-white"
+              style={{ background: sc.gradient, boxShadow: `0 8px 24px ${sc.glow}` }}>
+              {iniciais}
             </div>
-
-            {/* Divider */}
-            <div className="h-px mb-4" style={{ background: "rgba(255,255,255,0.06)" }} />
-
-            {/* Grid de informações */}
-            <div className="space-y-2.5">
-
-              {/* Endereço — full width */}
-              {escola.endereco && (
-                <div className="flex items-start gap-3.5 px-4 py-4 rounded-2xl"
-                  style={{ background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.15)" }}>
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: "rgba(248,113,113,0.15)" }}>
-                    <MapPin className="w-5 h-5" style={{ color: "#f87171" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(248,113,113,0.7)" }}>Endereço</p>
-                    <p className="text-sm font-semibold text-white leading-relaxed">{escola.endereco}</p>
-                  </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-black text-white leading-tight">{escola.nome}</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}>
+                  <Hash className="w-3 h-3" style={{ color: "rgba(148,163,184,0.5)" }} />
+                  <span className="text-xs font-bold" style={{ color: "rgba(226,232,240,0.8)" }}>INEP {escola.inep}</span>
                 </div>
-              )}
-
-              {/* Grid 2 colunas */}
-              <div className="grid grid-cols-2 gap-2.5">
-
-                {/* Município */}
-                {escola.municipio && (
-                  <div className="flex items-center gap-3 px-3.5 py-4 rounded-2xl"
-                    style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.15)" }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(139,92,246,0.18)" }}>
-                      <Building2 className="w-5 h-5" style={{ color: "#a78bfa" }} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Município</p>
-                      <p className="text-sm font-bold text-white leading-tight">{escola.municipio}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Velocidade */}
-                {escola.velocidadeOfertada && (
-                  <div className="flex items-center gap-3 px-3.5 py-4 rounded-2xl"
-                    style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.15)" }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(59,130,246,0.18)" }}>
-                      <Gauge className="w-5 h-5" style={{ color: "#60a5fa" }} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(96,165,250,0.6)" }}>Velocidade</p>
-                      <p className="text-sm font-bold text-white">{escola.velocidadeOfertada} <span className="text-xs font-medium" style={{ color: "rgba(96,165,250,0.7)" }}>Mbps</span></p>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+                  style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                  <Wifi className="w-3 h-3" style={{ color: "#34d399" }} />
+                  <span className="text-xs font-bold" style={{ color: "#34d399" }}>{escola.qtdAp ?? 1} AP{(escola.qtdAp ?? 1) > 1 ? "s" : ""}</span>
+                </div>
               </div>
-
-              {/* Telefone — full width, bem visível */}
-              {(escola.telefone || escola.telefoneWhatsApp) && (
-                <div className="flex items-center gap-3.5 px-4 py-4 rounded-2xl"
-                  style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(16,185,129,0.18)" }}>
-                    <PhoneCall className="w-5 h-5" style={{ color: "#34d399" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(52,211,153,0.65)" }}>Telefone</p>
-                    <p className="text-base font-black text-white tracking-wide">
-                      {telDisplay || escola.telefone || escola.telefoneWhatsApp}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* GPS — full width */}
-              {hasCoords && (
-                <div className="flex items-center gap-3.5 px-4 py-4 rounded-2xl"
-                  style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.15)" }}>
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(245,158,11,0.18)" }}>
-                    <LocateFixed className="w-5 h-5" style={{ color: "#fbbf24" }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(251,191,36,0.65)" }}>Coordenadas GPS</p>
-                    <p className="text-sm font-bold text-white font-mono">{lat!.toFixed(5)}, {lng!.toFixed(5)}</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </div>
 
-        {/* ─── Botões de Ação Rápida ─── */}
-        <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
-          {/* Google Maps */}
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block">
-            <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95 h-full"
-              style={{
-                background: "linear-gradient(135deg, rgba(29,78,216,0.85), rgba(59,130,246,0.65))",
-                border: "1px solid rgba(59,130,246,0.3)",
-                boxShadow: "0 8px 28px rgba(37,99,235,0.25)",
-              }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+          {/* Grid de informações */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Endereço - full width */}
+            <InfoCard
+              icon={<MapPin className="w-5 h-5" />}
+              label="Endereço"
+              value={escola.endereco ?? "Não informado"}
+              iconBg="rgba(239,68,68,0.15)"
+              iconColor="#f87171"
+              labelColor="rgba(248,113,113,0.7)"
+              fullWidth
+            />
+
+            {/* Município */}
+            <InfoCard
+              icon={<Building2 className="w-5 h-5" />}
+              label="Município"
+              value={escola.municipio ?? "—"}
+              iconBg="rgba(99,102,241,0.15)"
+              iconColor="#818cf8"
+              labelColor="rgba(129,140,248,0.7)"
+            />
+
+            {/* Velocidade */}
+            <InfoCard
+              icon={<Gauge className="w-5 h-5" />}
+              label="Velocidade"
+              value={escola.velocidadeOfertada ? `${escola.velocidadeOfertada} Mbps` : "—"}
+              iconBg="rgba(59,130,246,0.15)"
+              iconColor="#60a5fa"
+              labelColor="rgba(96,165,250,0.7)"
+            />
+
+            {/* Telefone - full width */}
+            <InfoCard
+              icon={<PhoneCall className="w-5 h-5" />}
+              label="Telefone"
+              value={telDisplay || "Não cadastrado"}
+              iconBg="rgba(16,185,129,0.15)"
+              iconColor="#34d399"
+              labelColor="rgba(52,211,153,0.7)"
+              fullWidth
+              large
+            />
+
+            {/* GPS - full width */}
+            {hasCoords && (
+              <InfoCard
+                icon={<LocateFixed className="w-5 h-5" />}
+                label="Coordenadas GPS"
+                value={`${lat?.toFixed(5)}, ${lng?.toFixed(5)}`}
+                iconBg="rgba(245,158,11,0.15)"
+                iconColor="#fbbf24"
+                labelColor="rgba(251,191,36,0.7)"
+                fullWidth
+              />
+            )}
+          </div>
+
+          {/* Botões Maps e WhatsApp */}
+          <div className="grid grid-cols-2 gap-2.5 mt-4">
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 px-4 py-4 rounded-2xl transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg, #1d4ed8, #3b82f6)", boxShadow: "0 6px 20px rgba(59,130,246,0.3)" }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: "rgba(255,255,255,0.15)" }}>
-                <Navigation className="w-5 h-5 text-white" />
+                <LocateFixed className="w-4.5 h-4.5 text-white" />
               </div>
               <div>
-                <p className="text-white font-black text-sm">Google Maps</p>
-                <p className="text-xs font-medium" style={{ color: "rgba(186,230,253,0.8)" }}>{hasCoords ? "Rota GPS" : "Buscar"}</p>
-              </div>
-            </div>
-          </a>
-
-          {/* WhatsApp */}
-          {whatsappUrl ? (
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
-              <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95 h-full"
-                style={{
-                  background: "linear-gradient(135deg, rgba(6,95,70,0.85), rgba(16,185,129,0.65))",
-                  border: "1px solid rgba(16,185,129,0.3)",
-                  boxShadow: "0 8px 28px rgba(16,185,129,0.22)",
-                }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.15)" }}>
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-white font-black text-sm">WhatsApp</p>
-                  <p className="text-xs font-medium truncate" style={{ color: "rgba(167,243,208,0.8)" }}>{telDisplay}</p>
-                </div>
+                <p className="text-sm font-black text-white">Google Maps</p>
+                <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>Rota GPS</p>
               </div>
             </a>
-          ) : (
-            <div className="rounded-2xl p-4 flex items-center gap-3 h-full"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.05)" }}>
-                <Phone className="w-5 h-5" style={{ color: "rgba(100,116,139,0.4)" }} />
+
+            {whatsappUrl ? (
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-4 rounded-2xl transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg, #15803d, #16a34a)", boxShadow: "0 6px 20px rgba(22,163,74,0.3)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(255,255,255,0.15)" }}>
+                  <MessageCircle className="w-4.5 h-4.5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white">WhatsApp</p>
+                  <p className="text-[10px] truncate" style={{ color: "rgba(255,255,255,0.6)" }}>{telDisplay}</p>
+                </div>
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-4 rounded-2xl"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <Phone className="w-4.5 h-4.5" style={{ color: "rgba(148,163,184,0.3)" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "rgba(148,163,184,0.4)" }}>WhatsApp</p>
+                  <p className="text-xs" style={{ color: "rgba(100,116,139,0.3)" }}>Não cadastrado</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "rgba(148,163,184,0.4)" }}>WhatsApp</p>
-                <p className="text-xs" style={{ color: "rgba(100,116,139,0.3)" }}>Não cadastrado</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Seção de Fotos da OS ─── */}
+      {!isConcluida && !isNaoInstalada && osId > 0 && (
+        <div className="mx-4 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(59,130,246,0.15)" }}>
+                <Camera className="w-4 h-4" style={{ color: "#60a5fa" }} />
               </div>
+              <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.6)" }}>
+                Fotos da OS
+              </p>
+            </div>
+            <button
+              onClick={() => setOpenFotos(!openFotos)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+              style={{
+                background: todasFotosOk ? "rgba(16,185,129,0.12)" : "rgba(59,130,246,0.12)",
+                color: todasFotosOk ? "#34d399" : "#60a5fa",
+                border: `1px solid ${todasFotosOk ? "rgba(16,185,129,0.25)" : "rgba(59,130,246,0.25)"}`,
+              }}>
+              {todasFotosOk ? (
+                <><CheckCircle className="w-3.5 h-3.5" /> Completo</>
+              ) : (
+                <><Camera className="w-3.5 h-3.5" /> {openFotos ? "Fechar" : "Adicionar"}</>
+              )}
+            </button>
+          </div>
+
+          {/* Status das categorias */}
+          <div className="grid grid-cols-5 gap-1.5 mb-3">
+            {CATEGORIAS_FOTOS.map(cat => {
+              const temFoto = fotosStatus?.resultado?.[cat.id] ?? false;
+              const qtdEnviadas = (fotosEnviadas as { categoria: string }[]).filter(f => f.categoria === cat.id).length;
+              return (
+                <div key={cat.id} className="flex flex-col items-center gap-1 p-2 rounded-xl"
+                  style={{
+                    background: temFoto ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${temFoto ? "rgba(16,185,129,0.25)" : "rgba(255,255,255,0.06)"}`,
+                  }}>
+                  <span className="text-base">{cat.icon}</span>
+                  {temFoto ? (
+                    <CheckCircle className="w-3 h-3" style={{ color: "#34d399" }} />
+                  ) : (
+                    <div className="w-3 h-3 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />
+                  )}
+                  {qtdEnviadas > 0 && (
+                    <span className="text-[9px] font-bold" style={{ color: "rgba(148,163,184,0.5)" }}>{qtdEnviadas}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {!todasFotosOk && (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-3"
+              style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#fbbf24" }} />
+              <p className="text-xs" style={{ color: "rgba(251,191,36,0.8)" }}>
+                Todas as fotos são obrigatórias para concluir a OS
+              </p>
+            </div>
+          )}
+
+          {/* Cards de upload por categoria */}
+          {openFotos && (
+            <div className="space-y-3">
+              {CATEGORIAS_FOTOS.map(cat => (
+                <div key={cat.id}>
+                  <FotoUploadCard
+                    key={`${cat.id}-${fotosRefreshKey}`}
+                    categoria={cat}
+                    osId={osId}
+                    escolaId={escolaId}
+                    tecnicoId={tecnicoId}
+                    onUploadSuccess={handleFotoUploadSuccess}
+                  />
+                  <FotosEnviadas
+                    fotos={fotosEnviadas as { id: number; url: string; categoria: string }[]}
+                    categoria={cat}
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>
+      )}
 
-        {/* ─── Ações da OS ─── */}
-        <div className="mx-4 mt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(168,85,247,0.18)" }}>
-              <Zap className="w-3.5 h-3.5" style={{ color: "#c084fc" }} />
+      {/* ─── Ações da OS ─── */}
+      <div className="mx-4 mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+            style={{ background: "rgba(168,85,247,0.18)" }}>
+            <Zap className="w-3.5 h-3.5" style={{ color: "#c084fc" }} />
+          </div>
+          <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.5)" }}>Ações da OS</p>
+        </div>
+
+        {isConcluida ? (
+          <div className="rounded-3xl p-7 text-center relative overflow-hidden"
+            style={{ background: "rgba(16,185,129,0.06)", border: "1.5px solid rgba(16,185,129,0.22)", boxShadow: "0 12px 48px rgba(16,185,129,0.12)" }}>
+            <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 16px 48px rgba(16,185,129,0.4)" }}>
+              <Star className="w-10 h-10 text-white" fill="white" />
             </div>
-            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.5)" }}>Ações da OS</p>
+            <p className="font-black text-2xl mb-1" style={{ color: "#34d399" }}>Instalação Concluída!</p>
+            {escola.dataConclusao && (
+              <p className="text-sm" style={{ color: "rgba(52,211,153,0.6)" }}>
+                Concluída em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+            )}
+            <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl mx-auto w-fit"
+              style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <CheckCircle className="w-4 h-4" style={{ color: "#34d399" }} />
+              <span className="text-sm font-bold" style={{ color: "#34d399" }}>OS finalizada com sucesso</span>
+            </div>
           </div>
 
-          {isConcluida ? (
-            <div className="rounded-3xl p-7 text-center relative overflow-hidden"
-              style={{ background: "rgba(16,185,129,0.06)", border: "1.5px solid rgba(16,185,129,0.22)", boxShadow: "0 12px 48px rgba(16,185,129,0.12)" }}>
-              <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
-              <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 16px 48px rgba(16,185,129,0.4)" }}>
-                <Star className="w-10 h-10 text-white" fill="white" />
-              </div>
-              <p className="font-black text-2xl mb-1" style={{ color: "#34d399" }}>Instalação Concluída!</p>
-              {escola.dataConclusao && (
-                <p className="text-sm" style={{ color: "rgba(52,211,153,0.6)" }}>
-                  Concluída em {new Date(escola.dataConclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
-                </p>
-              )}
-              <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl mx-auto w-fit"
-                style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                <CheckCircle className="w-4 h-4" style={{ color: "#34d399" }} />
-                <span className="text-sm font-bold" style={{ color: "#34d399" }}>OS finalizada com sucesso</span>
-              </div>
+        ) : isNaoInstalada ? (
+          <div className="rounded-3xl p-7 text-center relative overflow-hidden"
+            style={{ background: "rgba(239,68,68,0.06)", border: "1.5px solid rgba(239,68,68,0.22)", boxShadow: "0 12px 48px rgba(239,68,68,0.12)" }}>
+            <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
+            <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 16px 48px rgba(239,68,68,0.4)" }}>
+              <XCircle className="w-10 h-10 text-white" />
             </div>
+            <p className="font-black text-2xl mb-1" style={{ color: "#f87171" }}>Não Instalada</p>
+            <p className="text-sm" style={{ color: "rgba(252,165,165,0.6)" }}>Esta escola foi registrada como não instalada.</p>
+          </div>
 
-          ) : isNaoInstalada ? (
-            <div className="rounded-3xl p-7 text-center relative overflow-hidden"
-              style={{ background: "rgba(239,68,68,0.06)", border: "1.5px solid rgba(239,68,68,0.22)", boxShadow: "0 12px 48px rgba(239,68,68,0.12)" }}>
-              <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
-              <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 16px 48px rgba(239,68,68,0.4)" }}>
-                <XCircle className="w-10 h-10 text-white" />
-              </div>
-              <p className="font-black text-2xl mb-1" style={{ color: "#f87171" }}>Não Instalada</p>
-              <p className="text-sm" style={{ color: "rgba(252,165,165,0.6)" }}>Esta escola foi registrada como não instalada.</p>
-            </div>
-
-          ) : (
-            <div className="space-y-3">
-              {isPendente && (
-                <button
-                  onClick={() => iniciarMut.mutate({ escolaId, tecnicoId })}
-                  disabled={iniciarMut.isPending}
-                  className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
-                  style={{
-                    background: "linear-gradient(135deg, #4c1d95, #6d28d9, #7c3aed)",
-                    boxShadow: "0 12px 40px rgba(109,40,217,0.35)",
-                    border: "1px solid rgba(168,85,247,0.3)",
-                  }}>
-                  {iniciarMut.isPending ? (
-                    <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Iniciando...</>
-                  ) : (
-                    <><Play className="w-5 h-5" fill="white" /> Iniciar Ordem de Serviço</>
-                  )}
-                </button>
-              )}
-
+        ) : (
+          <div className="space-y-3">
+            {isPendente && (
               <button
-                onClick={() => setOpenConcluir(true)}
+                onClick={() => iniciarMut.mutate({ escolaId, tecnicoId })}
+                disabled={iniciarMut.isPending}
                 className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
                 style={{
-                  background: "linear-gradient(135deg, #065f46, #059669, #10b981)",
-                  boxShadow: "0 12px 40px rgba(16,185,129,0.3)",
-                  border: "1px solid rgba(16,185,129,0.25)",
+                  background: "linear-gradient(135deg, #4c1d95, #6d28d9, #7c3aed)",
+                  boxShadow: "0 12px 40px rgba(109,40,217,0.35)",
+                  border: "1px solid rgba(168,85,247,0.3)",
                 }}>
-                <CheckCircle className="w-5 h-5" />
-                Marcar como Concluído
+                {iniciarMut.isPending ? (
+                  <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Iniciando...</>
+                ) : (
+                  <><Play className="w-5 h-5" fill="white" /> Iniciar Ordem de Serviço</>
+                )}
               </button>
+            )}
 
+            {/* Botão de fotos */}
+            {osId > 0 && !todasFotosOk && (
               <button
-                onClick={() => setOpenNaoInstalada(true)}
-                className="w-full py-4 rounded-3xl flex items-center justify-center gap-2.5 font-bold text-sm transition-all active:scale-[0.97]"
+                onClick={() => { setOpenFotos(true); setTimeout(() => document.getElementById("fotos-section")?.scrollIntoView({ behavior: "smooth" }), 100); }}
+                className="w-full py-4 rounded-3xl flex items-center justify-center gap-3 font-bold text-sm text-white transition-all active:scale-[0.97]"
                 style={{
-                  background: "rgba(239,68,68,0.07)",
-                  border: "1.5px solid rgba(239,68,68,0.25)",
-                  color: "#f87171",
+                  background: "rgba(59,130,246,0.1)",
+                  border: "1.5px solid rgba(59,130,246,0.3)",
+                  color: "#60a5fa",
                 }}>
-                <XCircle className="w-4.5 h-4.5" />
-                Registrar como Não Instalada
+                <Camera className="w-4.5 h-4.5" />
+                Adicionar Fotos Obrigatórias
+                <ChevronRight className="w-4 h-4 ml-auto" />
               </button>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Nota */}
-        <div className="mx-4 mt-5 mb-2">
-          <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
-              Registre a OS após concluir a instalação. Em caso de problemas, use "Não Instalada" com o motivo correto.
-            </p>
+            <button
+              onClick={() => {
+                if (osId > 0 && !todasFotosOk) {
+                  toast.error("Adicione todas as fotos obrigatórias antes de concluir a OS", { duration: 4000 });
+                  setOpenFotos(true);
+                  return;
+                }
+                setOpenConcluir(true);
+              }}
+              className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
+              style={{
+                background: (osId > 0 && !todasFotosOk)
+                  ? "rgba(16,185,129,0.15)"
+                  : "linear-gradient(135deg, #065f46, #059669, #10b981)",
+                boxShadow: (osId > 0 && !todasFotosOk) ? "none" : "0 12px 40px rgba(16,185,129,0.3)",
+                border: (osId > 0 && !todasFotosOk) ? "1.5px solid rgba(16,185,129,0.2)" : "1px solid rgba(16,185,129,0.25)",
+                opacity: (osId > 0 && !todasFotosOk) ? 0.6 : 1,
+              }}>
+              <CheckCircle className="w-5 h-5" />
+              Marcar como Concluído
+              {osId > 0 && !todasFotosOk && <span className="text-xs ml-1 opacity-60">(fotos pendentes)</span>}
+            </button>
+
+            <button
+              onClick={() => setOpenNaoInstalada(true)}
+              className="w-full py-4 rounded-3xl flex items-center justify-center gap-2.5 font-bold text-sm transition-all active:scale-[0.97]"
+              style={{
+                background: "rgba(239,68,68,0.07)",
+                border: "1.5px solid rgba(239,68,68,0.25)",
+                color: "#f87171",
+              }}>
+              <XCircle className="w-4.5 h-4.5" />
+              Registrar como Não Instalada
+            </button>
           </div>
-        </div>
+        )}
+      </div>
 
+      {/* Nota */}
+      <div className="mx-4 mt-5 mb-2">
+        <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl"
+          style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
+          <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
+            Todas as 5 categorias de fotos são obrigatórias para concluir a OS. Em caso de problemas, use "Não Instalada" com o motivo correto.
+          </p>
+        </div>
       </div>
 
       {/* ─── Modal de Conclusão ─── */}
@@ -699,6 +1044,42 @@ export default function TecnicoOS() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">{escola.nome}</p>
                   <p className="text-xs" style={{ color: "rgba(148,163,184,0.4)" }}>INEP: {escola.inep}</p>
+                </div>
+              </div>
+
+              {/* Status das fotos no modal */}
+              <div className="px-4 py-3 rounded-2xl mb-4"
+                style={{
+                  background: todasFotosOk ? "rgba(16,185,129,0.06)" : "rgba(245,158,11,0.06)",
+                  border: `1px solid ${todasFotosOk ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+                }}>
+                <div className="flex items-center gap-2 mb-2">
+                  {todasFotosOk ? (
+                    <CheckCircle className="w-4 h-4" style={{ color: "#34d399" }} />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4" style={{ color: "#fbbf24" }} />
+                  )}
+                  <p className="text-xs font-bold" style={{ color: todasFotosOk ? "#34d399" : "#fbbf24" }}>
+                    {todasFotosOk ? "Todas as fotos enviadas ✓" : "Fotos pendentes"}
+                  </p>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                  {CATEGORIAS_FOTOS.map(cat => {
+                    const temFoto = fotosStatus?.resultado?.[cat.id] ?? false;
+                    return (
+                      <div key={cat.id} className="flex flex-col items-center gap-0.5">
+                        <span className="text-sm">{cat.icon}</span>
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                          style={{ background: temFoto ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.15)" }}>
+                          {temFoto ? (
+                            <CheckCircle className="w-2.5 h-2.5" style={{ color: "#34d399" }} />
+                          ) : (
+                            <X className="w-2.5 h-2.5" style={{ color: "#fbbf24" }} />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -739,54 +1120,6 @@ export default function TecnicoOS() {
                     style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
                   />
                 </div>
-
-                <div>
-                  <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    <Layers className="w-3.5 h-3.5" /> Foto do Mapa de Calor (opcional)
-                  </label>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
-                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFotoChange} />
-
-                  {fotoPreview ? (
-                    <div className="relative rounded-2xl overflow-hidden" style={{ border: "1.5px solid rgba(16,185,129,0.3)" }}>
-                      <img src={fotoPreview} alt="Mapa de calor" className="w-full max-h-52 object-cover" />
-                      <button
-                        onClick={() => {
-                          setFotoPreview(null); setFotoBase64(null);
-                          if (fileInputRef.current) fileInputRef.current.value = "";
-                          if (cameraInputRef.current) cameraInputRef.current.value = "";
-                        }}
-                        className="absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
-                        <X className="w-4 h-4 text-white" />
-                      </button>
-                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                        style={{ background: "rgba(16,185,129,0.9)", color: "white" }}>
-                        <CheckCircle className="w-3 h-3" /> Foto selecionada
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <button onClick={() => cameraInputRef.current?.click()}
-                        className="py-5 rounded-2xl flex flex-col items-center gap-2.5 transition-all active:scale-95"
-                        style={{ background: "rgba(99,102,241,0.07)", border: "1.5px dashed rgba(99,102,241,0.3)" }}>
-                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)" }}>
-                          <Camera className="w-5 h-5" style={{ color: "#818cf8" }} />
-                        </div>
-                        <span className="text-xs font-bold" style={{ color: "#818cf8" }}>Câmera</span>
-                      </button>
-                      <button onClick={() => fileInputRef.current?.click()}
-                        className="py-5 rounded-2xl flex flex-col items-center gap-2.5 transition-all active:scale-95"
-                        style={{ background: "rgba(16,185,129,0.07)", border: "1.5px dashed rgba(16,185,129,0.3)" }}>
-                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}>
-                          <Upload className="w-5 h-5" style={{ color: "#34d399" }} />
-                        </div>
-                        <span className="text-xs font-bold" style={{ color: "#34d399" }}>Galeria</span>
-                      </button>
-                      <p className="col-span-2 text-center text-xs" style={{ color: "rgba(148,163,184,0.25)" }}>Máximo 5MB · JPG ou PNG</p>
-                    </div>
-                  )}
-                </div>
               </div>
 
               <div className="flex gap-3 mt-6">
@@ -799,14 +1132,11 @@ export default function TecnicoOS() {
                   onClick={async () => {
                     const n = parseInt(qtdAp);
                     if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
-                    let fotoUrl: string | undefined;
-                    let fotoKey: string | undefined;
-                    if (fotoBase64 && isOnline) {
-                      setUploadingFoto(true);
-                      try {
-                        const res = await uploadFotoMut.mutateAsync({ escolaId, tecnicoId, imageBase64: fotoBase64, mimeType: fotoMime });
-                        fotoUrl = res.url; fotoKey = res.key;
-                      } catch { /* continua sem foto */ } finally { setUploadingFoto(false); }
+                    if (osId > 0 && !todasFotosOk) {
+                      toast.error("Adicione todas as fotos obrigatórias antes de concluir");
+                      setOpenConcluir(false);
+                      setOpenFotos(true);
+                      return;
                     }
                     if (!isOnline) {
                       enqueueOfflineAction({ type: "concluirEscola", payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() } });
@@ -814,17 +1144,15 @@ export default function TecnicoOS() {
                       toast.success("OS salva localmente! Será enviada ao servidor quando você tiver internet.", { duration: 5000 });
                       return;
                     }
-                    concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao, fotoMapaCalorUrl: fotoUrl, fotoMapaCalorKey: fotoKey });
+                    concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
                   }}
-                  disabled={concluirMut.isPending || uploadingFoto}
+                  disabled={concluirMut.isPending}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
                     background: isOnline ? "linear-gradient(135deg, #059669, #10b981)" : "linear-gradient(135deg, #d97706, #f59e0b)",
                     boxShadow: isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
                   }}>
-                  {uploadingFoto ? (
-                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando foto...</>
-                  ) : concluirMut.isPending ? (
+                  {concluirMut.isPending ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
                   ) : isOnline ? (
                     <><CheckCircle className="w-4 h-4" /> Confirmar Conclusão</>

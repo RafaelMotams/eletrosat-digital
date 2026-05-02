@@ -43,6 +43,13 @@
       "when": 1777249665760,
       "tag": "0005_unusual_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1777752654361,
+      "tag": "0006_aspiring_mandarin",
+      "breakpoints": true
     }
   ]
 }

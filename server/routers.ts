@@ -35,6 +35,8 @@ import {
   setAtribuicaoManual,
   updateEscola,
   updateTecnico,
+  insertOsFoto,
+  listOsFotos,
 } from "./db";
 import { notifyOwner } from "./_core/notification";
 
@@ -645,6 +647,62 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         }
       }
       return { url, key };
+    }),
+
+  // Upload de foto por categoria (mapa_calor, fotos_ap, etiqueta_serial_ap, etiqueta_controladora, etiqueta_nobreak)
+  uploadOsFoto: publicProcedure
+    .input(z.object({
+      osId: z.number(),
+      escolaId: z.number(),
+      tecnicoId: z.number(),
+      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak"]),
+      imageBase64: z.string(),
+      mimeType: z.string().default("image/jpeg"),
+    }))
+    .mutation(async ({ input }) => {
+      const { storagePut } = await import("./storage");
+      const buffer = Buffer.from(input.imageBase64, "base64");
+      const key = `os-fotos/${input.categoria}/os-${input.osId}-${Date.now()}.jpg`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+      await insertOsFoto({
+        osId: input.osId,
+        escolaId: input.escolaId,
+        tecnicoId: input.tecnicoId,
+        categoria: input.categoria,
+        url,
+        fileKey: key,
+      });
+      return { url, key };
+    }),
+
+  // Busca fotos de uma OS por ID
+  getOsFotos: publicProcedure
+    .input(z.object({ osId: z.number() }))
+    .query(async ({ input }) => {
+      return listOsFotos(input.osId);
+    }),
+
+  // Busca fotos de uma escola (todas as OS)
+  getOsFotosByEscola: publicProcedure
+    .input(z.object({ escolaId: z.number() }))
+    .query(async ({ input }) => {
+      const { listOsFotosByEscola } = await import("./db");
+      return listOsFotosByEscola(input.escolaId);
+    }),
+
+  // Verifica se todas as categorias obrigatórias têm foto
+  verificarFotosObrigatorias: publicProcedure
+    .input(z.object({ osId: z.number() }))
+    .query(async ({ input }) => {
+      const { countOsFotosByCategoria } = await import("./db");
+      const counts = await countOsFotosByCategoria(input.osId);
+      const categorias = ["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak"] as const;
+      const resultado: Record<string, boolean> = {};
+      for (const cat of categorias) {
+        resultado[cat] = (counts[cat] ?? 0) > 0;
+      }
+      const todasPreenchidas = categorias.every(c => resultado[c]);
+      return { resultado, todasPreenchidas };
     }),
 });
 
