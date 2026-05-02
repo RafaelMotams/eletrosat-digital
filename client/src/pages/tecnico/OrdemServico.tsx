@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
@@ -213,19 +213,24 @@ function InfoCard({
 }
 
 // ─── Componente de Upload de Foto por Categoria ───────────────────────────────
-function FotoUploadCard({
-  categoria,
-  osId,
-  escolaId,
-  tecnicoId,
-  onUploadSuccess,
-}: {
+export interface FotoUploadCardHandle {
+  uploadPendentes: () => Promise<number>;
+  temFotosPendentes: () => boolean;
+}
+
+const FotoUploadCard = forwardRef<FotoUploadCardHandle, {
   categoria: typeof CATEGORIAS_FOTOS[0];
   osId: number;
   escolaId: number;
   tecnicoId: number;
   onUploadSuccess: () => void;
-}) {
+}>(function FotoUploadCard({
+  categoria,
+  osId,
+  escolaId,
+  tecnicoId,
+  onUploadSuccess,
+}, ref) {
   const [fotos, setFotos] = useState<{ preview: string; base64: string; mime: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
@@ -235,6 +240,29 @@ function FotoUploadCard({
   const uploadMut = trpc.tecnicoAuth.uploadOsFoto.useMutation({
     onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
   });
+
+  useImperativeHandle(ref, () => ({
+    temFotosPendentes: () => fotos.length > 0,
+    uploadPendentes: async () => {
+      if (!fotos.length) return 0;
+      setUploading(true);
+      let sucesso = 0;
+      for (const foto of fotos) {
+        try {
+          await uploadMut.mutateAsync({
+            osId, escolaId, tecnicoId,
+            categoria: categoria.id,
+            imageBase64: foto.base64,
+            mimeType: foto.mime,
+          });
+          sucesso++;
+        } catch { /* continua */ }
+      }
+      setUploading(false);
+      if (sucesso > 0) { setFotos([]); onUploadSuccess(); }
+      return sucesso;
+    },
+  }));
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -285,7 +313,7 @@ function FotoUploadCard({
 
   return (
     <>
-      <div className="rounded-2xl overflow-hidden" style={{ background: categoria.bg, border: `1.5px solid ${categoria.border}` }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: categoria.bg, border: fotos.length > 0 ? `2px solid ${categoria.color}88` : `1.5px solid ${categoria.border}` }}>
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3.5">
           <span className="text-2xl">{categoria.icon}</span>
@@ -294,7 +322,8 @@ function FotoUploadCard({
             <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.55)" }}>{categoria.desc}</p>
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold"
-            style={{ background: "rgba(255,255,255,0.06)", color: fotos.length > 0 ? categoria.color : "rgba(148,163,184,0.4)" }}>
+            style={{ background: fotos.length > 0 ? `${categoria.color}22` : "rgba(255,255,255,0.06)", color: fotos.length > 0 ? categoria.color : "rgba(148,163,184,0.4)" }}>
+            {fotos.length > 0 && <span className="text-[10px]">⏳</span>}
             {fotos.length}/{categoria.maxFotos}
           </div>
         </div>
@@ -397,7 +426,7 @@ function FotoUploadCard({
       )}
     </>
   );
-}
+});
 
 // ─── Componente de Fotos Já Enviadas ─────────────────────────────────────────
 function FotosEnviadas({
@@ -457,6 +486,12 @@ export default function TecnicoOS() {
   const [openConcluir, setOpenConcluir] = useState(false);
   const [openNaoInstalada, setOpenNaoInstalada] = useState(false);
   const [openFotos, setOpenFotos] = useState(false);
+  const [uploadingAll, setUploadingAll] = useState(false);
+
+  // Refs para cada card de upload — permite upload automático ao confirmar conclusão
+  const fotoCardRefs = useRef<(React.RefObject<FotoUploadCardHandle | null>)[]>(
+    CATEGORIAS_FOTOS.map(() => ({ current: null }))
+  );
 
   const [qtdAp, setQtdAp] = useState("");
   const [observacao, setObservacao] = useState("");
@@ -969,10 +1004,11 @@ export default function TecnicoOS() {
 
               {/* Cards de upload por categoria */}
               <div className="space-y-3 mb-5">
-                {CATEGORIAS_FOTOS.map(cat => (
+                {CATEGORIAS_FOTOS.map((cat, idx) => (
                   <div key={cat.id}>
                     <FotoUploadCard
                       key={`${cat.id}-${fotosRefreshKey}`}
+                      ref={fotoCardRefs.current[idx] as React.Ref<FotoUploadCardHandle>}
                       categoria={cat}
                       osId={osId}
                       escolaId={escolaId}
@@ -1027,16 +1063,21 @@ export default function TecnicoOS() {
               </div>
 
               {/* Aviso se não pode confirmar */}
-              {(!todasFotosOk || !qtdAp) && (
+              {!qtdAp && (
                 <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
                   style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
                   <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
                   <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>
-                    {!todasFotosOk && !qtdAp
-                      ? "Envie todas as fotos e informe a quantidade de APs para concluir"
-                      : !todasFotosOk
-                      ? "Envie todas as fotos obrigatórias para concluir"
-                      : "Informe a quantidade de APs instalados para concluir"}
+                    Informe a quantidade de APs instalados para concluir
+                  </p>
+                </div>
+              )}
+              {!todasFotosOk && qtdAp && (
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
+                  style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)" }}>
+                  <Camera className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#60a5fa" }} />
+                  <p className="text-xs" style={{ color: "rgba(96,165,250,0.9)" }}>
+                    As fotos pendentes serão enviadas automaticamente ao confirmar
                   </p>
                 </div>
               )}
@@ -1052,9 +1093,35 @@ export default function TecnicoOS() {
                   onClick={async () => {
                     const n = parseInt(qtdAp);
                     if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
-                    if (osId > 0 && !todasFotosOk) {
-                      toast.error("Envie todas as fotos obrigatórias antes de confirmar", { duration: 4000 }); return;
+
+                    // 1. Fazer upload automático de todas as fotos pendentes nos cards
+                    const temPendentes = fotoCardRefs.current.some(r => r.current?.temFotosPendentes());
+                    if (temPendentes) {
+                      setUploadingAll(true);
+                      toast.loading("Enviando fotos...", { id: "upload-all" });
+                      let totalEnviadas = 0;
+                      for (const r of fotoCardRefs.current) {
+                        if (r.current?.temFotosPendentes()) {
+                          const n2 = await r.current.uploadPendentes();
+                          totalEnviadas += n2;
+                        }
+                      }
+                      toast.dismiss("upload-all");
+                      setUploadingAll(false);
+                      // Aguardar refetch do status de fotos
+                      await refetchFotosStatus();
+                      if (totalEnviadas > 0) {
+                        toast.success(`${totalEnviadas} foto${totalEnviadas > 1 ? "s" : ""} enviada${totalEnviadas > 1 ? "s" : ""} com sucesso!`);
+                      }
                     }
+
+                    // 2. Verificar se todas as fotos foram enviadas
+                    const statusAtual = await refetchFotosStatus();
+                    if (!statusAtual.data?.todasPreenchidas) {
+                      toast.error("Envie pelo menos 1 foto em cada categoria obrigatória", { duration: 4000 });
+                      return;
+                    }
+
                     if (!isOnline) {
                       enqueueOfflineAction({ type: "concluirEscola", payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() } });
                       setPendingOffline(true); setOpenConcluir(false);
@@ -1063,18 +1130,20 @@ export default function TecnicoOS() {
                     }
                     concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
                   }}
-                  disabled={concluirMut.isPending || !todasFotosOk || !qtdAp}
+                  disabled={concluirMut.isPending || uploadingAll || !qtdAp}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
-                    background: (!todasFotosOk || !qtdAp)
+                    background: !qtdAp
                       ? "rgba(16,185,129,0.15)"
                       : isOnline
                       ? "linear-gradient(135deg, #059669, #10b981)"
                       : "linear-gradient(135deg, #d97706, #f59e0b)",
-                    boxShadow: (!todasFotosOk || !qtdAp) ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
-                    opacity: (!todasFotosOk || !qtdAp) ? 0.5 : 1,
+                    boxShadow: !qtdAp ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
+                    opacity: !qtdAp ? 0.5 : 1,
                   }}>
-                  {concluirMut.isPending ? (
+                  {uploadingAll ? (
+                    <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando fotos...</>
+                  ) : concluirMut.isPending ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
                   ) : isOnline ? (
                     <><CheckCircle className="w-4 h-4" /> Confirmar Conclusão</>
