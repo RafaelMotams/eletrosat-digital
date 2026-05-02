@@ -280,3 +280,10 @@
 - [x] Stepper visual aprimorado com animações e cores dinâmicas
 - [x] Cards de informação da escola com layout mais elegante
 - [x] Modais de conclusão e não-instalada com design premium
+
+## Correções Visuais App - OS (02/05/2026)
+- [ ] Endereço em cor branca na tela de OS
+- [ ] Telefone organizado sem sair do quadrado (truncar/quebrar linha corretamente)
+- [ ] Badge "Pendente" com cor mais bonita e diferente
+- [ ] Visual geral da OS mais profissional e elegante
+- [ ] Gerar novo APK com ícone correto da Netvionis

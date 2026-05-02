@@ -6,44 +6,59 @@ import {
   ArrowLeft, School, MapPin, Wifi, Phone, CheckCircle,
   MessageCircle, Navigation, Hash, Building2, Signal, WifiOff, Clock,
   Play, XCircle, Camera, Upload, X, AlertTriangle, Zap, Star,
-  ChevronRight, Info, FileText, Layers
+  Info, FileText, Layers
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
   enqueueOfflineAction, useOfflineSyncQueue, getOfflineQueue
 } from "@/hooks/useOfflineQueue";
 
+// ─── Status config ────────────────────────────────────────────────────────────
 const statusConfig: Record<string, {
   label: string; bg: string; text: string; dot: string;
-  gradient: string; glow: string; cardBg: string; cardBorder: string;
+  gradient: string; glow: string; cardBorder: string;
+  badgeBg: string; badgeText: string; badgeBorder: string;
 }> = {
   pendente: {
     label: "Pendente",
-    bg: "rgba(245,158,11,0.12)", text: "#fbbf24", dot: "#f59e0b",
-    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-    glow: "rgba(245,158,11,0.2)",
-    cardBg: "rgba(245,158,11,0.04)", cardBorder: "rgba(245,158,11,0.18)",
+    bg: "rgba(139,92,246,0.12)", text: "#c084fc", dot: "#a855f7",
+    gradient: "linear-gradient(135deg, #7c3aed, #a855f7)",
+    glow: "rgba(168,85,247,0.18)",
+    cardBorder: "rgba(168,85,247,0.2)",
+    // Badge especial para pendente: roxo vibrante
+    badgeBg: "linear-gradient(135deg, #6d28d9, #7c3aed)",
+    badgeText: "#ffffff",
+    badgeBorder: "rgba(168,85,247,0.4)",
   },
   em_andamento: {
     label: "Em andamento",
-    bg: "rgba(99,102,241,0.12)", text: "#818cf8", dot: "#6366f1",
-    gradient: "linear-gradient(135deg, #4f46e5, #6366f1)",
-    glow: "rgba(99,102,241,0.2)",
-    cardBg: "rgba(99,102,241,0.04)", cardBorder: "rgba(99,102,241,0.22)",
+    bg: "rgba(59,130,246,0.12)", text: "#60a5fa", dot: "#3b82f6",
+    gradient: "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+    glow: "rgba(59,130,246,0.18)",
+    cardBorder: "rgba(59,130,246,0.22)",
+    badgeBg: "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+    badgeText: "#ffffff",
+    badgeBorder: "rgba(59,130,246,0.4)",
   },
   concluido: {
     label: "Concluído",
     bg: "rgba(16,185,129,0.12)", text: "#34d399", dot: "#10b981",
     gradient: "linear-gradient(135deg, #059669, #10b981)",
-    glow: "rgba(16,185,129,0.2)",
-    cardBg: "rgba(16,185,129,0.04)", cardBorder: "rgba(16,185,129,0.22)",
+    glow: "rgba(16,185,129,0.18)",
+    cardBorder: "rgba(16,185,129,0.22)",
+    badgeBg: "linear-gradient(135deg, #065f46, #10b981)",
+    badgeText: "#ffffff",
+    badgeBorder: "rgba(16,185,129,0.4)",
   },
   nao_instalada: {
     label: "Não Instalada",
     bg: "rgba(239,68,68,0.12)", text: "#f87171", dot: "#ef4444",
     gradient: "linear-gradient(135deg, #dc2626, #ef4444)",
-    glow: "rgba(239,68,68,0.2)",
-    cardBg: "rgba(239,68,68,0.04)", cardBorder: "rgba(239,68,68,0.22)",
+    glow: "rgba(239,68,68,0.18)",
+    cardBorder: "rgba(239,68,68,0.22)",
+    badgeBg: "linear-gradient(135deg, #991b1b, #ef4444)",
+    badgeText: "#ffffff",
+    badgeBorder: "rgba(239,68,68,0.4)",
   },
 };
 
@@ -64,46 +79,47 @@ function formatWhatsApp(raw: string | null | undefined): string | null {
   return `5575${local}`;
 }
 
-// Stepper component
+// Formata número de telefone para exibição: (75) 99999-9999
+function formatTelDisplay(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 11) return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
+  if (digits.length === 10) return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`;
+  return digits;
+}
+
+// ─── Stepper ─────────────────────────────────────────────────────────────────
 function OSStep({ step, label, active, done }: { step: number; label: string; active: boolean; done: boolean }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all"
+      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all"
         style={{
-          background: done ? "linear-gradient(135deg, #059669, #10b981)" : active ? "linear-gradient(135deg, #4f46e5, #6366f1)" : "rgba(255,255,255,0.06)",
-          border: done ? "none" : active ? "none" : "1.5px solid rgba(255,255,255,0.1)",
-          color: done || active ? "white" : "rgba(100,116,139,0.5)",
-          boxShadow: done ? "0 4px 12px rgba(16,185,129,0.3)" : active ? "0 4px 12px rgba(99,102,241,0.3)" : "none",
+          background: done
+            ? "linear-gradient(135deg, #059669, #10b981)"
+            : active
+            ? "linear-gradient(135deg, #6d28d9, #a855f7)"
+            : "rgba(255,255,255,0.05)",
+          border: done || active ? "none" : "1.5px solid rgba(255,255,255,0.1)",
+          color: done || active ? "white" : "rgba(100,116,139,0.4)",
+          boxShadow: done
+            ? "0 4px 16px rgba(16,185,129,0.35)"
+            : active
+            ? "0 4px 16px rgba(168,85,247,0.4)"
+            : "none",
         }}>
         {done ? "✓" : step}
       </div>
-      <span className="text-[9px] font-bold tracking-wide uppercase"
-        style={{ color: done ? "#34d399" : active ? "#818cf8" : "rgba(100,116,139,0.4)" }}>
+      <span className="text-[9px] font-bold tracking-widest uppercase"
+        style={{
+          color: done ? "#34d399" : active ? "#c084fc" : "rgba(100,116,139,0.35)",
+        }}>
         {label}
       </span>
     </div>
   );
 }
 
-// Info row component
-function InfoRow({ icon: Icon, label, value, color, bg }: {
-  icon: typeof MapPin; label: string; value: string; color: string; bg: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-      style={{ background: bg, border: `1px solid ${color}20` }}>
-      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: `${color}18` }}>
-        <Icon className="w-4.5 h-4.5" style={{ color }} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: `${color}80` }}>{label}</p>
-        <p className="text-sm font-semibold text-white leading-snug">{value}</p>
-      </div>
-    </div>
-  );
-}
-
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function TecnicoOS() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -223,17 +239,18 @@ export default function TecnicoOS() {
 
   const whatsappNum = useMemo(() => formatWhatsApp(escola?.telefoneWhatsApp || escola?.telefone), [escola]);
   const whatsappUrl = whatsappNum ? `https://wa.me/${whatsappNum}` : null;
+  const telDisplay = useMemo(() => formatTelDisplay(escola?.telefone || escola?.telefoneWhatsApp), [escola]);
 
   const sc = statusConfig[escola?.status ?? "pendente"] ?? statusConfig.pendente;
 
-  // Loading state
+  // ─── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
         style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
         <div className="text-center">
           <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-5"
-            style={{ background: "linear-gradient(135deg, #4f46e5, #10b981)", boxShadow: "0 16px 48px rgba(99,102,241,0.4)" }}>
+            style={{ background: "linear-gradient(135deg, #6d28d9, #10b981)", boxShadow: "0 16px 48px rgba(168,85,247,0.4)" }}>
             <div className="w-7 h-7 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
           <p className="text-white font-bold text-base">Carregando OS...</p>
@@ -256,7 +273,7 @@ export default function TecnicoOS() {
           <p className="text-sm mb-6" style={{ color: "rgba(148,163,184,0.5)" }}>Esta OS não está disponível para você</p>
           <button onClick={() => navigate("/tecnico")}
             className="px-8 py-3.5 rounded-2xl text-sm font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #4f46e5, #6366f1)", boxShadow: "0 8px 24px rgba(99,102,241,0.3)" }}>
+            style={{ background: "linear-gradient(135deg, #6d28d9, #a855f7)", boxShadow: "0 8px 24px rgba(168,85,247,0.3)" }}>
             Voltar ao início
           </button>
         </div>
@@ -266,7 +283,6 @@ export default function TecnicoOS() {
 
   const isConcluida = escola.status === "concluido";
   const isNaoInstalada = escola.status === "nao_instalada";
-  const isEmAndamento = escola.status === "em_andamento";
   const isPendente = escola.status === "pendente";
 
   const stepStatus = {
@@ -280,9 +296,9 @@ export default function TecnicoOS() {
 
   return (
     <div className="min-h-screen flex flex-col"
-      style={{ background: "linear-gradient(160deg, #060b18 0%, #0a1428 50%, #060b18 100%)" }}>
+      style={{ background: "linear-gradient(160deg, #050c1a 0%, #0a1428 55%, #050c1a 100%)" }}>
 
-      {/* Status banners */}
+      {/* ─── Status banners ─── */}
       {!isOnline && (
         <div className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold"
           style={{ background: "linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.06))", borderBottom: "1px solid rgba(245,158,11,0.2)" }}>
@@ -298,53 +314,60 @@ export default function TecnicoOS() {
         </div>
       )}
 
-      {/* Header */}
+      {/* ─── Header ─── */}
       <div className="flex items-center gap-3 px-4 pt-safe pt-5 pb-4 sticky top-0 z-20"
-        style={{ background: "rgba(6,11,24,0.92)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        style={{ background: "rgba(5,12,26,0.95)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <button onClick={() => navigate("/tecnico")}
           className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
           style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(148,163,184,0.4)" }}>Ordem de Serviço</p>
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] mb-0.5" style={{ color: "rgba(148,163,184,0.35)" }}>Ordem de Serviço</p>
           <h1 className="text-white font-black text-base leading-tight truncate">{escola.nome}</h1>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0"
-          style={{ background: sc.bg, color: sc.text, border: `1px solid ${sc.text}30` }}>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc.dot }} />
+        {/* Badge de status com gradiente */}
+        <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black flex-shrink-0"
+          style={{
+            background: sc.badgeBg,
+            color: sc.badgeText,
+            border: `1px solid ${sc.badgeBorder}`,
+            boxShadow: `0 4px 12px ${sc.glow}`,
+          }}>
+          <div className="w-1.5 h-1.5 rounded-full bg-white opacity-80" />
           {sc.label}
         </div>
       </div>
 
-      {/* Stepper */}
-      <div className="px-6 py-4" style={{ background: "rgba(6,11,24,0.6)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      {/* ─── Stepper ─── */}
+      <div className="px-6 py-4" style={{ background: "rgba(5,12,26,0.7)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
         <div className="flex items-start justify-between">
           <OSStep step={1} label="Pendente" active={stepStatus.s1active} done={stepStatus.s1done} />
           <div className="flex-1 mt-4 mx-2">
-            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s1done ? "linear-gradient(90deg, #10b981, #6366f1)" : "rgba(255,255,255,0.07)" }} />
+            <div className="h-px rounded-full" style={{ background: stepStatus.s1done ? "linear-gradient(90deg, #10b981, #a855f7)" : "rgba(255,255,255,0.07)" }} />
           </div>
           <OSStep step={2} label="Andamento" active={stepStatus.s2active} done={stepStatus.s2done} />
           <div className="flex-1 mt-4 mx-2">
-            <div className="h-0.5 rounded-full" style={{ background: stepStatus.s2done ? "linear-gradient(90deg, #6366f1, #10b981)" : "rgba(255,255,255,0.07)" }} />
+            <div className="h-px rounded-full" style={{ background: stepStatus.s2done ? "linear-gradient(90deg, #a855f7, #10b981)" : "rgba(255,255,255,0.07)" }} />
           </div>
           <OSStep step={3} label="Concluído" active={stepStatus.s3active || stepStatus.s3done} done={stepStatus.s3done} />
         </div>
       </div>
 
+      {/* ─── Conteúdo ─── */}
       <div className="flex-1 overflow-y-auto pb-10">
 
-        {/* Hero card da escola */}
+        {/* Card principal da escola */}
         <div className="mx-4 mt-5 rounded-3xl overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.03)",
+            background: "rgba(255,255,255,0.025)",
             border: `1px solid ${sc.cardBorder}`,
-            boxShadow: `0 12px 48px ${sc.glow}`,
+            boxShadow: `0 16px 56px ${sc.glow}`,
           }}>
           {/* Barra de cor no topo */}
-          <div className="h-1" style={{ background: sc.gradient }} />
+          <div className="h-1.5" style={{ background: sc.gradient }} />
 
-          {/* Identidade da escola */}
+          {/* Identidade */}
           <div className="p-5 pb-4">
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -352,8 +375,8 @@ export default function TecnicoOS() {
                 <School className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1 min-w-0 pt-0.5">
-                <h2 className="text-white font-black text-base leading-snug mb-2">{escola.nome}</h2>
-                <div className="flex items-center gap-2">
+                <h2 className="text-white font-black text-base leading-snug mb-2.5">{escola.nome}</h2>
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
                     style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.2)" }}>
                     <Hash className="w-3 h-3" style={{ color: "#818cf8" }} />
@@ -372,33 +395,85 @@ export default function TecnicoOS() {
           </div>
 
           {/* Divider */}
-          <div className="mx-5 h-px" style={{ background: "rgba(255,255,255,0.05)" }} />
+          <div className="mx-5 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
 
-          {/* Dados da escola */}
+          {/* Dados */}
           <div className="p-5 space-y-2.5">
+
+            {/* Endereço — full width, texto branco */}
             {escola.endereco && (
-              <InfoRow icon={MapPin} label="Endereço" value={escola.endereco} color="#f87171" bg="rgba(239,68,68,0.05)" />
+              <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl"
+                style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.15)" }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{ background: "rgba(239,68,68,0.18)" }}>
+                  <MapPin className="w-4 h-4" style={{ color: "#f87171" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "rgba(248,113,113,0.7)" }}>Endereço</p>
+                  <p className="text-sm font-semibold text-white leading-relaxed">{escola.endereco}</p>
+                </div>
+              </div>
             )}
+
+            {/* Grid 2 colunas */}
             <div className="grid grid-cols-2 gap-2.5">
+
+              {/* Município */}
               {escola.municipio && (
-                <InfoRow icon={Building2} label="Município" value={escola.municipio} color="#a78bfa" bg="rgba(139,92,246,0.05)" />
-              )}
-              {escola.velocidadeOfertada && (
-                <InfoRow icon={Signal} label="Velocidade" value={String(escola.velocidadeOfertada)} color="#60a5fa" bg="rgba(59,130,246,0.05)" />
-              )}
-              {escola.telefone && (
-                <InfoRow icon={Phone} label="Telefone" value={escola.telefone} color="#34d399" bg="rgba(16,185,129,0.05)" />
-              )}
-              {hasCoords && (
-                <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl"
-                  style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)" }}>
+                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
+                  style={{ background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.15)" }}>
                   <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(245,158,11,0.15)" }}>
+                    style={{ background: "rgba(139,92,246,0.18)" }}>
+                    <Building2 className="w-4 h-4" style={{ color: "#a78bfa" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(167,139,250,0.6)" }}>Município</p>
+                    <p className="text-sm font-bold text-white leading-tight">{escola.municipio}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Velocidade */}
+              {escola.velocidadeOfertada && (
+                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
+                  style={{ background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.15)" }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(59,130,246,0.18)" }}>
+                    <Signal className="w-4 h-4" style={{ color: "#60a5fa" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(96,165,250,0.6)" }}>Velocidade</p>
+                    <p className="text-sm font-bold text-white">{escola.velocidadeOfertada} Mbps</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Telefone — formatado e com truncate */}
+              {escola.telefone && (
+                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
+                  style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(16,185,129,0.18)" }}>
+                    <Phone className="w-4 h-4" style={{ color: "#34d399" }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(52,211,153,0.6)" }}>Telefone</p>
+                    <p className="text-sm font-bold text-white truncate">{telDisplay || escola.telefone}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* GPS */}
+              {hasCoords && (
+                <div className="flex items-center gap-2.5 px-3.5 py-3.5 rounded-2xl"
+                  style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.15)" }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(245,158,11,0.18)" }}>
                     <Navigation className="w-4 h-4" style={{ color: "#fbbf24" }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(251,191,36,0.6)" }}>GPS</p>
-                    <p className="text-xs font-mono font-semibold text-white truncate">{lat!.toFixed(4)}, {lng!.toFixed(4)}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(251,191,36,0.6)" }}>GPS</p>
+                    <p className="text-xs font-mono font-bold text-white truncate">{lat!.toFixed(4)}, {lng!.toFixed(4)}</p>
                   </div>
                 </div>
               )}
@@ -406,22 +481,22 @@ export default function TecnicoOS() {
           </div>
         </div>
 
-        {/* Ações rápidas: Maps e WhatsApp */}
+        {/* ─── Botões Maps e WhatsApp ─── */}
         <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
           <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="block">
             <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95"
               style={{
-                background: "linear-gradient(135deg, rgba(30,58,138,0.8), rgba(37,99,235,0.6))",
-                border: "1px solid rgba(59,130,246,0.3)",
-                boxShadow: "0 6px 24px rgba(37,99,235,0.2)",
+                background: "linear-gradient(135deg, rgba(29,78,216,0.9), rgba(59,130,246,0.7))",
+                border: "1px solid rgba(59,130,246,0.35)",
+                boxShadow: "0 8px 28px rgba(37,99,235,0.25)",
               }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.12)" }}>
+                style={{ background: "rgba(255,255,255,0.15)" }}>
                 <Navigation className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-white font-bold text-sm">Maps</p>
-                <p className="text-xs" style={{ color: "rgba(147,197,253,0.7)" }}>{hasCoords ? "Rota GPS" : "Buscar"}</p>
+                <p className="text-white font-black text-sm">Google Maps</p>
+                <p className="text-xs font-medium" style={{ color: "rgba(186,230,253,0.8)" }}>{hasCoords ? "Rota GPS" : "Buscar escola"}</p>
               </div>
             </div>
           </a>
@@ -430,17 +505,17 @@ export default function TecnicoOS() {
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
               <div className="rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-95"
                 style={{
-                  background: "linear-gradient(135deg, rgba(6,95,70,0.8), rgba(16,185,129,0.6))",
-                  border: "1px solid rgba(16,185,129,0.3)",
-                  boxShadow: "0 6px 24px rgba(16,185,129,0.2)",
+                  background: "linear-gradient(135deg, rgba(6,95,70,0.9), rgba(16,185,129,0.7))",
+                  border: "1px solid rgba(16,185,129,0.35)",
+                  boxShadow: "0 8px 28px rgba(16,185,129,0.25)",
                 }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.12)" }}>
+                  style={{ background: "rgba(255,255,255,0.15)" }}>
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <p className="text-white font-bold text-sm">WhatsApp</p>
-                  <p className="text-xs truncate max-w-[80px]" style={{ color: "rgba(167,243,208,0.7)" }}>{whatsappNum}</p>
+                <div className="min-w-0">
+                  <p className="text-white font-black text-sm">WhatsApp</p>
+                  <p className="text-xs font-medium truncate" style={{ color: "rgba(167,243,208,0.8)" }}>{telDisplay}</p>
                 </div>
               </div>
             </a>
@@ -459,22 +534,20 @@ export default function TecnicoOS() {
           )}
         </div>
 
-        {/* Seção de ações da OS */}
+        {/* ─── Ações da OS ─── */}
         <div className="mx-4 mt-5">
-          {/* Título da seção */}
           <div className="flex items-center gap-2 mb-3">
             <div className="w-5 h-5 rounded-md flex items-center justify-center"
-              style={{ background: "rgba(99,102,241,0.15)" }}>
-              <Zap className="w-3 h-3" style={{ color: "#818cf8" }} />
+              style={{ background: "rgba(168,85,247,0.15)" }}>
+              <Zap className="w-3 h-3" style={{ color: "#c084fc" }} />
             </div>
-            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(148,163,184,0.5)" }}>Ações da OS</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "rgba(148,163,184,0.45)" }}>Ações da OS</p>
           </div>
 
           {isConcluida ? (
-            /* Estado: Concluída */
-            <div className="rounded-3xl p-6 text-center relative overflow-hidden"
+            <div className="rounded-3xl p-7 text-center relative overflow-hidden"
               style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", boxShadow: "0 12px 48px rgba(16,185,129,0.12)" }}>
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
+              <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
                 style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 16px 48px rgba(16,185,129,0.4)" }}>
                 <Star className="w-10 h-10 text-white" fill="white" />
@@ -493,10 +566,9 @@ export default function TecnicoOS() {
             </div>
 
           ) : isNaoInstalada ? (
-            /* Estado: Não Instalada */
-            <div className="rounded-3xl p-6 text-center relative overflow-hidden"
+            <div className="rounded-3xl p-7 text-center relative overflow-hidden"
               style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", boxShadow: "0 12px 48px rgba(239,68,68,0.12)" }}>
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
+              <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
               <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
                 style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 16px 48px rgba(239,68,68,0.4)" }}>
                 <XCircle className="w-10 h-10 text-white" />
@@ -506,7 +578,6 @@ export default function TecnicoOS() {
             </div>
 
           ) : (
-            /* Estado: Ativo (pendente ou em andamento) */
             <div className="space-y-3">
               {isPendente && (
                 <button
@@ -514,9 +585,9 @@ export default function TecnicoOS() {
                   disabled={iniciarMut.isPending}
                   className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
                   style={{
-                    background: "linear-gradient(135deg, #1e3a8a, #4f46e5, #6366f1)",
-                    boxShadow: "0 12px 40px rgba(99,102,241,0.3)",
-                    border: "1px solid rgba(99,102,241,0.25)",
+                    background: "linear-gradient(135deg, #4c1d95, #6d28d9, #7c3aed)",
+                    boxShadow: "0 12px 40px rgba(109,40,217,0.35)",
+                    border: "1px solid rgba(168,85,247,0.3)",
                   }}>
                   {iniciarMut.isPending ? (
                     <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Iniciando...</>
@@ -553,12 +624,12 @@ export default function TecnicoOS() {
           )}
         </div>
 
-        {/* Nota informativa */}
+        {/* Nota */}
         <div className="mx-4 mt-4 mb-2">
           <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.3)" }} />
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.35)" }}>
+            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+            <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
+            <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
               Registre a OS após concluir a instalação. Em caso de problemas, use "Não Instalada" com o motivo correto.
             </p>
           </div>
@@ -569,20 +640,16 @@ export default function TecnicoOS() {
       {/* ─── Modal de Conclusão ─── */}
       {openConcluir && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(14px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[94vh] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-            {/* Barra verde no topo */}
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-[2.5rem]"
+            <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-[2.5rem]"
               style={{ background: "linear-gradient(90deg, #059669, #10b981, #34d399)" }} />
-
-            {/* Handle */}
             <div className="w-10 h-1 rounded-full mx-auto mt-5 mb-1" style={{ background: "rgba(255,255,255,0.12)" }} />
 
             <div className="px-6 pb-10 pt-4">
-              {/* Cabeçalho do modal */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "linear-gradient(135deg, #059669, #10b981)", boxShadow: "0 8px 24px rgba(16,185,129,0.3)" }}>
@@ -594,7 +661,6 @@ export default function TecnicoOS() {
                 </div>
               </div>
 
-              {/* Resumo da escola */}
               <div className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-5"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <School className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(148,163,184,0.5)" }} />
@@ -605,11 +671,9 @@ export default function TecnicoOS() {
               </div>
 
               <div className="space-y-4">
-                {/* Campo APs */}
                 <div>
                   <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(52,211,153,0.9)" }}>
-                    <Wifi className="w-3.5 h-3.5" />
-                    APs Instalados *
+                    <Wifi className="w-3.5 h-3.5" /> APs Instalados *
                   </label>
                   <div className="relative">
                     <input
@@ -625,18 +689,14 @@ export default function TecnicoOS() {
                     />
                     {qtdAp && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-bold"
-                        style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>
-                        ✓
-                      </div>
+                        style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>✓</div>
                     )}
                   </div>
                 </div>
 
-                {/* Campo observações */}
                 <div>
                   <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    <FileText className="w-3.5 h-3.5" />
-                    Observações (opcional)
+                    <FileText className="w-3.5 h-3.5" /> Observações (opcional)
                   </label>
                   <textarea
                     rows={3}
@@ -648,18 +708,15 @@ export default function TecnicoOS() {
                   />
                 </div>
 
-                {/* Upload foto */}
                 <div>
                   <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    <Layers className="w-3.5 h-3.5" />
-                    Foto do Mapa de Calor (opcional)
+                    <Layers className="w-3.5 h-3.5" /> Foto do Mapa de Calor (opcional)
                   </label>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
                   <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFotoChange} />
 
                   {fotoPreview ? (
-                    <div className="relative rounded-2xl overflow-hidden"
-                      style={{ border: "1.5px solid rgba(16,185,129,0.3)" }}>
+                    <div className="relative rounded-2xl overflow-hidden" style={{ border: "1.5px solid rgba(16,185,129,0.3)" }}>
                       <img src={fotoPreview} alt="Mapa de calor" className="w-full max-h-52 object-cover" />
                       <button
                         onClick={() => {
@@ -681,8 +738,7 @@ export default function TecnicoOS() {
                       <button onClick={() => cameraInputRef.current?.click()}
                         className="py-5 rounded-2xl flex flex-col items-center gap-2.5 transition-all active:scale-95"
                         style={{ background: "rgba(99,102,241,0.07)", border: "1.5px dashed rgba(99,102,241,0.3)" }}>
-                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-                          style={{ background: "rgba(99,102,241,0.15)" }}>
+                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.15)" }}>
                           <Camera className="w-5 h-5" style={{ color: "#818cf8" }} />
                         </div>
                         <span className="text-xs font-bold" style={{ color: "#818cf8" }}>Câmera</span>
@@ -690,8 +746,7 @@ export default function TecnicoOS() {
                       <button onClick={() => fileInputRef.current?.click()}
                         className="py-5 rounded-2xl flex flex-col items-center gap-2.5 transition-all active:scale-95"
                         style={{ background: "rgba(16,185,129,0.07)", border: "1.5px dashed rgba(16,185,129,0.3)" }}>
-                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-                          style={{ background: "rgba(16,185,129,0.15)" }}>
+                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.15)" }}>
                           <Upload className="w-5 h-5" style={{ color: "#34d399" }} />
                         </div>
                         <span className="text-xs font-bold" style={{ color: "#34d399" }}>Galeria</span>
@@ -702,7 +757,6 @@ export default function TecnicoOS() {
                 </div>
               </div>
 
-              {/* Botões de ação */}
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setOpenConcluir(false)}
                   className="flex-1 py-4 rounded-2xl font-semibold text-sm transition-all active:scale-95"
@@ -733,9 +787,7 @@ export default function TecnicoOS() {
                   disabled={concluirMut.isPending || uploadingFoto}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
-                    background: isOnline
-                      ? "linear-gradient(135deg, #059669, #10b981)"
-                      : "linear-gradient(135deg, #d97706, #f59e0b)",
+                    background: isOnline ? "linear-gradient(135deg, #059669, #10b981)" : "linear-gradient(135deg, #d97706, #f59e0b)",
                     boxShadow: isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
                   }}>
                   {uploadingFoto ? (
@@ -757,16 +809,15 @@ export default function TecnicoOS() {
       {/* ─── Modal de Não Instalada ─── */}
       {openNaoInstalada && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(14px)" }}
           onClick={e => { if (e.target === e.currentTarget) setOpenNaoInstalada(false); }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="absolute top-0 left-0 right-0 h-1 rounded-t-[2.5rem]"
+            <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-[2.5rem]"
               style={{ background: "linear-gradient(90deg, #dc2626, #ef4444, #f87171)" }} />
             <div className="w-10 h-1 rounded-full mx-auto mt-5 mb-1" style={{ background: "rgba(255,255,255,0.12)" }} />
 
             <div className="px-6 pb-10 pt-4">
-              {/* Cabeçalho */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 8px 24px rgba(239,68,68,0.3)" }}>
@@ -779,7 +830,6 @@ export default function TecnicoOS() {
               </div>
 
               <div className="space-y-4">
-                {/* Opções de motivo */}
                 <div>
                   <p className="text-xs font-black mb-3 uppercase tracking-wider" style={{ color: "rgba(248,113,113,0.7)" }}>Selecione o motivo *</p>
                   <div className="space-y-2">
@@ -793,9 +843,7 @@ export default function TecnicoOS() {
                         }}>
                         <span className="text-2xl">{m.icon}</span>
                         <div className="flex-1">
-                          <p className="text-sm font-bold" style={{ color: motivo === m.value ? "#f87171" : "rgba(226,232,240,0.8)" }}>
-                            {m.label}
-                          </p>
+                          <p className="text-sm font-bold" style={{ color: motivo === m.value ? "#f87171" : "rgba(226,232,240,0.8)" }}>{m.label}</p>
                           <p className="text-xs mt-0.5" style={{ color: "rgba(148,163,184,0.4)" }}>{m.desc}</p>
                         </div>
                         <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
@@ -810,11 +858,9 @@ export default function TecnicoOS() {
                   </div>
                 </div>
 
-                {/* Observações */}
                 <div>
                   <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                    <FileText className="w-3.5 h-3.5" />
-                    Observações (opcional)
+                    <FileText className="w-3.5 h-3.5" /> Observações (opcional)
                   </label>
                   <textarea
                     rows={3}
@@ -827,7 +873,6 @@ export default function TecnicoOS() {
                 </div>
               </div>
 
-              {/* Botões */}
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setOpenNaoInstalada(false)}
                   className="flex-1 py-4 rounded-2xl font-semibold text-sm transition-all active:scale-95"
