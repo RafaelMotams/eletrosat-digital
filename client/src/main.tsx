@@ -8,13 +8,30 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Evita refetch desnecessário ao focar a janela (causa reinicialização no mobile)
+      refetchOnWindowFocus: false,
+      // Dados ficam frescos por 5 minutos antes de refetch automático
+      staleTime: 5 * 60 * 1000,
+      // Não fazer retry automático em erros de autenticação
+      retry: (failureCount, error) => {
+        if (error instanceof TRPCClientError && error.message === UNAUTHED_ERR_MSG) return false;
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
   if (!isUnauthorized) return;
+  // Não redirecionar se for um técnico (autenticação própria via localStorage)
+  const tecnicoId = localStorage.getItem("tecnico_id");
+  if (tecnicoId) return;
   // Só redireciona para login OAuth se não houver token de tenant
   const tenantToken = localStorage.getItem("tenant_admin_token");
   if (!tenantToken) {
