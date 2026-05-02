@@ -97,6 +97,11 @@
 - [x] App técnico OS: botões WhatsApp verde e Maps azul com ícones grandes
 - [x] Landing page: hero section redesenhada com glassmorphism
 
+## Atualização App Técnico (02/05/2026)
+- [x] Logo Netvionis na tela de login do app do técnico
+- [x] Logo Netvionis no ícone do app (favicon/manifest)
+- [x] Mostrar quantidade de APs na lista de OS do app do técnico (badge roxo com ícone Wi-Fi)
+
 ## Bug - Login Técnico (duplicata inativa)
 - [x] Corrigir getTecnicoByEmail para filtrar apenas registros ativos (técnicos com mesmo email duplicado causavam falha de login)
 

@@ -1,0 +1,24 @@
+{
+  "name": "Netvionis - Técnico",
+  "short_name": "Netvionis",
+  "description": "Área do Técnico de Campo - Netvionis",
+  "start_url": "/tecnico",
+  "display": "standalone",
+  "background_color": "#0d1a35",
+  "theme_color": "#0d1a35",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/manus-storage/netvionis-logo_1c60afaf.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/manus-storage/netvionis-logo-512_76f383a6.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

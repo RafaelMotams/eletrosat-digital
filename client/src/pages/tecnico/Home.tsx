@@ -497,6 +497,18 @@ export default function TecnicoHome() {
                             <span className="text-xs font-semibold" style={{ color: "#fbbf24" }}>{escola.velocidadeOfertada} Mbps</span>
                           </div>
                         )}
+                        {escola.qtdAp != null && escola.qtdAp > 0 && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
+                            <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                              <circle cx="12" cy="20" r="1" fill="#818cf8" stroke="none" />
+                            </svg>
+                            <span className="text-xs font-bold" style={{ color: "#818cf8" }}>{escola.qtdAp} AP{(escola.qtdAp as number) > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
                       </div>
 
                       {escola.endereco && (

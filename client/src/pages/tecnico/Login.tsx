@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export default function TecnicoLogin() {
   const [, navigate] = useLocation();
@@ -51,19 +51,19 @@ export default function TecnicoLogin() {
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          {/* Ícone com múltiplos anéis */}
+          {/* Logo Netvionis */}
           <div className="relative mb-5">
             <div className="absolute inset-0 rounded-3xl opacity-30 blur-xl"
-              style={{ background: "linear-gradient(135deg, #6366f1, #10b981)", transform: "scale(1.4)" }} />
-            <div className="relative w-20 h-20 rounded-3xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #4f46e5 0%, #10b981 100%)", boxShadow: "0 20px 60px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.1)" }}>
-              <Zap className="w-9 h-9 text-white" style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.6))" }} />
+              style={{ background: "linear-gradient(135deg, #0d1a35, #1a3a6b)", transform: "scale(1.4)" }} />
+            <div className="relative w-24 h-24 rounded-3xl overflow-hidden flex items-center justify-center"
+              style={{ boxShadow: "0 20px 60px rgba(13,26,53,0.6), 0 0 0 1px rgba(255,255,255,0.1)" }}>
+              <img
+                src="/manus-storage/netvionis-logo_1c60afaf.webp"
+                alt="Netvionis"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
-          <h1 className="text-white font-black text-3xl tracking-tight mb-1"
-            style={{ fontFamily: "var(--font-display)", textShadow: "0 0 40px rgba(99,102,241,0.5)" }}>
-            Netvionis
-          </h1>
           <div className="flex items-center gap-2 px-3 py-1 rounded-full"
             style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
             <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#6366f1" }} />
