@@ -37,8 +37,14 @@ import {
   updateTecnico,
   insertOsFoto,
   listOsFotos,
+  listOsFotosByEscola,
+  countOsFotosByCategoria,
 } from "./db";
+import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
+import { getDb } from "./db";
+import { ordensServico } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -394,12 +400,10 @@ const ordensRouter = router({
   getOsFotosByEscola: publicProcedure
     .input(z.object({ escolaId: z.number() }))
     .query(async ({ input }) => {
-      const { listOsFotosByEscola } = await import("./db");
       return listOsFotosByEscola(input.escolaId);
     }),
 });
-
-// === DASHBOARD ROUTER ===
+// === DASHBOARD ROUTER ====
 const dashboardRouter = router({
   stats: tenantAdminProcedure.query(async ({ ctx }) => {
     return getDashboardStats((ctx as any).tenantId);
@@ -659,16 +663,13 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       mimeType: z.string().default("image/jpeg"),
     }))
     .mutation(async ({ input }) => {
-      const { storagePut } = await import("./storage");
       const buffer = Buffer.from(input.imageBase64, "base64");
       const key = `mapa-calor/escola-${input.escolaId}-tecnico-${input.tecnicoId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, input.mimeType);
       // Se tiver osId, atualiza a OS existente
       if (input.osId) {
-        const db = await (await import("./db")).getDb();
+        const db = await getDb();
         if (db) {
-          const { ordensServico } = await import("../drizzle/schema");
-          const { eq } = await import("drizzle-orm");
           await db.update(ordensServico).set({ fotoMapaCalorUrl: url, fotoMapaCalorKey: key }).where(eq(ordensServico.id, input.osId));
         }
       }
@@ -686,7 +687,6 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       mimeType: z.string().default("image/jpeg"),
     }))
     .mutation(async ({ input }) => {
-      const { storagePut } = await import("./storage");
       const buffer = Buffer.from(input.imageBase64, "base64");
       const key = `os-fotos/${input.categoria}/os-${input.osId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -712,15 +712,12 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
   getOsFotosByEscola: publicProcedure
     .input(z.object({ escolaId: z.number() }))
     .query(async ({ input }) => {
-      const { listOsFotosByEscola } = await import("./db");
-      return listOsFotosByEscola(input.escolaId);
+       return listOsFotosByEscola(input.escolaId);
     }),
-
   // Verifica se todas as categorias obrigatórias têm foto
   verificarFotosObrigatorias: publicProcedure
     .input(z.object({ osId: z.number() }))
     .query(async ({ input }) => {
-      const { countOsFotosByCategoria } = await import("./db");
       const counts = await countOsFotosByCategoria(input.osId);
       const categorias = ["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
       const resultado: Record<string, boolean> = {};

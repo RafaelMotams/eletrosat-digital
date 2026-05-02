@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql2 from "mysql2";
 import {
   InsertUser,
   atribuicoesManual,
@@ -16,11 +17,26 @@ import {
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: mysql2.Pool | null = null;
+
+function getPool(): mysql2.Pool {
+  if (!_pool && process.env.DATABASE_URL) {
+    _pool = mysql2.createPool({
+      uri: process.env.DATABASE_URL,
+      connectionLimit: 20,      // suporta 15+ usuários simultâneos com margem
+      queueLimit: 50,           // fila de até 50 requisições antes de rejeitar
+      waitForConnections: true, // aguarda conexão disponível em vez de falhar
+      enableKeepAlive: true,    // mantém conexões vivas (evita timeout)
+      keepAliveInitialDelay: 10000,
+    });
+  }
+  return _pool!;
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(getPool());
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
