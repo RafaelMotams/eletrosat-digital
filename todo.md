@@ -282,8 +282,8 @@
 - [x] Modais de conclusão e não-instalada com design premium
 
 ## Correções Visuais App - OS (02/05/2026)
-- [ ] Endereço em cor branca na tela de OS
-- [ ] Telefone organizado sem sair do quadrado (truncar/quebrar linha corretamente)
-- [ ] Badge "Pendente" com cor mais bonita e diferente
-- [ ] Visual geral da OS mais profissional e elegante
-- [ ] Gerar novo APK com ícone correto da Netvionis
+- [x] Endereço em cor branca na tela de OS
+- [x] Telefone organizado sem sair do quadrado (truncar/quebrar linha corretamente)
+- [x] Badge "Pendente" com cor mais bonita e diferente
+- [x] Visual geral da OS mais profissional e elegante
+- [x] Gerar novo APK com ícone correto da Netvionis (v6)

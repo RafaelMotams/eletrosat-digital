@@ -492,9 +492,10 @@ export default function TecnicoHome() {
                       </div>
 
                       {escola.endereco && (
-                        <div className="flex items-start gap-1 mt-1.5">
-                          <MapPin className="w-2.5 h-2.5 flex-shrink-0 mt-0.5" style={{ color: "rgba(148,163,184,0.3)" }} />
-                          <span className="text-[10px] leading-relaxed" style={{ color: "rgba(148,163,184,0.4)", wordBreak: "break-word" }}>{escola.endereco}</span>
+                        <div className="flex items-start gap-1.5 mt-2 px-2.5 py-2 rounded-xl"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                          <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: "rgba(248,113,113,0.6)" }} />
+                          <span className="text-xs font-medium leading-relaxed text-white" style={{ wordBreak: "break-word", opacity: 0.85 }}>{escola.endereco}</span>
                         </div>
                       )}
                     </div>
