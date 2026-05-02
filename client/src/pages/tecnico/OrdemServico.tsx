@@ -710,7 +710,7 @@ export default function TecnicoOS() {
             <InfoCard
               icon={<Gauge className="w-5 h-5" />}
               label="Velocidade"
-              value={(escola as any).velocidade ?? "Não informado"}
+              value={escola.velocidadeOfertada ? `${escola.velocidadeOfertada} Mbps` : "Não informado"}
               iconBg="rgba(168,85,247,0.15)"
               iconColor="#c084fc"
               labelColor="rgba(192,132,252,0.7)"
@@ -1036,49 +1036,6 @@ export default function TecnicoOS() {
                       return;
                     }
 
-                    // ── Upload sequencial de todas as fotos pendentes ──
-                    const todasFotos: { catId: FotoCategoria; foto: FotoPendente }[] = [];
-                    for (const cat of CATEGORIAS_FOTOS) {
-                      for (const foto of fotosPorCategoria[cat.id]) {
-                        todasFotos.push({ catId: cat.id, foto });
-                      }
-                    }
-
-                    if (todasFotos.length > 0 && isOnline) {
-                      setUploadingAll(true);
-                      toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
-                      let enviadas = 0;
-                      for (const { catId, foto } of todasFotos) {
-                        try {
-                          await uploadOsFotoMut.mutateAsync({
-                            osId,
-                            escolaId,
-                            tecnicoId,
-                            categoria: catId,
-                            imageBase64: foto.base64,
-                            mimeType: foto.mime,
-                          });
-                          enviadas++;
-                        } catch {
-                          // continua mesmo se uma foto falhar
-                        }
-                      }
-                      toast.dismiss("upload-all");
-                      setUploadingAll(false);
-                      if (enviadas > 0) {
-                        toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
-                        // Limpar fotos pendentes após upload
-                        setFotosPorCategoria({
-                          mapa_calor: [],
-                          fotos_ap: [],
-                          etiqueta_controladora: [],
-                          etiqueta_nobreak: [],
-                          etiqueta_switch: [],
-                        });
-                        refetchFotos();
-                      }
-                    }
-
                     // ── Modo offline ──
                     if (!isOnline) {
                       enqueueOfflineAction({
@@ -1091,8 +1048,60 @@ export default function TecnicoOS() {
                       return;
                     }
 
-                    // ── Concluir OS ──
-                    concluirMut.mutate({ tecnicoId, escolaId, qtdApInstalado: n, observacao });
+                    // ── PASSO 1: Concluir OS primeiro para obter o osId correto ──
+                    // (mesmo que o técnico não tenha clicado em "Iniciar OS" antes)
+                    setUploadingAll(true);
+                    try {
+                      const resultado = await utils.client.tecnicoAuth.concluirEscola.mutate({
+                        tecnicoId, escolaId, qtdApInstalado: n, observacao
+                      });
+                      const osIdFinal = resultado?.osId ?? osId;
+
+                      // ── PASSO 2: Upload das fotos usando o osId correto ──
+                      const todasFotos: { catId: FotoCategoria; foto: FotoPendente }[] = [];
+                      for (const cat of CATEGORIAS_FOTOS) {
+                        for (const foto of fotosPorCategoria[cat.id]) {
+                          todasFotos.push({ catId: cat.id, foto });
+                        }
+                      }
+                      if (todasFotos.length > 0 && osIdFinal > 0) {
+                        toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
+                        let enviadas = 0;
+                        for (const { catId, foto } of todasFotos) {
+                          try {
+                            await uploadOsFotoMut.mutateAsync({
+                              osId: osIdFinal,
+                              escolaId,
+                              tecnicoId,
+                              categoria: catId,
+                              imageBase64: foto.base64,
+                              mimeType: foto.mime,
+                            });
+                            enviadas++;
+                          } catch {
+                            // continua mesmo se uma foto falhar
+                          }
+                        }
+                        toast.dismiss("upload-all");
+                        if (enviadas > 0) {
+                          toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
+                        }
+                      }
+
+                      // ── Finalizar ──
+                      toast.success("Instalação concluída com sucesso!");
+                      setFotosPorCategoria({
+                        mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [],
+                      });
+                      utils.tecnicoAuth.minhasEscolas.invalidate();
+                      setOpenConcluir(false);
+                      setPendingOffline(false);
+                    } catch (err: unknown) {
+                      const msg = err instanceof Error ? err.message : String(err);
+                      toast.error("Erro ao concluir OS: " + msg);
+                    } finally {
+                      setUploadingAll(false);
+                    }
                   }}
                   disabled={concluirMut.isPending || uploadingAll || !qtdAp}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
