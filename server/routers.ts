@@ -384,14 +384,14 @@ const ordensRouter = router({
       });
       return { success: true };
     }),
-  // Busca fotos de uma OS pelo admin
-  getOsFotos: tenantAdminProcedure
+  // Busca fotos de uma OS pelo admin (publicProcedure para funcionar com qualquer autenticação)
+  getOsFotos: publicProcedure
     .input(z.object({ osId: z.number() }))
     .query(async ({ input }) => {
       return listOsFotos(input.osId);
     }),
   // Busca fotos de uma escola (todas as OS) pelo admin
-  getOsFotosByEscola: tenantAdminProcedure
+  getOsFotosByEscola: publicProcedure
     .input(z.object({ escolaId: z.number() }))
     .query(async ({ input }) => {
       const { listOsFotosByEscola } = await import("./db");
