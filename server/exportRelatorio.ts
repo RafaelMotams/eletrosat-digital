@@ -3,246 +3,379 @@ import { Request, Response } from "express";
 import { getOsDetalhadas } from "./db";
 import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 
-// Cores da paleta
-const COR_HEADER_BG = "FF1E3A5F";       // azul escuro
-const COR_HEADER_FG = "FFFFFFFF";       // branco
-const COR_SUBTOTAL_BG = "FF2D6A4F";     // verde escuro
-const COR_SUBTOTAL_FG = "FFFFFFFF";     // branco
-const COR_TOTAL_BG = "FF1B4332";        // verde muito escuro
-const COR_TOTAL_FG = "FFFFFFFF";        // branco
-const COR_ROW_EVEN = "FFF0F4F8";        // cinza muito claro
-const COR_ROW_ODD = "FFFFFFFF";         // branco
-const COR_BORDER = "FFBFD7EA";          // azul claro
+// ─── Paleta de cores ──────────────────────────────────────────────────────────
+const C = {
+  azulEscuro:   "FF0D2137",
+  azulMedio:    "FF1A3A5C",
+  azulClaro:    "FF2563A8",
+  azulSuave:    "FFD6E4F7",
+  verdeEscuro:  "FF0A4D2E",
+  verdeMedio:   "FF166534",
+  verdeClaro:   "FFD1FAE5",
+  cinzaEscuro:  "FF374151",
+  cinzaMedio:   "FF6B7280",
+  cinzaClaro:   "FFF3F4F6",
+  cinzaBorda:   "FFD1D5DB",
+  branco:       "FFFFFFFF",
+  amarelo:      "FFFEF3C7",
+  amareloEscuro:"FFD97706",
+};
 
-function bordaFina(): Partial<ExcelJS.Borders> {
-  const side: Partial<ExcelJS.Border> = { style: "thin", color: { argb: COR_BORDER } };
-  return { top: side, left: side, bottom: side, right: side };
+function borda(cor = C.cinzaBorda, estilo: ExcelJS.BorderStyle = "thin"): Partial<ExcelJS.Borders> {
+  const s: Partial<ExcelJS.Border> = { style: estilo, color: { argb: cor } };
+  return { top: s, left: s, bottom: s, right: s };
+}
+
+function bordaMedia(): Partial<ExcelJS.Borders> {
+  return borda(C.azulClaro, "medium");
+}
+
+function aplicarEstiloCelula(
+  cell: ExcelJS.Cell,
+  opts: {
+    bg?: string;
+    fg?: string;
+    bold?: boolean;
+    size?: number;
+    hAlign?: ExcelJS.Alignment["horizontal"];
+    vAlign?: ExcelJS.Alignment["vertical"];
+    wrap?: boolean;
+    numFmt?: string;
+    border?: Partial<ExcelJS.Borders>;
+    italic?: boolean;
+  }
+) {
+  if (opts.bg) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: opts.bg } };
+  cell.font = {
+    name: "Calibri",
+    bold: opts.bold ?? false,
+    italic: opts.italic ?? false,
+    size: opts.size ?? 10,
+    color: { argb: opts.fg ?? C.cinzaEscuro },
+  };
+  cell.alignment = {
+    horizontal: opts.hAlign ?? "left",
+    vertical: opts.vAlign ?? "middle",
+    wrapText: opts.wrap ?? false,
+  };
+  if (opts.numFmt) cell.numFmt = opts.numFmt;
+  if (opts.border !== undefined) cell.border = opts.border;
 }
 
 export async function exportarRelatorioExcel(req: Request, res: Response) {
   try {
-    // Autenticação via Bearer token (tenantId)
+    // Auth
     const token = extractBearerToken(req.headers.authorization);
     const session = token ? await verifyTenantToken(token) : null;
     const tenantId = session?.tenantId ?? undefined;
 
-    // Parâmetros da query
     const valorPorAp = parseFloat(req.query.valorPorAp as string) || 0;
-    const tecnicoId = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
-    const dataInicio = req.query.dataInicio ? new Date(req.query.dataInicio as string) : null;
-    const dataFim = req.query.dataFim ? new Date(req.query.dataFim as string) : null;
 
-    // Buscar dados
-    const rows = await getOsDetalhadas({ tecnicoId, dataInicio, dataFim, tenantId });
+    // Dados
+    const concluidas = await getOsDetalhadas({ tenantId });
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = "Netvionis";
-    workbook.created = new Date();
+    // Agrupar por técnico (ordenado por nome)
+    const porTecnico: Record<string, typeof concluidas> = {};
+    for (const r of concluidas) {
+      if (!porTecnico[r.tecnicoNome]) porTecnico[r.tecnicoNome] = [];
+      porTecnico[r.tecnicoNome].push(r);
+    }
+    const tecnicosOrdenados = Object.keys(porTecnico).sort();
 
-    // ─── Aba 1: Todas as OS ──────────────────────────────────────────────────
-    const ws = workbook.addWorksheet("OS Concluídas", {
-      pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Netvionis";
+    wb.created = new Date();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ABA 1 — RELATÓRIO DETALHADO
+    // ═══════════════════════════════════════════════════════════════════════════
+    const ws = wb.addWorksheet("Relatório Detalhado", {
+      pageSetup: {
+        orientation: "landscape",
+        fitToPage: true,
+        fitToWidth: 1,
+        margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 },
+      },
+      properties: { tabColor: { argb: C.azulClaro } },
     });
 
-    // Larguras das colunas
+    // Larguras
     ws.columns = [
-      { key: "seq",          width: 6  },
-      { key: "escola",       width: 42 },
-      { key: "inep",         width: 14 },
-      { key: "municipio",    width: 22 },
-      { key: "tecnico",      width: 24 },
-      { key: "data",         width: 14 },
-      { key: "apInstalado",  width: 12 },
-      { key: "valorPorAp",   width: 16 },
-      { key: "totalPagar",   width: 18 },
-      { key: "observacao",   width: 36 },
+      { key: "seq",       width: 5  },
+      { key: "escola",    width: 40 },
+      { key: "inep",      width: 13 },
+      { key: "municipio", width: 20 },
+      { key: "data",      width: 13 },
+      { key: "aps",       width: 10 },
+      { key: "valorAp",   width: 16 },
+      { key: "total",     width: 18 },
     ];
 
-    // Título principal
-    ws.mergeCells("A1:J1");
-    const titleCell = ws.getCell("A1");
-    titleCell.value = "RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS";
-    titleCell.font = { name: "Calibri", bold: true, size: 16, color: { argb: COR_HEADER_FG } };
-    titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_HEADER_BG } };
-    titleCell.alignment = { horizontal: "center", vertical: "middle" };
-    ws.getRow(1).height = 36;
+    const NCOLS = 8;
 
-    // Subtítulo com data de geração e valor por AP
-    ws.mergeCells("A2:J2");
-    const subCell = ws.getCell("A2");
-    const dataGeracao = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-    subCell.value = `Gerado em: ${dataGeracao}   |   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}   |   Total de OS: ${rows.length}`;
-    subCell.font = { name: "Calibri", italic: true, size: 10, color: { argb: "FF6B7280" } };
-    subCell.alignment = { horizontal: "center", vertical: "middle" };
-    ws.getRow(2).height = 20;
+    // ── Cabeçalho principal ──────────────────────────────────────────────────
+    ws.mergeCells(1, 1, 1, NCOLS);
+    const h1 = ws.getCell("A1");
+    h1.value = "NETVIONIS TECNOLOGIA";
+    aplicarEstiloCelula(h1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
+    ws.getRow(1).height = 38;
 
-    // Linha vazia
-    ws.addRow([]);
+    ws.mergeCells(2, 1, 2, NCOLS);
+    const h2 = ws.getCell("A2");
+    h2.value = "RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS";
+    aplicarEstiloCelula(h2, { bg: C.azulMedio, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    ws.getRow(2).height = 26;
 
-    // Cabeçalho das colunas
-    const headerRow = ws.addRow([
-      "#", "Nome da Escola", "INEP", "Município", "Técnico",
-      "Data Conclusão", "APs Instalados", "Valor por AP (R$)", "Total a Pagar (R$)", "Observação"
-    ]);
-    headerRow.height = 28;
-    headerRow.eachCell((cell) => {
-      cell.font = { name: "Calibri", bold: true, size: 11, color: { argb: COR_HEADER_FG } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_HEADER_BG } };
-      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
-      cell.border = bordaFina();
-    });
+    ws.mergeCells(3, 1, 3, NCOLS);
+    const h3 = ws.getCell("A3");
+    const dataGer = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    h3.value = `Emitido em: ${dataGer}   ·   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}   ·   Total de OS: ${concluidas.length}`;
+    aplicarEstiloCelula(h3, { bg: C.azulSuave, fg: C.azulMedio, italic: true, size: 9, hAlign: "center" });
+    ws.getRow(3).height = 18;
 
-    // Linhas de dados
-    rows.forEach((row, idx) => {
-      const dataStr = row.dataConclusao
-        ? new Date(row.dataConclusao).toLocaleDateString("pt-BR")
-        : "—";
-      const total = valorPorAp * (row.qtdApInstalado ?? 0);
+    ws.addRow([]); // linha vazia
+    ws.getRow(4).height = 6;
 
-      const dataRow = ws.addRow([
-        idx + 1,
-        row.escolaNome,
-        row.inep,
-        row.municipio,
-        row.tecnicoNome,
-        dataStr,
-        row.qtdApInstalado ?? 0,
-        valorPorAp,
-        total,
-        row.observacao || "",
-      ]);
+    let rowIdx = 5;
 
-      dataRow.height = 22;
-      const bgColor = idx % 2 === 0 ? COR_ROW_EVEN : COR_ROW_ODD;
+    // ── Iterar por técnico ───────────────────────────────────────────────────
+    for (const tecnico of tecnicosOrdenados) {
+      const osDoTecnico = porTecnico[tecnico];
 
-      dataRow.eachCell((cell, colNum) => {
-        cell.font = { name: "Calibri", size: 10 };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
-        cell.border = bordaFina();
-        cell.alignment = { vertical: "middle", wrapText: colNum === 2 || colNum === 10 };
-
-        // Alinhamentos específicos
-        if (colNum === 1) cell.alignment = { ...cell.alignment, horizontal: "center" };
-        if (colNum === 3) cell.alignment = { ...cell.alignment, horizontal: "center" }; // INEP
-        if (colNum === 6) cell.alignment = { ...cell.alignment, horizontal: "center" }; // data
-        if (colNum === 7) cell.alignment = { ...cell.alignment, horizontal: "center" }; // APs
-        if (colNum === 8 || colNum === 9) {
-          cell.alignment = { ...cell.alignment, horizontal: "right" };
-          cell.numFmt = '"R$" #,##0.00';
-        }
+      // Cabeçalho do técnico
+      ws.mergeCells(rowIdx, 1, rowIdx, NCOLS);
+      const tHeader = ws.getCell(rowIdx, 1);
+      tHeader.value = `  👷  TÉCNICO: ${tecnico.toUpperCase()}`;
+      aplicarEstiloCelula(tHeader, {
+        bg: C.azulClaro, fg: C.branco, bold: true, size: 11,
+        border: bordaMedia(),
       });
+      ws.getRow(rowIdx).height = 24;
+      rowIdx++;
+
+      // Cabeçalho das colunas
+      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)"];
+      const colRow = ws.getRow(rowIdx);
+      colRow.height = 22;
+      colHeaders.forEach((v, i) => {
+        const cell = ws.getCell(rowIdx, i + 1);
+        cell.value = v;
+        aplicarEstiloCelula(cell, {
+          bg: C.cinzaEscuro, fg: C.branco, bold: true, size: 9,
+          hAlign: i === 0 ? "center" : i >= 4 ? "center" : "left",
+          border: borda(C.cinzaEscuro),
+        });
+      });
+      rowIdx++;
+
+      // Linhas de dados
+      osDoTecnico.forEach((os, idx) => {
+        const bg = idx % 2 === 0 ? C.branco : C.cinzaClaro;
+        const dataStr = os.dataConclusao
+          ? new Date(os.dataConclusao).toLocaleDateString("pt-BR")
+          : "—";
+        const total = valorPorAp * (os.qtdApInstalado ?? 0);
+
+        const vals = [
+          idx + 1,
+          os.escolaNome,
+          os.inep,
+          os.municipio,
+          dataStr,
+          os.qtdApInstalado ?? 0,
+          valorPorAp,
+          total,
+        ];
+
+        const dataRow = ws.getRow(rowIdx);
+        dataRow.height = 20;
+        vals.forEach((v, i) => {
+          const cell = ws.getCell(rowIdx, i + 1);
+          cell.value = v;
+          const hAlign: ExcelJS.Alignment["horizontal"] =
+            i === 0 ? "center" :
+            i === 2 ? "center" :
+            i === 4 ? "center" :
+            i >= 5 ? "right" : "left";
+          aplicarEstiloCelula(cell, {
+            bg, fg: C.cinzaEscuro, size: 9,
+            hAlign,
+            wrap: i === 1,
+            numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
+            border: borda(),
+          });
+        });
+        rowIdx++;
+      });
+
+      // Subtotal do técnico
+      const totalAps = osDoTecnico.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
+      const totalTecnico = valorPorAp * totalAps;
+
+      const subRow = ws.getRow(rowIdx);
+      subRow.height = 22;
+      const subLabels: (string | number)[] = [
+        "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
+        "", totalAps, valorPorAp, totalTecnico,
+      ];
+      subLabels.forEach((v, i) => {
+        const cell = ws.getCell(rowIdx, i + 1);
+        cell.value = v;
+        aplicarEstiloCelula(cell, {
+          bg: C.verdeClaro, fg: C.verdeMedio, bold: true, size: 9,
+          hAlign: i === 1 ? "left" : i >= 5 ? "right" : "center",
+          numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
+          border: borda(C.verdeMedio, "thin"),
+        });
+      });
+      rowIdx++;
+
+      // Espaço entre técnicos
+      ws.getRow(rowIdx).height = 8;
+      rowIdx++;
+    }
+
+    // ── Total Geral ──────────────────────────────────────────────────────────
+    const totalApsGeral = concluidas.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
+    const totalGeralVal = valorPorAp * totalApsGeral;
+
+    ws.mergeCells(rowIdx, 1, rowIdx, 5);
+    const tgLabel = ws.getCell(rowIdx, 1);
+    tgLabel.value = `TOTAL GERAL — ${concluidas.length} OS Concluídas`;
+    aplicarEstiloCelula(tgLabel, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
+      hAlign: "right", border: bordaMedia(),
     });
 
-    // Linha de total geral
-    const totalAps = rows.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
-    const totalGeral = valorPorAp * totalAps;
-
-    ws.addRow([]); // espaço
-
-    const totalRow = ws.addRow([
-      "", "TOTAL GERAL", "", "", "",
-      "", totalAps, valorPorAp, totalGeral, ""
-    ]);
-    totalRow.height = 28;
-    totalRow.eachCell((cell, colNum) => {
-      cell.font = { name: "Calibri", bold: true, size: 11, color: { argb: COR_TOTAL_FG } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_TOTAL_BG } };
-      cell.border = bordaFina();
-      cell.alignment = { vertical: "middle" };
-      if (colNum === 2) cell.alignment = { ...cell.alignment, horizontal: "left" };
-      if (colNum === 7) cell.alignment = { ...cell.alignment, horizontal: "center" };
-      if (colNum === 8 || colNum === 9) {
-        cell.alignment = { ...cell.alignment, horizontal: "right" };
-        cell.numFmt = '"R$" #,##0.00';
-      }
+    const tgAps = ws.getCell(rowIdx, 6);
+    tgAps.value = totalApsGeral;
+    aplicarEstiloCelula(tgAps, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
+      hAlign: "right", border: bordaMedia(),
     });
 
-    // ─── Aba 2: Resumo por Técnico ───────────────────────────────────────────
-    const ws2 = workbook.addWorksheet("Resumo por Técnico");
+    const tgValAp = ws.getCell(rowIdx, 7);
+    tgValAp.value = valorPorAp;
+    aplicarEstiloCelula(tgValAp, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
+      hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
+    });
+
+    const tgTotal = ws.getCell(rowIdx, 8);
+    tgTotal.value = totalGeralVal;
+    aplicarEstiloCelula(tgTotal, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 13,
+      hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
+    });
+    ws.getRow(rowIdx).height = 28;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ABA 2 — RESUMO DE PAGAMENTO POR TÉCNICO
+    // ═══════════════════════════════════════════════════════════════════════════
+    const ws2 = wb.addWorksheet("Pagamento por Técnico", {
+      properties: { tabColor: { argb: C.verdeMedio } },
+    });
+
     ws2.columns = [
-      { key: "tecnico",     width: 30 },
-      { key: "qtdOs",       width: 14 },
-      { key: "totalAps",    width: 16 },
-      { key: "valorPorAp",  width: 18 },
-      { key: "totalPagar",  width: 20 },
+      { key: "tecnico",    width: 32 },
+      { key: "qtdOs",      width: 12 },
+      { key: "totalAps",   width: 14 },
+      { key: "valorAp",    width: 18 },
+      { key: "totalPagar", width: 22 },
     ];
 
     // Título
     ws2.mergeCells("A1:E1");
-    const t2 = ws2.getCell("A1");
+    const t1 = ws2.getCell("A1");
+    t1.value = "NETVIONIS TECNOLOGIA";
+    aplicarEstiloCelula(t1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 15, hAlign: "center" });
+    ws2.getRow(1).height = 36;
+
+    ws2.mergeCells("A2:E2");
+    const t2 = ws2.getCell("A2");
     t2.value = "RESUMO DE PAGAMENTO POR TÉCNICO";
-    t2.font = { name: "Calibri", bold: true, size: 14, color: { argb: COR_HEADER_FG } };
-    t2.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_HEADER_BG } };
-    t2.alignment = { horizontal: "center", vertical: "middle" };
-    ws2.getRow(1).height = 32;
+    aplicarEstiloCelula(t2, { bg: C.verdeMedio, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    ws2.getRow(2).height = 26;
+
+    ws2.mergeCells("A3:E3");
+    const t3 = ws2.getCell("A3");
+    t3.value = `Emitido em: ${dataGer}   ·   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}`;
+    aplicarEstiloCelula(t3, { bg: C.verdeClaro, fg: C.verdeMedio, italic: true, size: 9, hAlign: "center" });
+    ws2.getRow(3).height = 18;
 
     ws2.addRow([]);
+    ws2.getRow(4).height = 6;
 
-    const h2 = ws2.addRow(["Técnico", "Qtd. OS", "Total APs", "Valor por AP (R$)", "Total a Pagar (R$)"]);
-    h2.height = 26;
-    h2.eachCell((cell) => {
-      cell.font = { name: "Calibri", bold: true, size: 11, color: { argb: COR_HEADER_FG } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_HEADER_BG } };
-      cell.alignment = { horizontal: "center", vertical: "middle" };
-      cell.border = bordaFina();
-    });
-
-    // Agrupar por técnico
-    const porTecnico: Record<string, { qtdOs: number; totalAps: number }> = {};
-    for (const r of rows) {
-      const nome = r.tecnicoNome;
-      if (!porTecnico[nome]) porTecnico[nome] = { qtdOs: 0, totalAps: 0 };
-      porTecnico[nome].qtdOs++;
-      porTecnico[nome].totalAps += r.qtdApInstalado ?? 0;
-    }
-
-    Object.entries(porTecnico)
-      .sort((a, b) => b[1].totalAps - a[1].totalAps)
-      .forEach(([nome, dados], idx) => {
-        const total = valorPorAp * dados.totalAps;
-        const dr = ws2.addRow([nome, dados.qtdOs, dados.totalAps, valorPorAp, total]);
-        dr.height = 22;
-        const bg = idx % 2 === 0 ? COR_ROW_EVEN : COR_ROW_ODD;
-        dr.eachCell((cell, colNum) => {
-          cell.font = { name: "Calibri", size: 11 };
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bg } };
-          cell.border = bordaFina();
-          cell.alignment = { vertical: "middle" };
-          if (colNum >= 2) cell.alignment = { ...cell.alignment, horizontal: "center" };
-          if (colNum === 4 || colNum === 5) {
-            cell.alignment = { ...cell.alignment, horizontal: "right" };
-            cell.numFmt = '"R$" #,##0.00';
-          }
-        });
+    // Cabeçalho
+    const ch2 = ws2.getRow(5);
+    ch2.height = 24;
+    ["Técnico", "Qtd. OS", "Total APs", "Valor por AP (R$)", "Total a Receber (R$)"].forEach((v, i) => {
+      const cell = ws2.getCell(5, i + 1);
+      cell.value = v;
+      aplicarEstiloCelula(cell, {
+        bg: C.cinzaEscuro, fg: C.branco, bold: true, size: 10,
+        hAlign: i === 0 ? "left" : "center",
+        border: borda(C.cinzaEscuro),
       });
-
-    // Total geral da aba 2
-    ws2.addRow([]);
-    const t2total = ws2.addRow([
-      "TOTAL GERAL",
-      rows.length,
-      totalAps,
-      valorPorAp,
-      totalGeral,
-    ]);
-    t2total.height = 28;
-    t2total.eachCell((cell, colNum) => {
-      cell.font = { name: "Calibri", bold: true, size: 12, color: { argb: COR_TOTAL_FG } };
-      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COR_TOTAL_BG } };
-      cell.border = bordaFina();
-      cell.alignment = { vertical: "middle" };
-      if (colNum >= 2) cell.alignment = { ...cell.alignment, horizontal: "center" };
-      if (colNum === 4 || colNum === 5) {
-        cell.alignment = { ...cell.alignment, horizontal: "right" };
-        cell.numFmt = '"R$" #,##0.00';
-      }
     });
 
-    // Enviar arquivo
+    // Dados por técnico
+    tecnicosOrdenados.forEach((tecnico, idx) => {
+      const os = porTecnico[tecnico];
+      const totalAps = os.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
+      const total = valorPorAp * totalAps;
+      const bg = idx % 2 === 0 ? C.branco : C.cinzaClaro;
+
+      const row = ws2.getRow(6 + idx);
+      row.height = 24;
+
+      [tecnico, os.length, totalAps, valorPorAp, total].forEach((v, i) => {
+        const cell = ws2.getCell(6 + idx, i + 1);
+        cell.value = v;
+        aplicarEstiloCelula(cell, {
+          bg, fg: C.cinzaEscuro, size: 11,
+          bold: i === 4,
+          hAlign: i === 0 ? "left" : i === 4 ? "right" : "center",
+          numFmt: i === 3 || i === 4 ? '"R$" #,##0.00' : undefined,
+          border: borda(),
+        });
+        // Destaque no total a receber
+        if (i === 4) {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: C.verdeClaro } };
+          cell.font = { ...cell.font, color: { argb: C.verdeMedio }, bold: true, size: 12 };
+        }
+      });
+    });
+
+    // Total geral aba 2
+    const rowTG = tecnicosOrdenados.length + 7;
+    ws2.addRow([]);
+    ws2.getRow(rowTG - 1).height = 8;
+
+    const tgRow = ws2.getRow(rowTG);
+    tgRow.height = 30;
+    [
+      "TOTAL GERAL",
+      concluidas.length,
+      totalApsGeral,
+      valorPorAp,
+      totalGeralVal,
+    ].forEach((v, i) => {
+      const cell = ws2.getCell(rowTG, i + 1);
+      cell.value = v;
+      aplicarEstiloCelula(cell, {
+        bg: C.azulEscuro, fg: C.branco, bold: true, size: 12,
+        hAlign: i === 0 ? "left" : i === 4 ? "right" : "center",
+        numFmt: i === 3 || i === 4 ? '"R$" #,##0.00' : undefined,
+        border: bordaMedia(),
+      });
+    });
+
+    // ── Enviar arquivo ───────────────────────────────────────────────────────
     const nomeArquivo = `relatorio-os-${new Date().toISOString().slice(0, 10)}.xlsx`;
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", `attachment; filename="${nomeArquivo}"`);
-    await workbook.xlsx.write(res);
+    await wb.xlsx.write(res);
     res.end();
   } catch (err) {
     console.error("[exportarRelatorioExcel]", err);
