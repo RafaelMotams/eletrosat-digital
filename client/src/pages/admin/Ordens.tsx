@@ -8,7 +8,7 @@ import {
   ClipboardList, Plus, Calendar, Image,
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
   Search, Filter, RefreshCw,
-  Wifi, TrendingUp, Trash2, Camera, X
+  Wifi, TrendingUp, Trash2, Camera, X, Download, FileSpreadsheet
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -222,6 +222,39 @@ export default function AdminOrdens() {
   const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
+  const [valorPorAp, setValorPorAp] = useState("");
+  const [exportando, setExportando] = useState(false);
+
+  async function handleExportarExcel() {
+    const valor = parseFloat(valorPorAp.replace(",", "."));
+    if (isNaN(valor) || valor < 0) {
+      toast.error("Informe um valor por AP válido");
+      return;
+    }
+    setExportando(true);
+    try {
+      const token = localStorage.getItem("tenant_admin_token") || "";
+      const params = new URLSearchParams({ valorPorAp: String(valor) });
+      const resp = await fetch(`/api/relatorio/excel?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error("Erro ao gerar planilha");
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `relatorio-os-${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Planilha exportada com sucesso!");
+      setExportOpen(false);
+    } catch (err) {
+      toast.error("Erro ao exportar planilha");
+    } finally {
+      setExportando(false);
+    }
+  }
 
   const deletarTodasMut = trpc.ordens.deletarTodas.useMutation({
     onSuccess: (data) => {
@@ -329,6 +362,11 @@ export default function AdminOrdens() {
             <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl gap-1.5"
               style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.36 0.14 240))", color: "white", border: "none" }}>
               <Plus className="w-4 h-4" /> Nova OS
+            </Button>
+            <Button variant="outline" size="sm"
+              onClick={() => { setExportOpen(true); setValorPorAp(""); }}
+              className="rounded-xl gap-1.5 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-950">
+              <FileSpreadsheet className="w-3.5 h-3.5" /> Exportar Planilha
             </Button>
             <Button variant="outline" size="sm"
               onClick={() => { setDeleteAllOpen(true); setDeleteConfirmText(""); }}
@@ -604,6 +642,59 @@ export default function AdminOrdens() {
                 <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Criando...</>
               ) : (
                 <><Plus className="w-4 h-4" />Criar OS</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Modal Exportar Planilha */}
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-green-600" />
+              Exportar Planilha Excel
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Informe o <strong>valor por AP instalado</strong> (R$). A planilha calculará automaticamente o total a pagar por técnico.
+            </p>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-foreground">Valor por AP (R$)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold">R$</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={valorPorAp}
+                  onChange={e => setValorPorAp(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                  onKeyDown={e => e.key === "Enter" && handleExportarExcel()}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Ex: 150,00 — será multiplicado pela quantidade de APs instalados em cada OS</p>
+            </div>
+            <div className="rounded-xl bg-muted/50 border border-border p-3 space-y-1">
+              <p className="text-xs font-semibold text-foreground">A planilha incluirá:</p>
+              <ul className="text-xs text-muted-foreground space-y-0.5">
+                <li>• Aba 1: Todas as OS concluídas com nome, INEP, município, data, APs, técnico e total</li>
+                <li>• Aba 2: Resumo de pagamento por técnico</li>
+                <li>• Total de OS concluídas: <strong className="text-foreground">{counts.concluida}</strong></li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setExportOpen(false)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={handleExportarExcel}
+              disabled={exportando || !valorPorAp.trim()}
+              className="rounded-xl gap-1.5 bg-green-600 hover:bg-green-700 text-white border-none">
+              {exportando ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Gerando...</>
+              ) : (
+                <><Download className="w-4 h-4" /> Baixar Planilha</>
               )}
             </Button>
           </DialogFooter>
