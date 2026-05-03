@@ -222,10 +222,10 @@ export default function AdminOrdens() {
   const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [exportOpen, setExportOpen] = useState(false);
+   const [exportOpen, setExportOpen] = useState(false);
   const [valorPorAp, setValorPorAp] = useState("");
   const [exportando, setExportando] = useState(false);
-
+  const [exportTecnicoId, setExportTecnicoId] = useState("todos");
   async function handleExportarExcel() {
     const valor = parseFloat(valorPorAp.replace(",", "."));
     if (isNaN(valor) || valor < 0) {
@@ -236,6 +236,12 @@ export default function AdminOrdens() {
     try {
       const token = localStorage.getItem("tenant_admin_token") || "";
       const params = new URLSearchParams({ valorPorAp: String(valor) });
+      if (exportTecnicoId && exportTecnicoId !== "todos") {
+        params.set("tecnicoId", exportTecnicoId);
+      }
+      const tecnicoNome = exportTecnicoId !== "todos"
+        ? tecnicos?.find(t => String(t.id) === exportTecnicoId)?.nome ?? "tecnico"
+        : "todos";
       const resp = await fetch(`/api/relatorio/excel?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -244,7 +250,8 @@ export default function AdminOrdens() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `relatorio-os-${new Date().toISOString().slice(0,10)}.xlsx`;
+      const sufixo = exportTecnicoId !== "todos" ? `-${tecnicoNome.toLowerCase().replace(/\s+/g, "-")}` : "";
+      a.download = `relatorio-os${sufixo}-${new Date().toISOString().slice(0,10)}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Planilha exportada com sucesso!");
@@ -364,7 +371,7 @@ export default function AdminOrdens() {
               <Plus className="w-4 h-4" /> Nova OS
             </Button>
             <Button variant="outline" size="sm"
-              onClick={() => { setExportOpen(true); setValorPorAp(""); }}
+              onClick={() => { setExportOpen(true); setValorPorAp(""); setExportTecnicoId("todos"); }}
               className="rounded-xl gap-1.5 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-950">
               <FileSpreadsheet className="w-3.5 h-3.5" /> Exportar Planilha
             </Button>
@@ -660,6 +667,20 @@ export default function AdminOrdens() {
             <p className="text-sm text-muted-foreground">
               Informe o <strong>valor por AP instalado</strong> (R$). A planilha calculará automaticamente o total a pagar por técnico.
             </p>
+            {/* Filtro por técnico */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-foreground">Técnico</label>
+              <select
+                value={exportTecnicoId}
+                onChange={e => setExportTecnicoId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+              >
+                <option value="todos">Todos os técnicos</option>
+                {tecnicos?.filter(t => t.ativo).map(t => (
+                  <option key={t.id} value={String(t.id)}>{t.nome}</option>
+                ))}
+              </select>
+            </div>
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-foreground">Valor por AP (R$)</label>
               <div className="relative">

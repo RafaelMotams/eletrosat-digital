@@ -70,9 +70,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const tenantId = session?.tenantId ?? undefined;
 
     const valorPorAp = parseFloat(req.query.valorPorAp as string) || 0;
+    const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
 
     // Dados
-    const concluidas = await getOsDetalhadas({ tenantId });
+    const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam });
 
     // Agrupar por técnico (ordenado por nome)
     const porTecnico: Record<string, typeof concluidas> = {};
