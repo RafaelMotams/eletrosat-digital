@@ -332,3 +332,21 @@
 - [x] Frontend: relatório mostra coluna "Valor (R$)" calculada automaticamente por OS
 - [x] Frontend: relatório mostra total de valor por técnico e total geral
 - [x] Excel exportado já traz o valor calculado preenchido (não mais em branco)
+
+## Redesign Total App Técnico v5 — Enterprise Premium (04/05/2026)
+- [ ] Login: splash screen com partículas animadas, logo com efeito de brilho pulsante, barra de progresso premium
+- [ ] Login: formulário com glassmorphism avançado, campos flutuantes, animação de entrada
+- [ ] Home: header com gradiente dinâmico, avatar do técnico, indicador online/offline
+- [ ] Home: cards de métricas com ícones animados e gradientes únicos por métrica
+- [ ] Home: lista de escolas com cards premium (número de rota, badge AP, status visual)
+- [ ] Home: barra de busca com filtros por status em chips coloridos
+- [ ] OS: stepper visual com animações de transição entre etapas
+- [ ] OS: cards de informação com ícones coloridos e layout mais espaçoso
+- [ ] OS: botões de ação (WhatsApp, Maps) com gradientes e ícones grandes
+- [ ] OS: seção de fotos com grid visual e indicadores de progresso
+- [ ] Perfil: header com gradiente e avatar grande com iniciais
+- [ ] Perfil: cards de stats com animações e cores distintas
+- [ ] Perfil: barra de progresso animada e badge de conquista
+- [ ] Histórico: cards premium com timeline visual e filtros elegantes
+- [ ] Bottom Nav: design com gradiente ativo, ícones animados e indicador de posição
+- [ ] CSS global: adicionar classes utilitárias para o app do técnico
