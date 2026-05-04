@@ -216,10 +216,10 @@ function exportarExcel(
   const sHeader   = { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1E3A5F" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
   const sData     = { font: { sz: 10 }, alignment: { vertical: "center" } };
   const sDataAlt  = { font: { sz: 10 }, fill: { fgColor: { rgb: "F4F7FB" } }, alignment: { vertical: "center" } };
-  const sValor    = { font: { bold: true, sz: 10, color: { rgb: "1A6B3A" } }, fill: { fgColor: { rgb: "E8F5EE" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: "R$ #,##0.00" };
+  const FMT_CONT  = '_-R$ * #,##0.00_-;-R$ * #,##0.00_-;_-R$ * "-"??_-;_-@_-';
+  const sValor    = { font: { bold: true, sz: 10, color: { rgb: "1A6B3A" } }, fill: { fgColor: { rgb: "E8F5EE" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: FMT_CONT };
   const sTotal    = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "center", vertical: "center" } };
-  const sTotalVal = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: "R$ #,##0.00" };
-
+  const sTotalVal = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: FMT_CONT };
   const cols1 = ["A","B","C","D","E","F","G","H","I"];
   const hdrs1 = ["Nº","Nome da Escola","INEP","Município","UF","Técnico","Data Conclusão","APs Instalados","Valor por AP (R$)"];
 
