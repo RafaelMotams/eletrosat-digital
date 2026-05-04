@@ -306,23 +306,23 @@
 - [x] trpcClient vanilla exportado do trpc.ts para uso fora de componentes React
 
 ## Sistema de Painel de Revenda (Cliente) — 04/05/2026
-- [ ] Superadmin: melhorar painel de gestão de clientes com design enterprise
-- [ ] Superadmin: criar cliente com nome, slug, email, senha do painel, plano e status
-- [ ] Superadmin: listar clientes com stats (técnicos, escolas, OS concluídas)
-- [ ] Superadmin: editar/suspender/reativar cliente
-- [ ] Superadmin: acessar painel do cliente diretamente (impersonar)
-- [ ] Painel cliente: rota /cliente/:slug/* com todas as funcionalidades do admin
-- [ ] Painel cliente: Dashboard com KPIs do tenant
-- [ ] Painel cliente: Técnicos (criar, editar, deletar técnicos do tenant)
-- [ ] Painel cliente: Escolas (listar, importar planilha, editar escolas do tenant)
-- [ ] Painel cliente: Atribuições (por cidade + por escola do tenant)
-- [ ] Painel cliente: Ordens de Serviço (listar, filtrar, ver fotos do tenant)
-- [ ] Painel cliente: Relatórios (filtros por técnico/período, exportar Excel do tenant)
-- [ ] Painel cliente: Mapa interativo com escolas do tenant
-- [ ] Painel cliente: Importação de planilha para o tenant
-- [ ] Painel cliente: Configurações (alterar senha, nome da empresa)
-- [ ] App técnico: login do técnico funciona independente do tenant (tenantId isolado)
-- [ ] Login unificado: /login detecta se é superadmin, cliente ou técnico
+- [x] Superadmin: melhorar painel de gestão de clientes com design enterprise
+- [x] Superadmin: criar cliente com nome, slug, email, senha do painel, plano e status
+- [x] Superadmin: listar clientes com stats (técnicos, escolas, OS concluídas)
+- [x] Superadmin: editar/suspender/reativar cliente
+- [x] Superadmin: acessar painel do cliente diretamente (impersonar)
+- [x] Painel cliente: rota /admin/* com dados isolados por tenant JWT (AdminLayoutTenant)
+- [x] Painel cliente: Dashboard com KPIs do tenant
+- [x] Painel cliente: Técnicos (criar, editar, deletar técnicos do tenant)
+- [x] Painel cliente: Escolas (listar, importar planilha, editar escolas do tenant)
+- [x] Painel cliente: Atribuições (por cidade + por escola do tenant)
+- [x] Painel cliente: Ordens de Serviço (listar, filtrar, ver fotos do tenant)
+- [x] Painel cliente: Relatórios (filtros por técnico/período, exportar Excel do tenant)
+- [x] Painel cliente: Mapa interativo com escolas do tenant
+- [x] Painel cliente: Importação de planilha para o tenant
+- [x] Painel cliente: Configurações (alterar senha, nome da empresa)
+- [x] App técnico: login do técnico funciona independente do tenant (tenantId isolado)
+- [x] Login unificado: /admin/login para cliente, /superadmin/login para superadmin, /tecnico/login para técnico
 
 ## Valor por AP por Técnico — 04/05/2026
 - [x] Schema: tabela tecnico_valores_ap (id, tecnico_id, qtd_ap 1-15, valor decimal)
