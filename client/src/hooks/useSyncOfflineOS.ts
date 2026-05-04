@@ -45,6 +45,16 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     try {
       await dbUpdateOSStatus(os.id, "syncing");
 
+      if (os.tipo === "iniciar") {
+        // Apenas iniciar a OS no servidor
+        await trpcClient.tecnicoAuth.iniciarOS.mutate({
+          tecnicoId: os.tecnicoId,
+          escolaId: os.escolaId,
+        });
+        await dbUpdateOSStatus(os.id, "done");
+        return true;
+      }
+
       // Passo 1: Concluir a OS no servidor
       const resultado = await trpcClient.tecnicoAuth.concluirEscola.mutate({
         tecnicoId: os.tecnicoId,

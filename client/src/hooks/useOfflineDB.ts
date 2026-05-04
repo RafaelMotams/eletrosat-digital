@@ -35,6 +35,8 @@ export type PendingOS = {
   dataHora: string;
   fotos: FotoOffline[];
   status: "pending" | "syncing" | "done" | "error";
+  /** "iniciar" = apenas iniciar a OS; "concluir" = concluir com fotos (padrão) */
+  tipo?: "iniciar" | "concluir";
   errorMsg?: string;
   createdAt: number;
   syncedAt?: number;

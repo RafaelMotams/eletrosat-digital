@@ -491,6 +491,32 @@ export default function TecnicoOS() {
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
   });
 
+  // Estado local para simular "em andamento" offline imediatamente
+  const [localStatus, setLocalStatus] = useState<string | null>(null);
+
+  async function handleIniciarOS() {
+    if (!isOnline) {
+      // Offline: salva no IndexedDB e atualiza estado local
+      try {
+        await dbEnqueueOS({
+          escolaId,
+          tecnicoId,
+          qtdApInstalado: 0,
+          observacao: "",
+          dataHora: new Date().toISOString(),
+          fotos: [],
+          tipo: "iniciar",
+        });
+        setLocalStatus("em_andamento");
+        toast.success("OS iniciada offline — será sincronizada ao voltar online");
+      } catch {
+        toast.error("Erro ao salvar offline");
+      }
+      return;
+    }
+    iniciarMut.mutate({ escolaId, tecnicoId });
+  }
+
   const naoInstaladaMut = trpc.tecnicoAuth.naoInstalada.useMutation({
     onSuccess: () => {
       toast.success("Registrado como não instalada.");
@@ -543,8 +569,10 @@ export default function TecnicoOS() {
 
   const isConcluida = escola?.status === "concluido";
   const isNaoInstalada = escola?.status === "nao_instalada";
-  const isPendente = escola?.status === "pendente";
-  const isEmAndamento = escola?.status === "em_andamento";
+  // Considera localStatus (offline) ou status do servidor
+  const effectiveStatus = localStatus ?? escola?.status;
+  const isPendente = effectiveStatus === "pendente";
+  const isEmAndamento = effectiveStatus === "em_andamento";
 
   const stepActive = isPendente ? 1 : isEmAndamento ? 2 : 3;
 
@@ -840,7 +868,7 @@ export default function TecnicoOS() {
           <div className="space-y-3">
             {isPendente && (
               <button
-                onClick={() => iniciarMut.mutate({ escolaId, tecnicoId })}
+                onClick={handleIniciarOS}
                 disabled={iniciarMut.isPending}
                 className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
                 style={{
@@ -850,6 +878,8 @@ export default function TecnicoOS() {
                 }}>
                 {iniciarMut.isPending ? (
                   <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Iniciando...</>
+                ) : !isOnline ? (
+                  <><WifiOff className="w-5 h-5" /> Iniciar Offline</>
                 ) : (
                   <><Play className="w-5 h-5" fill="white" /> Iniciar Ordem de Serviço</>
                 )}
