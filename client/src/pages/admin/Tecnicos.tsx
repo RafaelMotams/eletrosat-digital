@@ -62,7 +62,7 @@ export default function AdminTecnicos() {
       if (criado) {
         const payload = valoresAp.map((v, i) => ({
           qtdAp: i + 1,
-          valor: parseFloat(String(v).replace(",", ".")) || 0,
+          valor: parseBRL(v),
         }));
         await setValoresMut.mutateAsync({ tecnicoId: criado.id, valores: payload });
       }
@@ -78,7 +78,7 @@ export default function AdminTecnicos() {
       if (editId !== null) {
         const payload = valoresAp.map((v, i) => ({
           qtdAp: i + 1,
-          valor: parseFloat(String(v).replace(",", ".")) || 0,
+          valor: parseBRL(v),
         }));
         await setValoresMut.mutateAsync({ tecnicoId: editId, valores: payload });
       }
@@ -112,6 +112,27 @@ export default function AdminTecnicos() {
     setForm({ nome: t.nome, telefone: t.telefone ?? "", email: t.email, senha: "", cidadeResponsavel: t.cidadeResponsavel ?? "" });
     setEditId(t.id);
     setOpen(true);
+  }
+
+  // Converte string no formato brasileiro (1.000,50 ou 1000 ou 1000.50) para número
+  function parseBRL(s: string): number {
+    if (!s || s.trim() === "") return 0;
+    // Remove espaços
+    let v = s.trim();
+    // Se tem vírgula, trata como decimal BR: remove pontos de milhar, troca vírgula por ponto
+    if (v.includes(",")) {
+      v = v.replace(/\./g, "").replace(",", ".");
+    } else {
+      // Sem vírgula: se tem ponto e mais de 3 dígitos depois, é decimal; senão é milhar
+      const parts = v.split(".");
+      if (parts.length === 2 && parts[1].length === 3) {
+        // Ex: 1.000 → milhar → remove o ponto
+        v = v.replace(".", "");
+      }
+      // Ex: 1000.50 → já está correto
+    }
+    const n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
   }
 
   function handleSubmit() {
@@ -309,16 +330,17 @@ export default function AdminTecnicos() {
                     <div className="flex-1 relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium pointer-events-none">R$</span>
                       <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={valoresAp[i]}
                         onChange={e => {
+                          // Permite apenas dígitos, ponto e vírgula
+                          const raw = e.target.value.replace(/[^0-9.,]/g, "");
                           const arr = [...valoresAp];
-                          arr[i] = e.target.value;
+                          arr[i] = raw;
                           setValoresAp(arr);
                         }}
-                        placeholder="0,00"
+                        placeholder="Ex: 1.000"
                         className="rounded-xl pl-7 text-sm h-8"
                       />
                     </div>
