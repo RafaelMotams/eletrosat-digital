@@ -2,12 +2,23 @@ import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { Eye, EyeOff, Wifi, ArrowRight, Shield, Zap, BarChart3 } from "lucide-react";
+import {
+  Eye, EyeOff, Wifi, ArrowRight, Shield, Zap, BarChart3,
+  Users, MapPin, FileText, CheckCircle, Lock,
+} from "lucide-react";
+
+const stats = [
+  { value: "5.000+", label: "Escolas" },
+  { value: "120+", label: "Técnicos" },
+  { value: "98%", label: "Uptime" },
+  { value: "15k+", label: "OS Concluídas" },
+];
 
 const features = [
-  { icon: BarChart3, label: "Dashboard em tempo real", desc: "KPIs e métricas atualizados automaticamente" },
-  { icon: Zap, label: "Gestão de OS ágil", desc: "Atribua e acompanhe ordens de serviço com facilidade" },
-  { icon: Shield, label: "Isolamento por tenant", desc: "Dados seguros e separados por empresa" },
+  { icon: BarChart3, label: "Dashboard em tempo real", desc: "KPIs e métricas atualizados a cada 30 segundos" },
+  { icon: Users, label: "Gestão de técnicos", desc: "Atribuição automática por cidade ou manual" },
+  { icon: MapPin, label: "Mapa interativo", desc: "Visualize todas as escolas com status em tempo real" },
+  { icon: FileText, label: "Relatórios com Excel", desc: "Exportação profissional com valores calculados" },
 ];
 
 export default function AdminLogin() {
@@ -16,8 +27,13 @@ export default function AdminLogin() {
   const [senha, setSenha] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [focusEmail, setFocusEmail] = useState(false);
+  const [focusSenha, setFocusSenha] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   const loginMutation = trpc.superadmin.login.useMutation({
     onSuccess: (data) => {
@@ -43,145 +59,269 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "oklch(0.07 0.035 240)" }}>
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 p-12 relative overflow-hidden"
-        style={{ background: "linear-gradient(160deg, oklch(0.11 0.055 240) 0%, oklch(0.09 0.04 250) 100%)", borderRight: "1px solid oklch(0.18 0.05 240)" }}>
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-10"
-            style={{ background: "radial-gradient(circle, oklch(0.50 0.18 162), transparent)" }} />
-          <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full opacity-8"
-            style={{ background: "radial-gradient(circle, oklch(0.40 0.18 240), transparent)" }} />
-        </div>
+    <div
+      className="min-h-screen flex"
+      style={{
+        background: "#060d1f",
+        fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+      }}
+    >
+      {/* ── Ambient particles ── */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div style={{ position: "absolute", width: 500, height: 500, top: "-10%", left: "-10%", background: "radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div style={{ position: "absolute", width: 600, height: 600, bottom: "-15%", right: "-15%", background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+      </div>
+
+      {/* ── Left branding panel ── */}
+      <div
+        className="hidden lg:flex flex-col justify-between relative overflow-hidden z-10"
+        style={{
+          width: 520,
+          flexShrink: 0,
+          padding: "48px 52px",
+          background: "linear-gradient(160deg, rgba(16,185,129,0.06) 0%, rgba(6,13,31,0.95) 40%, rgba(99,102,241,0.06) 100%)",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        {/* Glow orbs */}
+        <div style={{ position: "absolute", top: 60, left: -80, width: 300, height: 300, background: "radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: 80, right: -60, width: 250, height: 250, background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+
+        {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.55 0.22 162))", boxShadow: "0 0 30px oklch(0.50 0.18 162 / 0.35)" }}>
-              <Wifi className="w-5 h-5 text-white" />
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 64 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 14,
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 0 30px rgba(16,185,129,0.45)",
+            }}>
+              <Wifi size={22} color="white" />
             </div>
             <div>
-              <p className="text-white font-black text-xl tracking-tight">Netvionis</p>
-              <p className="text-xs" style={{ color: "oklch(0.50 0.04 240)" }}>Plataforma de Gestão</p>
+              <p style={{ color: "white", fontWeight: 800, fontSize: 22, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
+              <p style={{ color: "rgba(16,185,129,0.7)", fontSize: 11, fontWeight: 500, marginTop: 3 }}>Plataforma de Gestão</p>
             </div>
           </div>
-          <div style={{ transition: "all 0.7s", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)" }}>
-            <h1 className="text-4xl font-black text-white leading-tight mb-4">
-              Gerencie sua equipe com
-              <span className="block" style={{ color: "oklch(0.60 0.20 162)" }}>inteligência</span>
+
+          {/* Headline */}
+          <div style={{ opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)" }}>
+            <h1 style={{ color: "white", fontSize: 38, fontWeight: 800, lineHeight: 1.15, marginBottom: 16, fontFamily: "'Outfit', sans-serif" }}>
+              Gerencie sua equipe com{" "}
+              <span style={{ background: "linear-gradient(135deg, #10b981, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                inteligência
+              </span>
             </h1>
-            <p className="text-base leading-relaxed" style={{ color: "oklch(0.55 0.04 240)" }}>
+            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
               Controle instalações, acompanhe técnicos e visualize o progresso de cada escola em tempo real.
             </p>
           </div>
-        </div>
-        <div className="relative z-10 space-y-4">
-          {features.map((f, i) => {
-            const Icon = f.icon;
-            return (
-              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl"
-                style={{
-                  background: "oklch(0.14 0.05 240 / 0.6)",
-                  border: "1px solid oklch(0.20 0.05 240)",
-                  transition: "all 0.7s",
-                  transitionDelay: `${i * 100 + 200}ms`,
-                  opacity: mounted ? 1 : 0,
-                  transform: mounted ? "translateX(0)" : "translateX(-16px)",
+
+          {/* Stats row */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 40,
+            opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)",
+            transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)", transitionDelay: "0.1s",
+          }}>
+            {stats.map((s, i) => (
+              <div key={i} style={{
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: 12, padding: "14px 10px", textAlign: "center",
+              }}>
+                <p style={{ color: "#10b981", fontWeight: 800, fontSize: 18, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{s.value}</p>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 4 }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Features */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {features.map((f, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: 14,
+                padding: "14px 16px", borderRadius: 14,
+                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                opacity: mounted ? 1 : 0, transform: mounted ? "translateX(0)" : "translateX(-16px)",
+                transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)", transitionDelay: `${i * 80 + 200}ms`,
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                  background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "oklch(0.50 0.18 162 / 0.15)" }}>
-                  <Icon className="w-4 h-4" style={{ color: "oklch(0.60 0.20 162)" }} />
+                  <f.icon size={16} color="#10b981" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">{f.label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.50 0.04 240)" }}>{f.desc}</p>
+                  <p style={{ color: "white", fontWeight: 600, fontSize: 13 }}>{f.label}</p>
+                  <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginTop: 2 }}>{f.desc}</p>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-        <p className="relative z-10 text-xs" style={{ color: "oklch(0.38 0.04 240)" }}>
-          © 2026 Netvionis · Todos os direitos reservados
+
+        {/* Footer */}
+        <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, position: "relative", zIndex: 10 }}>
+          © {new Date().getFullYear()} Netvionis · Todos os direitos reservados
         </p>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md" style={{ transition: "all 0.5s", opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(24px)" }}>
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.55 0.22 162))" }}>
-              <Wifi className="w-5 h-5 text-white" />
+      {/* ── Right form panel ── */}
+      <div className="flex-1 flex items-center justify-center relative z-10" style={{ padding: "32px 24px" }}>
+        <div style={{
+          width: "100%", maxWidth: 420,
+          opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(28px)",
+          transition: "all 0.6s cubic-bezier(0.16,1,0.3,1)", transitionDelay: "0.15s",
+        }}>
+          {/* Mobile logo */}
+          <div className="lg:hidden" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 40 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12,
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 0 20px rgba(16,185,129,0.4)",
+            }}>
+              <Wifi size={20} color="white" />
             </div>
-            <p className="text-white font-black text-xl">Netvionis</p>
+            <p style={{ color: "white", fontWeight: 800, fontSize: 20, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
           </div>
-          <div className="mb-8">
-            <h2 className="text-3xl font-black text-white mb-2">Bem-vindo de volta</h2>
-            <p className="text-sm" style={{ color: "oklch(0.55 0.04 240)" }}>
-              Entre com suas credenciais para acessar o painel
-            </p>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "oklch(0.72 0.04 240)" }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                autoComplete="email"
-                className="w-full px-4 py-3.5 rounded-xl text-white placeholder-gray-600 outline-none transition-all text-sm"
-                style={{ background: "oklch(0.13 0.05 240)", border: "1.5px solid oklch(0.22 0.05 240)" }}
-                onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; e.target.style.boxShadow = "0 0 0 3px oklch(0.50 0.18 162 / 0.15)"; }}
-                onBlur={e => { e.target.style.borderColor = "oklch(0.22 0.05 240)"; e.target.style.boxShadow = "none"; }}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: "oklch(0.72 0.04 240)" }}>Senha</label>
-              <div className="relative">
-                <input
-                  type={showPass ? "text" : "password"}
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3.5 pr-12 rounded-xl text-white placeholder-gray-600 outline-none transition-all text-sm"
-                  style={{ background: "oklch(0.13 0.05 240)", border: "1.5px solid oklch(0.22 0.05 240)" }}
-                  onFocus={e => { e.target.style.borderColor = "oklch(0.50 0.18 162)"; e.target.style.boxShadow = "0 0 0 3px oklch(0.50 0.18 162 / 0.15)"; }}
-                  onBlur={e => { e.target.style.borderColor = "oklch(0.22 0.05 240)"; e.target.style.boxShadow = "none"; }}
-                />
-                <button type="button" onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-white/10 transition-colors"
-                  style={{ color: "oklch(0.50 0.04 240)" }}>
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={loginMutation.isPending}
-              className="w-full py-3.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all mt-2"
-              style={{
-                background: loginMutation.isPending ? "oklch(0.40 0.18 162 / 0.5)" : "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.20 162))",
-                boxShadow: loginMutation.isPending ? "none" : "0 4px 20px oklch(0.50 0.18 162 / 0.35)",
+
+          {/* Form card */}
+          <div style={{
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24, padding: "40px 36px",
+            boxShadow: "0 32px 64px rgba(0,0,0,0.4)",
+          }}>
+            {/* Header */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)",
+                borderRadius: 100, padding: "5px 14px", marginBottom: 20,
               }}>
-              {loginMutation.isPending ? (
-                <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Entrando...</>
-              ) : (
-                <>Entrar no painel<ArrowRight className="w-4 h-4" /></>
-              )}
-            </button>
-          </form>
-          <div className="mt-8 p-4 rounded-2xl" style={{ background: "oklch(0.12 0.04 240)", border: "1px solid oklch(0.18 0.05 240)" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <Shield className="w-3.5 h-3.5" style={{ color: "oklch(0.50 0.18 162)" }} />
-              <p className="text-xs font-semibold" style={{ color: "oklch(0.60 0.04 240)" }}>Acesso seguro</p>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
+                <span style={{ color: "#10b981", fontSize: 12, fontWeight: 600 }}>Sistema online</span>
+              </div>
+              <h2 style={{ color: "white", fontWeight: 800, fontSize: 28, fontFamily: "'Outfit', sans-serif", lineHeight: 1.2, marginBottom: 8 }}>
+                Bem-vindo de volta
+              </h2>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>
+                Entre com suas credenciais para acessar o painel
+              </p>
             </div>
-            <p className="text-xs" style={{ color: "oklch(0.45 0.04 240)" }}>
-              Suas credenciais são protegidas com criptografia de ponta a ponta. Sessão expira automaticamente após inatividade.
-            </p>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {/* Email */}
+              <div>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocusEmail(true)}
+                  onBlur={() => setFocusEmail(false)}
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  style={{
+                    width: "100%", padding: "13px 16px", borderRadius: 12,
+                    background: "rgba(255,255,255,0.05)",
+                    border: focusEmail ? "1.5px solid #10b981" : "1.5px solid rgba(255,255,255,0.1)",
+                    boxShadow: focusEmail ? "0 0 0 3px rgba(16,185,129,0.15)" : "none",
+                    color: "white", fontSize: 14, outline: "none",
+                    transition: "all 0.2s",
+                  }}
+                />
+              </div>
+
+              {/* Senha */}
+              <div>
+                <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
+                  Senha
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPass ? "text" : "password"}
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    onFocus={() => setFocusSenha(true)}
+                    onBlur={() => setFocusSenha(false)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    style={{
+                      width: "100%", padding: "13px 48px 13px 16px", borderRadius: 12,
+                      background: "rgba(255,255,255,0.05)",
+                      border: focusSenha ? "1.5px solid #10b981" : "1.5px solid rgba(255,255,255,0.1)",
+                      boxShadow: focusSenha ? "0 0 0 3px rgba(16,185,129,0.15)" : "none",
+                      color: "white", fontSize: 14, outline: "none",
+                      transition: "all 0.2s",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(v => !v)}
+                    style={{
+                      position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer", padding: 4,
+                      color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center",
+                    }}
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loginMutation.isPending}
+                style={{
+                  width: "100%", padding: "14px 24px", borderRadius: 12,
+                  background: loginMutation.isPending
+                    ? "rgba(16,185,129,0.4)"
+                    : "linear-gradient(135deg, #10b981, #059669)",
+                  color: "white", fontWeight: 700, fontSize: 15,
+                  border: "none", cursor: loginMutation.isPending ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  boxShadow: loginMutation.isPending ? "none" : "0 8px 24px rgba(16,185,129,0.4)",
+                  transition: "all 0.2s", marginTop: 4,
+                }}
+                onMouseEnter={e => { if (!loginMutation.isPending) (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; }}
+              >
+                {loginMutation.isPending ? (
+                  <>
+                    <div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    Entrando...
+                  </>
+                ) : (
+                  <>Entrar no painel <ArrowRight size={16} /></>
+                )}
+              </button>
+            </form>
+
+            {/* Security note */}
+            <div style={{
+              marginTop: 24, padding: "14px 16px", borderRadius: 12,
+              background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+              display: "flex", alignItems: "flex-start", gap: 10,
+            }}>
+              <Lock size={14} color="rgba(16,185,129,0.7)" style={{ flexShrink: 0, marginTop: 1 }} />
+              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, lineHeight: 1.5 }}>
+                Suas credenciais são protegidas com criptografia. Sessão expira automaticamente após inatividade.
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
