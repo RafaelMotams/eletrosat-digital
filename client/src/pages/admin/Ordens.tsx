@@ -48,17 +48,28 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Modal de fotos por categoria ─────────────────────────────────────────────
 function FotosOsModal({
   osId,
+  escolaId,
   escolaNome,
   onClose,
 }: {
   osId: number;
+  escolaId: number;
   escolaNome: string;
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<string>("mapa_calor");
   const [lightbox, setLightbox] = useState<string | null>(null);
 
-  const { data: fotos, isLoading } = trpc.ordens.getOsFotos.useQuery({ osId });
+  // Busca fotos por escola (agrega todas as OS da escola, evita problema de OS duplicadas offline)
+  const { data: fotosPorEscola, isLoading: loadingEscola } = trpc.ordens.getOsFotosByEscola.useQuery({ escolaId });
+  // Fallback: busca por osId se a query por escola falhar
+  const { data: fotosPorOs, isLoading: loadingOs } = trpc.ordens.getOsFotos.useQuery(
+    { osId },
+    { enabled: !fotosPorEscola || fotosPorEscola.length === 0 }
+  );
+
+  const isLoading = loadingEscola || loadingOs;
+  const fotos = (fotosPorEscola && fotosPorEscola.length > 0) ? fotosPorEscola : (fotosPorOs ?? []);
 
   const fotosAba = (fotos ?? []).filter((f: { categoria: string }) => f.categoria === tab);
 
@@ -219,7 +230,7 @@ export default function AdminOrdens() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [fotoModal, setFotoModal] = useState<string | null>(null);
-  const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
+  const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaId: number; escolaNome: string } | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
    const [exportOpen, setExportOpen] = useState(false);
@@ -496,7 +507,7 @@ export default function AdminOrdens() {
                       </button>
                     )}
                     <button
-                      onClick={() => setFotosOsModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId) })}
+                      onClick={() => setFotosOsModal({ osId: os.id, escolaId: os.escolaId, escolaNome: getEscolaNome(os.escolaId) })}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                       style={{ background: "oklch(0.94 0.05 240)", color: "oklch(0.30 0.14 240)", border: "1px solid oklch(0.84 0.08 240)" }}>
                       <Camera className="w-3.5 h-3.5" />
@@ -525,6 +536,7 @@ export default function AdminOrdens() {
       {fotosOsModal && (
         <FotosOsModal
           osId={fotosOsModal.osId}
+          escolaId={fotosOsModal.escolaId}
           escolaNome={fotosOsModal.escolaNome}
           onClose={() => setFotosOsModal(null)}
         />

@@ -620,18 +620,25 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .mutation(async ({ input }) => {
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
-      // Buscar OS existente em_andamento ou aberta para este técnico+escola
+      // Buscar OS existente para este técnico+escola (qualquer status)
       const ordensExistentes = await listOrdensServico({ tecnicoId: input.tecnicoId });
-      const osExistente = ordensExistentes.find(
+      // Prioridade: em_andamento/aberta → concluida (evita duplicatas offline)
+      const osEmAndamento = ordensExistentes.find(
         o => o.escolaId === input.escolaId && (o.status === "em_andamento" || o.status === "aberta")
       );
+      const osJaConcluida = ordensExistentes.find(
+        o => o.escolaId === input.escolaId && o.status === "concluida"
+      );
+      const osExistente = osEmAndamento ?? osJaConcluida;
       let osId: number;
       if (osExistente) {
-        // Atualizar a OS existente para concluída
-        await concluirOrdemServico(osExistente.id, input.qtdApInstalado, input.observacao ?? "");
+        // Atualizar a OS existente para concluída (ou manter se já concluída)
+        if (osExistente.status !== "concluida") {
+          await concluirOrdemServico(osExistente.id, input.qtdApInstalado, input.observacao ?? "");
+        }
         osId = osExistente.id;
       } else {
-        // Criar nova OS já concluída (fallback)
+        // Criar nova OS já concluída (fallback — escola sem OS prévia)
         const os = await createOrdemServico({
           escolaId: input.escolaId,
           tecnicoId: input.tecnicoId,
