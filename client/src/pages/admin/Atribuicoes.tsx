@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState, useCallback } from "react";
-import { GitBranch, School, MapPin, Users, Zap, CheckCircle2, Clock, ChevronDown } from "lucide-react";
+import { GitBranch, School, MapPin, Users, Zap, CheckCircle2, Clock, ChevronDown, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const statusClass: Record<string, string> = {
   pendente: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -133,6 +134,9 @@ export default function AdminAtribuicoes() {
   const [filtroCidade, setFiltroCidade] = useState("");
   const [filtroCidadeOpen, setFiltroCidadeOpen] = useState(false);
 
+  // Busca por INEP e nome da escola
+  const [buscaEscola, setBuscaEscola] = useState("");
+
   // Cidades únicas
   const cidades = Array.from(
     new Set((escolas ?? []).map(e => e.municipio).filter(Boolean) as string[])
@@ -158,9 +162,15 @@ export default function AdminAtribuicoes() {
   }
 
   const escolasPendentes = (escolas ?? []).filter(e => e.status !== "concluido");
-  const escolasFiltradas = filtroCidade
-    ? escolasPendentes.filter(e => e.municipio === filtroCidade)
-    : escolasPendentes;
+  const escolasFiltradas = escolasPendentes
+    .filter(e => !filtroCidade || e.municipio === filtroCidade)
+    .filter(e => {
+      if (!buscaEscola.trim()) return true;
+      const termo = buscaEscola.toLowerCase().trim();
+      const nomeMatch = e.nome?.toLowerCase().includes(termo);
+      const inepMatch = String((e as any).inep ?? "").toLowerCase().includes(termo);
+      return nomeMatch || inepMatch;
+    });
 
   return (
     <AdminLayoutAuto title="Atribuições">
@@ -318,6 +328,26 @@ export default function AdminAtribuicoes() {
                 (sobrescreve regra de cidade)
               </span>
             </CardTitle>
+            {/* Busca por INEP e nome */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={buscaEscola}
+                  onChange={e => setBuscaEscola(e.target.value)}
+                  placeholder="Buscar por INEP ou nome da escola..."
+                  className="h-8 pl-8 pr-8 text-xs w-64"
+                />
+                {buscaEscola && (
+                  <button
+                    type="button"
+                    onClick={() => setBuscaEscola("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             {/* Filtro por cidade */}
             <div className="relative">
               <button
@@ -360,19 +390,30 @@ export default function AdminAtribuicoes() {
                 </>
               )}
             </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {filtroCidade && (
-            <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span className="text-sm text-primary font-medium">{filtroCidade}</span>
-              <span className="text-xs text-muted-foreground">— {escolasFiltradas.length} escola(s)</span>
+          {(filtroCidade || buscaEscola) && (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 flex-wrap">
+              {filtroCidade && (
+                <>
+                  <MapPin className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-sm text-primary font-medium">{filtroCidade}</span>
+                </>
+              )}
+              {buscaEscola && (
+                <>
+                  <Search className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-sm text-primary font-medium">"{buscaEscola}"</span>
+                </>
+              )}
+              <span className="text-xs text-muted-foreground">— {escolasFiltradas.length} escola(s) encontrada(s)</span>
               <button
-                onClick={() => setFiltroCidade("")}
-                className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => { setFiltroCidade(""); setBuscaEscola(""); }}
+                className="ml-auto text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
               >
-                Limpar filtro
+                <X className="w-3 h-3" /> Limpar filtros
               </button>
             </div>
           )}
