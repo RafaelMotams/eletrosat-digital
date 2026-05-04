@@ -25,7 +25,7 @@ import {
   dbRemoveDoneOS,
   PendingOS,
 } from "./useOfflineDB";
-import { trpcClient } from "@/lib/trpc";
+import { trpcClient, trpcUploadClient } from "@/lib/trpc";
 
 export type SyncState = {
   isSyncing: boolean;
@@ -92,10 +92,20 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       const osIdFinal: number = (resultado as { osId?: number })?.osId ?? 0;
 
       // Passo 2: Upload das fotos (se houver osId válido)
+      // Usa trpcUploadClient (sem batching) para garantir que cada foto
+      // é enviada em um request HTTP separado, evitando falhas por payload grande
       if (osIdFinal > 0 && os.fotos && os.fotos.length > 0) {
+        let fotosFalhas = 0;
         for (const foto of os.fotos) {
           try {
-            await trpcClient.tecnicoAuth.uploadOsFoto.mutate({
+            // Valida categoria antes de enviar
+            const categoriasValidas = ["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
+            const catValida = categoriasValidas.includes(foto.categoria as typeof categoriasValidas[number]);
+            if (!catValida) {
+              console.warn("[SyncOffline] Categoria inválida, pulando:", foto.categoria);
+              continue;
+            }
+            await trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
               osId: osIdFinal,
               escolaId: os.escolaId,
               tecnicoId: os.tecnicoId,
@@ -112,9 +122,14 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
               clientId: foto.clientId,
             });
           } catch (fotoErr) {
-            // Log do erro da foto mas continua com as outras
-            console.error("[SyncOffline] Erro ao enviar foto:", fotoErr);
+            fotosFalhas++;
+            // Log detalhado do erro da foto mas continua com as outras
+            const errMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
+            console.error(`[SyncOffline] Erro ao enviar foto (${foto.categoria}):`, errMsg);
           }
+        }
+        if (fotosFalhas > 0) {
+          console.warn(`[SyncOffline] ${fotosFalhas} foto(s) falharam no upload para OS ${osIdFinal}`);
         }
       }
 
