@@ -7,6 +7,9 @@
  *  2. Para cada OS: chama concluirEscola → obtém osId → faz upload das fotos
  *  3. Atualiza o status no IndexedDB
  *  4. Notifica o React Query para invalidar as queries relevantes
+ *
+ * CORREÇÃO: Usa isOnlineRef (Capacitor) em vez de navigator.onLine
+ * para evitar falso-negativo no WebView Android.
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -28,6 +31,7 @@ export type SyncState = {
 
 export function useSyncOfflineOS(onSyncDone?: () => void) {
   const isOnline = useOnlineStatus();
+  const isOnlineRef = useRef(isOnline);
   const syncingRef = useRef(false);
   const [syncState, setSyncState] = useState<SyncState>({
     isSyncing: false,
@@ -35,6 +39,11 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     lastSyncAt: null,
     lastError: null,
   });
+
+  // Mantém a ref atualizada com o valor mais recente de isOnline
+  useEffect(() => {
+    isOnlineRef.current = isOnline;
+  }, [isOnline]);
 
   const refreshPendingCount = useCallback(async () => {
     const pending = await dbGetPendingOS();
@@ -66,7 +75,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       const osIdFinal: number = (resultado as { osId?: number })?.osId ?? 0;
 
       // Passo 2: Upload das fotos (se houver osId válido)
-      if (osIdFinal > 0 && os.fotos.length > 0) {
+      if (osIdFinal > 0 && os.fotos && os.fotos.length > 0) {
         for (const foto of os.fotos) {
           try {
             await trpcClient.tecnicoAuth.uploadOsFoto.mutate({
@@ -82,8 +91,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
               imageBase64: foto.imageBase64,
               mimeType: foto.mimeType,
             });
-          } catch {
-            // Continua mesmo se uma foto falhar
+          } catch (fotoErr) {
+            // Log do erro da foto mas continua com as outras
+            console.error("[SyncOffline] Erro ao enviar foto:", fotoErr);
           }
         }
       }
@@ -92,13 +102,15 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      console.error("[SyncOffline] Erro ao sincronizar OS:", msg);
       await dbUpdateOSStatus(os.id, "error", { errorMsg: msg });
       return false;
     }
   }, []);
 
   const runSync = useCallback(async () => {
-    if (syncingRef.current || !navigator.onLine) return;
+    // Usa isOnlineRef (Capacitor) em vez de navigator.onLine (não confiável no WebView Android)
+    if (syncingRef.current || !isOnlineRef.current) return;
 
     const pending = await dbGetPendingOS();
     if (pending.length === 0) return;
@@ -130,7 +142,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
   // Sincroniza ao montar (se online)
   useEffect(() => {
     refreshPendingCount();
-    if (isOnline) {
+    if (isOnlineRef.current) {
       runSync();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -145,12 +157,12 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
   // Tenta novamente a cada 2 minutos se houver pendentes
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isOnline && syncState.pendingCount > 0) {
+      if (isOnlineRef.current && syncState.pendingCount > 0) {
         runSync();
       }
     }, 2 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [isOnline, syncState.pendingCount, runSync]);
+  }, [syncState.pendingCount, runSync]);
 
   return { syncState, runSync, refreshPendingCount };
 }

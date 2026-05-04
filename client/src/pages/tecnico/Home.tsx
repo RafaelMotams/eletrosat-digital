@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { cacheEscolas, getCachedEscolas } from "@/hooks/useOfflineQueue";
+import { dbCacheEscolas, dbGetCachedEscolas } from "@/hooks/useOfflineDB";
 
 type Escola = {
   id: number;
@@ -152,16 +152,21 @@ export default function TecnicoHome() {
     { enabled: !!tecnicoId && isOnline, refetchInterval: isOnline ? 30000 : false, staleTime: 5 * 60 * 1000 }
   );
 
+  // Salva escolas no IndexedDB ao carregar online
   useEffect(() => {
-    if (escolasOnline && tecnicoId) cacheEscolas(tecnicoId, escolasOnline as unknown as Escola[]);
+    if (escolasOnline && tecnicoId) {
+      dbCacheEscolas(tecnicoId, escolasOnline as unknown as Escola[]);
+    }
   }, [escolasOnline, tecnicoId]);
 
+  // Carrega escolas do IndexedDB quando offline
   useEffect(() => {
-    if (!isOnline && tecnicoId && !escolasOnline) {
-      const cached = getCachedEscolas(tecnicoId);
-      if (cached) setOfflineEscolas(cached as Escola[]);
+    if (!isOnline && tecnicoId) {
+      dbGetCachedEscolas(tecnicoId).then((cached) => {
+        if (cached) setOfflineEscolas(cached as Escola[]);
+      });
     }
-  }, [isOnline, tecnicoId, escolasOnline]);
+  }, [isOnline, tecnicoId]);
 
   const escolas = ((escolasOnline ?? offlineEscolas ?? []) as Escola[]);
   const sortedEscolas = sortByRoute(escolas);

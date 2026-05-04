@@ -10,7 +10,7 @@ import {
   ChevronRight, Eye, Trash2
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { dbEnqueueOS } from "@/hooks/useOfflineDB";
+import { dbEnqueueOS, dbGetCachedEscolas } from "@/hooks/useOfflineDB";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -433,6 +433,7 @@ export default function TecnicoOS() {
   const [motivo, setMotivo] = useState<"escola_desativada" | "em_reforma" | "mudanca_endereco">("escola_desativada");
   const [obsNaoInstalada, setObsNaoInstalada] = useState("");
   const [pendingOffline, setPendingOffline] = useState(false);
+  const [offlineEscola, setOfflineEscola] = useState<Record<string, unknown> | null>(null);
 
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
@@ -456,10 +457,24 @@ export default function TecnicoOS() {
 
   const escolaId = Number(params.id);
 
-  const { data: escola, isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+  const { data: escolaOnline, isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId, select: (data) => data?.find(e => e.id === escolaId) }
+    { enabled: !!tecnicoId && isOnline, select: (data) => data?.find(e => e.id === escolaId) }
   );
+
+  // Carrega escola do IndexedDB quando offline
+  useEffect(() => {
+    if (!isOnline && tecnicoId && !escolaOnline) {
+      dbGetCachedEscolas(tecnicoId).then((cached) => {
+        if (cached) {
+          const found = (cached as Record<string, unknown>[]).find((e) => e.id === escolaId);
+          if (found) setOfflineEscola(found);
+        }
+      });
+    }
+  }, [isOnline, tecnicoId, escolaId, escolaOnline]);
+
+  const escola = escolaOnline ?? (offlineEscola as unknown as typeof escolaOnline) ?? undefined;
 
   // Busca OS ativa da escola
   const { data: ordensData } = trpc.tecnicoAuth.minhasOrdens.useQuery(
