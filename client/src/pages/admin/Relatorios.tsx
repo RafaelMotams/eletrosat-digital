@@ -140,7 +140,6 @@ function exportarExcel(
   dataFim: string,
 ) {
   if (!osDetalhadas || osDetalhadas.length === 0) return;
-
   const wb = XLSX.utils.book_new();
 
   const periodoLabel =
@@ -149,104 +148,206 @@ function exportarExcel(
     periodo === "semana"? "Última semana" :
     periodo === "mes"   ? "Este mês" :
     `${dataInicio} a ${dataFim}`;
-
   const tecLabel =
     tecnicosSelecionados.length === 0 ? "Todos os técnicos" :
     tecnicosSelecionados.map(t => t.nome).join(", ");
 
-  /* ── Aba 1: OS Concluídas ─────────────────────────────────────────────── */
-  const infoRows: any[][] = [
-    ["RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS"],
-    [`Período: ${periodoLabel}`],
-    [`Técnico(s): ${tecLabel}`],
-    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`],
-    [],
+  /* ════════════════════════════════════════════════════════════════
+     ABA 1 — OS CONCLUÍDAS
+     Colunas: Nº | Escola | INEP | Município | UF | Técnico | Data | APs | Valor por AP
+  ════════════════════════════════════════════════════════════════ */
+  const rows1: any[][] = [
+    ["RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS", "", "", "", "", "", "", "", ""],
+    [`Período: ${periodoLabel}`, "", "", "", "", "", "", "", ""],
+    [`Técnico(s): ${tecLabel}`, "", "", "", "", "", "", "", ""],
+    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["Nº", "Nome da Escola", "INEP", "Município", "UF", "Técnico", "Data Conclusão", "APs Instalados", "Valor por AP (R$)"],
   ];
 
-   const headerRow = [
-    "Nº", "Nome da Escola", "INEP", "Município", "UF",
-    "Técnico", "Data Conclusão", "APs Instalados",
-    "Valor por AP (R$)",
-    "Valor Total (R$)",
-    "Observação",
-  ];
-  const dataRows = osDetalhadas.map((os: any, i: number) => [
-    i + 1,
-    os.escolaNome,
-    os.inep,
-    os.municipio,
-    os.uf ?? "",
-    os.tecnicoNome,
-    formatDate(os.dataConclusao),
-    os.qtdApInstalado ?? 0,
-    os.valorCalculado != null ? Number(os.valorCalculado) : "",  // Valor por AP — já preenchido se cadastrado
-    "",   // Valor Total — fórmula
-    os.observacao || "",
-  ]);
-
-  const totalAps = osDetalhadas.reduce((acc, os) => acc + (os.qtdApInstalado ?? 0), 0);
-  const totalRow = [
-    "", `TOTAL — ${osDetalhadas.length} escola(s)`,
-    "", "", "", "", "",
-    totalAps, "", "", "",
-  ];
-
-  const allRows = [...infoRows, headerRow, ...dataRows, totalRow];
-  const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-  // Linhas no Excel (1-indexed)
-  const firstDataExcelRow = infoRows.length + 2; // header na linha 6, dados a partir da 7
-  const lastDataExcelRow  = firstDataExcelRow + osDetalhadas.length - 1;
-  const totalExcelRow     = lastDataExcelRow + 1;
-
-  // Fórmulas: Valor Total = APs * Valor por AP
-  for (let i = 0; i < osDetalhadas.length; i++) {
-    const r = firstDataExcelRow + i;
-    ws[`J${r}`] = { t: "n", f: `IF(I${r}="","",H${r}*I${r})` };
-  }
-  // Soma total de Valor Total
-  ws[`J${totalExcelRow}`] = { t: "n", f: `SUM(J${firstDataExcelRow}:J${lastDataExcelRow})` };
-  ws[`H${totalExcelRow}`] = { t: "n", v: totalAps };
-
-  ws["!cols"] = [
-    { wch: 4 }, { wch: 42 }, { wch: 12 }, { wch: 22 }, { wch: 4 },
-    { wch: 24 }, { wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 18 }, { wch: 38 },
-  ];
-  ws["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
-    { s: { r: totalExcelRow - 1, c: 1 }, e: { r: totalExcelRow - 1, c: 6 } },
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, "OS Concluídas");
-
-  /* ── Aba 2: Resumo por Técnico ────────────────────────────────────────── */
-  const porTecnico: Record<string, { nome: string; escolas: number; aps: number }> = {};
-  for (const os of osDetalhadas) {
-    const key = String(os.tecnicoId ?? os.tecnicoNome);
-    if (!porTecnico[key]) porTecnico[key] = { nome: os.tecnicoNome, escolas: 0, aps: 0 };
-    porTecnico[key].escolas++;
-    porTecnico[key].aps += os.qtdApInstalado ?? 0;
-  }
-  const resumoTecs = Object.values(porTecnico);
-
-  const resumoInfoRows: any[][] = [
-    ["RESUMO POR TÉCNICO"],
-    [`Período: ${periodoLabel}`],
-    [],
-    ["Técnico", "Escolas Concluídas", "APs Instalados", "Valor por AP (R$)", "Valor Total (R$)"],
-    ...resumoTecs.map(t => [t.nome, t.escolas, t.aps, "", ""]),
-  ];
-
-  const ws2 = XLSX.utils.aoa_to_sheet(resumoInfoRows);
-
-  // Fórmulas na aba resumo (dados a partir da linha 5)
-  resumoTecs.forEach((_, i) => {
-    const r = 5 + i;
-    ws2[`E${r}`] = { t: "n", f: `IF(D${r}="","",C${r}*D${r})` };
+  osDetalhadas.forEach((os: any, i: number) => {
+    rows1.push([
+      i + 1,
+      os.escolaNome ?? "",
+      os.inep ?? "",
+      os.municipio ?? "",
+      os.uf ?? "",
+      os.tecnicoNome ?? "",
+      formatDate(os.dataConclusao),
+      os.qtdApInstalado ?? 0,
+      os.valorCalculado != null ? Number(os.valorCalculado) : "",
+    ]);
   });
 
-  ws2["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 18 }];
-  ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+  const totalAps1   = osDetalhadas.reduce((acc: number, os: any) => acc + (os.qtdApInstalado ?? 0), 0);
+  const totalValor1 = osDetalhadas.reduce((acc: number, os: any) => acc + (os.valorCalculado != null ? Number(os.valorCalculado) : 0), 0);
+
+  rows1.push(["", `TOTAL — ${osDetalhadas.length} escola(s)`, "", "", "", "", "", totalAps1, totalValor1 > 0 ? totalValor1 : ""]);
+
+  const ws1 = XLSX.utils.aoa_to_sheet(rows1);
+
+  ws1["!cols"] = [
+    { wch: 5 }, { wch: 44 }, { wch: 12 }, { wch: 24 }, { wch: 4 },
+    { wch: 26 }, { wch: 16 }, { wch: 14 }, { wch: 20 },
+  ];
+
+  const headerR1 = 5; // 0-indexed
+  const firstD1  = 6;
+  const lastD1   = firstD1 + osDetalhadas.length - 1;
+  const totalR1  = lastD1 + 1;
+
+  ws1["!rows"] = [
+    { hpt: 28 }, { hpt: 16 }, { hpt: 16 }, { hpt: 16 }, { hpt: 8 }, { hpt: 22 },
+    ...osDetalhadas.map(() => ({ hpt: 18 })),
+    { hpt: 22 },
+  ];
+
+  ws1["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
+    { s: { r: totalR1, c: 1 }, e: { r: totalR1, c: 6 } },
+  ];
+
+  // Estilos
+  const sTitulo   = { font: { bold: true, sz: 14, color: { rgb: "1E3A5F" } }, fill: { fgColor: { rgb: "EBF0F8" } }, alignment: { horizontal: "center", vertical: "center" } };
+  const sInfo     = { font: { italic: true, sz: 10, color: { rgb: "555555" } }, fill: { fgColor: { rgb: "EBF0F8" } } };
+  const sHeader   = { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1E3A5F" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
+  const sData     = { font: { sz: 10 }, alignment: { vertical: "center" } };
+  const sDataAlt  = { font: { sz: 10 }, fill: { fgColor: { rgb: "F4F7FB" } }, alignment: { vertical: "center" } };
+  const sValor    = { font: { bold: true, sz: 10, color: { rgb: "1A6B3A" } }, fill: { fgColor: { rgb: "E8F5EE" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: "R$ #,##0.00" };
+  const sTotal    = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "center", vertical: "center" } };
+  const sTotalVal = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: "R$ #,##0.00" };
+
+  const cols1 = ["A","B","C","D","E","F","G","H","I"];
+  const hdrs1 = ["Nº","Nome da Escola","INEP","Município","UF","Técnico","Data Conclusão","APs Instalados","Valor por AP (R$)"];
+
+  // Título e info
+  ["A1","A2","A3","A4"].forEach((a, i) => {
+    if (!ws1[a]) ws1[a] = { t: "s", v: "" };
+    ws1[a].s = i === 0 ? sTitulo : sInfo;
+  });
+
+  // Cabeçalho
+  cols1.forEach((col, ci) => {
+    const addr = `${col}${headerR1 + 1}`;
+    if (!ws1[addr]) ws1[addr] = { t: "s", v: hdrs1[ci] };
+    ws1[addr].s = sHeader;
+  });
+
+  // Dados
+  for (let ri = firstD1; ri <= lastD1; ri++) {
+    const isAlt = (ri - firstD1) % 2 === 1;
+    cols1.forEach((col, ci) => {
+      const addr = `${col}${ri + 1}`;
+      if (!ws1[addr]) ws1[addr] = { t: "s", v: "" };
+      if (ci === 8 && ws1[addr].v !== "") {
+        ws1[addr].s = sValor;
+        ws1[addr].t = "n";
+      } else {
+        ws1[addr].s = isAlt ? sDataAlt : sData;
+      }
+    });
+  }
+
+  // Total
+  cols1.forEach((col, ci) => {
+    const addr = `${col}${totalR1 + 1}`;
+    if (!ws1[addr]) ws1[addr] = { t: "s", v: "" };
+    ws1[addr].s = ci === 8 ? sTotalVal : sTotal;
+    if (ci === 7) ws1[addr].t = "n";
+    if (ci === 8 && totalValor1 > 0) ws1[addr].t = "n";
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws1, "OS Concluídas");
+
+  /* ════════════════════════════════════════════════════════════════
+     ABA 2 — RESUMO DE PAGAMENTO POR TÉCNICO
+     Colunas: Técnico | Escolas | APs | Total a Pagar
+  ════════════════════════════════════════════════════════════════ */
+  const porTecnico: Record<string, { nome: string; escolas: number; aps: number; totalValor: number; temValor: boolean }> = {};
+  for (const os of osDetalhadas) {
+    const key = String(os.tecnicoId ?? os.tecnicoNome);
+    if (!porTecnico[key]) porTecnico[key] = { nome: os.tecnicoNome, escolas: 0, aps: 0, totalValor: 0, temValor: false };
+    porTecnico[key].escolas++;
+    porTecnico[key].aps += os.qtdApInstalado ?? 0;
+    if (os.valorCalculado != null) {
+      porTecnico[key].totalValor += Number(os.valorCalculado);
+      porTecnico[key].temValor = true;
+    }
+  }
+  const resumoTecs = Object.values(porTecnico);
+  const totalGeralValor = resumoTecs.reduce((acc, t) => acc + t.totalValor, 0);
+  const totalGeralAps   = resumoTecs.reduce((acc, t) => acc + t.aps, 0);
+  const totalGeralEsc   = resumoTecs.reduce((acc, t) => acc + t.escolas, 0);
+
+  const rows2: any[][] = [
+    ["RESUMO DE PAGAMENTO POR TÉCNICO", "", "", ""],
+    [`Período: ${periodoLabel}`, "", "", ""],
+    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", ""],
+    ["", "", "", ""],
+    ["Técnico", "Escolas Concluídas", "APs Instalados", "Total a Pagar (R$)"],
+    ...resumoTecs.map(t => [t.nome, t.escolas, t.aps, t.temValor ? t.totalValor : ""]),
+    ["TOTAL GERAL", totalGeralEsc, totalGeralAps, totalGeralValor > 0 ? totalGeralValor : ""],
+  ];
+
+  const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+  ws2["!cols"] = [{ wch: 32 }, { wch: 20 }, { wch: 18 }, { wch: 22 }];
+
+  const headerR2 = 4;
+  const firstD2  = 5;
+  const lastD2   = firstD2 + resumoTecs.length - 1;
+  const totalR2  = lastD2 + 1;
+
+  ws2["!rows"] = [
+    { hpt: 28 }, { hpt: 16 }, { hpt: 16 }, { hpt: 8 }, { hpt: 22 },
+    ...resumoTecs.map(() => ({ hpt: 20 })),
+    { hpt: 24 },
+  ];
+
+  ws2["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+  ];
+
+  const cols2 = ["A","B","C","D"];
+  const hdrs2 = ["Técnico","Escolas Concluídas","APs Instalados","Total a Pagar (R$)"];
+
+  ["A1","A2","A3"].forEach((a, i) => {
+    if (!ws2[a]) ws2[a] = { t: "s", v: "" };
+    ws2[a].s = i === 0 ? sTitulo : sInfo;
+  });
+
+  cols2.forEach((col, ci) => {
+    const addr = `${col}${headerR2 + 1}`;
+    if (!ws2[addr]) ws2[addr] = { t: "s", v: hdrs2[ci] };
+    ws2[addr].s = sHeader;
+  });
+
+  for (let ri = firstD2; ri <= lastD2; ri++) {
+    const isAlt = (ri - firstD2) % 2 === 1;
+    cols2.forEach((col, ci) => {
+      const addr = `${col}${ri + 1}`;
+      if (!ws2[addr]) ws2[addr] = { t: "s", v: "" };
+      if (ci === 3 && ws2[addr].v !== "") {
+        ws2[addr].s = sValor;
+        ws2[addr].t = "n";
+      } else {
+        ws2[addr].s = isAlt ? sDataAlt : sData;
+        if (ci === 1 || ci === 2) ws2[addr].t = "n";
+      }
+    });
+  }
+
+  cols2.forEach((col, ci) => {
+    const addr = `${col}${totalR2 + 1}`;
+    if (!ws2[addr]) ws2[addr] = { t: "s", v: "" };
+    ws2[addr].s = ci === 3 ? sTotalVal : sTotal;
+    if (ci === 1 || ci === 2) ws2[addr].t = "n";
+    if (ci === 3 && totalGeralValor > 0) ws2[addr].t = "n";
+  });
 
   XLSX.utils.book_append_sheet(wb, ws2, "Resumo por Técnico");
 
@@ -255,7 +356,6 @@ function exportarExcel(
     tecnicosSelecionados.length === 0 ? "todos" :
     tecnicosSelecionados.length === 1 ? tecnicosSelecionados[0].nome.replace(/\s+/g, "-").toLowerCase() :
     `${tecnicosSelecionados.length}-tecnicos`;
-
   XLSX.writeFile(wb, `relatorio-os-${tecSlug}-${new Date().toISOString().split("T")[0]}.xlsx`);
 }
 
