@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql2 from "mysql2";
 import {
@@ -528,17 +528,18 @@ export async function resetEscolasStatusAposExcluirOS(tenantId?: number): Promis
 
 export async function getOsDetalhadas(filters: {
   tecnicoId?: number;
+  tecnicoIds?: number[];
   dataInicio?: Date | null;
   dataFim?: Date | null;
   tenantId?: number;
 }) {
   const db = await getDb();
   if (!db) return [];
-
   const conditions: any[] = [eq(ordensServico.status, "concluida")];
   if (filters.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
-
-  if (filters.tecnicoId) {
+  if (filters.tecnicoIds && filters.tecnicoIds.length > 0) {
+    conditions.push(inArray(ordensServico.tecnicoId, filters.tecnicoIds));
+  } else if (filters.tecnicoId) {
     conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
   }
   if (filters.dataInicio && filters.dataFim) {

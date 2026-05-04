@@ -304,3 +304,22 @@
 - [x] Componente OfflineSyncBanner: banner visual de status offline/sincronizando/sucesso
 - [x] App.tsx: OfflineSyncBanner adicionado globalmente
 - [x] trpcClient vanilla exportado do trpc.ts para uso fora de componentes React
+
+## Sistema de Painel de Revenda (Cliente) — 04/05/2026
+- [ ] Superadmin: melhorar painel de gestão de clientes com design enterprise
+- [ ] Superadmin: criar cliente com nome, slug, email, senha do painel, plano e status
+- [ ] Superadmin: listar clientes com stats (técnicos, escolas, OS concluídas)
+- [ ] Superadmin: editar/suspender/reativar cliente
+- [ ] Superadmin: acessar painel do cliente diretamente (impersonar)
+- [ ] Painel cliente: rota /cliente/:slug/* com todas as funcionalidades do admin
+- [ ] Painel cliente: Dashboard com KPIs do tenant
+- [ ] Painel cliente: Técnicos (criar, editar, deletar técnicos do tenant)
+- [ ] Painel cliente: Escolas (listar, importar planilha, editar escolas do tenant)
+- [ ] Painel cliente: Atribuições (por cidade + por escola do tenant)
+- [ ] Painel cliente: Ordens de Serviço (listar, filtrar, ver fotos do tenant)
+- [ ] Painel cliente: Relatórios (filtros por técnico/período, exportar Excel do tenant)
+- [ ] Painel cliente: Mapa interativo com escolas do tenant
+- [ ] Painel cliente: Importação de planilha para o tenant
+- [ ] Painel cliente: Configurações (alterar senha, nome da empresa)
+- [ ] App técnico: login do técnico funciona independente do tenant (tenantId isolado)
+- [ ] Login unificado: /login detecta se é superadmin, cliente ou técnico

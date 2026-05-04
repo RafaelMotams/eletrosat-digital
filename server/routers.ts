@@ -438,7 +438,8 @@ const relatoriosRouter = router({
   osDetalhadas: tenantAdminProcedure
     .input(
       z.object({
-        tecnicoId: z.number().optional(), // 0 = todos os técnicos
+        tecnicoId: z.number().optional(), // 0 = todos os técnicos (legado)
+        tecnicoIds: z.array(z.number()).optional(), // múltiplos técnicos
         dataInicio: z.string().nullable().optional(),
         dataFim: z.string().nullable().optional(),
       })
@@ -446,8 +447,10 @@ const relatoriosRouter = router({
     .query(async ({ input, ctx }) => {
       const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
       const fim = input.dataFim ? new Date(input.dataFim) : null;
-      const tecnicoId = input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
-      return getOsDetalhadas({ tecnicoId, dataInicio: inicio, dataFim: fim, tenantId: (ctx as any).tenantId });
+      // Suporte a múltiplos técnicos
+      const tecnicoIds = input.tecnicoIds && input.tecnicoIds.length > 0 ? input.tecnicoIds : undefined;
+      const tecnicoId = !tecnicoIds && input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
+      return getOsDetalhadas({ tecnicoId, tecnicoIds, dataInicio: inicio, dataFim: fim, tenantId: (ctx as any).tenantId });
     }),
 });
 

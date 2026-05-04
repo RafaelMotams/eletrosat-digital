@@ -3,9 +3,14 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Trophy, BarChart3, School, Wifi, TrendingUp, Calendar, ClipboardList, Download } from "lucide-react";
-import { useState, useMemo } from "react";
+import {
+  Trophy, BarChart3, TrendingUp, Calendar, Download,
+  Users, CheckCircle, X, ChevronDown, FileSpreadsheet, ClipboardList,
+} from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import * as XLSX from "xlsx";
 
+/* ─── helpers ──────────────────────────────────────────────────────────────── */
 function getDateRange(periodo: string, dataInicio: string, dataFim: string) {
   const now = new Date();
   if (periodo === "dia") {
@@ -13,18 +18,13 @@ function getDateRange(periodo: string, dataInicio: string, dataFim: string) {
     return { inicio: new Date(d + "T00:00:00"), fim: new Date(d + "T23:59:59") };
   }
   if (periodo === "semana") {
-    const start = new Date(now);
-    start.setDate(now.getDate() - 7);
+    const start = new Date(now); start.setDate(now.getDate() - 7);
     return { inicio: start, fim: now };
   }
   if (periodo === "mes") {
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return { inicio: start, fim: now };
+    return { inicio: new Date(now.getFullYear(), now.getMonth(), 1), fim: now };
   }
-  return {
-    inicio: new Date(dataInicio + "T00:00:00"),
-    fim: new Date(dataFim + "T23:59:59"),
-  };
+  return { inicio: new Date(dataInicio + "T00:00:00"), fim: new Date(dataFim + "T23:59:59") };
 }
 
 function formatDate(d: Date | string | null | undefined) {
@@ -33,86 +33,284 @@ function formatDate(d: Date | string | null | undefined) {
     const date = d instanceof Date ? d : new Date(d);
     if (isNaN(date.getTime())) return "—";
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  } catch {
-    return "—";
-  }
+  } catch { return "—"; }
 }
 
 const SELECT_CLASS =
   "w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
 
+/* ─── Multi-select de técnicos ─────────────────────────────────────────────── */
+function MultiSelectTecnicos({
+  tecnicos,
+  selected,
+  onChange,
+}: {
+  tecnicos: { id: number; nome: string }[];
+  selected: number[];
+  onChange: (ids: number[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const toggle = (id: number) =>
+    onChange(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
+
+  const label =
+    selected.length === 0 ? "Todos os técnicos" :
+    selected.length === 1 ? (tecnicos.find(t => t.id === selected[0])?.nome ?? "1 técnico") :
+    `${selected.length} técnicos selecionados`;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 flex items-center justify-between gap-2"
+      >
+        <span className="truncate text-left">{label}</span>
+        <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+      </button>
+
+      {open && (
+        <div
+          className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
+          style={{ maxHeight: "240px", overflowY: "auto" }}
+        >
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="w-full px-3 py-2 text-sm text-left hover:bg-accent flex items-center gap-2"
+          >
+            <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${selected.length === 0 ? "bg-primary border-primary" : "border-muted-foreground"}`}>
+              {selected.length === 0 && <CheckCircle className="w-3 h-3 text-primary-foreground" />}
+            </span>
+            Todos os técnicos
+          </button>
+          <div className="border-t border-border" />
+          {tecnicos.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => toggle(t.id)}
+              className="w-full px-3 py-2 text-sm text-left hover:bg-accent flex items-center gap-2"
+            >
+              <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${selected.includes(t.id) ? "bg-primary border-primary" : "border-muted-foreground"}`}>
+                {selected.includes(t.id) && <CheckCircle className="w-3 h-3 text-primary-foreground" />}
+              </span>
+              {t.nome}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {selected.map(id => {
+            const t = tecnicos.find(x => x.id === id);
+            if (!t) return null;
+            return (
+              <span key={id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                {t.nome}
+                <button type="button" onClick={() => toggle(id)} className="hover:opacity-70">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Exportação Excel profissional ────────────────────────────────────────── */
+function exportarExcel(
+  osDetalhadas: any[],
+  tecnicosSelecionados: { id: number; nome: string }[],
+  periodo: string,
+  dataInicio: string,
+  dataFim: string,
+) {
+  if (!osDetalhadas || osDetalhadas.length === 0) return;
+
+  const wb = XLSX.utils.book_new();
+
+  const periodoLabel =
+    periodo === "geral" ? "Todo o período" :
+    periodo === "dia"   ? "Hoje" :
+    periodo === "semana"? "Última semana" :
+    periodo === "mes"   ? "Este mês" :
+    `${dataInicio} a ${dataFim}`;
+
+  const tecLabel =
+    tecnicosSelecionados.length === 0 ? "Todos os técnicos" :
+    tecnicosSelecionados.map(t => t.nome).join(", ");
+
+  /* ── Aba 1: OS Concluídas ─────────────────────────────────────────────── */
+  const infoRows: any[][] = [
+    ["RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS"],
+    [`Período: ${periodoLabel}`],
+    [`Técnico(s): ${tecLabel}`],
+    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`],
+    [],
+  ];
+
+  const headerRow = [
+    "Nº", "Nome da Escola", "INEP", "Município", "UF",
+    "Técnico", "Data Conclusão", "APs Instalados",
+    "Valor por AP (R$)",  // usuário preenche na planilha
+    "Valor Total (R$)",   // fórmula automática
+    "Observação",
+  ];
+
+  const dataRows = osDetalhadas.map((os, i) => [
+    i + 1,
+    os.escolaNome,
+    os.inep,
+    os.municipio,
+    os.uf ?? "",
+    os.tecnicoNome,
+    formatDate(os.dataConclusao),
+    os.qtdApInstalado ?? 0,
+    "",   // Valor por AP — usuário preenche
+    "",   // Valor Total — fórmula
+    os.observacao || "",
+  ]);
+
+  const totalAps = osDetalhadas.reduce((acc, os) => acc + (os.qtdApInstalado ?? 0), 0);
+  const totalRow = [
+    "", `TOTAL — ${osDetalhadas.length} escola(s)`,
+    "", "", "", "", "",
+    totalAps, "", "", "",
+  ];
+
+  const allRows = [...infoRows, headerRow, ...dataRows, totalRow];
+  const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+  // Linhas no Excel (1-indexed)
+  const firstDataExcelRow = infoRows.length + 2; // header na linha 6, dados a partir da 7
+  const lastDataExcelRow  = firstDataExcelRow + osDetalhadas.length - 1;
+  const totalExcelRow     = lastDataExcelRow + 1;
+
+  // Fórmulas: Valor Total = APs * Valor por AP
+  for (let i = 0; i < osDetalhadas.length; i++) {
+    const r = firstDataExcelRow + i;
+    ws[`J${r}`] = { t: "n", f: `IF(I${r}="","",H${r}*I${r})` };
+  }
+  // Soma total de Valor Total
+  ws[`J${totalExcelRow}`] = { t: "n", f: `SUM(J${firstDataExcelRow}:J${lastDataExcelRow})` };
+  ws[`H${totalExcelRow}`] = { t: "n", v: totalAps };
+
+  ws["!cols"] = [
+    { wch: 4 }, { wch: 42 }, { wch: 12 }, { wch: 22 }, { wch: 4 },
+    { wch: 24 }, { wch: 14 }, { wch: 14 }, { wch: 18 }, { wch: 18 }, { wch: 38 },
+  ];
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+    { s: { r: totalExcelRow - 1, c: 1 }, e: { r: totalExcelRow - 1, c: 6 } },
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "OS Concluídas");
+
+  /* ── Aba 2: Resumo por Técnico ────────────────────────────────────────── */
+  const porTecnico: Record<string, { nome: string; escolas: number; aps: number }> = {};
+  for (const os of osDetalhadas) {
+    const key = String(os.tecnicoId ?? os.tecnicoNome);
+    if (!porTecnico[key]) porTecnico[key] = { nome: os.tecnicoNome, escolas: 0, aps: 0 };
+    porTecnico[key].escolas++;
+    porTecnico[key].aps += os.qtdApInstalado ?? 0;
+  }
+  const resumoTecs = Object.values(porTecnico);
+
+  const resumoInfoRows: any[][] = [
+    ["RESUMO POR TÉCNICO"],
+    [`Período: ${periodoLabel}`],
+    [],
+    ["Técnico", "Escolas Concluídas", "APs Instalados", "Valor por AP (R$)", "Valor Total (R$)"],
+    ...resumoTecs.map(t => [t.nome, t.escolas, t.aps, "", ""]),
+  ];
+
+  const ws2 = XLSX.utils.aoa_to_sheet(resumoInfoRows);
+
+  // Fórmulas na aba resumo (dados a partir da linha 5)
+  resumoTecs.forEach((_, i) => {
+    const r = 5 + i;
+    ws2[`E${r}`] = { t: "n", f: `IF(D${r}="","",C${r}*D${r})` };
+  });
+
+  ws2["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 18 }];
+  ws2["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+
+  XLSX.utils.book_append_sheet(wb, ws2, "Resumo por Técnico");
+
+  // Nome do arquivo
+  const tecSlug =
+    tecnicosSelecionados.length === 0 ? "todos" :
+    tecnicosSelecionados.length === 1 ? tecnicosSelecionados[0].nome.replace(/\s+/g, "-").toLowerCase() :
+    `${tecnicosSelecionados.length}-tecnicos`;
+
+  XLSX.writeFile(wb, `relatorio-os-${tecSlug}-${new Date().toISOString().split("T")[0]}.xlsx`);
+}
+
+/* ─── Componente principal ─────────────────────────────────────────────────── */
 export default function AdminRelatorios() {
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
-  const { data: ranking } = trpc.relatorios.ranking.useQuery();
+  const { data: ranking }  = trpc.relatorios.ranking.useQuery();
 
-  const [tecnicoSel, setTecnicoSel] = useState("");
-  const [periodo, setPeriodo] = useState("geral");
-  const [dataInicio, setDataInicio] = useState(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d.toISOString().split("T")[0];
+  const [tecnicosSel, setTecnicosSel] = useState<number[]>([]);
+  const [periodo, setPeriodo]         = useState("geral");
+  const [dataInicio, setDataInicio]   = useState(() => {
+    const d = new Date(); d.setDate(1); return d.toISOString().split("T")[0];
   });
   const [dataFim, setDataFim] = useState(() => new Date().toISOString().split("T")[0]);
 
-  // Estabilizar datas como strings ISO ou null
   const dates = useMemo(() => {
     if (periodo === "geral") return { inicio: null as string | null, fim: null as string | null };
     const range = getDateRange(periodo, dataInicio, dataFim);
     return {
       inicio: range.inicio ? range.inicio.toISOString() : null,
-      fim: range.fim ? range.fim.toISOString() : null,
+      fim:    range.fim    ? range.fim.toISOString()    : null,
     };
   }, [periodo, dataInicio, dataFim]);
 
-  const tecnicoId = useMemo(() => (tecnicoSel ? Number(tecnicoSel) : 0), [tecnicoSel]);
+  // Resumo individual (só 1 técnico)
+  const tecnicoIdUnico = useMemo(() => (tecnicosSel.length === 1 ? tecnicosSel[0] : 0), [tecnicosSel]);
 
-  // Resumo do técnico (cards de totais)
   const { data: relatorio, isLoading: loadingRelatorio } = trpc.relatorios.tecnico.useQuery(
-    { tecnicoId, dataInicio: dates.inicio, dataFim: dates.fim },
-    { enabled: tecnicoId > 0 }
+    { tecnicoId: tecnicoIdUnico, dataInicio: dates.inicio, dataFim: dates.fim },
+    { enabled: tecnicoIdUnico > 0 }
   );
 
-  // Tabela detalhada de OS concluídas
+  // OS detalhadas — múltiplos técnicos
   const { data: osDetalhadas, isLoading: loadingOs } = trpc.relatorios.osDetalhadas.useQuery({
-    tecnicoId: tecnicoId > 0 ? tecnicoId : undefined,
+    tecnicoIds: tecnicosSel.length > 0 ? tecnicosSel : undefined,
     dataInicio: dates.inicio,
-    dataFim: dates.fim,
+    dataFim:    dates.fim,
   });
 
-  // Totalizadores da tabela
-  const totalOsTabela = osDetalhadas?.length ?? 0;
+  const totalOsTabela  = osDetalhadas?.length ?? 0;
   const totalApsTabela = useMemo(
     () => (osDetalhadas ?? []).reduce((acc, os) => acc + (os.qtdApInstalado ?? 0), 0),
     [osDetalhadas]
   );
 
-  // Exportar CSV
-  function exportarCSV() {
-    if (!osDetalhadas || osDetalhadas.length === 0) return;
-    const header = ["Escola", "INEP", "APs Instalados", "Município", "Técnico", "Data Conclusão", "Observação"];
-    const rows = osDetalhadas.map((os) => [
-      `"${os.escolaNome}"`,
-      os.inep,
-      os.qtdApInstalado,
-      `"${os.municipio}"`,
-      `"${os.tecnicoNome}"`,
-      formatDate(os.dataConclusao),
-      `"${os.observacao}"`,
-    ]);
-    const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const tecnicoNome = tecnicos?.find(t => t.id === tecnicoId)?.nome ?? "todos";
-    a.download = `relatorio-os-${tecnicoNome}-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  const tecnicosSelecionados = useMemo(
+    () => (tecnicos ?? []).filter(t => tecnicosSel.includes(t.id)),
+    [tecnicos, tecnicosSel]
+  );
 
   return (
     <AdminLayoutAuto title="Relatórios">
-      {/* Filtros */}
+
+      {/* ── Filtros ─────────────────────────────────────────────────────────── */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -121,15 +319,16 @@ export default function AdminRelatorios() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Técnico</label>
-              <select value={tecnicoSel} onChange={e => setTecnicoSel(e.target.value)} className={SELECT_CLASS}>
-                <option value="">Todos os técnicos</option>
-                {tecnicos?.map(t => (
-                  <option key={t.id} value={String(t.id)}>{t.nome}</option>
-                ))}
-              </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <label className="text-sm font-medium mb-1.5 flex items-center gap-1 block">
+                <Users className="w-3.5 h-3.5" /> Técnico(s)
+              </label>
+              <MultiSelectTecnicos
+                tecnicos={tecnicos ?? []}
+                selected={tecnicosSel}
+                onChange={setTecnicosSel}
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Período</label>
@@ -161,13 +360,13 @@ export default function AdminRelatorios() {
         </CardContent>
       </Card>
 
-      {/* Cards de resumo (só aparece quando técnico selecionado) */}
-      {tecnicoId > 0 && (
+      {/* ── Resumo individual (só 1 técnico) ────────────────────────────────── */}
+      {tecnicoIdUnico > 0 && (
         <Card className="mb-6">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-green-500" />
-              Resultado — {tecnicos?.find(t => t.id === tecnicoId)?.nome}
+              Resultado — {tecnicos?.find(t => t.id === tecnicoIdUnico)?.nome}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -178,51 +377,59 @@ export default function AdminRelatorios() {
             ) : !relatorio ? (
               <p className="text-sm text-muted-foreground">Sem dados para o período.</p>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 text-center">
-                  <School className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <p className="text-3xl font-bold">{relatorio.totalEscolas}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Escolas concluídas</p>
-                </div>
-                <div className="bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-xl p-4 text-center">
-                  <Wifi className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                  <p className="text-3xl font-bold">{relatorio.totalAps}</p>
-                  <p className="text-xs text-muted-foreground mt-1">APs instalados</p>
-                </div>
-                <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/30 rounded-xl p-4 text-center">
-                  <TrendingUp className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-3xl font-bold">{relatorio.mediaPorDia}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Média/dia</p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: "Escolas concluídas", value: relatorio.totalEscolas, color: "text-blue-600" },
+                  { label: "APs instalados",     value: relatorio.totalAps,     color: "text-green-600" },
+                  { label: "Média/dia",           value: relatorio.mediaPorDia,  color: "text-purple-600" },
+                ].map(card => (
+                  <div key={card.label} className="rounded-xl border p-4 text-center">
+                    <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{card.label}</p>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Tabela detalhada de OS concluídas */}
+      {/* ── Tabela OS Concluídas + Exportar Excel ───────────────────────────── */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="text-base flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-primary" />
               OS Concluídas
               {totalOsTabela > 0 && (
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  {totalOsTabela} registro{totalOsTabela !== 1 ? "s" : ""} · {totalApsTabela} APs
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold">
+                  {totalOsTabela} · {totalApsTabela} APs
                 </span>
               )}
             </CardTitle>
-            {totalOsTabela > 0 && (
-              <button
-                onClick={exportarCSV}
-                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Exportar CSV
-              </button>
-            )}
+
+            <button
+              onClick={() => exportarExcel(osDetalhadas ?? [], tecnicosSelecionados, periodo, dataInicio, dataFim)}
+              disabled={!osDetalhadas || osDetalhadas.length === 0}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                color: "white",
+                boxShadow: "0 2px 8px rgba(34,197,94,0.35)",
+              }}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Exportar Excel
+            </button>
           </div>
+
+          {/* Dica sobre o campo de valor */}
+          {totalOsTabela > 0 && (
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+              <Download className="w-3 h-3" />
+              A planilha exportada contém a coluna <strong className="mx-1">Valor por AP (R$)</strong> — preencha o valor e o total será calculado automaticamente.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {loadingOs ? (
@@ -232,40 +439,31 @@ export default function AdminRelatorios() {
           ) : !osDetalhadas || osDetalhadas.length === 0 ? (
             <div className="py-16 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
               <ClipboardList className="w-10 h-10 opacity-20" />
-              <span>Nenhuma OS concluída encontrada para os filtros selecionados.</span>
+              <span>Nenhuma OS concluída para os filtros selecionados.</span>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">#</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Escola</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">INEP</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Município/UF</th>
-                    <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">APs Inst.</th>
-                    <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">APs Plan.</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Técnico</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Data</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs uppercase tracking-wide">Observação</th>
+                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","Técnico","Data","Observação"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {osDetalhadas.map((os, i) => (
-                    <tr
-                      key={os.osId}
-                      className="border-b last:border-0 hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
+                    <tr key={os.osId} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{i + 1}</td>
                       <td className="px-4 py-3 font-medium max-w-[200px]">
                         <span className="block truncate" title={os.escolaNome}>{os.escolaNome}</span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{os.inep}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {os.municipio}{os.uf ? `/${os.uf}` : ""}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{os.municipio}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400 font-bold text-sm">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold text-sm">
                           {os.qtdApInstalado}
                         </span>
                       </td>
@@ -287,7 +485,7 @@ export default function AdminRelatorios() {
                 <tfoot>
                   <tr className="border-t bg-muted/20">
                     <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-right text-muted-foreground">
-                      Total ({totalOsTabela} escolas)
+                      Total ({totalOsTabela} escola{totalOsTabela !== 1 ? "s" : ""})
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold text-sm">
@@ -303,7 +501,7 @@ export default function AdminRelatorios() {
         </CardContent>
       </Card>
 
-      {/* Ranking geral */}
+      {/* ── Ranking geral ────────────────────────────────────────────────────── */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -315,51 +513,34 @@ export default function AdminRelatorios() {
           {!ranking || ranking.length === 0 ? (
             <div className="h-48 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
               <Trophy className="w-8 h-8 opacity-30" />
-              <span>Nenhum dado disponível ainda. Conclua algumas OS para ver o ranking.</span>
+              <span>Nenhum dado disponível ainda.</span>
             </div>
           ) : (
             <>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={ranking} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                  <XAxis
-                    dataKey="tecnicoNome"
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(v: string) => v.split(" ")[0]}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    label={{ value: "Escolas", angle: -90, position: "insideLeft", offset: 20, style: { fontSize: 10 } }}
-                  />
-                  <Tooltip
-                    formatter={(v: number, n: string) => [v, n === "totalEscolas" ? "Escolas concluídas" : "APs instalados"]}
-                  />
+                  <XAxis dataKey="tecnicoNome" tick={{ fontSize: 11 }} tickFormatter={(v: string) => v.split(" ")[0]} />
+                  <YAxis tick={{ fontSize: 11 }} label={{ value: "Escolas", angle: -90, position: "insideLeft", offset: 20, style: { fontSize: 10 } }} />
+                  <Tooltip formatter={(v: number, n: string) => [v, n === "totalEscolas" ? "Escolas concluídas" : "APs instalados"]} />
                   <Bar dataKey="totalEscolas" fill="#1e3a5f" name="totalEscolas" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalAps" fill="#22c55e" name="totalAps" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalAps"     fill="#22c55e" name="totalAps"     radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               <div className="mt-4 space-y-2">
-                {ranking.map((t, i) => (
-                  <div
-                    key={t.tecnicoId}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors"
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
-                        i === 0
-                          ? "bg-yellow-100 text-yellow-700"
-                          : i === 1
-                          ? "bg-gray-100 text-gray-600"
-                          : i === 2
-                          ? "bg-orange-100 text-orange-600"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
+                {ranking.map((t: any, i: number) => (
+                  <div key={t.tecnicoId} className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
+                      i === 0 ? "bg-yellow-100 text-yellow-700" :
+                      i === 1 ? "bg-gray-100 text-gray-600" :
+                      i === 2 ? "bg-orange-100 text-orange-600" :
+                      "bg-muted text-muted-foreground"
+                    }`}>
                       {i + 1}
                     </div>
                     <p className="flex-1 font-medium text-sm">{t.tecnicoNome}</p>
                     <span className="text-sm text-muted-foreground">
-                      {t.totalEscolas} escola{t.totalEscolas !== 1 ? "s" : ""} concluída{t.totalEscolas !== 1 ? "s" : ""}
+                      {t.totalEscolas} escola{t.totalEscolas !== 1 ? "s" : ""}
                     </span>
                     <span className="text-sm text-green-600 font-semibold">{t.totalAps} APs</span>
                   </div>
