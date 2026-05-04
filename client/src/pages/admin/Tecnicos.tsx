@@ -8,86 +8,6 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Phone, Mail, MapPin, Users, Eye, EyeOff, Shield, DollarSign } from "lucide-react";
 
-// Componente de modal de valores por AP
-function ValoresApModal({ tecnicoId, tecnicoNome, onClose }: { tecnicoId: number; tecnicoNome: string; onClose: () => void }) {
-  const utils = trpc.useUtils();
-  const { data: valoresData, isLoading } = trpc.tecnicos.getValoresAp.useQuery({ tecnicoId });
-  const setValoresMut = trpc.tecnicos.setValoresAp.useMutation({
-    onSuccess: () => { toast.success("Valores salvos com sucesso!"); utils.tecnicos.getValoresAp.invalidate({ tecnicoId }); },
-    onError: (e) => toast.error(e.message),
-  });
-  const [valores, setValores] = useState<string[]>(Array(15).fill(""));
-  useEffect(() => {
-    if (valoresData) {
-      const arr = Array(15).fill("");
-      for (let i = 1; i <= 15; i++) {
-        const v = (valoresData as Record<number, number>)[i];
-        if (v !== undefined && v > 0) arr[i - 1] = String(v);
-      }
-      setValores(arr);
-    }
-  }, [valoresData]);
-  function handleSave() {
-    const payload: { qtdAp: number; valor: number }[] = [];
-    for (let i = 0; i < 15; i++) {
-      const v = parseFloat(String(valores[i]).replace(",", "."));
-      payload.push({ qtdAp: i + 1, valor: isNaN(v) ? 0 : v });
-    }
-    setValoresMut.mutate({ tecnicoId, valores: payload });
-  }
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle style={{ fontFamily: "var(--font-display)" }} className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-green-500" />
-            Valores por AP — {tecnicoNome}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Defina o valor que o técnico recebe por quantidade de APs instalados em uma OS.
-          </p>
-        </DialogHeader>
-        {isLoading ? (
-          <div className="py-8 text-center text-muted-foreground">Carregando...</div>
-        ) : (
-          <div className="space-y-3 py-2">
-            <div className="grid grid-cols-3 gap-x-4 gap-y-2">
-              {Array.from({ length: 15 }, (_, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="flex items-center justify-center rounded-lg text-xs font-bold text-white flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "linear-gradient(135deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))" }}>
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 relative">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">R$</span>
-                    <Input
-                      type="number" min="0" step="0.01"
-                      value={valores[i]}
-                      onChange={e => { const arr = [...valores]; arr[i] = e.target.value; setValores(arr); }}
-                      placeholder="0,00"
-                      className="rounded-xl pl-8 text-sm h-9"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-3 text-xs text-blue-700 dark:text-blue-300">
-              <strong>Como funciona:</strong> Quando uma OS for concluída com, por exemplo, 3 APs instalados, o relatório mostrará automaticamente o valor cadastrado para “3 APs” deste técnico.
-            </div>
-          </div>
-        )}
-        <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl">Fechar</Button>
-          <Button onClick={handleSave} disabled={setValoresMut.isPending} className="flex-1 rounded-xl"
-            style={{ background: "linear-gradient(135deg, oklch(0.35 0.15 162), oklch(0.50 0.20 162))", color: "white", border: "none" }}>
-            {setValoresMut.isPending ? "Salvando..." : "Salvar Valores"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 const AVATAR_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))",
   "linear-gradient(135deg, oklch(0.38 0.18 290), oklch(0.50 0.20 290))",
@@ -96,6 +16,8 @@ const AVATAR_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.40 0.18 162), oklch(0.52 0.20 162))",
 ];
 
+const NUM_APS = 18;
+
 type TecnicoForm = {
   nome: string; telefone: string; email: string; senha: string; cidadeResponsavel: string;
 };
@@ -103,31 +25,95 @@ type TecnicoForm = {
 export default function AdminTecnicos() {
   const utils = trpc.useUtils();
   const { data: tecnicos, isLoading } = trpc.tecnicos.list.useQuery();
+
+  // Valores por AP: array de 18 posições (índice 0 = 1 AP, índice 17 = 18 APs)
+  const [valoresAp, setValoresAp] = useState<string[]>(Array(NUM_APS).fill(""));
+
+  // Buscar valores existentes ao abrir edição
+  const [editId, setEditId] = useState<number | null>(null);
+  const { data: valoresExistentes } = trpc.tecnicos.getValoresAp.useQuery(
+    { tecnicoId: editId! },
+    { enabled: editId !== null }
+  );
+  useEffect(() => {
+    if (editId !== null && valoresExistentes) {
+      const arr = Array(NUM_APS).fill("");
+      for (let i = 1; i <= NUM_APS; i++) {
+        const v = (valoresExistentes as Record<number, number>)[i];
+        if (v !== undefined && v > 0) arr[i - 1] = String(v);
+      }
+      setValoresAp(arr);
+    }
+    if (editId === null) {
+      setValoresAp(Array(NUM_APS).fill(""));
+    }
+  }, [valoresExistentes, editId]);
+
+  const setValoresMut = trpc.tecnicos.setValoresAp.useMutation({
+    onError: (e) => toast.error("Erro ao salvar valores: " + e.message),
+  });
+
   const createMut = trpc.tecnicos.create.useMutation({
-    onSuccess: () => { toast.success("Técnico criado com sucesso!"); utils.tecnicos.list.invalidate(); setOpen(false); resetForm(); },
+    onSuccess: async (_, vars) => {
+      // Após criar, buscar o técnico pelo email para pegar o id e salvar os valores
+      await utils.tecnicos.list.invalidate();
+      const lista = utils.tecnicos.list.getData();
+      const criado = lista?.find(t => t.email === vars.email);
+      if (criado) {
+        const payload = valoresAp.map((v, i) => ({
+          qtdAp: i + 1,
+          valor: parseFloat(String(v).replace(",", ".")) || 0,
+        }));
+        await setValoresMut.mutateAsync({ tecnicoId: criado.id, valores: payload });
+      }
+      toast.success("Técnico criado com sucesso!");
+      setOpen(false);
+      resetForm();
+    },
     onError: (e) => toast.error(e.message),
   });
+
   const updateMut = trpc.tecnicos.update.useMutation({
-    onSuccess: () => { toast.success("Técnico atualizado!"); utils.tecnicos.list.invalidate(); setOpen(false); setEditId(null); resetForm(); },
+    onSuccess: async () => {
+      if (editId !== null) {
+        const payload = valoresAp.map((v, i) => ({
+          qtdAp: i + 1,
+          valor: parseFloat(String(v).replace(",", ".")) || 0,
+        }));
+        await setValoresMut.mutateAsync({ tecnicoId: editId, valores: payload });
+      }
+      toast.success("Técnico atualizado!");
+      utils.tecnicos.list.invalidate();
+      setOpen(false);
+      setEditId(null);
+      resetForm();
+    },
     onError: (e) => toast.error(e.message),
   });
+
   const deleteMut = trpc.tecnicos.delete.useMutation({
     onSuccess: () => { toast.success("Técnico removido!"); utils.tecnicos.list.invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState<TecnicoForm>({ nome: "", telefone: "", email: "", senha: "", cidadeResponsavel: "" });
-  const [valoresApTecnico, setValoresApTecnico] = useState<{ id: number; nome: string } | null>(null);
 
-  function resetForm() { setForm({ nome: "", telefone: "", email: "", senha: "", cidadeResponsavel: "" }); setShowPass(false); }
+  function resetForm() {
+    setForm({ nome: "", telefone: "", email: "", senha: "", cidadeResponsavel: "" });
+    setValoresAp(Array(NUM_APS).fill(""));
+    setShowPass(false);
+  }
+
   function openCreate() { resetForm(); setEditId(null); setOpen(true); }
+
   function openEdit(t: NonNullable<typeof tecnicos>[0]) {
     setForm({ nome: t.nome, telefone: t.telefone ?? "", email: t.email, senha: "", cidadeResponsavel: t.cidadeResponsavel ?? "" });
-    setEditId(t.id); setOpen(true);
+    setEditId(t.id);
+    setOpen(true);
   }
+
   function handleSubmit() {
     if (!form.nome || !form.email) { toast.error("Nome e email são obrigatórios"); return; }
     if (editId) {
@@ -139,6 +125,7 @@ export default function AdminTecnicos() {
   }
 
   const getInitials = (nome: string) => nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+  const isPending = createMut.isPending || updateMut.isPending || setValoresMut.isPending;
 
   return (
     <AdminLayoutAuto title="Técnicos">
@@ -238,10 +225,6 @@ export default function AdminTecnicos() {
 
               {/* Footer */}
               <div className="mt-4 pt-3 border-t border-border flex gap-2">
-                <button onClick={() => setValoresApTecnico({ id: t.id, nome: t.nome })}
-                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-green-50 text-muted-foreground hover:text-green-600 flex items-center justify-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Valores AP
-                </button>
                 <button onClick={() => openEdit(t)}
                   className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-muted text-muted-foreground hover:text-foreground">
                   Editar
@@ -256,65 +239,110 @@ export default function AdminTecnicos() {
         </div>
       )}
 
-      {/* Modal */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+      {/* Modal Criar/Editar Técnico — com tabela de valores por AP integrada */}
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { setOpen(false); setEditId(null); resetForm(); } }}>
+        <DialogContent className="sm:max-w-xl rounded-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle style={{ fontFamily: "var(--font-display)" }}>
               {editId ? "Editar Técnico" : "Novo Técnico"}
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Nome completo *</Label>
-              <Input value={form.nome} onChange={e => setForm(f => ({...f, nome: e.target.value}))} placeholder="Ex: João Silva" className="rounded-xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Email *</Label>
-              <Input type="email" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} placeholder="joao@email.com" className="rounded-xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Senha {editId ? "(deixe em branco para manter)" : "*"}</Label>
-              <div className="relative">
-                <Input
-                  type={showPass ? "text" : "password"}
-                  value={form.senha}
-                  onChange={e => setForm(f => ({...f, senha: e.target.value}))}
-                  placeholder="Mínimo 6 caracteres"
-                  className="rounded-xl pr-10"
-                />
-                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setShowPass(v => !v)}>
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+            {/* Dados básicos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-foreground">Nome completo *</Label>
+                <Input value={form.nome} onChange={e => setForm(f => ({...f, nome: e.target.value}))} placeholder="Ex: João Silva" className="rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-foreground">Email *</Label>
+                <Input type="email" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} placeholder="joao@email.com" className="rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-foreground">Senha {editId ? "(deixe em branco para manter)" : "*"}</Label>
+                <div className="relative">
+                  <Input
+                    type={showPass ? "text" : "password"}
+                    value={form.senha}
+                    onChange={e => setForm(f => ({...f, senha: e.target.value}))}
+                    placeholder="Mínimo 6 caracteres"
+                    className="rounded-xl pr-10"
+                  />
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowPass(v => !v)}>
+                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold text-foreground">Telefone</Label>
+                <Input value={form.telefone} onChange={e => setForm(f => ({...f, telefone: e.target.value}))} placeholder="(75) 99999-9999" className="rounded-xl" />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-sm font-semibold text-foreground">Cidade Responsável</Label>
+                <Input value={form.cidadeResponsavel} onChange={e => setForm(f => ({...f, cidadeResponsavel: e.target.value}))} placeholder="Ex: Monte Santo" className="rounded-xl" />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Telefone</Label>
-              <Input value={form.telefone} onChange={e => setForm(f => ({...f, telefone: e.target.value}))} placeholder="(75) 99999-9999" className="rounded-xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Cidade Responsável</Label>
-              <Input value={form.cidadeResponsavel} onChange={e => setForm(f => ({...f, cidadeResponsavel: e.target.value}))} placeholder="Ex: Monte Santo" className="rounded-xl" />
+
+            {/* Tabela de Valores por AP */}
+            <div className="rounded-2xl border p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-semibold text-foreground">Valor por quantidade de APs instalados</span>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Defina o valor que este técnico recebe por OS, de acordo com a quantidade de APs instalados (1 a 18).
+              </p>
+              <div className="grid grid-cols-3 gap-x-3 gap-y-2">
+                {Array.from({ length: NUM_APS }, (_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div
+                      className="flex items-center justify-center rounded-lg text-xs font-bold text-white flex-shrink-0"
+                      style={{
+                        width: 30, height: 30,
+                        background: "linear-gradient(135deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))"
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium pointer-events-none">R$</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={valoresAp[i]}
+                        onChange={e => {
+                          const arr = [...valoresAp];
+                          arr[i] = e.target.value;
+                          setValoresAp(arr);
+                        }}
+                        placeholder="0,00"
+                        className="rounded-xl pl-7 text-sm h-8"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-xl">Cancelar</Button>
-            <Button onClick={handleSubmit} disabled={createMut.isPending || updateMut.isPending} className="flex-1 rounded-xl"
-              style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.36 0.14 240))", color: "white", border: "none" }}>
-              {createMut.isPending || updateMut.isPending ? "Salvando..." : editId ? "Salvar Alterações" : "Criar Técnico"}
+            <Button variant="outline" onClick={() => { setOpen(false); setEditId(null); resetForm(); }} className="flex-1 rounded-xl">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="flex-1 rounded-xl"
+              style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.36 0.14 240))", color: "white", border: "none" }}
+            >
+              {isPending ? "Salvando..." : editId ? "Salvar Alterações" : "Criar Técnico"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-      {/* Modal Valores por AP */}
-      {valoresApTecnico && (
-        <ValoresApModal
-          tecnicoId={valoresApTecnico.id}
-          tecnicoNome={valoresApTecnico.nome}
-          onClose={() => setValoresApTecnico(null)}
-        />
-      )}
     </AdminLayoutAuto>
   );
 }

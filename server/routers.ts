@@ -141,7 +141,7 @@ const tecnicosRouter = router({
     .input(
       z.object({
         tecnicoId: z.number(),
-        valores: z.array(z.object({ qtdAp: z.number().min(1).max(15), valor: z.number().min(0) })),
+        valores: z.array(z.object({ qtdAp: z.number().min(1).max(18), valor: z.number().min(0) })),
       })
     )
     .mutation(async ({ input, ctx }) => {
