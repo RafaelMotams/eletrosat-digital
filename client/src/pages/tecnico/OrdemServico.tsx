@@ -10,9 +10,8 @@ import {
   ChevronRight, Eye, Trash2
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import {
-  enqueueOfflineAction, useOfflineSyncQueue, getOfflineQueue
-} from "@/hooks/useOfflineQueue";
+import { dbEnqueueOS } from "@/hooks/useOfflineDB";
+import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const statusConfig: Record<string, {
@@ -511,23 +510,21 @@ export default function TecnicoOS() {
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
   });
 
-  const syncAction = useCallback(async (action: import("@/hooks/useOfflineQueue").OfflineAction) => {
-    if (action.type !== "concluirEscola") return false;
-    const { escolaId: eid, tecnicoId: tid, qtdApInstalado, observacoes } = action.payload;
-    try {
-      await utils.client.tecnicoAuth.concluirEscola.mutate({ escolaId: eid, tecnicoId: tid, qtdApInstalado, observacao: observacoes });
-      utils.tecnicoAuth.minhasEscolas.invalidate();
-      toast.success("OS sincronizada com sucesso!");
-      return true;
-    } catch { return false; }
-  }, [utils]);
+  // Sincronização automática ao voltar online (IndexedDB)
+  const { syncState } = useSyncOfflineOS(() => {
+    utils.tecnicoAuth.minhasEscolas.invalidate();
+    utils.tecnicoAuth.minhasOrdens.invalidate();
+    toast.success("OS sincronizadas com sucesso!");
+  });
 
-  useOfflineSyncQueue(syncAction);
-
+  // Atualiza pendingOffline com base no IndexedDB
   useEffect(() => {
-    const queue = getOfflineQueue();
-    setPendingOffline(queue.some(a => a.payload.escolaId === escolaId));
-  }, [escolaId]);
+    import("@/hooks/useOfflineDB").then(({ dbGetAllPendingOS }) => {
+      dbGetAllPendingOS().then(all => {
+        setPendingOffline(all.some(o => o.escolaId === escolaId && o.status !== "done"));
+      });
+    });
+  }, [escolaId, syncState.pendingCount]);
 
   const lat = escola?.latitude ? parseFloat(escola.latitude) : null;
   const lng = escola?.longitude ? parseFloat(escola.longitude) : null;
@@ -1065,15 +1062,25 @@ export default function TecnicoOS() {
                       return;
                     }
 
-                    // ── Modo offline ──
+                    // ── Modo offline: salva OS + fotos no IndexedDB ──
                     if (!isOnline) {
-                      enqueueOfflineAction({
-                        type: "concluirEscola",
-                        payload: { escolaId, tecnicoId, qtdApInstalado: n, observacoes: observacao || undefined, dataHora: new Date().toISOString() },
+                      const fotasOffline = CATEGORIAS_FOTOS.flatMap(cat =>
+                        fotosPorCategoria[cat.id].map(f => ({
+                          categoria: cat.id,
+                          imageBase64: f.base64,
+                          mimeType: f.mime,
+                        }))
+                      );
+                      await dbEnqueueOS({
+                        escolaId, tecnicoId, qtdApInstalado: n,
+                        observacao: observacao || undefined,
+                        dataHora: new Date().toISOString(),
+                        fotos: fotasOffline,
                       });
                       setPendingOffline(true);
                       setOpenConcluir(false);
-                      toast.success("OS salva localmente! Será enviada ao servidor quando você tiver internet.", { duration: 5000 });
+                      setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                      toast.success(`OS e ${fotasOffline.length} foto${fotasOffline.length !== 1 ? 's' : ''} salvas localmente! Serão enviadas quando você tiver internet.`, { duration: 6000 });
                       return;
                     }
 

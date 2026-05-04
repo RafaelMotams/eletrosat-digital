@@ -23,6 +23,7 @@ import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminConfiguracoes from "./pages/admin/Configuracoes";
+import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 
 function Router() {
   return (
@@ -62,6 +63,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <OfflineSyncBanner />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

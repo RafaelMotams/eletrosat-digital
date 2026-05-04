@@ -1,23 +1,23 @@
-// Service Worker - Netvionis
-// v3 - Network-first: sempre busca do servidor, usa cache só quando offline
-const CACHE_NAME = 'netvionis-v3';
+// Service Worker — Eletrosat Digital / Netvionis
+// v4 — Cache-first para assets, Network-first para API, Background Sync para OS pendentes
+const CACHE_NAME = 'netvionis-v4';
 
-// Assets essenciais para funcionar offline (apenas shell básico)
+// Assets essenciais para funcionar offline
 const OFFLINE_ASSETS = ['/tecnico'];
 
+// ── Install ────────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(OFFLINE_ASSETS).catch(() => {});
     })
   );
-  // Força ativação imediata sem esperar tabs antigas fecharem
   self.skipWaiting();
 });
 
+// ── Activate: limpa caches antigos ────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    // Remove TODOS os caches antigos (inclusive netvionis-v1 e netvionis-v2)
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => {
         console.log('[SW] Removendo cache antigo:', k);
@@ -27,10 +27,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// ── Fetch ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Não intercepta chamadas de API — deixa passar normalmente
+  // Não intercepta chamadas de API — deixa passar normalmente (tRPC lida com offline)
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/manus-storage/')) return;
 
   // Não intercepta arquivos de desenvolvimento do Vite
@@ -39,13 +40,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Estratégia NETWORK-FIRST para tudo:
-  // 1. Tenta buscar do servidor (sempre pega versão mais recente)
-  // 2. Se offline ou erro de rede, usa cache como fallback
+  // Assets estáticos (JS, CSS, imagens, fontes): Cache-first
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|avif)$/) ||
+      url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response && response.ok && event.request.method === 'GET') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        }).catch(() => cached || new Response('', { status: 404 }));
+      })
+    );
+    return;
+  }
+
+  // Demais requisições (HTML, etc.): Network-first com fallback para cache
   event.respondWith(
     fetch(event.request.clone())
       .then(response => {
-        // Se a resposta for válida, atualiza o cache e retorna
         if (response && response.status === 200 && event.request.method === 'GET') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
@@ -53,25 +69,51 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Offline: usa cache se disponível
         return caches.match(event.request).then(cached => {
           if (cached) return cached;
-          // Fallback para a raiz do app técnico
           return caches.match('/tecnico') || new Response(
-            '<html><body style="background:#0a0f1e;color:white;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;flex-direction:column;gap:12px">' +
-            '<p style="font-size:18px;font-weight:bold">Sem conexão</p>' +
-            '<p style="font-size:14px;color:#94a3b8">Verifique sua internet e tente novamente</p>' +
-            '</body></html>',
-            { status: 503, headers: { 'Content-Type': 'text/html' } }
+            `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eletrosat Digital — Offline</title>
+  <style>
+    body { font-family: sans-serif; display: flex; align-items: center; justify-content: center;
+           height: 100vh; margin: 0; background: #0a0f1e; color: #e2e8f0;
+           flex-direction: column; gap: 12px; text-align: center; padding: 1rem; }
+    .icon { font-size: 3rem; }
+    h1 { font-size: 1.25rem; margin: 0; }
+    p { font-size: 0.875rem; color: #94a3b8; max-width: 280px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="icon">📡</div>
+  <h1>Sem conexão</h1>
+  <p>Suas OS salvas localmente serão sincronizadas quando a internet voltar.</p>
+</body>
+</html>`,
+            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
           );
         });
       })
   );
 });
 
-// Escuta mensagens do cliente para forçar atualização
+// ── Background Sync: dispara sincronização quando internet voltar ──────────
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-os-pendentes') {
+    event.waitUntil(
+      self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'TRIGGER_SYNC' }));
+      })
+    );
+  }
+});
+
+// ── Mensagens do cliente ───────────────────────────────────────────────────
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
+  if (event.data === 'SKIP_WAITING' || event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
   if (event.data === 'CLEAR_CACHE') {

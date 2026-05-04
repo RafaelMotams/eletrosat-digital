@@ -295,3 +295,12 @@
 - [x] Seções de fotos: mapa de calor, fotos APs (até 15), etiqueta serial AP, etiqueta controladora, etiqueta nobreak
 - [x] Bloquear conclusão da OS se alguma seção obrigatória não tiver foto
 - [x] Visualizador de fotos por categoria no painel admin (OrdemServicoDetalhe ou similar)
+
+## Modo Offline Completo (IndexedDB) - 04/05/2026
+- [x] Hook useOfflineDB.ts: IndexedDB com stores "escolas" e "pendingOS"
+- [x] Hook useSyncOfflineOS.ts: sincronização automática ao voltar online
+- [x] OrdemServico.tsx: modo offline salva OS + fotos no IndexedDB via dbEnqueueOS
+- [x] Service Worker v4: cache-first para assets, network-first para API, fallback offline
+- [x] Componente OfflineSyncBanner: banner visual de status offline/sincronizando/sucesso
+- [x] App.tsx: OfflineSyncBanner adicionado globalmente
+- [x] trpcClient vanilla exportado do trpc.ts para uso fora de componentes React
