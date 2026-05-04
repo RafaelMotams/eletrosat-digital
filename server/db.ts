@@ -8,6 +8,7 @@ import {
   ordensServico,
   osFotos,
   tecnicos,
+  tecnicoValoresAp,
   users,
   type InsertEscola,
   type InsertOrdemServico,
@@ -618,4 +619,56 @@ export async function countOsFotosByCategoria(osId: number): Promise<Record<stri
     counts[row.categoria] = (counts[row.categoria] ?? 0) + 1;
   }
   return counts;
+}
+
+// ─── VALORES POR AP POR TÉCNICO ──────────────────────────────────────────────
+export async function getValoresApTecnico(tecnicoId: number): Promise<Record<number, number>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db
+    .select()
+    .from(tecnicoValoresAp)
+    .where(eq(tecnicoValoresAp.tecnicoId, tecnicoId));
+  const map: Record<number, number> = {};
+  for (const row of rows) {
+    map[row.qtdAp] = parseFloat(row.valor as string);
+  }
+  return map;
+}
+
+export async function setValoresApTecnico(
+  tecnicoId: number,
+  tenantId: number,
+  valores: { qtdAp: number; valor: number }[]
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  // Apaga os registros antigos e insere os novos (upsert manual)
+  await db.delete(tecnicoValoresAp).where(eq(tecnicoValoresAp.tecnicoId, tecnicoId));
+  const toInsert = valores
+    .filter(v => v.valor > 0)
+    .map(v => ({
+      tecnicoId,
+      tenantId,
+      qtdAp: v.qtdAp,
+      valor: String(v.valor),
+    }));
+  if (toInsert.length > 0) {
+    await db.insert(tecnicoValoresAp).values(toInsert);
+  }
+}
+
+export async function getValoresApAllTecnicos(tenantId: number): Promise<Record<number, Record<number, number>>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db
+    .select()
+    .from(tecnicoValoresAp)
+    .where(eq(tecnicoValoresAp.tenantId, tenantId));
+  const map: Record<number, Record<number, number>> = {};
+  for (const row of rows) {
+    if (!map[row.tecnicoId]) map[row.tecnicoId] = {};
+    map[row.tecnicoId][row.qtdAp] = parseFloat(row.valor as string);
+  }
+  return map;
 }

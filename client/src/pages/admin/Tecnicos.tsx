@@ -5,8 +5,88 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Phone, Mail, MapPin, Users, Eye, EyeOff, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Phone, Mail, MapPin, Users, Eye, EyeOff, Shield, DollarSign } from "lucide-react";
+
+// Componente de modal de valores por AP
+function ValoresApModal({ tecnicoId, tecnicoNome, onClose }: { tecnicoId: number; tecnicoNome: string; onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: valoresData, isLoading } = trpc.tecnicos.getValoresAp.useQuery({ tecnicoId });
+  const setValoresMut = trpc.tecnicos.setValoresAp.useMutation({
+    onSuccess: () => { toast.success("Valores salvos com sucesso!"); utils.tecnicos.getValoresAp.invalidate({ tecnicoId }); },
+    onError: (e) => toast.error(e.message),
+  });
+  const [valores, setValores] = useState<string[]>(Array(15).fill(""));
+  useEffect(() => {
+    if (valoresData) {
+      const arr = Array(15).fill("");
+      for (let i = 1; i <= 15; i++) {
+        const v = (valoresData as Record<number, number>)[i];
+        if (v !== undefined && v > 0) arr[i - 1] = String(v);
+      }
+      setValores(arr);
+    }
+  }, [valoresData]);
+  function handleSave() {
+    const payload: { qtdAp: number; valor: number }[] = [];
+    for (let i = 0; i < 15; i++) {
+      const v = parseFloat(String(valores[i]).replace(",", "."));
+      payload.push({ qtdAp: i + 1, valor: isNaN(v) ? 0 : v });
+    }
+    setValoresMut.mutate({ tecnicoId, valores: payload });
+  }
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle style={{ fontFamily: "var(--font-display)" }} className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-500" />
+            Valores por AP — {tecnicoNome}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Defina o valor que o técnico recebe por quantidade de APs instalados em uma OS.
+          </p>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="py-8 text-center text-muted-foreground">Carregando...</div>
+        ) : (
+          <div className="space-y-3 py-2">
+            <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+              {Array.from({ length: 15 }, (_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="flex items-center justify-center rounded-lg text-xs font-bold text-white flex-shrink-0"
+                    style={{ width: 32, height: 32, background: "linear-gradient(135deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))" }}>
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">R$</span>
+                    <Input
+                      type="number" min="0" step="0.01"
+                      value={valores[i]}
+                      onChange={e => { const arr = [...valores]; arr[i] = e.target.value; setValores(arr); }}
+                      placeholder="0,00"
+                      className="rounded-xl pl-8 text-sm h-9"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-3 text-xs text-blue-700 dark:text-blue-300">
+              <strong>Como funciona:</strong> Quando uma OS for concluída com, por exemplo, 3 APs instalados, o relatório mostrará automaticamente o valor cadastrado para “3 APs” deste técnico.
+            </div>
+          </div>
+        )}
+        <div className="flex gap-3 pt-2">
+          <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl">Fechar</Button>
+          <Button onClick={handleSave} disabled={setValoresMut.isPending} className="flex-1 rounded-xl"
+            style={{ background: "linear-gradient(135deg, oklch(0.35 0.15 162), oklch(0.50 0.20 162))", color: "white", border: "none" }}>
+            {setValoresMut.isPending ? "Salvando..." : "Salvar Valores"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const AVATAR_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.30 0.10 240), oklch(0.50 0.18 162))",
@@ -40,6 +120,7 @@ export default function AdminTecnicos() {
   const [editId, setEditId] = useState<number | null>(null);
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState<TecnicoForm>({ nome: "", telefone: "", email: "", senha: "", cidadeResponsavel: "" });
+  const [valoresApTecnico, setValoresApTecnico] = useState<{ id: number; nome: string } | null>(null);
 
   function resetForm() { setForm({ nome: "", telefone: "", email: "", senha: "", cidadeResponsavel: "" }); setShowPass(false); }
   function openCreate() { resetForm(); setEditId(null); setOpen(true); }
@@ -157,6 +238,10 @@ export default function AdminTecnicos() {
 
               {/* Footer */}
               <div className="mt-4 pt-3 border-t border-border flex gap-2">
+                <button onClick={() => setValoresApTecnico({ id: t.id, nome: t.nome })}
+                  className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-green-50 text-muted-foreground hover:text-green-600 flex items-center justify-center gap-1">
+                  <DollarSign className="w-3 h-3" /> Valores AP
+                </button>
                 <button onClick={() => openEdit(t)}
                   className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-muted text-muted-foreground hover:text-foreground">
                   Editar
@@ -222,6 +307,14 @@ export default function AdminTecnicos() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Modal Valores por AP */}
+      {valoresApTecnico && (
+        <ValoresApModal
+          tecnicoId={valoresApTecnico.id}
+          tecnicoNome={valoresApTecnico.nome}
+          onClose={() => setValoresApTecnico(null)}
+        />
+      )}
     </AdminLayoutAuto>
   );
 }

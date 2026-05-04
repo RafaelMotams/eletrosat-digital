@@ -39,6 +39,9 @@ import {
   listOsFotos,
   listOsFotosByEscola,
   countOsFotosByCategoria,
+  getValoresApTecnico,
+  setValoresApTecnico,
+  getValoresApAllTecnicos,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -127,6 +130,25 @@ const tecnicosRouter = router({
     await deleteTecnico(input.id);
     return { success: true };
   }),
+  // Buscar tabela de valores por AP de um técnico
+  getValoresAp: tenantAdminProcedure
+    .input(z.object({ tecnicoId: z.number() }))
+    .query(async ({ input }) => {
+      return getValoresApTecnico(input.tecnicoId);
+    }),
+  // Salvar tabela de valores por AP de um técnico
+  setValoresAp: tenantAdminProcedure
+    .input(
+      z.object({
+        tecnicoId: z.number(),
+        valores: z.array(z.object({ qtdAp: z.number().min(1).max(15), valor: z.number().min(0) })),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      await setValoresApTecnico(input.tecnicoId, tenantId, input.valores);
+      return { success: true };
+    }),
 });
 
 // === ESCOLAS ROUTER ===
@@ -447,10 +469,20 @@ const relatoriosRouter = router({
     .query(async ({ input, ctx }) => {
       const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
       const fim = input.dataFim ? new Date(input.dataFim) : null;
+      const tenantId = (ctx as any).tenantId;
       // Suporte a múltiplos técnicos
       const tecnicoIds = input.tecnicoIds && input.tecnicoIds.length > 0 ? input.tecnicoIds : undefined;
       const tecnicoId = !tecnicoIds && input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
-      return getOsDetalhadas({ tecnicoId, tecnicoIds, dataInicio: inicio, dataFim: fim, tenantId: (ctx as any).tenantId });
+      const rows = await getOsDetalhadas({ tecnicoId, tecnicoIds, dataInicio: inicio, dataFim: fim, tenantId });
+      // Buscar tabela de valores por AP de todos os técnicos do tenant
+      const valoresMap = await getValoresApAllTecnicos(tenantId);
+      // Calcular valor por OS com base nos APs instalados e valor cadastrado do técnico
+      return rows.map(os => {
+        const tecValores = valoresMap[os.tecnicoId ?? 0] ?? {};
+        const qtd = os.qtdApInstalado ?? 0;
+        const valorCalculado = tecValores[qtd] ?? null;
+        return { ...os, valorCalculado };
+      });
     }),
 });
 

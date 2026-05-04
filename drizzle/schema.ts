@@ -162,3 +162,16 @@ export const osFotos = mysqlTable("os_fotos", {
 
 export type OsFoto = typeof osFotos.$inferSelect;
 export type InsertOsFoto = typeof osFotos.$inferInsert;
+
+// Tabela de Valores por AP por Técnico (1 a 15 APs)
+export const tecnicoValoresAp = mysqlTable("tecnico_valores_ap", {
+  id: int("id").autoincrement().primaryKey(),
+  tecnicoId: int("tecnicoId").notNull(),
+  tenantId: int("tenantId").notNull().default(1),
+  qtdAp: int("qtdAp").notNull(), // 1 a 15
+  valor: decimal("valor", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type TecnicoValorAp = typeof tecnicoValoresAp.$inferSelect;
+export type InsertTecnicoValorAp = typeof tecnicoValoresAp.$inferInsert;

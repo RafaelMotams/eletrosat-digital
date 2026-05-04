@@ -323,3 +323,12 @@
 - [ ] Painel cliente: Configurações (alterar senha, nome da empresa)
 - [ ] App técnico: login do técnico funciona independente do tenant (tenantId isolado)
 - [ ] Login unificado: /login detecta se é superadmin, cliente ou técnico
+
+## Valor por AP por Técnico — 04/05/2026
+- [x] Schema: tabela tecnico_valores_ap (id, tecnico_id, qtd_ap 1-15, valor decimal)
+- [x] Backend: procedures getValoresAp e setValoresAp (upsert) por técnico
+- [x] Backend: osDetalhadas retorna valorCalculado (busca valor cadastrado para qtdApInstalado do técnico)
+- [x] Frontend: seção "Tabela de Valores por AP" na página de Técnicos (editar técnico)
+- [x] Frontend: relatório mostra coluna "Valor (R$)" calculada automaticamente por OS
+- [x] Frontend: relatório mostra total de valor por técnico e total geral
+- [x] Excel exportado já traz o valor calculado preenchido (não mais em branco)

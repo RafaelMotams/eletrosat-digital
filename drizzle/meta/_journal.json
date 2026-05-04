@@ -57,6 +57,13 @@
       "when": 1777753441284,
       "tag": "0007_narrow_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1777916887254,
+      "tag": "0008_red_famine",
+      "breakpoints": true
     }
   ]
 }

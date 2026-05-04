@@ -163,15 +163,14 @@ function exportarExcel(
     [],
   ];
 
-  const headerRow = [
+   const headerRow = [
     "Nº", "Nome da Escola", "INEP", "Município", "UF",
     "Técnico", "Data Conclusão", "APs Instalados",
-    "Valor por AP (R$)",  // usuário preenche na planilha
-    "Valor Total (R$)",   // fórmula automática
+    "Valor por AP (R$)",
+    "Valor Total (R$)",
     "Observação",
   ];
-
-  const dataRows = osDetalhadas.map((os, i) => [
+  const dataRows = osDetalhadas.map((os: any, i: number) => [
     i + 1,
     os.escolaNome,
     os.inep,
@@ -180,7 +179,7 @@ function exportarExcel(
     os.tecnicoNome,
     formatDate(os.dataConclusao),
     os.qtdApInstalado ?? 0,
-    "",   // Valor por AP — usuário preenche
+    os.valorCalculado != null ? Number(os.valorCalculado) : "",  // Valor por AP — já preenchido se cadastrado
     "",   // Valor Total — fórmula
     os.observacao || "",
   ]);
@@ -446,7 +445,7 @@ export default function AdminRelatorios() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","Técnico","Data","Observação"].map(h => (
+                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","Valor (R$)","Técnico","Data","Observação"].map(h => (
                       <th key={h} className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -468,6 +467,15 @@ export default function AdminRelatorios() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{os.qtdApPlanejado}</td>
+                      <td className="px-4 py-3 text-center">
+                        {os.valorCalculado != null ? (
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                            {Number(os.valorCalculado).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                           {os.tecnicoNome}
@@ -491,6 +499,16 @@ export default function AdminRelatorios() {
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold text-sm">
                         {totalApsTabela}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {(() => {
+                        const totalValor = (osDetalhadas ?? []).reduce((acc: number, os: any) => acc + (os.valorCalculado != null ? Number(os.valorCalculado) : 0), 0);
+                        return totalValor > 0 ? (
+                          <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
+                            {totalValor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </span>
+                        ) : <span className="text-muted-foreground text-xs">—</span>;
+                      })()}
                     </td>
                     <td colSpan={4} />
                   </tr>
