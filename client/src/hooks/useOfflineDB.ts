@@ -24,6 +24,8 @@ export type FotoOffline = {
   categoria: string;
   imageBase64: string;
   mimeType: string;
+  /** ID único gerado no momento da captura para garantir idempotência no upload */
+  clientId?: string;
 };
 
 export type PendingOS = {

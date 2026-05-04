@@ -727,6 +727,8 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]),
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
+      // clientId: ID único gerado pelo app offline para garantir idempotência
+      clientId: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const buffer = Buffer.from(input.imageBase64, "base64");
@@ -739,6 +741,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         categoria: input.categoria,
         url,
         fileKey: key,
+        clientId: input.clientId,
       });
       return { url, key };
     }),

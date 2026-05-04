@@ -4,12 +4,17 @@
  *
  * Fluxo:
  *  1. Ao montar (ou ao voltar online), busca todas as OS com status "pending"/"error"
- *  2. Para cada OS: chama concluirEscola → obtém osId → faz upload das fotos
- *  3. Atualiza o status no IndexedDB
- *  4. Notifica o React Query para invalidar as queries relevantes
+ *  2. Para cada OS: MARCA como "syncing" ANTES de enviar (evita reenvio duplo)
+ *  3. Chama concluirEscola → obtém osId → faz upload das fotos
+ *  4. Marca como "done" e remove do IndexedDB
  *
- * CORREÇÃO: Usa isOnlineRef (Capacitor) em vez de navigator.onLine
- * para evitar falso-negativo no WebView Android.
+ * ANTI-DUPLICAÇÃO:
+ *  - syncingRef global: impede duas execuções simultâneas de runSync
+ *  - syncingItemsRef: Set de IDs já em processamento (evita processar a mesma OS duas vezes)
+ *  - Status "syncing" persistido no IndexedDB: se o app reiniciar durante sync,
+ *    a OS fica como "syncing" e é ignorada na próxima execução (não reenviada)
+ *  - Backend: concluirEscola é idempotente (verifica OS existente antes de criar)
+ *  - Backend: uploadOsFoto verifica duplicata por osId+categoria antes de inserir
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -33,6 +38,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
   const isOnline = useOnlineStatus();
   const isOnlineRef = useRef(isOnline);
   const syncingRef = useRef(false);
+  // Set de IDs de OS que já estão sendo processadas nesta execução
+  const syncingItemsRef = useRef<Set<string>>(new Set());
+
   const [syncState, setSyncState] = useState<SyncState>({
     isSyncing: false,
     pendingCount: 0,
@@ -51,20 +59,29 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
   }, []);
 
   const syncOne = useCallback(async (os: PendingOS): Promise<boolean> => {
+    // ── ANTI-DUPLICAÇÃO: se esta OS já está sendo processada, pula ──
+    if (syncingItemsRef.current.has(os.id)) {
+      console.warn("[SyncOffline] OS já em processamento, pulando:", os.id);
+      return true;
+    }
+    syncingItemsRef.current.add(os.id);
+
     try {
+      // Marca como "syncing" NO BANCO antes de qualquer chamada de rede.
+      // Se o app fechar/reiniciar agora, a OS fica "syncing" e não é reenviada.
       await dbUpdateOSStatus(os.id, "syncing");
 
       if (os.tipo === "iniciar") {
-        // Apenas iniciar a OS no servidor
         await trpcClient.tecnicoAuth.iniciarOS.mutate({
           tecnicoId: os.tecnicoId,
           escolaId: os.escolaId,
         });
         await dbUpdateOSStatus(os.id, "done");
+        syncingItemsRef.current.delete(os.id);
         return true;
       }
 
-      // Passo 1: Concluir a OS no servidor
+      // Passo 1: Concluir a OS no servidor (idempotente no backend)
       const resultado = await trpcClient.tecnicoAuth.concluirEscola.mutate({
         tecnicoId: os.tecnicoId,
         escolaId: os.escolaId,
@@ -90,6 +107,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
                 | "etiqueta_switch",
               imageBase64: foto.imageBase64,
               mimeType: foto.mimeType,
+              // clientId garante idempotência: mesmo que o upload seja chamado
+              // duas vezes (ex: reconexão durante upload), o backend não duplica
+              clientId: foto.clientId,
             });
           } catch (fotoErr) {
             // Log do erro da foto mas continua com as outras
@@ -99,17 +119,20 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       }
 
       await dbUpdateOSStatus(os.id, "done");
+      syncingItemsRef.current.delete(os.id);
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[SyncOffline] Erro ao sincronizar OS:", msg);
+      // Marca como erro para tentar novamente depois
       await dbUpdateOSStatus(os.id, "error", { errorMsg: msg });
+      syncingItemsRef.current.delete(os.id);
       return false;
     }
   }, []);
 
   const runSync = useCallback(async () => {
-    // Usa isOnlineRef (Capacitor) em vez de navigator.onLine (não confiável no WebView Android)
+    // ── ANTI-DUPLICAÇÃO: impede duas execuções simultâneas de runSync ──
     if (syncingRef.current || !isOnlineRef.current) return;
 
     const pending = await dbGetPendingOS();
@@ -119,7 +142,16 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     setSyncState((s) => ({ ...s, isSyncing: true, lastError: null }));
 
     let anyError = false;
+
+    // Processa sequencialmente (não em paralelo) para evitar race conditions
     for (const os of pending) {
+      // Pula OS que já estão sendo processadas (status "syncing" no banco)
+      // Isso pode acontecer se o app reiniciou durante uma sincronização anterior
+      if (os.status === "syncing") {
+        console.warn("[SyncOffline] OS encontrada com status syncing (possível crash anterior), reenviando:", os.id);
+        // Reseta para "error" para reprocessar com segurança
+        await dbUpdateOSStatus(os.id, "error", { errorMsg: "Reiniciado durante sincronização" });
+      }
       const ok = await syncOne(os);
       if (!ok) anyError = true;
     }

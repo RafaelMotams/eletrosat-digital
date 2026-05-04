@@ -157,6 +157,8 @@ export const osFotos = mysqlTable("os_fotos", {
   categoria: mysqlEnum("categoria", ["mapa_calor", "fotos_ap", "etiqueta_serial_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]).notNull(),
   url: text("url").notNull(),
   fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  // clientId: ID único gerado pelo app offline para garantir idempotência no upload
+  clientId: varchar("clientId", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

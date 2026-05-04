@@ -334,19 +334,26 @@
 - [x] Excel exportado já traz o valor calculado preenchido (não mais em branco)
 
 ## Redesign Total App Técnico v5 — Enterprise Premium (04/05/2026)
-- [ ] Login: splash screen com partículas animadas, logo com efeito de brilho pulsante, barra de progresso premium
-- [ ] Login: formulário com glassmorphism avançado, campos flutuantes, animação de entrada
-- [ ] Home: header com gradiente dinâmico, avatar do técnico, indicador online/offline
-- [ ] Home: cards de métricas com ícones animados e gradientes únicos por métrica
-- [ ] Home: lista de escolas com cards premium (número de rota, badge AP, status visual)
-- [ ] Home: barra de busca com filtros por status em chips coloridos
+- [x] Login: splash screen com partículas animadas, logo com efeito de brilho pulsante, barra de progresso premium
+- [x] Login: formulário com glassmorphism avançado, campos flutuantes, animação de entrada
+- [x] Home: header com gradiente dinâmico, avatar do técnico, indicador online/offline
+- [x] Home: cards de métricas com ícones animados e gradientes únicos por métrica
+- [x] Home: lista de escolas com cards premium (número de rota, badge AP, status visual)
+- [x] Home: barra de busca com filtros por status em chips coloridos
 - [ ] OS: stepper visual com animações de transição entre etapas
 - [ ] OS: cards de informação com ícones coloridos e layout mais espaçoso
 - [ ] OS: botões de ação (WhatsApp, Maps) com gradientes e ícones grandes
 - [ ] OS: seção de fotos com grid visual e indicadores de progresso
-- [ ] Perfil: header com gradiente e avatar grande com iniciais
-- [ ] Perfil: cards de stats com animações e cores distintas
-- [ ] Perfil: barra de progresso animada e badge de conquista
-- [ ] Histórico: cards premium com timeline visual e filtros elegantes
-- [ ] Bottom Nav: design com gradiente ativo, ícones animados e indicador de posição
-- [ ] CSS global: adicionar classes utilitárias para o app do técnico
+- [x] Perfil: header com gradiente e avatar grande com iniciais
+- [x] Perfil: cards de stats com animações e cores distintas
+- [x] Perfil: barra de progresso animada e badge de conquista
+- [x] Histórico: cards premium com timeline visual e filtros elegantes
+- [x] Bottom Nav: design com gradiente ativo, ícones animados e indicador de posição
+- [x] CSS global: adicionar classes utilitárias para o app do técnico
+
+## Bug: Duplicação de OS e fotos na sincronização offline (04/05/2026)
+- [ ] Frontend: adicionar flag `syncing` por OS no IndexedDB para evitar múltiplos envios simultâneos
+- [ ] Frontend: remover OS da fila ANTES de enviar (ou marcar como processando) para evitar reenvio
+- [ ] Frontend: tratar erro de sincronização sem recolocar na fila se já foi enviado com sucesso
+- [ ] Backend: tornar procedure concluirOS idempotente (upsert por escolaId+tecnicoId, não insert duplo)
+- [ ] Backend: verificar se OS já foi concluída antes de processar fotos novamente

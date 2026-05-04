@@ -595,6 +595,24 @@ export async function getOsDetalhadas(filters: {
 export async function insertOsFoto(data: InsertOsFoto): Promise<void> {
   const db = await getDb();
   if (!db) return;
+  // ANTI-DUPLICAÇÃO: se o app enviou um clientId único, verifica se já existe
+  // Isso evita que a sincronização offline insira a mesma foto duas vezes
+  if (data.clientId) {
+    const existing = await db
+      .select({ id: osFotos.id })
+      .from(osFotos)
+      .where(
+        and(
+          eq(osFotos.osId, data.osId),
+          eq(osFotos.clientId, data.clientId)
+        )
+      )
+      .limit(1);
+    if (existing.length > 0) {
+      // Foto já existe com este clientId, não insere duplicata
+      return;
+    }
+  }
   await db.insert(osFotos).values(data);
 }
 

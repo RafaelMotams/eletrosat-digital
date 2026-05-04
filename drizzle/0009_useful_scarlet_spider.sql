@@ -1,0 +1,1 @@
+ALTER TABLE `os_fotos` ADD `clientId` varchar(100);

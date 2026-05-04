@@ -64,6 +64,13 @@
       "when": 1777916887254,
       "tag": "0008_red_famine",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1777931249413,
+      "tag": "0009_useful_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

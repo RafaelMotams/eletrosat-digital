@@ -1110,10 +1110,13 @@ export default function TecnicoOS() {
                     // ── Modo offline: salva OS + fotos no IndexedDB ──
                     if (!isOnline) {
                       const fotasOffline = CATEGORIAS_FOTOS.flatMap(cat =>
-                        fotosPorCategoria[cat.id].map(f => ({
+                        fotosPorCategoria[cat.id].map((f, idx) => ({
                           categoria: cat.id,
                           imageBase64: f.base64,
                           mimeType: f.mime,
+                          // clientId único por foto: garante idempotência no upload
+                          // mesmo que a sincronização seja chamada várias vezes
+                          clientId: `${escolaId}-${cat.id}-${idx}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                         }))
                       );
                       await dbEnqueueOS({
