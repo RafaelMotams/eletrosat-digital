@@ -158,13 +158,18 @@ export function converterLinha(
 
   const getString = (campo: CampoEscola): string | undefined => {
     const v = get(campo);
-    if (v == null || v === "") return undefined;
-    return String(v).trim();
+    // Tratar false booleano (célula vazia lida pelo XLSX.js com defval:'') como undefined
+    if (v == null || v === "" || v === false || (v === 0 && campo !== "qtdAp")) return undefined;
+    const s = String(v).trim();
+    // Rejeitar strings que claramente não são valores válidos
+    if (s === "false" || s === "null" || s === "undefined") return undefined;
+    return s || undefined;
   };
 
   const getNumber = (campo: CampoEscola): number | undefined => {
     const v = get(campo);
-    if (v == null || v === "") return undefined;
+    // Tratar false booleano como undefined
+    if (v == null || v === "" || v === false) return undefined;
     const n = Number(v);
     return isNaN(n) ? undefined : n;
   };

@@ -7,6 +7,7 @@ import {
   varchar,
   decimal,
   boolean,
+  uniqueIndex,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
@@ -109,8 +110,11 @@ export const escolas = mysqlTable("escolas", {
   dataConclusao: timestamp("dataConclusao"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
+}, (table) => ({
+  // Índice único por tenant+inep: garante que onDuplicateKeyUpdate funcione
+  // e evita duplicatas ao reimportar a mesma planilha
+  tenantInepIdx: uniqueIndex("tenant_inep_idx").on(table.tenantId, table.inep),
+}));
 export type Escola = typeof escolas.$inferSelect;
 export type InsertEscola = typeof escolas.$inferInsert;
 

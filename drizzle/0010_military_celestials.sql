@@ -1,0 +1,1 @@
+ALTER TABLE `escolas` ADD CONSTRAINT `tenant_inep_idx` UNIQUE(`tenantId`,`inep`);

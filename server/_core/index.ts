@@ -34,6 +34,9 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Configurar trust proxy ANTES do rate limiter para identificar IPs corretamente
+  app.set("trust proxy", 1);
+
   // ── Rate limiting: protege contra abuso e DDoS ──────────────────────────────
   // Limite geral: 300 req/min por IP (suficiente para 15 técnicos simultâneos)
   const generalLimiter = rateLimit({
@@ -64,10 +67,6 @@ async function startServer() {
     legacyHeaders: false,
     message: { error: "Muitas tentativas de login. Aguarde 5 minutos." },
   });
-
-  // Configurar trust proxy para funcionar corretamente atrás de load balancer/CDN
-  // Necessário para que o rate limiter identifique corretamente o IP real do cliente
-  app.set("trust proxy", 1);
 
   // Aplicar rate limiting geral em todas as rotas /api
   app.use("/api", generalLimiter);

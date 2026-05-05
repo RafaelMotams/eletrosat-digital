@@ -71,6 +71,13 @@
       "when": 1777931249413,
       "tag": "0009_useful_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1777979610053,
+      "tag": "0010_military_celestials",
+      "breakpoints": true
     }
   ]
 }

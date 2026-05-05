@@ -95,7 +95,11 @@ export default function ImportacaoPlanilha({ onConcluido }: Props) {
 
   const importarMut = trpc.escolas.importar.useMutation({
     onSuccess: (r) => {
-      toast.success(`✅ ${r.importadas} escola(s) importada(s) com sucesso!`);
+      if (r.erros && r.erros > 0) {
+        toast.success(`✅ ${r.importadas} escola(s) importada(s). ${r.erros} linha(s) ignorada(s) por dados inválidos.`, { duration: 6000 });
+      } else {
+        toast.success(`✅ ${r.importadas} escola(s) importada(s) com sucesso!`);
+      }
       utils.escolas.list.invalidate();
       setEtapa("concluido");
       onConcluido?.(r.importadas);

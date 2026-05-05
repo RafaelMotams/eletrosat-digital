@@ -234,27 +234,51 @@ const escolasRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       let importadas = 0;
+      let erros = 0;
       const tenantId = (ctx as any).tenantId;
+
+      // Sanitiza latitude/longitude: rejeita strings não numéricas (ex: 'false', '')
+      const sanitizeCoord = (v: string | undefined): string | undefined => {
+        if (!v) return undefined;
+        const n = parseFloat(v);
+        if (isNaN(n)) return undefined;
+        return String(n);
+      };
+
+      // Sanitiza telefone: rejeita '0' ou strings claramente inválidas
+      const sanitizeTel = (v: string | undefined): string | undefined => {
+        if (!v) return undefined;
+        const s = v.trim();
+        if (s === '0' || s === 'false' || s === 'null' || s.length < 3) return undefined;
+        return s;
+      };
+
       for (const escola of input.escolas) {
-        await createEscola({
-          inep: escola.inep,
-          uf: escola.uf,
-          municipio: escola.municipio,
-          nome: escola.nome,
-          endereco: escola.endereco,
-          latitude: escola.latitude ? (escola.latitude as unknown as string) : undefined,
-          longitude: escola.longitude ? (escola.longitude as unknown as string) : undefined,
-          qtdAp: escola.qtdAp ?? 1,
-          telefone: escola.telefone,
-          velocidadeMinima: escola.velocidadeMinima ? String(escola.velocidadeMinima) : undefined,
-          velocidadeOfertada: escola.velocidadeOfertada ? String(escola.velocidadeOfertada) : undefined,
-          tipoConexao: escola.tipoConexao ?? "Fibra",
-          status: "pendente",
-          tenantId,
-        });
-        importadas++;
+        try {
+          await createEscola({
+            inep: escola.inep,
+            uf: escola.uf,
+            municipio: escola.municipio,
+            nome: escola.nome,
+            endereco: escola.endereco,
+            latitude: sanitizeCoord(escola.latitude),
+            longitude: sanitizeCoord(escola.longitude),
+            qtdAp: escola.qtdAp ?? 1,
+            telefone: sanitizeTel(escola.telefone),
+            velocidadeMinima: escola.velocidadeMinima ? String(escola.velocidadeMinima) : undefined,
+            velocidadeOfertada: escola.velocidadeOfertada ? String(escola.velocidadeOfertada) : undefined,
+            tipoConexao: escola.tipoConexao ?? "Fibra",
+            status: "pendente",
+            tenantId,
+          });
+          importadas++;
+        } catch (err) {
+          // Registra o erro mas continua importando as demais escolas
+          console.error(`[importar] Erro ao importar escola INEP=${escola.inep}:`, (err as Error).message);
+          erros++;
+        }
       }
-      return { success: true, importadas };
+      return { success: true, importadas, erros };
     }),
 
   listMunicipios: tenantAdminProcedure.query(async ({ ctx }) => {
