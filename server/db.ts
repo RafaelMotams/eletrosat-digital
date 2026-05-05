@@ -29,6 +29,7 @@ function getPool(): mysql2.Pool {
       waitForConnections: true, // aguarda conexão disponível em vez de falhar
       enableKeepAlive: true,    // mantém conexões vivas (evita timeout)
       keepAliveInitialDelay: 10000,
+      connectTimeout: 30000,    // 30s para conectar ao banco (evita conexões presas)
     });
   }
   return _pool!;

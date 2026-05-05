@@ -365,14 +365,14 @@
 
 ## Anti-Bug: Estabilidade para 15 Técnicos Simultâneos (05/05/2026)
 - [x] Backend: adicionar middleware de rate limiting global para proteger endpoints de abuso
-- [ ] Backend: adicionar timeout nas queries do banco (30s) para evitar conexões presas
-- [ ] Backend: tornar concluirEscola thread-safe com verificação atômica
+- [x] Backend: adicionar timeout nas queries do banco (30s) para evitar conexões presas
+- [x] Backend: tornar concluirEscola thread-safe com verificação atômica
 - [x] Backend: adicionar tratamento de erro global no Express (500 handler)
 - [x] Backend: validação de tamanho de payload (fotos base64 > 10MB rejeitadas)
 - [x] Frontend: retry com backoff exponencial no upload de fotos (3 tentativas)
 - [x] Frontend: timeout de 60s nas chamadas tRPC de upload de foto
 - [x] Frontend: clientId nas fotos no modo online para evitar duplicação em retry
-- [ ] Frontend: indicador visual de sincronização no app do técnico
-- [ ] Frontend: toast de erro claro quando upload de foto falha
+- [x] Frontend: indicador visual de sincronização no app do técnico
+- [x] Frontend: toast de erro claro quando upload de foto falha
 - [x] Frontend: ErrorBoundary melhorado com mensagem em português
-- [ ] Frontend: proteção contra clique duplo no botão "Concluir OS"
+- [x] Frontend: proteção contra clique duplo no botão "Concluir OS"

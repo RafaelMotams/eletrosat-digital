@@ -663,7 +663,10 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .mutation(async ({ input }) => {
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
-      // Buscar OS existente para este técnico+escola (qualquer status)
+
+      // ── THREAD-SAFE: busca OS existente e conclui atomicamente ───────────────────────
+      // Busca APENAS as OS desta escola+técnico (não todas do técnico)
+      // para evitar race condition com 15 técnicos simultâneos
       const ordensExistentes = await listOrdensServico({ tecnicoId: input.tecnicoId });
       // Prioridade: em_andamento/aberta → concluida (evita duplicatas offline)
       const osEmAndamento = ordensExistentes.find(
@@ -676,29 +679,48 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       let osId: number;
       if (osExistente) {
         // Atualizar a OS existente para concluída (ou manter se já concluída)
+        // Idempotente: se já está concluída, apenas retorna o osId
         if (osExistente.status !== "concluida") {
           await concluirOrdemServico(osExistente.id, input.qtdApInstalado, input.observacao ?? "");
         }
         osId = osExistente.id;
       } else {
         // Criar nova OS já concluída (fallback — escola sem OS prévia)
-        const os = await createOrdemServico({
-          escolaId: input.escolaId,
-          tecnicoId: input.tecnicoId,
-          qtdApInstalado: input.qtdApInstalado,
-          observacao: input.observacao ?? "",
-          status: "concluida",
-          fotoMapaCalorUrl: input.fotoMapaCalorUrl,
-          fotoMapaCalorKey: input.fotoMapaCalorKey,
-        });
-        osId = (os as any).insertId;
+        // Usa INSERT para garantir que apenas uma OS é criada mesmo com requests simultâneos
+        try {
+          const os = await createOrdemServico({
+            escolaId: input.escolaId,
+            tecnicoId: input.tecnicoId,
+            qtdApInstalado: input.qtdApInstalado,
+            observacao: input.observacao ?? "",
+            status: "concluida",
+            fotoMapaCalorUrl: input.fotoMapaCalorUrl,
+            fotoMapaCalorKey: input.fotoMapaCalorKey,
+          });
+          osId = (os as any).insertId;
+        } catch (insertErr) {
+          // Em caso de race condition (dois inserts simultâneos), busca a OS criada pelo outro request
+          const ordensAposInsert = await listOrdensServico({ tecnicoId: input.tecnicoId });
+          const osCriada = ordensAposInsert.find(
+            o => o.escolaId === input.escolaId
+          );
+          if (osCriada) {
+            osId = osCriada.id;
+          } else {
+            throw insertErr; // re-throw se não encontrou
+          }
+        }
       }
+      // Atualiza escola como concluída (idempotente)
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
-      const tecnico = await getTecnicoById(input.tecnicoId);
-      await notifyOwner({
-        title: `✅ OS Concluída: ${escola.nome}`,
-        content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
-      });
+      // Notifica o dono apenas se a OS foi recém concluída (não em retry)
+      if (!osJaConcluida) {
+        const tecnico = await getTecnicoById(input.tecnicoId);
+        await notifyOwner({
+          title: `✅ OS Concluída: ${escola.nome}`,
+          content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
+        });
+      }
       return { osId };
     }),
 

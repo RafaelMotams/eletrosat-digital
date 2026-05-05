@@ -1172,13 +1172,19 @@ export default function TecnicoOS() {
                           }
                         }
                         toast.dismiss("upload-all");
-                        if (enviadas > 0) {
+                        const fotosFalhadas = todasFotos.length - enviadas;
+                        if (enviadas > 0 && fotosFalhadas === 0) {
                           toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
+                        } else if (fotosFalhadas > 0) {
+                          toast.error(
+                            `${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada, mas verifique as fotos.`,
+                            { duration: 8000 }
+                          );
                         }
                       }
 
                       // ── Finalizar ──
-                      toast.success("Instalação concluída com sucesso!");
+                      toast.success("✅ Instalação concluída com sucesso!", { duration: 5000 });
                       setFotosPorCategoria({
                         mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [],
                       });
@@ -1187,12 +1193,27 @@ export default function TecnicoOS() {
                       setPendingOffline(false);
                     } catch (err: unknown) {
                       const msg = err instanceof Error ? err.message : String(err);
-                      toast.error("Erro ao concluir OS: " + msg);
+                      // Mensagem de erro mais clara baseada no tipo de erro
+                      const isNetwork = msg.toLowerCase().includes("network") ||
+                        msg.toLowerCase().includes("fetch") ||
+                        msg.toLowerCase().includes("failed");
+                      const isTimeout = msg.toLowerCase().includes("timeout");
+                      const isPayload = msg.toLowerCase().includes("grande") || msg.toLowerCase().includes("large");
+                      if (isNetwork) {
+                        toast.error("❌ Sem conexão. Tente novamente ou use o modo offline.", { duration: 8000 });
+                      } else if (isTimeout) {
+                        toast.error("⏱ Tempo esgotado. Verifique sua internet e tente novamente.", { duration: 8000 });
+                      } else if (isPayload) {
+                        toast.error("📷 Foto muito grande. Máximo 10MB por foto.", { duration: 8000 });
+                      } else {
+                        toast.error("❌ Erro ao concluir OS: " + msg.slice(0, 100), { duration: 8000 });
+                      }
                     } finally {
                       setUploadingAll(false);
                     }
                   }}
                   disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos}
+                  aria-disabled={concluirMut.isPending || uploadingAll}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{
                     background: (!qtdAp || !todasCategoriasFotos)
@@ -1201,7 +1222,9 @@ export default function TecnicoOS() {
                       ? "linear-gradient(135deg, #059669, #10b981)"
                       : "linear-gradient(135deg, #d97706, #f59e0b)",
                     boxShadow: (!qtdAp || !todasCategoriasFotos) ? "none" : isOnline ? "0 8px 24px rgba(16,185,129,0.3)" : "0 8px 24px rgba(245,158,11,0.3)",
-                    opacity: (!qtdAp || !todasCategoriasFotos) ? 0.5 : 1,
+                    opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos) ? 0.6 : 1,
+                    cursor: (concluirMut.isPending || uploadingAll) ? "not-allowed" : "pointer",
+                    pointerEvents: (concluirMut.isPending || uploadingAll) ? "none" : "auto",
                   }}>
                   {uploadingAll ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando fotos...</>

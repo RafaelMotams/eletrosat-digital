@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { dbCacheEscolas, dbGetCachedEscolas } from "@/hooks/useOfflineDB";
+import { dbCacheEscolas, dbGetCachedEscolas, dbGetAllPendingOS } from "@/hooks/useOfflineDB";
+import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
 
 type Escola = {
   id: number;
@@ -120,7 +121,20 @@ export default function TecnicoHome() {
   const [locating, setLocating] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [pendingOsCount, setPendingOsCount] = useState(0);
   const isOnline = useOnlineStatus();
+  const { syncState } = useSyncOfflineOS();
+
+  // Atualiza contagem de OS pendentes periodicamente
+  useEffect(() => {
+    const refresh = async () => {
+      const all = await dbGetAllPendingOS();
+      setPendingOsCount(all.filter(o => o.status === "pending" || o.status === "error").length);
+    };
+    refresh();
+    const interval = setInterval(refresh, 15_000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const id = localStorage.getItem("tecnico_id");
@@ -254,12 +268,34 @@ export default function TecnicoHome() {
       {/* Welcome modal */}
       {showWelcome && <WelcomeModal nome={tecnicoNome} onClose={() => setShowWelcome(false)} />}
 
-      {/* Offline banner */}
-      {!isOnline && (
+      {/* Indicador de status de sync */}
+      {(!isOnline || syncState.isSyncing || pendingOsCount > 0) && (
         <div className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold"
-          style={{ background: "rgba(245,158,11,0.1)", borderBottom: "1px solid rgba(245,158,11,0.15)", color: "#fbbf24" }}>
-          <WifiOff className="w-3.5 h-3.5" />
-          Modo offline — dados em cache
+          style={{
+            background: !isOnline
+              ? "rgba(245,158,11,0.1)"
+              : syncState.isSyncing
+              ? "rgba(59,130,246,0.1)"
+              : "rgba(16,185,129,0.1)",
+            borderBottom: `1px solid ${!isOnline ? "rgba(245,158,11,0.15)" : syncState.isSyncing ? "rgba(59,130,246,0.15)" : "rgba(16,185,129,0.15)"}`,
+            color: !isOnline ? "#fbbf24" : syncState.isSyncing ? "#60a5fa" : "#34d399",
+          }}>
+          {!isOnline ? (
+            <>
+              <WifiOff className="w-3.5 h-3.5" />
+              Modo offline{pendingOsCount > 0 ? ` — ${pendingOsCount} OS aguardando envio` : " — dados em cache"}
+            </>
+          ) : syncState.isSyncing ? (
+            <>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              Sincronizando OS pendentes...
+            </>
+          ) : (
+            <>
+              <Wifi className="w-3.5 h-3.5" />
+              {pendingOsCount > 0 ? `${pendingOsCount} OS aguardando sincronização` : "Sincronizado"}
+            </>
+          )}
         </div>
       )}
 
