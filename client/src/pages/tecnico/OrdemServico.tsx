@@ -457,9 +457,20 @@ export default function TecnicoOS() {
 
   const escolaId = Number(params.id);
 
-  const { data: escolaOnline, isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+  // ANTI-REDIRECT: queries com staleTime alto e sem refetch automático
+  // Garante que a escola não desaparece enquanto o técnico preenche a RDO
+  const { data: escolaOnline, isLoading, isFetching } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId && isOnline, select: (data) => data?.find(e => e.id === escolaId) }
+    {
+      enabled: !!tecnicoId && isOnline,
+      select: (data) => data?.find(e => e.id === escolaId),
+      staleTime: 15 * 60 * 1000,      // 15 min — não refaz durante preenchimento
+      refetchInterval: false,          // Sem polling na tela de OS
+      refetchOnWindowFocus: false,     // Não refaz ao voltar do app de câmera
+      refetchOnReconnect: false,       // Não refaz ao reconectar (técnico pode estar offline)
+      placeholderData: (prev) => prev, // Mantém dado anterior durante qualquer refetch
+      retry: 1,                        // Apenas 1 retry em erro de rede
+    }
   );
 
   // Carrega escola do IndexedDB quando offline
@@ -479,7 +490,15 @@ export default function TecnicoOS() {
   // Busca OS ativa da escola
   const { data: ordensData } = trpc.tecnicoAuth.minhasOrdens.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId && !!escolaId }
+    {
+      enabled: !!tecnicoId && !!escolaId,
+      staleTime: 15 * 60 * 1000,
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      placeholderData: (prev) => prev,
+      retry: 1,
+    }
   );
 
   const osAtiva = useMemo(() => {
@@ -493,7 +512,13 @@ export default function TecnicoOS() {
   // Fotos já enviadas ao servidor
   const { data: fotosEnviadas = [], refetch: refetchFotos } = trpc.tecnicoAuth.getOsFotos.useQuery(
     { osId },
-    { enabled: !!osId && osId > 0 }
+    {
+      enabled: !!osId && osId > 0,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    }
   );
 
   // Mutation de upload de foto
@@ -648,6 +673,23 @@ export default function TecnicoOS() {
     );
   }
 
+  // Se ainda está buscando (primeiro load ou refetch), mostra loading
+  // NUNCA mostra "escola não encontrada" enquanto ainda há uma busca em andamento
+  if (!escola && (isFetching || !tecnicoId)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center"
+        style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: "linear-gradient(135deg, #6d28d9, #10b981)", boxShadow: "0 16px 48px rgba(168,85,247,0.4)" }}>
+            <div className="w-7 h-7 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+          <p className="text-sm font-bold" style={{ color: "rgba(148,163,184,0.5)" }}>Carregando OS...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!escola) {
     return (
       <div className="min-h-screen flex items-center justify-center"
@@ -658,8 +700,9 @@ export default function TecnicoOS() {
             <XCircle className="w-8 h-8" style={{ color: "#f87171" }} />
           </div>
           <p className="text-white font-black text-xl mb-2">Escola não encontrada</p>
+          <p className="text-sm text-slate-500 mb-4">Verifique sua conexão ou volte e tente novamente.</p>
           <button onClick={() => navigate("/tecnico")}
-            className="mt-4 px-6 py-3 rounded-2xl font-bold text-sm text-white"
+            className="mt-2 px-6 py-3 rounded-2xl font-bold text-sm text-white"
             style={{ background: "linear-gradient(135deg, #6d28d9, #7c3aed)" }}>
             Voltar
           </button>

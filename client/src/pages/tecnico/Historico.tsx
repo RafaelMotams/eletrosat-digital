@@ -50,7 +50,14 @@ export default function TecnicoHistorico() {
   const [searchFocus, setSearchFocus] = useState(false);
 
   const { data: escolas = [], isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
-    { tecnicoId }, { enabled: !!tecnicoId }
+    { tecnicoId },
+    {
+      enabled: !!tecnicoId,
+      staleTime: 2 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      placeholderData: (prev) => prev,
+      retry: 1,
+    }
   );
 
   const escolasFiltradas = useMemo(() => {

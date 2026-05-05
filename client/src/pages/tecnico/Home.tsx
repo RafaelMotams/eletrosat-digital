@@ -163,7 +163,18 @@ export default function TecnicoHome() {
 
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId && isOnline, refetchInterval: isOnline ? 30000 : false, staleTime: 5 * 60 * 1000 }
+    {
+      enabled: !!tecnicoId && isOnline,
+      // Polling a cada 2 minutos — suficiente para ver novas atribuições sem sobrecarregar
+      refetchInterval: isOnline ? 2 * 60 * 1000 : false,
+      // Dados válidos por 2 minutos antes de considerar desatualizado
+      staleTime: 2 * 60 * 1000,
+      // Não refaz ao voltar o foco (evita flash de loading ao sair do app de câmera)
+      refetchOnWindowFocus: false,
+      // Mantém dados anteriores enquanto refaz a busca (sem tela vazia)
+      placeholderData: (prev) => prev,
+      retry: 2,
+    }
   );
 
   // Salva escolas no IndexedDB ao carregar online

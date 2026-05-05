@@ -59,7 +59,14 @@ export default function TecnicoMapa() {
 
   const { data: escolas = [] } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
-    { enabled: !!tecnicoId, refetchInterval: 30000 }
+    {
+      enabled: !!tecnicoId,
+      refetchInterval: 2 * 60 * 1000, // 2 minutos
+      staleTime: 2 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      placeholderData: (prev) => prev,
+      retry: 1,
+    }
   );
 
   const escolasComCoordenadas = useMemo(
