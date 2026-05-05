@@ -8,13 +8,15 @@
  *  3. Chama concluirEscola → obtém osId → faz upload das fotos
  *  4. Marca como "done" e remove do IndexedDB
  *
- * ANTI-DUPLICAÇÃO:
+ * ANTI-DUPLICAÇÃO & ESTABILIDADE:
  *  - syncingRef global: impede duas execuções simultâneas de runSync
  *  - syncingItemsRef: Set de IDs já em processamento (evita processar a mesma OS duas vezes)
  *  - Status "syncing" persistido no IndexedDB: se o app reiniciar durante sync,
- *    a OS fica como "syncing" e é ignorada na próxima execução (não reenviada)
+ *    a OS fica como "syncing" e é resetada para "error" na próxima execução
  *  - Backend: concluirEscola é idempotente (verifica OS existente antes de criar)
- *  - Backend: uploadOsFoto verifica duplicata por osId+categoria antes de inserir
+ *  - Backend: uploadOsFoto verifica duplicata por clientId antes de inserir
+ *  - Retry com backoff exponencial: 3 tentativas com delay crescente (1s, 2s, 4s)
+ *  - Timeout de 60s por upload de foto para não travar o app
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -33,6 +35,51 @@ export type SyncState = {
   lastSyncAt: number | null;
   lastError: string | null;
 };
+
+/** Aguarda um número de milissegundos */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Executa uma função com timeout */
+async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Timeout após ${ms / 1000}s: ${label}`));
+    }, ms);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutId!);
+    return result;
+  } catch (err) {
+    clearTimeout(timeoutId!);
+    throw err;
+  }
+}
+
+/** Executa uma função com retry e backoff exponencial */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number = 3,
+  label: string = "operação"
+): Promise<T> {
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt < maxAttempts) {
+        const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+        console.warn(`[SyncOffline] ${label} falhou (tentativa ${attempt}/${maxAttempts}), aguardando ${delay}ms...`);
+        await sleep(delay);
+      }
+    }
+  }
+  throw lastError!;
+}
 
 export function useSyncOfflineOS(onSyncDone?: () => void) {
   const isOnline = useOnlineStatus();
@@ -72,22 +119,39 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       await dbUpdateOSStatus(os.id, "syncing");
 
       if (os.tipo === "iniciar") {
-        await trpcClient.tecnicoAuth.iniciarOS.mutate({
-          tecnicoId: os.tecnicoId,
-          escolaId: os.escolaId,
-        });
+        await withRetry(
+          () => withTimeout(
+            trpcClient.tecnicoAuth.iniciarOS.mutate({
+              tecnicoId: os.tecnicoId,
+              escolaId: os.escolaId,
+            }),
+            30000,
+            "iniciarOS"
+          ),
+          3,
+          "iniciarOS"
+        );
         await dbUpdateOSStatus(os.id, "done");
         syncingItemsRef.current.delete(os.id);
         return true;
       }
 
       // Passo 1: Concluir a OS no servidor (idempotente no backend)
-      const resultado = await trpcClient.tecnicoAuth.concluirEscola.mutate({
-        tecnicoId: os.tecnicoId,
-        escolaId: os.escolaId,
-        qtdApInstalado: os.qtdApInstalado,
-        observacao: os.observacao,
-      });
+      // Retry com backoff exponencial: 3 tentativas (1s, 2s, 4s)
+      const resultado = await withRetry(
+        () => withTimeout(
+          trpcClient.tecnicoAuth.concluirEscola.mutate({
+            tecnicoId: os.tecnicoId,
+            escolaId: os.escolaId,
+            qtdApInstalado: os.qtdApInstalado,
+            observacao: os.observacao,
+          }),
+          30000,
+          "concluirEscola"
+        ),
+        3,
+        "concluirEscola"
+      );
 
       const osIdFinal: number = (resultado as { osId?: number })?.osId ?? 0;
 
@@ -105,27 +169,37 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
               console.warn("[SyncOffline] Categoria inválida, pulando:", foto.categoria);
               continue;
             }
-            await trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
-              osId: osIdFinal,
-              escolaId: os.escolaId,
-              tecnicoId: os.tecnicoId,
-              categoria: foto.categoria as
-                | "mapa_calor"
-                | "fotos_ap"
-                | "etiqueta_controladora"
-                | "etiqueta_nobreak"
-                | "etiqueta_switch",
-              imageBase64: foto.imageBase64,
-              mimeType: foto.mimeType,
-              // clientId garante idempotência: mesmo que o upload seja chamado
-              // duas vezes (ex: reconexão durante upload), o backend não duplica
-              clientId: foto.clientId,
-            });
+
+            // Upload com retry (3 tentativas) e timeout de 60s
+            await withRetry(
+              () => withTimeout(
+                trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
+                  osId: osIdFinal,
+                  escolaId: os.escolaId,
+                  tecnicoId: os.tecnicoId,
+                  categoria: foto.categoria as
+                    | "mapa_calor"
+                    | "fotos_ap"
+                    | "etiqueta_controladora"
+                    | "etiqueta_nobreak"
+                    | "etiqueta_switch",
+                  imageBase64: foto.imageBase64,
+                  mimeType: foto.mimeType,
+                  // clientId garante idempotência: mesmo que o upload seja chamado
+                  // duas vezes (ex: reconexão durante upload), o backend não duplica
+                  clientId: foto.clientId,
+                }),
+                60000,
+                `uploadFoto-${foto.categoria}`
+              ),
+              3,
+              `uploadFoto-${foto.categoria}`
+            );
           } catch (fotoErr) {
             fotosFalhas++;
             // Log detalhado do erro da foto mas continua com as outras
             const errMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
-            console.error(`[SyncOffline] Erro ao enviar foto (${foto.categoria}):`, errMsg);
+            console.error(`[SyncOffline] Erro ao enviar foto (${foto.categoria}) após 3 tentativas:`, errMsg);
           }
         }
         if (fotosFalhas > 0) {
@@ -138,7 +212,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[SyncOffline] Erro ao sincronizar OS:", msg);
+      console.error("[SyncOffline] Erro ao sincronizar OS após todas as tentativas:", msg);
       // Marca como erro para tentar novamente depois
       await dbUpdateOSStatus(os.id, "error", { errorMsg: msg });
       syncingItemsRef.current.delete(os.id);
@@ -180,7 +254,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       isSyncing: false,
       pendingCount: remaining.length,
       lastSyncAt: Date.now(),
-      lastError: anyError ? "Algumas OS falharam. Tentando novamente..." : null,
+      lastError: anyError ? "Algumas OS falharam. Tentando novamente em breve..." : null,
     });
 
     if (!anyError) onSyncDone?.();

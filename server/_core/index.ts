@@ -1,8 +1,9 @@
 import "dotenv/config";
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import rateLimit from "express-rate-limit";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
@@ -32,21 +33,81 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // ── Rate limiting: protege contra abuso e DDoS ──────────────────────────────
+  // Limite geral: 300 req/min por IP (suficiente para 15 técnicos simultâneos)
+  const generalLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Muitas requisições. Aguarde um momento e tente novamente." },
+    skip: (req) => {
+      return req.path.startsWith("/assets/") || req.path.startsWith("/manus-storage/");
+    },
+  });
+
+  // Limite para upload de fotos: 60 uploads/min por IP
+  const uploadLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Limite de upload atingido. Aguarde um momento." },
+  });
+
+  // Limite para login: 10 tentativas/5min por IP (anti-brute-force)
+  const loginLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Muitas tentativas de login. Aguarde 5 minutos." },
+  });
+
+  // Configurar trust proxy para funcionar corretamente atrás de load balancer/CDN
+  // Necessário para que o rate limiter identifique corretamente o IP real do cliente
+  app.set("trust proxy", 1);
+
+  // Aplicar rate limiting geral em todas as rotas /api
+  app.use("/api", generalLimiter);
+
+  // Rate limiting específico para uploads e login
+  app.use("/api/trpc/tecnicoAuth.uploadOsFoto", uploadLimiter);
+  app.use("/api/trpc/tecnicoAuth.uploadFotoMapaCalor", uploadLimiter);
+  app.use("/api/trpc/tecnicoAuth.login", loginLimiter);
+  app.use("/api/trpc/tenantAdmin.login", loginLimiter);
+
+  // ── Body parser: 15MB por request (foto base64 10MB ≈ 13.3MB) ───────────────
+  app.use(express.json({ limit: "15mb" }));
+  app.use(express.urlencoded({ limit: "15mb", extended: true }));
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+
   // Exportação de relatório Excel
   app.get("/api/relatorio/excel", exportarRelatorioExcel);
-  // tRPC API
+
+  // ── tRPC API ─────────────────────────────────────────────────────────────────
   app.use(
     "/api/trpc",
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      onError: ({ error, path }) => {
+        if (error.code === "INTERNAL_SERVER_ERROR") {
+          console.error(`[tRPC] Erro interno em ${path}:`, error.message);
+        }
+      },
     })
   );
+
+  // ── Error handler global (deve ser o ÚLTIMO middleware) ──────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("[Express] Erro não tratado:", err.message);
+    res.status(500).json({ error: "Erro interno do servidor. Tente novamente em instantes." });
+  });
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

@@ -359,6 +359,20 @@
 - [x] Backend: verificar se OS já foi concluída antes de processar fotos novamente
 
 ## Excluir Planilha Importada (04/05/2026)
-- [ ] Backend: procedure deletePlanilha que remove todas as escolas importadas de uma planilha específica (por importId ou nome)
-- [ ] Frontend: botão "Excluir" em cada planilha importada com confirmação antes de deletar
-- [ ] Frontend: atualizar lista após exclusão
+- [x] Backend: procedure deletePlanilha que remove todas as escolas importadas de uma planilha específica (por importId ou nome)
+- [x] Frontend: botão "Excluir" em cada planilha importada com confirmação antes de deletar
+- [x] Frontend: atualizar lista após exclusão
+
+## Anti-Bug: Estabilidade para 15 Técnicos Simultâneos (05/05/2026)
+- [x] Backend: adicionar middleware de rate limiting global para proteger endpoints de abuso
+- [ ] Backend: adicionar timeout nas queries do banco (30s) para evitar conexões presas
+- [ ] Backend: tornar concluirEscola thread-safe com verificação atômica
+- [x] Backend: adicionar tratamento de erro global no Express (500 handler)
+- [x] Backend: validação de tamanho de payload (fotos base64 > 10MB rejeitadas)
+- [x] Frontend: retry com backoff exponencial no upload de fotos (3 tentativas)
+- [x] Frontend: timeout de 60s nas chamadas tRPC de upload de foto
+- [x] Frontend: clientId nas fotos no modo online para evitar duplicação em retry
+- [ ] Frontend: indicador visual de sincronização no app do técnico
+- [ ] Frontend: toast de erro claro quando upload de foto falha
+- [x] Frontend: ErrorBoundary melhorado com mensagem em português
+- [ ] Frontend: proteção contra clique duplo no botão "Concluir OS"

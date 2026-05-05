@@ -739,6 +739,14 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       clientId: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
+      // Validar tamanho da imagem (base64 de 10MB = ~13.3MB de string)
+      const maxBase64Size = 14 * 1024 * 1024; // 14MB em caracteres
+      if (input.imageBase64.length > maxBase64Size) {
+        throw new TRPCError({
+          code: "PAYLOAD_TOO_LARGE",
+          message: "Foto muito grande. Máximo permitido: 10MB por foto.",
+        });
+      }
       const buffer = Buffer.from(input.imageBase64, "base64");
       const key = `os-fotos/${input.categoria}/os-${input.osId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, input.mimeType);

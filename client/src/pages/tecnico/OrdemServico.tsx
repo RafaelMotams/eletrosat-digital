@@ -1160,10 +1160,15 @@ export default function TecnicoOS() {
                               categoria: catId,
                               imageBase64: foto.base64,
                               mimeType: foto.mime,
+                              // clientId garante idempotência: se o usuário clicar duas vezes
+                              // ou a conexão cair durante o upload, o backend não duplica
+                              clientId: `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                             });
                             enviadas++;
-                          } catch {
-                            // continua mesmo se uma foto falhar
+                          } catch (fotoErr) {
+                            const fotoErrMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
+                            console.error(`[OS] Erro ao enviar foto ${catId}:`, fotoErrMsg);
+                            // continua com as outras fotos mesmo se uma falhar
                           }
                         }
                         toast.dismiss("upload-all");
