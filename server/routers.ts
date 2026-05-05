@@ -19,6 +19,7 @@ import {
   createTecnico,
   deleteTecnico,
   deleteEscolasPorCidade,
+  deleteAllEscolasByTenant,
   getDashboardStats,
   getEscolaById,
   getEscolaByInep,
@@ -262,8 +263,15 @@ const escolasRouter = router({
 
   deletarPorCidade: tenantAdminProcedure
     .input(z.object({ municipio: z.string() }))
-    .mutation(async ({ input }) => {
-      const total = await deleteEscolasPorCidade(input.municipio);
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      const total = await deleteEscolasPorCidade(input.municipio, tenantId);
+      return { success: true, total };
+    }),
+  deletarTodas: tenantAdminProcedure
+    .mutation(async ({ ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      const total = await deleteAllEscolasByTenant(tenantId);
       return { success: true, total };
     }),
 });

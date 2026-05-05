@@ -340,10 +340,10 @@
 - [x] Home: cards de métricas com ícones animados e gradientes únicos por métrica
 - [x] Home: lista de escolas com cards premium (número de rota, badge AP, status visual)
 - [x] Home: barra de busca com filtros por status em chips coloridos
-- [ ] OS: stepper visual com animações de transição entre etapas
-- [ ] OS: cards de informação com ícones coloridos e layout mais espaçoso
-- [ ] OS: botões de ação (WhatsApp, Maps) com gradientes e ícones grandes
-- [ ] OS: seção de fotos com grid visual e indicadores de progresso
+- [x] OS: stepper visual com animações de transição entre etapas
+- [x] OS: cards de informação com ícones coloridos e layout mais espaçoso
+- [x] OS: botões de ação (WhatsApp, Maps) com gradientes e ícones grandes
+- [x] OS: seção de fotos com grid visual e indicadores de progresso
 - [x] Perfil: header com gradiente e avatar grande com iniciais
 - [x] Perfil: cards de stats com animações e cores distintas
 - [x] Perfil: barra de progresso animada e badge de conquista
@@ -352,8 +352,13 @@
 - [x] CSS global: adicionar classes utilitárias para o app do técnico
 
 ## Bug: Duplicação de OS e fotos na sincronização offline (04/05/2026)
-- [ ] Frontend: adicionar flag `syncing` por OS no IndexedDB para evitar múltiplos envios simultâneos
-- [ ] Frontend: remover OS da fila ANTES de enviar (ou marcar como processando) para evitar reenvio
-- [ ] Frontend: tratar erro de sincronização sem recolocar na fila se já foi enviado com sucesso
-- [ ] Backend: tornar procedure concluirOS idempotente (upsert por escolaId+tecnicoId, não insert duplo)
-- [ ] Backend: verificar se OS já foi concluída antes de processar fotos novamente
+- [x] Frontend: adicionar flag `syncing` por OS no IndexedDB para evitar múltiplos envios simultâneos
+- [x] Frontend: remover OS da fila ANTES de enviar (ou marcar como processando) para evitar reenvio
+- [x] Frontend: tratar erro de sincronização sem recolocar na fila se já foi enviado com sucesso
+- [x] Backend: tornar procedure concluirOS idempotente (upsert por escolaId+tecnicoId, não insert duplo)
+- [x] Backend: verificar se OS já foi concluída antes de processar fotos novamente
+
+## Excluir Planilha Importada (04/05/2026)
+- [ ] Backend: procedure deletePlanilha que remove todas as escolas importadas de uma planilha específica (por importId ou nome)
+- [ ] Frontend: botão "Excluir" em cada planilha importada com confirmação antes de deletar
+- [ ] Frontend: atualizar lista após exclusão

@@ -12,6 +12,9 @@ import {
   Package,
   Filter,
   FileSpreadsheet,
+  Trash2,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,13 +33,47 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pendente: { label: "Pendente", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
   em_andamento: { label: "Em Andamento", color: "bg-blue-100 text-blue-800 border-blue-200" },
   concluido: { label: "Concluído", color: "bg-green-100 text-green-800 border-green-200" },
+  nao_instalada: { label: "Não Instalada", color: "bg-red-100 text-red-800 border-red-200" },
 };
 
 export default function AdminPlanilha() {
+  const utils = trpc.useUtils();
   const { data: escolas, isLoading } = trpc.planilha.listar.useQuery();
+  const { data: municipios } = trpc.escolas.listMunicipios.useQuery();
   const [busca, setBusca] = useState("");
   const [filtroVelocidade, setFiltroVelocidade] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
+
+  // Modal de exclusão
+  const [modalExcluir, setModalExcluir] = useState(false);
+  const [tipoExclusao, setTipoExclusao] = useState<"municipio" | "todas">("municipio");
+  const [municipioSelecionado, setMunicipioSelecionado] = useState("");
+  const [confirmTexto, setConfirmTexto] = useState("");
+
+  const deletarPorCidadeMut = trpc.escolas.deletarPorCidade.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.total} escola(s) de "${municipioSelecionado}" excluídas com sucesso!`);
+      utils.planilha.listar.invalidate();
+      utils.escolas.list.invalidate();
+      utils.escolas.listMunicipios.invalidate();
+      setModalExcluir(false);
+      setConfirmTexto("");
+      setMunicipioSelecionado("");
+    },
+    onError: () => toast.error("Erro ao excluir escolas"),
+  });
+
+  const deletarTodasMut = trpc.escolas.deletarTodas.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.total} escola(s) excluídas com sucesso!`);
+      utils.planilha.listar.invalidate();
+      utils.escolas.list.invalidate();
+      utils.escolas.listMunicipios.invalidate();
+      setModalExcluir(false);
+      setConfirmTexto("");
+    },
+    onError: () => toast.error("Erro ao excluir escolas"),
+  });
 
   const velocidades = useMemo(() => {
     if (!escolas) return [];
@@ -72,7 +109,7 @@ export default function AdminPlanilha() {
     return escolasFiltradas.map((e) => ({
       "Código INEP": e.inep,
       "UF": e.uf ?? "BA",
-      "Município": e.municipio ?? "Monte Santo",
+      "Município": e.municipio ?? "—",
       "Nome da Escola": e.nome,
       "Endereço": e.endereco ?? "",
       "Latitude": e.latitude ? Number(e.latitude) : "",
@@ -92,7 +129,7 @@ export default function AdminPlanilha() {
     const ws = XLSX.utils.json_to_sheet(getRows());
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Escolas");
-    XLSX.writeFile(wb, `netvionis-escolas-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `escolas-${new Date().toISOString().slice(0, 10)}.xlsx`);
     toast.success(`${escolasFiltradas.length} registros exportados em Excel!`);
   }
 
@@ -113,7 +150,7 @@ export default function AdminPlanilha() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `netvionis-escolas-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `escolas-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`${escolasFiltradas.length} registros exportados em CSV!`);
@@ -124,6 +161,20 @@ export default function AdminPlanilha() {
     window.open(`https://www.google.com/maps?q=${lat},${lng}&z=15`, "_blank");
   }
 
+  function confirmarExclusao() {
+    if (tipoExclusao === "municipio") {
+      if (!municipioSelecionado) { toast.error("Selecione um município"); return; }
+      if (confirmTexto !== "EXCLUIR") { toast.error('Digite "EXCLUIR" para confirmar'); return; }
+      deletarPorCidadeMut.mutate({ municipio: municipioSelecionado });
+    } else {
+      if (confirmTexto !== "EXCLUIR TUDO") { toast.error('Digite "EXCLUIR TUDO" para confirmar'); return; }
+      deletarTodasMut.mutate();
+    }
+  }
+
+  const isPending = deletarPorCidadeMut.isPending || deletarTodasMut.isPending;
+  const confirmEsperado = tipoExclusao === "municipio" ? "EXCLUIR" : "EXCLUIR TUDO";
+
   return (
     <AdminLayoutAuto title="Planilha de Escolas">
       {/* Cabeçalho */}
@@ -131,10 +182,10 @@ export default function AdminPlanilha() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Planilha de Escolas</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Dados completos das {escolas?.length ?? 0} escolas — Monte Santo, BA
+            Dados completos das {escolas?.length ?? 0} escolas
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={exportarCSV} variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             CSV
@@ -142,6 +193,14 @@ export default function AdminPlanilha() {
           <Button onClick={exportarExcel} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
             <FileSpreadsheet className="w-4 h-4" />
             Excel (.xlsx)
+          </Button>
+          <Button
+            onClick={() => { setModalExcluir(true); setConfirmTexto(""); setMunicipioSelecionado(""); setTipoExclusao("municipio"); }}
+            variant="outline"
+            className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400"
+          >
+            <Trash2 className="w-4 h-4" />
+            Excluir Planilha
           </Button>
         </div>
       </div>
@@ -244,7 +303,7 @@ export default function AdminPlanilha() {
         </CardContent>
       </Card>
 
-      {/* Tabela completa com todos os 13 campos */}
+      {/* Tabela */}
       <Card className="border-0 shadow-sm overflow-hidden">
         <CardHeader className="pb-0 px-6 pt-5">
           <CardTitle className="text-base font-semibold">
@@ -295,7 +354,7 @@ export default function AdminPlanilha() {
                         <td className="px-3 py-2.5 text-muted-foreground font-mono text-xs">{idx + 1}</td>
                         <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground whitespace-nowrap">{escola.inep}</td>
                         <td className="px-3 py-2.5 text-xs font-medium">{escola.uf ?? "BA"}</td>
-                        <td className="px-3 py-2.5 text-xs whitespace-nowrap">{escola.municipio ?? "Monte Santo"}</td>
+                        <td className="px-3 py-2.5 text-xs whitespace-nowrap">{escola.municipio ?? "—"}</td>
                         <td className="px-3 py-2.5 font-medium max-w-[200px]">
                           <span className="line-clamp-2 text-xs leading-tight">{escola.nome}</span>
                         </td>
@@ -375,6 +434,134 @@ export default function AdminPlanilha() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Exclusão */}
+      {modalExcluir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md border border-border">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Excluir Planilha</h2>
+                  <p className="text-xs text-muted-foreground">Esta ação não pode ser desfeita</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalExcluir(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Tipo de exclusão */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => { setTipoExclusao("municipio"); setConfirmTexto(""); }}
+                  className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    tipoExclusao === "municipio"
+                      ? "border-red-500 bg-red-50"
+                      : "border-border hover:border-muted-foreground"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-foreground">Por Município</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Excluir escolas de uma cidade</p>
+                </button>
+                <button
+                  onClick={() => { setTipoExclusao("todas"); setConfirmTexto(""); }}
+                  className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    tipoExclusao === "todas"
+                      ? "border-red-500 bg-red-50"
+                      : "border-border hover:border-muted-foreground"
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-foreground">Todas as Escolas</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Excluir toda a planilha</p>
+                </button>
+              </div>
+
+              {/* Seletor de município */}
+              {tipoExclusao === "municipio" && (
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-1.5">
+                    Selecione o município
+                  </label>
+                  <select
+                    value={municipioSelecionado}
+                    onChange={(e) => setMunicipioSelecionado(e.target.value)}
+                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">-- Escolha um município --</option>
+                    {municipios?.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  {municipioSelecionado && (
+                    <p className="text-xs text-red-600 mt-1.5 font-medium">
+                      ⚠️ Serão excluídas todas as escolas de <strong>{municipioSelecionado}</strong>, incluindo OS e atribuições vinculadas.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {tipoExclusao === "todas" && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-sm text-red-700 font-medium">
+                    ⚠️ Serão excluídas <strong>todas as {escolas?.length ?? 0} escolas</strong>, incluindo todas as OS e atribuições vinculadas.
+                  </p>
+                </div>
+              )}
+
+              {/* Campo de confirmação */}
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">
+                  Digite <strong className="text-red-600">{confirmEsperado}</strong> para confirmar
+                </label>
+                <Input
+                  value={confirmTexto}
+                  onChange={(e) => setConfirmTexto(e.target.value)}
+                  placeholder={confirmEsperado}
+                  className="border-red-200 focus:ring-red-500"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-6 pt-0">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setModalExcluir(false)}
+                disabled={isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2"
+                onClick={confirmarExclusao}
+                disabled={
+                  isPending ||
+                  confirmTexto !== confirmEsperado ||
+                  (tipoExclusao === "municipio" && !municipioSelecionado)
+                }
+              >
+                {isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                {isPending ? "Excluindo..." : "Confirmar Exclusão"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayoutAuto>
   );
 }

@@ -474,27 +474,44 @@ export async function listMunicipios(tenantId?: number): Promise<string[]> {
 }
 
 /** Apaga todas as escolas de um município (e suas OS/atribuições associadas) */
-export async function deleteEscolasPorCidade(municipio: string): Promise<number> {
+export async function deleteEscolasPorCidade(municipio: string, tenantId?: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
-
-  // Buscar IDs das escolas do município
+  // Buscar IDs das escolas do município (filtrando por tenant)
+  const whereClause = tenantId !== undefined
+    ? and(eq(escolas.municipio, municipio), eq(escolas.tenantId, tenantId))
+    : eq(escolas.municipio, municipio);
   const escolasList = await db
     .select({ id: escolas.id })
     .from(escolas)
-    .where(eq(escolas.municipio, municipio));
-
+    .where(whereClause);
   if (escolasList.length === 0) return 0;
-
   const ids = escolasList.map(e => e.id);
-
   // Apagar OS vinculadas
   for (const id of ids) {
     await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
     await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
     await db.delete(escolas).where(eq(escolas.id, id));
   }
+  return ids.length;
+}
 
+export async function deleteAllEscolasByTenant(tenantId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  // Buscar todos os IDs de escolas do tenant
+  const escolasList = await db
+    .select({ id: escolas.id })
+    .from(escolas)
+    .where(eq(escolas.tenantId, tenantId));
+  if (escolasList.length === 0) return 0;
+  const ids = escolasList.map(e => e.id);
+  // Apagar OS e atribuições vinculadas
+  for (const id of ids) {
+    await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
+    await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
+    await db.delete(escolas).where(eq(escolas.id, id));
+  }
   return ids.length;
 }
 
