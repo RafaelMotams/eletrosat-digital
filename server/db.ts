@@ -266,7 +266,16 @@ export async function getOrdemById(id: number) {
 export async function createOrdemServico(data: InsertOrdemServico) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(ordensServico).values(data);
+  // UPSERT: se já existe OS para esta escola+técnico (retry concorrente), retorna a existente
+  const result = await db
+    .insert(ordensServico)
+    .values(data)
+    .onDuplicateKeyUpdate({
+      set: {
+        // Mantém o status atual, apenas atualiza o timestamp
+        updatedAt: new Date(),
+      },
+    });
   return result;
 }
 
@@ -295,15 +304,26 @@ export async function registrarNaoInstalada(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  // Criar OS com status nao_instalada
-  const result = await db.insert(ordensServico).values({
-    escolaId,
-    tecnicoId,
-    status: "nao_instalada",
-    motivoNaoInstalacao: motivo,
-    observacao: observacao ?? "",
-    dataConclusao: new Date(),
-  });
+  // UPSERT: se já existe OS para esta escola+técnico, atualiza para nao_instalada
+  const result = await db
+    .insert(ordensServico)
+    .values({
+      escolaId,
+      tecnicoId,
+      status: "nao_instalada",
+      motivoNaoInstalacao: motivo,
+      observacao: observacao ?? "",
+      dataConclusao: new Date(),
+    })
+    .onDuplicateKeyUpdate({
+      set: {
+        status: "nao_instalada",
+        motivoNaoInstalacao: motivo,
+        observacao: observacao ?? "",
+        dataConclusao: new Date(),
+        updatedAt: new Date(),
+      },
+    });
   // Atualizar escola para nao_instalada
   await db
     .update(escolas)
@@ -613,25 +633,22 @@ export async function getOsDetalhadas(filters: {
 export async function insertOsFoto(data: InsertOsFoto): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  // ANTI-DUPLICAÇÃO: se o app enviou um clientId único, verifica se já existe
-  // Isso evita que a sincronização offline insira a mesma foto duas vezes
   if (data.clientId) {
-    const existing = await db
-      .select({ id: osFotos.id })
-      .from(osFotos)
-      .where(
-        and(
-          eq(osFotos.osId, data.osId),
-          eq(osFotos.clientId, data.clientId)
-        )
-      )
-      .limit(1);
-    if (existing.length > 0) {
-      // Foto já existe com este clientId, não insere duplicata
-      return;
-    }
+    // UPSERT por clientId — o índice UNIQUE no banco garante atomicidade
+    // Se a foto já existe (retry offline), apenas atualiza a url/fileKey
+    await db
+      .insert(osFotos)
+      .values(data)
+      .onDuplicateKeyUpdate({
+        set: {
+          url: data.url,
+          fileKey: data.fileKey,
+        },
+      });
+  } else {
+    // Sem clientId (upload online legado): insere normalmente
+    await db.insert(osFotos).values(data);
   }
-  await db.insert(osFotos).values(data);
 }
 
 export async function listOsFotos(osId: number) {

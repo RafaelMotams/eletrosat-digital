@@ -146,7 +146,10 @@ export const ordensServico = mysqlTable("ordens_servico", {
   dataConclusao: timestamp("dataConclusao"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  // UNIQUE: uma OS por escola por técnico — impede duplicação mesmo com retry concorrente
+  escolaTecnicoIdx: uniqueIndex("os_escola_tecnico_unique").on(table.escolaId, table.tecnicoId),
+}));
 
 export type OrdemServico = typeof ordensServico.$inferSelect;
 export type InsertOrdemServico = typeof ordensServico.$inferInsert;
@@ -164,7 +167,10 @@ export const osFotos = mysqlTable("os_fotos", {
   // clientId: ID único gerado pelo app offline para garantir idempotência no upload
   clientId: varchar("clientId", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  // UNIQUE por clientId — impede upload duplicado mesmo com retry offline
+  clientIdIdx: uniqueIndex("os_fotos_client_id_unique").on(table.clientId),
+}));
 
 export type OsFoto = typeof osFotos.$inferSelect;
 export type InsertOsFoto = typeof osFotos.$inferInsert;

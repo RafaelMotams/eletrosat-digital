@@ -1,0 +1,2 @@
+ALTER TABLE `ordens_servico` ADD CONSTRAINT `os_escola_tecnico_unique` UNIQUE(`escolaId`,`tecnicoId`);--> statement-breakpoint
+ALTER TABLE `os_fotos` ADD CONSTRAINT `os_fotos_client_id_unique` UNIQUE(`clientId`);

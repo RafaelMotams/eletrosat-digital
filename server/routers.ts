@@ -634,19 +634,32 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .mutation(async ({ input }) => {
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      // Busca OS existente primeiro (evita race condition)
       const ordens = await listOrdensServico({ tecnicoId: input.tecnicoId });
-      const osExistente = ordens.find(o => o.escolaId === input.escolaId && (o.status === "aberta" || o.status === "em_andamento"));
+      const osExistente = ordens.find(o => o.escolaId === input.escolaId);
       if (osExistente) {
-        await iniciarOrdemServico(osExistente.id);
+        // Já existe — apenas garante que está em andamento
+        if (osExistente.status === "aberta") {
+          await iniciarOrdemServico(osExistente.id);
+        }
         return { osId: osExistente.id };
       }
+      // Cria nova OS com upsert (onDuplicateKeyUpdate)
       const result = await createOrdemServico({
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId,
         status: "em_andamento",
       });
+      const insertId = (result as any).insertId;
+      // Se insertId = 0, houve race condition — busca a OS criada pelo outro request
+      if (!insertId) {
+        const ordensApos = await listOrdensServico({ tecnicoId: input.tecnicoId });
+        const osCriada = ordensApos.find(o => o.escolaId === input.escolaId);
+        if (!osCriada) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao criar OS" });
+        return { osId: osCriada.id };
+      }
       await updateEscola(input.escolaId, { status: "em_andamento" });
-      return { osId: (result as any).insertId };
+      return { osId: insertId };
     }),
 
   // Registra escola como não instalada com motivo
