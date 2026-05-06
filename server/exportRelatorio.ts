@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { Request, Response } from "express";
-import { getOsDetalhadas } from "./db";
+import { getOsDetalhadas, getOsNaoInstaladas } from "./db";
 import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
@@ -74,6 +74,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     // Dados
     const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam });
+    const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam });
 
     // Agrupar por técnico (ordenado por nome)
     const porTecnico: Record<string, typeof concluidas> = {};
@@ -372,7 +373,128 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       });
     });
 
-    // ── Enviar arquivo ───────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ABA 3 — NÃO INSTALADAS
+    // ═══════════════════════════════════════════════════════════════════════════
+    const vermelho     = "FFDC2626";
+    const vermelhoEsc  = "FF7F1D1D";
+    const vermelhoClar = "FFFEE2E2";
+    const laranja      = "FFEA580C";
+    const laranjaClar  = "FFFFF7ED";
+
+    const ws3 = wb.addWorksheet("Não Instaladas", {
+      properties: { tabColor: { argb: vermelho } },
+    });
+
+    const NCOLS3 = 7;
+    ws3.columns = [
+      { key: "seq",       width: 5  },
+      { key: "escola",    width: 42 },
+      { key: "inep",      width: 13 },
+      { key: "municipio", width: 20 },
+      { key: "tecnico",   width: 24 },
+      { key: "motivo",    width: 24 },
+      { key: "data",      width: 14 },
+    ];
+
+    // Título
+    ws3.mergeCells(1, 1, 1, NCOLS3);
+    const ni1 = ws3.getCell("A1");
+    ni1.value = "NETVIONIS TECNOLOGIA";
+    aplicarEstiloCelula(ni1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
+    ws3.getRow(1).height = 38;
+
+    ws3.mergeCells(2, 1, 2, NCOLS3);
+    const ni2 = ws3.getCell("A2");
+    ni2.value = "RELATÓRIO DE ESCOLAS NÃO INSTALADAS";
+    aplicarEstiloCelula(ni2, { bg: vermelho, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    ws3.getRow(2).height = 26;
+
+    ws3.mergeCells(3, 1, 3, NCOLS3);
+    const ni3 = ws3.getCell("A3");
+    ni3.value = `Emitido em: ${dataGer}   ·   Total de escolas não instaladas: ${naoInstaladas.length}`;
+    aplicarEstiloCelula(ni3, { bg: vermelhoClar, fg: vermelho, italic: true, size: 9, hAlign: "center" });
+    ws3.getRow(3).height = 18;
+
+    ws3.addRow([]);
+    ws3.getRow(4).height = 6;
+
+    // Cabeçalho das colunas
+    const niColHeaders = ["#", "Nome da Escola", "INEP", "Município", "Técnico", "Motivo", "Data"];
+    const niHeaderRow = ws3.getRow(5);
+    niHeaderRow.height = 22;
+    niColHeaders.forEach((v, i) => {
+      const cell = ws3.getCell(5, i + 1);
+      cell.value = v;
+      aplicarEstiloCelula(cell, {
+        bg: vermelhoEsc, fg: C.branco, bold: true, size: 9,
+        hAlign: i === 0 ? "center" : i >= 5 ? "center" : "left",
+        border: borda(vermelhoEsc),
+      });
+    });
+
+    // Linhas de dados
+    if (naoInstaladas.length === 0) {
+      ws3.mergeCells(6, 1, 6, NCOLS3);
+      const emptyCell = ws3.getCell(6, 1);
+      emptyCell.value = "Nenhuma escola não instalada no período.";
+      aplicarEstiloCelula(emptyCell, { bg: vermelhoClar, fg: vermelho, italic: true, size: 10, hAlign: "center" });
+      ws3.getRow(6).height = 28;
+    } else {
+      naoInstaladas.forEach((ni, idx) => {
+        const bg = idx % 2 === 0 ? C.branco : vermelhoClar;
+        const dataStr = ni.dataConclusao
+          ? new Date(ni.dataConclusao).toLocaleDateString("pt-BR")
+          : "—";
+
+        const vals = [
+          idx + 1,
+          ni.escolaNome,
+          ni.inep,
+          ni.municipio,
+          ni.tecnicoNome,
+          ni.motivoLabel,
+          dataStr,
+        ];
+
+        const niRow = ws3.getRow(6 + idx);
+        niRow.height = 20;
+        vals.forEach((v, i) => {
+          const cell = ws3.getCell(6 + idx, i + 1);
+          cell.value = v;
+          const hAlign: ExcelJS.Alignment["horizontal"] =
+            i === 0 ? "center" :
+            i === 2 ? "center" :
+            i === 5 ? "center" :
+            i === 6 ? "center" : "left";
+          aplicarEstiloCelula(cell, {
+            bg, fg: C.cinzaEscuro, size: 9,
+            hAlign,
+            wrap: i === 1,
+            border: borda(),
+          });
+          // Destaque na coluna de motivo
+          if (i === 5 && v) {
+            cell.font = { name: "Calibri", size: 9, bold: true, color: { argb: vermelho } };
+          }
+        });
+      });
+
+      // Total
+      const totalRow3 = 6 + naoInstaladas.length + 1;
+      ws3.addRow([]);
+      ws3.getRow(totalRow3 - 1).height = 8;
+      ws3.mergeCells(totalRow3, 1, totalRow3, NCOLS3);
+      const totalCell3 = ws3.getCell(totalRow3, 1);
+      totalCell3.value = `TOTAL: ${naoInstaladas.length} escola(s) não instalada(s)`;
+      aplicarEstiloCelula(totalCell3, {
+        bg: vermelho, fg: C.branco, bold: true, size: 11,
+        hAlign: "center", border: borda(vermelho, "medium"),
+      });
+      ws3.getRow(totalRow3).height = 28;
+    }
+
+    // ── Enviar arquivo ─────────────────────────────────────────────────────────────────────────────
     const nomeArquivo = `relatorio-os-${new Date().toISOString().slice(0, 10)}.xlsx`;
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", `attachment; filename="${nomeArquivo}"`);

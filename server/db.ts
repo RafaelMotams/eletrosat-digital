@@ -628,6 +628,71 @@ export async function getOsDetalhadas(filters: {
   }));
 }
 
+// ─── OS NÃO INSTALADAS ──────────────────────────────────────────────────────
+
+export async function getOsNaoInstaladas(filters: {
+  tenantId?: number;
+  tecnicoId?: number;
+  dataInicio?: Date | null;
+  dataFim?: Date | null;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions: any[] = [eq(ordensServico.status, "nao_instalada")];
+  if (filters.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
+  if (filters.tecnicoId) conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
+  if (filters.dataInicio && filters.dataFim) {
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) >= ${filters.dataInicio}` as any
+    );
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt}) <= ${filters.dataFim}` as any
+    );
+  }
+
+  const rows = await db
+    .select({
+      osId: ordensServico.id,
+      escolaId: ordensServico.escolaId,
+      escolaNome: escolas.nome,
+      inep: escolas.inep,
+      municipio: escolas.municipio,
+      uf: escolas.uf,
+      tecnicoId: ordensServico.tecnicoId,
+      tecnicoNome: tecnicos.nome,
+      motivo: ordensServico.motivoNaoInstalacao,
+      observacao: ordensServico.observacao,
+      dataConclusao: ordensServico.dataConclusao,
+      createdAt: ordensServico.createdAt,
+    })
+    .from(ordensServico)
+    .leftJoin(escolas, eq(ordensServico.escolaId, escolas.id))
+    .leftJoin(tecnicos, eq(ordensServico.tecnicoId, tecnicos.id))
+    .where(and(...conditions))
+    .orderBy(desc(sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt})`));
+
+  const motivoLabel: Record<string, string> = {
+    escola_desativada: "Escola Desativada",
+    em_reforma: "Em Reforma",
+    mudanca_endereco: "Mudança de Endereço",
+  };
+
+  return rows.map((r) => ({
+    osId: r.osId,
+    escolaId: r.escolaId,
+    escolaNome: r.escolaNome ?? "—",
+    inep: r.inep ?? "—",
+    municipio: r.municipio ?? "—",
+    uf: r.uf ?? "—",
+    tecnicoId: r.tecnicoId,
+    tecnicoNome: r.tecnicoNome ?? "Desconhecido",
+    motivo: r.motivo ?? null,
+    motivoLabel: r.motivo ? (motivoLabel[r.motivo] ?? r.motivo) : "Não informado",
+    observacao: r.observacao ?? "",
+    dataConclusao: r.dataConclusao ?? r.createdAt ?? null,
+  }));
+}
+
 // ─── OS FOTOS ────────────────────────────────────────────────────────────────
 
 export async function insertOsFoto(data: InsertOsFoto): Promise<void> {

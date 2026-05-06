@@ -376,3 +376,4 @@
 - [x] Frontend: toast de erro claro quando upload de foto falha
 - [x] Frontend: ErrorBoundary melhorado com mensagem em português
 - [x] Frontend: proteção contra clique duplo no botão "Concluir OS"
+- [x] Adicionar aba "Não Instaladas" no relatório Excel com colunas: Nome da Escola, INEP, Município, Técnico, Motivo, Data
