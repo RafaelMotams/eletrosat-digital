@@ -413,7 +413,16 @@ function FotosEnviadas({
 export default function TecnicoOS() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const [tecnicoId, setTecnicoId] = useState(0);
+  const [tecnicoId, setTecnicoId] = useState<number>(() => {
+    // Inicializa imediatamente do localStorage — evita delay do useEffect
+    const id = localStorage.getItem("tecnico_id");
+    if (id) return Number(id);
+    try {
+      const stored = localStorage.getItem("tecnico");
+      if (stored) return Number(JSON.parse(stored).id) || 0;
+    } catch { /* noop */ }
+    return 0;
+  });
 
   const [openConcluir, setOpenConcluir] = useState(false);
   const [openNaoInstalada, setOpenNaoInstalada] = useState(false);
@@ -485,7 +494,12 @@ export default function TecnicoOS() {
     }
   }, [isOnline, tecnicoId, escolaId, escolaOnline]);
 
-  const escola = escolaOnline ?? (offlineEscola as unknown as typeof escolaOnline) ?? undefined;
+  // ANTI-REDIRECT: mantém a última escola conhecida em um ref
+  // Isso garante que ao voltar do app de câmera, a escola não desaparece
+  const escolaRef = useRef<typeof escolaOnline | null>(null);
+  const escolaResolvida = escolaOnline ?? (offlineEscola as unknown as typeof escolaOnline) ?? undefined;
+  if (escolaResolvida) escolaRef.current = escolaResolvida;
+  const escola = escolaResolvida ?? escolaRef.current ?? undefined;
 
   // Busca OS ativa da escola
   const { data: ordensData } = trpc.tecnicoAuth.minhasOrdens.useQuery(
@@ -526,13 +540,22 @@ export default function TecnicoOS() {
     onError: (err: { message: string }) => toast.error("Erro no upload: " + err.message),
   });
 
-  const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
-    onSuccess: () => { toast.success("OS iniciada com sucesso!"); utils.tecnicoAuth.minhasEscolas.invalidate(); utils.tecnicoAuth.minhasOrdens.invalidate(); },
-    onError: (err: { message: string }) => toast.error("Erro: " + err.message),
-  });
-
-  // Estado local para simular "em andamento" offline imediatamente
+  // Estado local para simular "em andamento" imediatamente (antes do refetch)
   const [localStatus, setLocalStatus] = useState<string | null>(null);
+
+  const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
+    onSuccess: () => {
+      toast.success("OS iniciada com sucesso!");
+      // Atualiza o estado local imediatamente para refletir na UI sem esperar refetch
+      setLocalStatus("em_andamento");
+      // Força refetch imediato das queries para carregar osId e seção de fotos
+      utils.tecnicoAuth.minhasEscolas.invalidate();
+      utils.tecnicoAuth.minhasOrdens.invalidate();
+      utils.tecnicoAuth.minhasEscolas.refetch();
+      utils.tecnicoAuth.minhasOrdens.refetch();
+    },
+    onError: (err: { message: string }) => toast.error("Erro ao iniciar OS: " + err.message),
+  });
 
   async function handleIniciarOS() {
     if (!isOnline) {
@@ -985,8 +1008,7 @@ export default function TecnicoOS() {
       {/* ─── Modal de Conclusão ─── */}
       {openConcluir && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setOpenConcluir(false); }}>
+          style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)" }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[96vh] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
@@ -1288,8 +1310,7 @@ export default function TecnicoOS() {
       {/* ─── Modal de Não Instalada ─── */}
       {openNaoInstalada && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setOpenNaoInstalada(false); }}>
+          style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] relative"
             style={{ background: "linear-gradient(180deg, #0d1a35 0%, #060b18 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-[2.5rem]"
