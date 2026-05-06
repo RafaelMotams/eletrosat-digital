@@ -120,7 +120,7 @@ export default function TecnicoHome() {
   const [userLng, setUserLng] = useState<number | null>(null);
   const [locating, setLocating] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
-  const [showWelcome, setShowWelcome] = useState(false);
+  // Welcome modal removido conforme solicitado
   const [pendingOsCount, setPendingOsCount] = useState(0);
   const isOnline = useOnlineStatus();
   const { syncState } = useSyncOfflineOS();
@@ -154,11 +154,8 @@ export default function TecnicoHome() {
       setTecnicoId(Number(id));
       setTecnicoNome(nome || "Técnico");
     }
-    // Show welcome only on first login
-    if (localStorage.getItem("tecnico_show_welcome") === "1") {
-      setShowWelcome(true);
-      localStorage.removeItem("tecnico_show_welcome");
-    }
+    // Welcome modal removido — limpar chave antiga se existir
+    localStorage.removeItem("tecnico_show_welcome");
   }, [navigate]);
 
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
@@ -277,7 +274,7 @@ export default function TecnicoHome() {
       style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 60%, #050d1f 100%)" }}>
 
       {/* Welcome modal */}
-      {showWelcome && <WelcomeModal nome={tecnicoNome} onClose={() => setShowWelcome(false)} />}
+      {/* WelcomeModal removido conforme solicitado */}
 
       {/* Indicador de status de sync */}
       {(!isOnline || syncState.isSyncing || pendingOsCount > 0) && (
