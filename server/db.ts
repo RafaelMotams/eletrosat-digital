@@ -324,10 +324,10 @@ export async function registrarNaoInstalada(
         updatedAt: new Date(),
       },
     });
-  // Atualizar escola para nao_instalada
+  // Atualizar escola para nao_instalada — salva o motivo para exibir no painel admin
   await db
     .update(escolas)
-    .set({ status: "nao_instalada", dataConclusao: new Date() })
+    .set({ status: "nao_instalada", motivoNaoInstalacao: motivo, dataConclusao: new Date() })
     .where(eq(escolas.id, escolaId));
   return result;
 }

@@ -105,6 +105,7 @@ export const escolas = mysqlTable("escolas", {
   velocidadeOfertada: varchar("velocidadeOfertada", { length: 20 }),
   tipoConexao: varchar("tipoConexao", { length: 50 }).default("Fibra"),
   status: mysqlEnum("status", ["pendente", "em_andamento", "concluido", "nao_instalada"]).default("pendente").notNull(),
+  motivoNaoInstalacao: mysqlEnum("motivoNaoInstalacao", ["escola_desativada", "em_reforma", "mudanca_endereco"]),
   tecnicoId: int("tecnicoId"),
   dataAtribuicao: timestamp("dataAtribuicao"),
   dataConclusao: timestamp("dataConclusao"),

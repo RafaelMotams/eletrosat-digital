@@ -430,6 +430,19 @@ export default function AdminEscolas() {
                         </span>
                       )}
                     </div>
+                    {/* Motivo da não instalação */}
+                    {escola.status === "nao_instalada" && (escola as { motivoNaoInstalacao?: string }).motivoNaoInstalacao && (
+                      <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-red-100 border border-red-200 flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-600 flex-shrink-0" />
+                        <span className="text-xs text-red-700 font-medium">
+                          Motivo: {({
+                            escola_desativada: "Escola desativada",
+                            em_reforma: "Em reforma",
+                            mudanca_endereco: "Mudança de endereço",
+                          } as Record<string, string>)[(escola as { motivoNaoInstalacao?: string }).motivoNaoInstalacao!] ?? (escola as { motivoNaoInstalacao?: string }).motivoNaoInstalacao}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

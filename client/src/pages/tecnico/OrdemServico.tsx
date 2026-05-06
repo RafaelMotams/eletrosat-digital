@@ -1380,12 +1380,41 @@ export default function TecnicoOS() {
                   Cancelar
                 </button>
                 <button
-                  onClick={() => naoInstaladaMut.mutate({ escolaId, tecnicoId, motivo, observacao: obsNaoInstalada || undefined })}
+                  onClick={async () => {
+                    if (!isOnline) {
+                      // Modo offline: salva no IndexedDB e sincroniza quando voltar
+                      await dbEnqueueOS({
+                        escolaId,
+                        tecnicoId,
+                        qtdApInstalado: 0,
+                        dataHora: new Date().toISOString(),
+                        fotos: [],
+                        tipo: "nao_instalada",
+                        motivoNaoInstalada: motivo,
+                        obsNaoInstalada: obsNaoInstalada || undefined,
+                      });
+                      // Atualiza o cache local da escola para mostrar status correto
+                      const cached = await import("@/hooks/useOfflineDB").then(m => m.dbGetCachedEscolas(tecnicoId));
+                      if (cached) {
+                        const updated = (cached as Array<Record<string, unknown>>).map((e) =>
+                          (e.id as number) === escolaId ? { ...e, status: "nao_instalada" } : e
+                        );
+                        await import("@/hooks/useOfflineDB").then(m => m.dbCacheEscolas(tecnicoId, updated));
+                      }
+                      toast.success("⚠️ Salvo offline. Será sincronizado quando houver conexão.");
+                      utils.tecnicoAuth.minhasEscolas.invalidate();
+                      setOpenNaoInstalada(false);
+                    } else {
+                      naoInstaladaMut.mutate({ escolaId, tecnicoId, motivo, observacao: obsNaoInstalada || undefined });
+                    }
+                  }}
                   disabled={naoInstaladaMut.isPending}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{ background: "linear-gradient(135deg, #dc2626, #ef4444)", boxShadow: "0 8px 24px rgba(239,68,68,0.3)" }}>
                   {naoInstaladaMut.isPending ? (
                     <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
+                  ) : !isOnline ? (
+                    <><WifiOff className="w-4 h-4" /> Salvar Offline</>
                   ) : (
                     <><XCircle className="w-4 h-4" /> Confirmar</>
                   )}

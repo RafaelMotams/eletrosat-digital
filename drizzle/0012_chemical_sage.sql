@@ -1,0 +1,1 @@
+ALTER TABLE `escolas` ADD `motivoNaoInstalacao` enum('escola_desativada','em_reforma','mudanca_endereco');

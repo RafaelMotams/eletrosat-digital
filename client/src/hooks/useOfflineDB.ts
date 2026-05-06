@@ -37,8 +37,12 @@ export type PendingOS = {
   dataHora: string;
   fotos: FotoOffline[];
   status: "pending" | "syncing" | "done" | "error";
-  /** "iniciar" = apenas iniciar a OS; "concluir" = concluir com fotos (padrão) */
-  tipo?: "iniciar" | "concluir";
+  /** "iniciar" = apenas iniciar a OS; "concluir" = concluir com fotos (padrão); "nao_instalada" = escola não instalada */
+  tipo?: "iniciar" | "concluir" | "nao_instalada";
+  /** Motivo da não instalação (somente quando tipo = "nao_instalada") */
+  motivoNaoInstalada?: "escola_desativada" | "em_reforma" | "mudanca_endereco";
+  /** Observação da não instalação (somente quando tipo = "nao_instalada") */
+  obsNaoInstalada?: string;
   errorMsg?: string;
   createdAt: number;
   syncedAt?: number;

@@ -136,6 +136,33 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
         return true;
       }
 
+      // ── Tipo: Não Instalada ──────────────────────────────────────────────
+      if (os.tipo === "nao_instalada") {
+        if (!os.motivoNaoInstalada) {
+          // Sem motivo definido, descarta a entrada inválida
+          await dbUpdateOSStatus(os.id, "done");
+          syncingItemsRef.current.delete(os.id);
+          return true;
+        }
+        await withRetry(
+          () => withTimeout(
+            trpcClient.tecnicoAuth.naoInstalada.mutate({
+              tecnicoId: os.tecnicoId,
+              escolaId: os.escolaId,
+              motivo: os.motivoNaoInstalada!,
+              observacao: os.obsNaoInstalada,
+            }),
+            30000,
+            "naoInstalada"
+          ),
+          3,
+          "naoInstalada"
+        );
+        await dbUpdateOSStatus(os.id, "done");
+        syncingItemsRef.current.delete(os.id);
+        return true;
+      }
+
       // Passo 1: Concluir a OS no servidor (idempotente no backend)
       // Retry com backoff exponencial: 3 tentativas (1s, 2s, 4s)
       const resultado = await withRetry(
