@@ -245,7 +245,7 @@ export async function listOrdensServico(filters?: {
   const conditions: any[] = [];
   if (filters?.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
   if (filters?.tecnicoId) conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
-  if (filters?.status) conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida"));
+  if (filters?.status) conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida" | "nao_instalada"));
   if (filters?.dataInicio) conditions.push(gte(ordensServico.dataAbertura, filters.dataInicio));
   if (filters?.dataFim) conditions.push(lte(ordensServico.dataAbertura, filters.dataFim));
 

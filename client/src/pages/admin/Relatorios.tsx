@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Trophy, BarChart3, TrendingUp, Calendar, Download,
-  Users, CheckCircle, X, ChevronDown, FileSpreadsheet, ClipboardList,
+  Users, CheckCircle, X, ChevronDown, FileSpreadsheet, ClipboardList, AlertTriangle,
 } from "lucide-react";
 import { useState, useMemo, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -130,14 +130,14 @@ function MultiSelectTecnicos({
     </div>
   );
 }
-
-/* ─── Exportação Excel profissional ────────────────────────────────────────── */
+/* ─── Exportação Excel profissional ──────────────────────────────────── */
 function exportarExcel(
   osDetalhadas: any[],
   tecnicosSelecionados: { id: number; nome: string }[],
   periodo: string,
   dataInicio: string,
   dataFim: string,
+  osNaoInstaladas?: any[],
 ) {
   if (!osDetalhadas || osDetalhadas.length === 0) return;
   const wb = XLSX.utils.book_new();
@@ -351,6 +351,96 @@ function exportarExcel(
 
   XLSX.utils.book_append_sheet(wb, ws2, "Resumo por Técnico");
 
+  /* ════════════════════════════════════════════════════════════════
+     ABA 3 — NÃO INSTALADAS
+     Colunas: Nº | Escola | INEP | Município | UF | Técnico | Motivo | Data
+  ════════════════════════════════════════════════════════════════ */
+  if (osNaoInstaladas && osNaoInstaladas.length > 0) {
+    const MOTIVO_MAP: Record<string, string> = {
+      escola_desativada: "Escola desativada",
+      em_reforma: "Em reforma",
+      mudanca_endereco: "Mudança de endereço",
+    };
+
+    const rows3: any[][] = [
+      ["ESCOLAS NÃO INSTALADAS", "", "", "", "", "", "", ""],
+      [`Período: ${periodoLabel}`, "", "", "", "", "", "", ""],
+      [`Técnico(s): ${tecLabel}`, "", "", "", "", "", "", ""],
+      [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["Nº", "Nome da Escola", "INEP", "Município", "UF", "Técnico", "Motivo", "Data"],
+    ];
+
+    osNaoInstaladas.forEach((os: any, i: number) => {
+      rows3.push([
+        i + 1,
+        os.escolaNome ?? "",
+        os.inep ?? "",
+        os.municipio ?? "",
+        os.uf ?? "",
+        os.tecnicoNome ?? "",
+        MOTIVO_MAP[os.motivo] ?? os.motivoLabel ?? "Não informado",
+        formatDate(os.dataConclusao),
+      ]);
+    });
+
+    rows3.push(["", `TOTAL — ${osNaoInstaladas.length} escola(s) não instalada(s)`, "", "", "", "", "", ""]);
+
+    const ws3 = XLSX.utils.aoa_to_sheet(rows3);
+    ws3["!cols"] = [
+      { wch: 5 }, { wch: 44 }, { wch: 12 }, { wch: 24 }, { wch: 4 },
+      { wch: 26 }, { wch: 24 }, { wch: 14 },
+    ];
+
+    const headerR3 = 5;
+    const firstD3  = 6;
+    const lastD3   = firstD3 + osNaoInstaladas.length - 1;
+    const totalR3  = lastD3 + 1;
+
+    ws3["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } },
+      { s: { r: totalR3, c: 1 }, e: { r: totalR3, c: 7 } },
+    ];
+
+    const sTituloR = { font: { bold: true, sz: 14, color: { rgb: "7F1D1D" } }, fill: { fgColor: { rgb: "FEE2E2" } }, alignment: { horizontal: "center", vertical: "center" } };
+    const sInfoR   = { font: { italic: true, sz: 10, color: { rgb: "555555" } }, fill: { fgColor: { rgb: "FEE2E2" } } };
+    const sHeaderR = { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "DC2626" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
+    const sTotalR  = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "DC2626" } }, alignment: { horizontal: "center", vertical: "center" } };
+    const cols3 = ["A","B","C","D","E","F","G","H"];
+    const hdrs3 = ["Nº","Nome da Escola","INEP","Município","UF","Técnico","Motivo","Data"];
+
+    ["A1","A2","A3","A4"].forEach((a, i) => {
+      if (!ws3[a]) ws3[a] = { t: "s", v: "" };
+      ws3[a].s = i === 0 ? sTituloR : sInfoR;
+    });
+
+    cols3.forEach((col, ci) => {
+      const addr = `${col}${headerR3 + 1}`;
+      if (!ws3[addr]) ws3[addr] = { t: "s", v: hdrs3[ci] };
+      ws3[addr].s = sHeaderR;
+    });
+
+    for (let ri = firstD3; ri <= lastD3; ri++) {
+      const isAlt = (ri - firstD3) % 2 === 1;
+      cols3.forEach((col) => {
+        const addr = `${col}${ri + 1}`;
+        if (!ws3[addr]) ws3[addr] = { t: "s", v: "" };
+        ws3[addr].s = isAlt ? sDataAlt : sData;
+      });
+    }
+
+    cols3.forEach((col) => {
+      const addr = `${col}${totalR3 + 1}`;
+      if (!ws3[addr]) ws3[addr] = { t: "s", v: "" };
+      ws3[addr].s = sTotalR;
+    });
+
+    XLSX.utils.book_append_sheet(wb, ws3, "Não Instaladas");
+  }
+
   // Nome do arquivo
   const tecSlug =
     tecnicosSelecionados.length === 0 ? "todos" :
@@ -388,12 +478,21 @@ export default function AdminRelatorios() {
     { enabled: tecnicoIdUnico > 0 }
   );
 
+  // OS não instaladas
+  const { data: osNaoInstaladas, isLoading: loadingNaoInstaladas } = trpc.relatorios.osNaoInstaladas.useQuery({
+    tecnicoIds: tecnicosSel.length > 0 ? tecnicosSel : undefined,
+    dataInicio: dates.inicio,
+    dataFim:    dates.fim,
+  });
+
   // OS detalhadas — múltiplos técnicos
   const { data: osDetalhadas, isLoading: loadingOs } = trpc.relatorios.osDetalhadas.useQuery({
     tecnicoIds: tecnicosSel.length > 0 ? tecnicosSel : undefined,
     dataInicio: dates.inicio,
     dataFim:    dates.fim,
   });
+
+  const totalNaoInstaladas = osNaoInstaladas?.length ?? 0;
 
   const totalOsTabela  = osDetalhadas?.length ?? 0;
   const totalApsTabela = useMemo(
@@ -493,6 +592,82 @@ export default function AdminRelatorios() {
         </Card>
       )}
 
+      {/* ── Tabela Escolas Não Instaladas ─────────────────────────────────── */}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              Escolas Não Instaladas
+              {totalNaoInstaladas > 0 && (
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-semibold">
+                  {totalNaoInstaladas}
+                </span>
+              )}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loadingNaoInstaladas ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3].map(i => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
+            </div>
+          ) : !osNaoInstaladas || osNaoInstaladas.length === 0 ? (
+            <div className="py-12 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
+              <AlertTriangle className="w-8 h-8 opacity-20" />
+              <span>Nenhuma escola não instalada para os filtros selecionados.</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-red-50/60 dark:bg-red-950/20">
+                    {["#","Escola","INEP","Município","Técnico","Motivo","Data"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left font-semibold text-red-700 dark:text-red-400 text-xs uppercase tracking-wide whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {osNaoInstaladas.map((os: any, i: number) => (
+                    <tr key={os.osId} className="border-b last:border-0 hover:bg-red-50/40 dark:hover:bg-red-950/10 transition-colors">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{i + 1}</td>
+                      <td className="px-4 py-3 font-medium max-w-[200px]">
+                        <span className="block truncate" title={os.escolaNome}>{os.escolaNome}</span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{os.inep}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{os.municipio}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                          {os.tecnicoNome}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium">
+                          <AlertTriangle className="w-3 h-3" />
+                          {({escola_desativada:"Escola desativada",em_reforma:"Em reforma",mudanca_endereco:"Mudança de endereço"} as Record<string,string>)[os.motivo] ?? os.motivoLabel ?? "Não informado"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
+                        {formatDate(os.dataConclusao)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t bg-red-50/40 dark:bg-red-950/10">
+                    <td colSpan={7} className="px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-400">
+                      Total: {totalNaoInstaladas} escola{totalNaoInstaladas !== 1 ? "s" : ""} não instalada{totalNaoInstaladas !== 1 ? "s" : ""}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* ── Tabela OS Concluídas + Exportar Excel ───────────────────────────── */}
       <Card className="mb-6">
         <CardHeader className="pb-3">
@@ -508,7 +683,7 @@ export default function AdminRelatorios() {
             </CardTitle>
 
             <button
-              onClick={() => exportarExcel(osDetalhadas ?? [], tecnicosSelecionados, periodo, dataInicio, dataFim)}
+              onClick={() => exportarExcel(osDetalhadas ?? [], tecnicosSelecionados, periodo, dataInicio, dataFim, osNaoInstaladas ?? [])}
               disabled={!osDetalhadas || osDetalhadas.length === 0}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{

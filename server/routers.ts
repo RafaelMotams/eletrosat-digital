@@ -43,6 +43,7 @@ import {
   getValoresApTecnico,
   setValoresApTecnico,
   getValoresApAllTecnicos,
+  getOsNaoInstaladas,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -515,6 +516,28 @@ const relatoriosRouter = router({
         const valorCalculado = tecValores[qtd] ?? null;
         return { ...os, valorCalculado };
       });
+    }),
+
+  osNaoInstaladas: tenantAdminProcedure
+    .input(
+      z.object({
+        tecnicoIds: z.array(z.number()).optional(),
+        dataInicio: z.string().nullable().optional(),
+        dataFim: z.string().nullable().optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
+      const fim = input.dataFim ? new Date(input.dataFim) : null;
+      const tenantId = (ctx as any).tenantId;
+      // Se múltiplos técnicos, busca para cada um e agrega
+      if (input.tecnicoIds && input.tecnicoIds.length > 0) {
+        const results = await Promise.all(
+          input.tecnicoIds.map(tid => getOsNaoInstaladas({ tenantId, tecnicoId: tid, dataInicio: inicio, dataFim: fim }))
+        );
+        return results.flat();
+      }
+      return getOsNaoInstaladas({ tenantId, dataInicio: inicio, dataFim: fim });
     }),
 });
 
