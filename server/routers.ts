@@ -194,12 +194,21 @@ const escolasRouter = router({
       z.object({
         id: z.number(),
         nome: z.string().optional(),
+        inep: z.string().optional(),
         endereco: z.string().optional(),
         municipio: z.string().optional(),
+        uf: z.string().optional(),
+        latitude: z.string().optional(),
+        longitude: z.string().optional(),
+        telefone: z.string().optional(),
+        telefoneWhatsApp: z.string().optional(),
         tipoConexao: z.string().optional(),
+        velocidadeMinima: z.string().optional(),
         velocidadeOfertada: z.string().optional(),
         qtdAp: z.number().optional(),
-        status: z.enum(["pendente", "em_andamento", "concluido"]).optional(),
+        kitWifi: z.number().optional(),
+        apAdicional: z.number().optional(),
+        status: z.enum(["pendente", "em_andamento", "concluido", "nao_instalada"]).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {

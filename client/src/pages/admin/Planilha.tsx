@@ -15,6 +15,8 @@ import {
   Trash2,
   AlertTriangle,
   X,
+  Pencil,
+  Save,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +38,45 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   nao_instalada: { label: "Não Instalada", color: "bg-red-100 text-red-800 border-red-200" },
 };
 
+type Escola = {
+  id: number;
+  inep: string;
+  nome: string;
+  endereco?: string | null;
+  municipio?: string | null;
+  uf?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+  telefone?: string | null;
+  telefoneWhatsApp?: string | null;
+  tipoConexao?: string | null;
+  velocidadeMinima?: string | null;
+  velocidadeOfertada?: string | null;
+  qtdAp?: number | null;
+  kitWifi?: number | null;
+  apAdicional?: number | null;
+  status: string;
+};
+
+type FormEscola = {
+  nome: string;
+  inep: string;
+  endereco: string;
+  municipio: string;
+  uf: string;
+  latitude: string;
+  longitude: string;
+  telefone: string;
+  telefoneWhatsApp: string;
+  tipoConexao: string;
+  velocidadeMinima: string;
+  velocidadeOfertada: string;
+  qtdAp: string;
+  kitWifi: string;
+  apAdicional: string;
+  status: string;
+};
+
 export default function AdminPlanilha() {
   const utils = trpc.useUtils();
   const { data: escolas, isLoading } = trpc.planilha.listar.useQuery();
@@ -49,6 +90,27 @@ export default function AdminPlanilha() {
   const [tipoExclusao, setTipoExclusao] = useState<"municipio" | "todas">("municipio");
   const [municipioSelecionado, setMunicipioSelecionado] = useState("");
   const [confirmTexto, setConfirmTexto] = useState("");
+
+  // Modal de edição
+  const [modalEditar, setModalEditar] = useState(false);
+  const [escolaEditando, setEscolaEditando] = useState<Escola | null>(null);
+  const [formEditar, setFormEditar] = useState<FormEscola>({
+    nome: "", inep: "", endereco: "", municipio: "", uf: "",
+    latitude: "", longitude: "", telefone: "", telefoneWhatsApp: "",
+    tipoConexao: "", velocidadeMinima: "", velocidadeOfertada: "",
+    qtdAp: "", kitWifi: "", apAdicional: "", status: "pendente",
+  });
+
+  const updateMut = trpc.escolas.update.useMutation({
+    onSuccess: () => {
+      toast.success("Escola atualizada com sucesso!");
+      utils.planilha.listar.invalidate();
+      utils.escolas.list.invalidate();
+      setModalEditar(false);
+      setEscolaEditando(null);
+    },
+    onError: (e) => toast.error(`Erro ao atualizar: ${e.message}`),
+  });
 
   const deletarPorCidadeMut = trpc.escolas.deletarPorCidade.useMutation({
     onSuccess: (data) => {
@@ -104,6 +166,52 @@ export default function AdminPlanilha() {
     const pendentes = escolasFiltradas.filter((e) => e.status === "pendente").length;
     return { totalKits, totalAps, concluidas, pendentes };
   }, [escolasFiltradas]);
+
+  function abrirModalEditar(escola: Escola) {
+    setEscolaEditando(escola);
+    setFormEditar({
+      nome: escola.nome ?? "",
+      inep: escola.inep ?? "",
+      endereco: escola.endereco ?? "",
+      municipio: escola.municipio ?? "",
+      uf: escola.uf ?? "",
+      latitude: escola.latitude ? String(escola.latitude) : "",
+      longitude: escola.longitude ? String(escola.longitude) : "",
+      telefone: escola.telefone ?? "",
+      telefoneWhatsApp: escola.telefoneWhatsApp ?? "",
+      tipoConexao: escola.tipoConexao ?? "",
+      velocidadeMinima: escola.velocidadeMinima ? String(escola.velocidadeMinima) : "",
+      velocidadeOfertada: escola.velocidadeOfertada ? String(escola.velocidadeOfertada) : "",
+      qtdAp: escola.qtdAp != null ? String(escola.qtdAp) : "",
+      kitWifi: escola.kitWifi != null ? String(escola.kitWifi) : "",
+      apAdicional: escola.apAdicional != null ? String(escola.apAdicional) : "",
+      status: escola.status ?? "pendente",
+    });
+    setModalEditar(true);
+  }
+
+  function salvarEdicao() {
+    if (!escolaEditando) return;
+    updateMut.mutate({
+      id: escolaEditando.id,
+      nome: formEditar.nome || undefined,
+      inep: formEditar.inep || undefined,
+      endereco: formEditar.endereco || undefined,
+      municipio: formEditar.municipio || undefined,
+      uf: formEditar.uf || undefined,
+      latitude: formEditar.latitude || undefined,
+      longitude: formEditar.longitude || undefined,
+      telefone: formEditar.telefone || undefined,
+      telefoneWhatsApp: formEditar.telefoneWhatsApp || undefined,
+      tipoConexao: formEditar.tipoConexao || undefined,
+      velocidadeMinima: formEditar.velocidadeMinima || undefined,
+      velocidadeOfertada: formEditar.velocidadeOfertada || undefined,
+      qtdAp: formEditar.qtdAp ? Number(formEditar.qtdAp) : undefined,
+      kitWifi: formEditar.kitWifi ? Number(formEditar.kitWifi) : undefined,
+      apAdicional: formEditar.apAdicional ? Number(formEditar.apAdicional) : undefined,
+      status: formEditar.status as any || undefined,
+    });
+  }
 
   function getRows() {
     return escolasFiltradas.map((e) => ({
@@ -294,6 +402,7 @@ export default function AdminPlanilha() {
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="em_andamento">Em Andamento</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
+                <SelectItem value="nao_instalada">Não Instalada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -338,7 +447,7 @@ export default function AdminPlanilha() {
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Vel. Ofert.</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Solução</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Status</th>
-                    <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Mapa</th>
+                    <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -402,17 +511,26 @@ export default function AdminPlanilha() {
                           </span>
                         </td>
                         <td className="px-3 py-2.5 text-center">
-                          <button
-                            onClick={() => abrirMaps(
-                              escola.latitude ? String(escola.latitude) : null,
-                              escola.longitude ? String(escola.longitude) : null,
-                              escola.nome
-                            )}
-                            className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-primary hover:text-white transition-colors"
-                            title="Ver no Google Maps"
-                          >
-                            <MapPin className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => abrirModalEditar(escola as Escola)}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 transition-colors"
+                              title="Editar escola"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => abrirMaps(
+                                escola.latitude ? String(escola.latitude) : null,
+                                escola.longitude ? String(escola.longitude) : null,
+                                escola.nome
+                              )}
+                              className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-primary hover:text-white transition-colors"
+                              title="Ver no Google Maps"
+                            >
+                              <MapPin className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -434,6 +552,173 @@ export default function AdminPlanilha() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Edição */}
+      {modalEditar && escolaEditando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-background rounded-2xl shadow-2xl w-full max-w-2xl border border-border max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <Pencil className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Editar Escola</h2>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{escolaEditando.nome}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalEditar(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Formulário */}
+            <div className="overflow-y-auto p-6 space-y-5 flex-1">
+              {/* Identificação */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">1</span>
+                  Identificação
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome da Escola</label>
+                    <Input value={formEditar.nome} onChange={e => setFormEditar(f => ({ ...f, nome: e.target.value }))} placeholder="Nome da escola" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">INEP</label>
+                    <Input value={formEditar.inep} onChange={e => setFormEditar(f => ({ ...f, inep: e.target.value }))} placeholder="Código INEP" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Localização */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">2</span>
+                  Localização
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Endereço</label>
+                    <Input value={formEditar.endereco} onChange={e => setFormEditar(f => ({ ...f, endereco: e.target.value }))} placeholder="Endereço completo" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Município</label>
+                    <Input value={formEditar.municipio} onChange={e => setFormEditar(f => ({ ...f, municipio: e.target.value }))} placeholder="Município" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">UF</label>
+                    <Input value={formEditar.uf} onChange={e => setFormEditar(f => ({ ...f, uf: e.target.value }))} placeholder="Ex: BA" maxLength={2} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Latitude</label>
+                    <Input value={formEditar.latitude} onChange={e => setFormEditar(f => ({ ...f, latitude: e.target.value }))} placeholder="Ex: -12.971598" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Longitude</label>
+                    <Input value={formEditar.longitude} onChange={e => setFormEditar(f => ({ ...f, longitude: e.target.value }))} placeholder="Ex: -38.501597" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Contato */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">3</span>
+                  Contato
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Telefone</label>
+                    <Input value={formEditar.telefone} onChange={e => setFormEditar(f => ({ ...f, telefone: e.target.value }))} placeholder="(00) 00000-0000" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">WhatsApp</label>
+                    <Input value={formEditar.telefoneWhatsApp} onChange={e => setFormEditar(f => ({ ...f, telefoneWhatsApp: e.target.value }))} placeholder="(00) 00000-0000" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Infraestrutura */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold">4</span>
+                  Infraestrutura
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Solução / Tipo</label>
+                    <Input value={formEditar.tipoConexao} onChange={e => setFormEditar(f => ({ ...f, tipoConexao: e.target.value }))} placeholder="Ex: Fibra" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Vel. Mínima (Mbps)</label>
+                    <Input type="number" value={formEditar.velocidadeMinima} onChange={e => setFormEditar(f => ({ ...f, velocidadeMinima: e.target.value }))} placeholder="Ex: 100" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Vel. Ofertada (Mbps)</label>
+                    <Input type="number" value={formEditar.velocidadeOfertada} onChange={e => setFormEditar(f => ({ ...f, velocidadeOfertada: e.target.value }))} placeholder="Ex: 200" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Kit Wi-Fi</label>
+                    <Input type="number" value={formEditar.kitWifi} onChange={e => setFormEditar(f => ({ ...f, kitWifi: e.target.value }))} placeholder="Qtd kits" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Qtd APs</label>
+                    <Input type="number" value={formEditar.qtdAp} onChange={e => setFormEditar(f => ({ ...f, qtdAp: e.target.value }))} placeholder="Qtd APs" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">AP Adicional</label>
+                    <Input type="number" value={formEditar.apAdicional} onChange={e => setFormEditar(f => ({ ...f, apAdicional: e.target.value }))} placeholder="AP adicional" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-xs font-bold">5</span>
+                  Status
+                </h3>
+                <Select value={formEditar.status} onValueChange={v => setFormEditar(f => ({ ...f, status: v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="nao_instalada">Não Instalada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-6 border-t border-border shrink-0">
+              <Button variant="outline" className="flex-1" onClick={() => setModalEditar(false)}>
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={salvarEdicao}
+                disabled={updateMut.isPending}
+              >
+                {updateMut.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Salvar Alterações
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Exclusão */}
       {modalExcluir && (
@@ -457,106 +742,62 @@ export default function AdminPlanilha() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-
             {/* Body */}
             <div className="p-6 space-y-4">
-              {/* Tipo de exclusão */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex gap-2">
                 <button
-                  onClick={() => { setTipoExclusao("municipio"); setConfirmTexto(""); }}
-                  className={`p-3 rounded-xl border-2 text-left transition-all ${
-                    tipoExclusao === "municipio"
-                      ? "border-red-500 bg-red-50"
-                      : "border-border hover:border-muted-foreground"
-                  }`}
+                  onClick={() => setTipoExclusao("municipio")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${tipoExclusao === "municipio" ? "bg-red-50 border-red-300 text-red-700" : "border-border text-muted-foreground hover:bg-muted"}`}
                 >
-                  <p className="text-sm font-semibold text-foreground">Por Município</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Excluir escolas de uma cidade</p>
+                  Por Município
                 </button>
                 <button
-                  onClick={() => { setTipoExclusao("todas"); setConfirmTexto(""); }}
-                  className={`p-3 rounded-xl border-2 text-left transition-all ${
-                    tipoExclusao === "todas"
-                      ? "border-red-500 bg-red-50"
-                      : "border-border hover:border-muted-foreground"
-                  }`}
+                  onClick={() => setTipoExclusao("todas")}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${tipoExclusao === "todas" ? "bg-red-50 border-red-300 text-red-700" : "border-border text-muted-foreground hover:bg-muted"}`}
                 >
-                  <p className="text-sm font-semibold text-foreground">Todas as Escolas</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Excluir toda a planilha</p>
+                  Todas as Escolas
                 </button>
               </div>
-
-              {/* Seletor de município */}
               {tipoExclusao === "municipio" && (
-                <div>
-                  <label className="text-sm font-medium text-foreground block mb-1.5">
-                    Selecione o município
-                  </label>
-                  <select
-                    value={municipioSelecionado}
-                    onChange={(e) => setMunicipioSelecionado(e.target.value)}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="">-- Escolha um município --</option>
-                    {municipios?.map((m) => (
-                      <option key={m} value={m}>{m}</option>
+                <Select value={municipioSelecionado} onValueChange={setMunicipioSelecionado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o município" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(municipios ?? []).map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
                     ))}
-                  </select>
-                  {municipioSelecionado && (
-                    <p className="text-xs text-red-600 mt-1.5 font-medium">
-                      ⚠️ Serão excluídas todas as escolas de <strong>{municipioSelecionado}</strong>, incluindo OS e atribuições vinculadas.
-                    </p>
-                  )}
-                </div>
+                  </SelectContent>
+                </Select>
               )}
-
-              {tipoExclusao === "todas" && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <p className="text-sm text-red-700 font-medium">
-                    ⚠️ Serão excluídas <strong>todas as {escolas?.length ?? 0} escolas</strong>, incluindo todas as OS e atribuições vinculadas.
-                  </p>
-                </div>
-              )}
-
-              {/* Campo de confirmação */}
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">
-                  Digite <strong className="text-red-600">{confirmEsperado}</strong> para confirmar
-                </label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Digite <strong className="text-red-600">{confirmEsperado}</strong> para confirmar:
+                </p>
                 <Input
                   value={confirmTexto}
                   onChange={(e) => setConfirmTexto(e.target.value)}
                   placeholder={confirmEsperado}
-                  className="border-red-200 focus:ring-red-500"
+                  className="border-red-200 focus:border-red-400"
                 />
               </div>
             </div>
-
             {/* Footer */}
-            <div className="flex gap-3 p-6 pt-0">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setModalExcluir(false)}
-                disabled={isPending}
-              >
+            <div className="flex gap-3 p-6 border-t border-border">
+              <Button variant="outline" className="flex-1" onClick={() => setModalExcluir(false)}>
                 Cancelar
               </Button>
               <Button
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white gap-2"
+                variant="destructive"
+                className="flex-1"
                 onClick={confirmarExclusao}
-                disabled={
-                  isPending ||
-                  confirmTexto !== confirmEsperado ||
-                  (tipoExclusao === "municipio" && !municipioSelecionado)
-                }
+                disabled={isPending || confirmTexto !== confirmEsperado}
               >
                 {isPending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <Trash2 className="w-4 h-4" />
+                  "Confirmar Exclusão"
                 )}
-                {isPending ? "Excluindo..." : "Confirmar Exclusão"}
               </Button>
             </div>
           </div>
