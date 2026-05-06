@@ -1,7 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
+import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -24,6 +25,43 @@ import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminConfiguracoes from "./pages/admin/Configuracoes";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
+
+// Rotas do técnico que devem ser persistidas (exceto login)
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico"];
+const TECNICO_OS_PREFIX = "/tecnico/os/";
+
+function RoutePersistence() {
+  const [location, navigate] = useLocation();
+
+  // Salvar rota atual do técnico no localStorage
+  useEffect(() => {
+    const isTecnicoRoute =
+      TECNICO_ROUTES.includes(location) ||
+      location.startsWith(TECNICO_OS_PREFIX);
+    if (isTecnicoRoute) {
+      localStorage.setItem("tecnico_last_route", location);
+    }
+  }, [location]);
+
+  // Ao montar, restaurar última rota do técnico se estiver logado
+  useEffect(() => {
+    const tecnicoId = localStorage.getItem("tecnico_id");
+    const lastRoute = localStorage.getItem("tecnico_last_route");
+    const isAtRoot = location === "/" || location === "";
+
+    if (
+      tecnicoId &&
+      lastRoute &&
+      isAtRoot &&
+      (TECNICO_ROUTES.includes(lastRoute) || lastRoute.startsWith(TECNICO_OS_PREFIX))
+    ) {
+      navigate(lastRoute, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -64,6 +102,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <OfflineSyncBanner />
+          <RoutePersistence />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

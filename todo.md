@@ -379,3 +379,4 @@
 - [x] Adicionar aba "Não Instaladas" no relatório Excel com colunas: Nome da Escola, INEP, Município, Técnico, Motivo, Data
 - [x] Corrigir painel admin: escolas "Não Instaladas" não aparecem na listagem de escolas
 - [x] Corrigir tela de Ordens do admin: exibir OS com status "Não Instalada" com motivo destacado em vermelho
+- [x] Persistência de rota no app do técnico: ao voltar para o app, retornar para a última tela visitada
