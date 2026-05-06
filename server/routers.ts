@@ -48,8 +48,8 @@ import {
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
-import { ordensServico } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { ordensServico, escolas, atribuicoesManual } from "../drizzle/schema";
+import { eq, and } from "drizzle-orm";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -193,12 +193,21 @@ const escolasRouter = router({
       z.object({
         id: z.number(),
         nome: z.string().optional(),
+        inep: z.string().optional(),
         endereco: z.string().optional(),
         municipio: z.string().optional(),
+        uf: z.string().optional(),
+        latitude: z.string().optional(),
+        longitude: z.string().optional(),
+        telefone: z.string().optional(),
+        telefoneWhatsApp: z.string().optional(),
         tipoConexao: z.string().optional(),
         velocidadeOfertada: z.string().optional(),
+        velocidadeMinima: z.string().optional(),
         qtdAp: z.number().optional(),
-        status: z.enum(["pendente", "em_andamento", "concluido"]).optional(),
+        kitWifi: z.number().optional(),
+        apAdicional: z.number().optional(),
+        status: z.enum(["pendente", "em_andamento", "concluido", "nao_instalada"]).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -210,6 +219,44 @@ const escolasRouter = router({
       const { id, ...data } = input;
       await updateEscola(id, data);
       return { success: true };
+    }),
+
+  deletarVarias: tenantAdminProcedure
+    .input(z.object({ ids: z.array(z.number()).min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      let total = 0;
+      for (const id of input.ids) {
+        const escola = await getEscolaById(id);
+        if (!escola || (tenantId !== undefined && escola.tenantId !== tenantId)) continue;
+        await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
+        await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
+        await db.delete(escolas).where(eq(escolas.id, id));
+        total++;
+      }
+      return { success: true, total };
+    }),
+
+  deletarPorTecnico: tenantAdminProcedure
+    .input(z.object({ tecnicoId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const whereClause = tenantId !== undefined
+        ? and(eq(escolas.tecnicoId, input.tecnicoId), eq(escolas.tenantId, tenantId))
+        : eq(escolas.tecnicoId, input.tecnicoId);
+      const lista = await db.select({ id: escolas.id }).from(escolas).where(whereClause);
+      let total = 0;
+      for (const { id } of lista) {
+        await db.delete(ordensServico).where(eq(ordensServico.escolaId, id));
+        await db.delete(atribuicoesManual).where(eq(atribuicoesManual.escolaId, id));
+        await db.delete(escolas).where(eq(escolas.id, id));
+        total++;
+      }
+      return { success: true, total };
     }),
 
   importar: tenantAdminProcedure
