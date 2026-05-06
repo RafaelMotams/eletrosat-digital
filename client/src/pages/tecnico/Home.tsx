@@ -347,8 +347,8 @@ export default function TecnicoHome() {
               <p className="text-2xl font-black text-white">{progresso}<span className="text-sm font-bold text-slate-400">%</span></p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-medium text-slate-400 mb-0.5">APs instalados</p>
-              <p className="text-lg font-black" style={{ color: "#3b82f6" }}>{apsInstalados}<span className="text-xs text-slate-400 font-medium">/{totalAps}</span></p>
+              <p className="text-xs font-medium text-slate-400 mb-0.5">Escolas</p>
+              <p className="text-lg font-black" style={{ color: "#3b82f6" }}>{concluidas}<span className="text-xs text-slate-400 font-medium">/{total}</span></p>
             </div>
           </div>
           {/* Progress bar */}
