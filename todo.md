@@ -382,3 +382,4 @@
 - [x] Persistência de rota no app do técnico: ao voltar para o app, retornar para a última tela visitada
 - [x] Integração Google Drive: salvar fotos das OS concluídas em pastas organizadas por técnico/escola
 - [x] Edição completa de escola na página de planilha (modal com todos os campos)
+- [x] Corrigir botão WhatsApp no app: usar telefone da escola para gerar link clicável

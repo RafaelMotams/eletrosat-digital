@@ -1,65 +1,96 @@
-import { google } from "googleapis";
-import { Readable } from "stream";
-
-// Credenciais da conta de serviço injetadas via env
-const CREDENTIALS = {
-  type: "service_account",
-  project_id: process.env.GOOGLE_PROJECT_ID!,
-  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID!,
-  private_key: (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
-  client_email: process.env.GOOGLE_CLIENT_EMAIL!,
-  client_id: process.env.GOOGLE_CLIENT_ID!,
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL!,
-  universe_domain: "googleapis.com",
-};
+import { storageGetSignedUrl } from "./storage";
+import * as crypto from "crypto";
 
 const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID!;
 
-function getAuth() {
-  return new google.auth.GoogleAuth({
-    credentials: CREDENTIALS,
-    scopes: ["https://www.googleapis.com/auth/drive"],
+// Gera um JWT assinado para autenticação com a conta de serviço
+async function getAccessToken(): Promise<string> {
+  const privateKey = (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
+  const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(
+    JSON.stringify({
+      iss: clientEmail,
+      scope: "https://www.googleapis.com/auth/drive",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: now + 3600,
+      iat: now,
+    })
+  ).toString("base64url");
+
+  const signingInput = `${header}.${payload}`;
+  const sign = crypto.createSign("RSA-SHA256");
+  sign.update(signingInput);
+  const signature = sign.sign(privateKey, "base64url");
+  const jwt = `${signingInput}.${signature}`;
+
+  const resp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
   });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`Falha ao obter token Google: ${err}`);
+  }
+
+  const data = (await resp.json()) as { access_token: string };
+  return data.access_token;
 }
 
-function getDrive() {
-  return google.drive({ version: "v3", auth: getAuth() });
-}
-
-/** Busca ou cria uma subpasta dentro de um pai */
-async function getOrCreateFolder(name: string, parentId: string): Promise<string> {
-  const drive = getDrive();
+/** Busca ou cria uma subpasta dentro de um pai usando fetch direto */
+async function getOrCreateFolder(name: string, parentId: string, token: string): Promise<string> {
   const sanitized = name.replace(/[/\\?%*:|"<>]/g, "-").trim().slice(0, 100);
+  const escaped = sanitized.replace(/'/g, "\\'");
 
   // Busca pasta existente
-  const res = await drive.files.list({
-    q: `name='${sanitized}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-    fields: "files(id, name)",
-    spaces: "drive",
-  });
+  const query = encodeURIComponent(
+    `name='${escaped}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`
+  );
+  const listResp = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
-  if (res.data.files && res.data.files.length > 0) {
-    return res.data.files[0].id!;
+  if (listResp.ok) {
+    const data = (await listResp.json()) as { files: { id: string }[] };
+    if (data.files && data.files.length > 0) return data.files[0].id;
   }
 
   // Cria nova pasta
-  const folder = await drive.files.create({
-    requestBody: {
-      name: sanitized,
-      mimeType: "application/vnd.google-apps.folder",
-      parents: [parentId],
-    },
-    fields: "id",
-  });
+  const createResp = await fetch(
+    "https://www.googleapis.com/drive/v3/files?supportsAllDrives=true",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: sanitized,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [parentId],
+      }),
+    }
+  );
 
-  return folder.data.id!;
+  if (!createResp.ok) {
+    const err = await createResp.text();
+    throw new Error(`Falha ao criar pasta "${sanitized}": ${err}`);
+  }
+
+  const folder = (await createResp.json()) as { id: string };
+  return folder.id;
 }
 
 /**
- * Faz upload de uma foto para o Google Drive
+ * Faz upload de uma foto para o Google Drive usando multipart upload
  * Estrutura: Netvionis Fotos / Técnico Nome / Escola Nome - Data / foto.jpg
  */
 export async function uploadFotoParaDrive(params: {
@@ -67,44 +98,72 @@ export async function uploadFotoParaDrive(params: {
   escolaNome: string;
   fotoUrl: string;
   fotoIndex: number;
-  dataOS: string; // formato YYYY-MM-DD
+  dataOS: string;
 }): Promise<{ driveUrl: string; driveFileId: string }> {
   const { tecnicoNome, escolaNome, fotoUrl, fotoIndex, dataOS } = params;
 
+  // Obter token de acesso
+  const token = await getAccessToken();
+
+  // Resolver URL: se for relativa (/manus-storage/...), obter URL assinada do S3
+  let resolvedUrl = fotoUrl;
+  if (fotoUrl.startsWith("/manus-storage/")) {
+    const key = fotoUrl.replace("/manus-storage/", "");
+    resolvedUrl = await storageGetSignedUrl(key);
+  }
+
   // Baixar a foto do S3/storage
-  const response = await fetch(fotoUrl);
+  const response = await fetch(resolvedUrl);
   if (!response.ok) throw new Error(`Falha ao baixar foto: ${response.status}`);
   const buffer = await response.arrayBuffer();
-  const stream = Readable.from(Buffer.from(buffer));
 
   // Detectar tipo de conteúdo
   const contentType = response.headers.get("content-type") || "image/jpeg";
   const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
 
-  const drive = getDrive();
-
   // Criar estrutura de pastas: Root / Técnico / Escola - Data
-  const tecnicoFolderId = await getOrCreateFolder(tecnicoNome, ROOT_FOLDER_ID);
+  const tecnicoFolderId = await getOrCreateFolder(tecnicoNome, ROOT_FOLDER_ID, token);
   const escolaFolderName = `${escolaNome} - ${dataOS}`;
-  const escolaFolderId = await getOrCreateFolder(escolaFolderName, tecnicoFolderId);
+  const escolaFolderId = await getOrCreateFolder(escolaFolderName, tecnicoFolderId, token);
 
-  // Upload do arquivo
+  // Upload multipart
   const fileName = `foto_${String(fotoIndex).padStart(2, "0")}.${ext}`;
-  const file = await drive.files.create({
-    requestBody: {
-      name: fileName,
-      parents: [escolaFolderId],
-    },
-    media: {
-      mimeType: contentType,
-      body: stream,
-    },
-    fields: "id, webViewLink",
-  });
+  const metadata = JSON.stringify({ name: fileName, parents: [escolaFolderId] });
+  const boundary = "-------NetvionisUploadBoundary";
+
+  const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`;
+  const filePart = `--${boundary}\r\nContent-Type: ${contentType}\r\n\r\n`;
+  const endPart = `\r\n--${boundary}--`;
+
+  const metaBytes = Buffer.from(metaPart, "utf-8");
+  const fileBytes = Buffer.from(buffer);
+  const filePartBytes = Buffer.from(filePart, "utf-8");
+  const endBytes = Buffer.from(endPart, "utf-8");
+  const body = Buffer.concat([metaBytes, filePartBytes, fileBytes, endBytes]);
+
+  const uploadResp = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,webViewLink",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": `multipart/related; boundary="${boundary}"`,
+        "Content-Length": String(body.length),
+      },
+      body,
+    }
+  );
+
+  if (!uploadResp.ok) {
+    const err = await uploadResp.text();
+    throw new Error(`Falha ao fazer upload: ${uploadResp.status} - ${err}`);
+  }
+
+  const file = (await uploadResp.json()) as { id: string; webViewLink: string };
 
   return {
-    driveFileId: file.data.id!,
-    driveUrl: file.data.webViewLink!,
+    driveFileId: file.id,
+    driveUrl: file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`,
   };
 }
 
@@ -114,7 +173,7 @@ export async function uploadFotoParaDrive(params: {
 export async function uploadFotosOSParaDrive(params: {
   tecnicoNome: string;
   escolaNome: string;
-  fotos: string[]; // URLs das fotos
+  fotos: string[];
   dataOS: string;
 }): Promise<{ total: number; sucesso: number; urls: string[] }> {
   const { tecnicoNome, escolaNome, fotos, dataOS } = params;

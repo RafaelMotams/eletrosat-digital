@@ -31,12 +31,13 @@ type Escola = {
 function formatWhatsApp(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, "");
-  let local = digits;
-  if (local.startsWith("55")) local = local.slice(2);
-  if (local.startsWith("75")) local = local.slice(2);
-  if (local.startsWith("0")) local = local.slice(1);
-  if (local.length < 8 || local.length > 9) return null;
-  return `5575${local}`;
+  if (!digits || digits.length < 8) return null;
+  // Se já começa com 55 (código do Brasil), usa direto
+  if (digits.startsWith("55") && digits.length >= 12) return digits;
+  // Se tem DDD (10 ou 11 dígitos), adiciona código do Brasil
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  // Se tem apenas o número sem DDD (8 ou 9 dígitos), retorna como está
+  return digits;
 }
 
 function haversine(a: Escola, b: Escola): number {
