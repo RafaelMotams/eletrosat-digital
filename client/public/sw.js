@@ -1,6 +1,7 @@
 // Service Worker — Eletrosat Digital / Netvionis
-// v4 — Cache-first para assets, Network-first para API, Background Sync para OS pendentes
-const CACHE_NAME = 'netvionis-v4';
+// v5 — Cache-first para assets, Network-first para API, Background Sync para OS pendentes
+// CORRIGIDO: fallback offline restaura última rota do técnico em vez de sempre ir para /tecnico
+const CACHE_NAME = 'netvionis-v5';
 
 // Assets essenciais para funcionar offline
 const OFFLINE_ASSETS = ['/tecnico'];
@@ -68,16 +69,47 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request).then(cached => {
-          if (cached) return cached;
-          return caches.match('/tecnico') || new Response(
-            `<!DOCTYPE html>
+      .catch(async () => {
+        // Tenta servir do cache primeiro (ex: /tecnico/os/123 já visitado)
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+
+        // Para rotas do técnico, serve /tecnico com script de restauração de rota
+        // O script lê tecnico_last_route do localStorage e redireciona para a rota correta
+        if (url.pathname.startsWith('/tecnico')) {
+          const tecnicoShell = await caches.match('/tecnico');
+          if (tecnicoShell) {
+            // Clona a resposta e injeta script de restauração de rota
+            const text = await tecnicoShell.text();
+            const headers = new Headers(tecnicoShell.headers);
+            // Injeta script de restauração ANTES do </head> para redirecionar para a última rota
+            const injected = text.replace(
+              '</head>',
+              `<script>
+(function() {
+  try {
+    var lastRoute = localStorage.getItem('tecnico_last_route');
+    var tecnicoId = localStorage.getItem('tecnico_id');
+    if (tecnicoId && lastRoute && lastRoute !== window.location.pathname) {
+      // Usa history.replaceState para não criar entrada extra no histórico
+      window.history.replaceState(null, '', lastRoute);
+    }
+  } catch(e) {}
+})();
+</script></head>`
+            );
+            return new Response(injected, { headers });
+          }
+        }
+
+        // Fallback final: página offline
+        return new Response(
+          `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eletrosat Digital — Offline</title>
+  <title>Netvionis — Offline</title>
   <style>
     body { font-family: sans-serif; display: flex; align-items: center; justify-content: center;
            height: 100vh; margin: 0; background: #0a0f1e; color: #e2e8f0;
@@ -93,9 +125,8 @@ self.addEventListener('fetch', (event) => {
   <p>Suas OS salvas localmente serão sincronizadas quando a internet voltar.</p>
 </body>
 </html>`,
-            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-          );
-        });
+          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
       })
   );
 });

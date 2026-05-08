@@ -468,6 +468,22 @@ export default function TecnicoOS() {
 
   const escolaId = Number(params.id);
 
+  // ANTI-REDIRECT ao voltar da câmera/WhatsApp/Maps:
+  // Quando o documento fica visível novamente (visibilitychange), garante que a rota está correta
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        // Salva a rota atual no localStorage para garantir persistência
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/tecnico/os/')) {
+          localStorage.setItem('tecnico_last_route', currentPath);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
   // ANTI-REDIRECT: queries com staleTime alto e sem refetch automático
   // Garante que a escola não desaparece enquanto o técnico preenche a RDO
   const { data: escolaOnline, isLoading, isFetching } = trpc.tecnicoAuth.minhasEscolas.useQuery(

@@ -383,3 +383,5 @@
 - [x] Integração Google Drive: salvar fotos das OS concluídas em pastas organizadas por técnico/escola
 - [x] Edição completa de escola na página de planilha (modal com todos os campos)
 - [x] Corrigir botão WhatsApp no app: usar telefone da escola para gerar link clicável
+- [x] Corrigir bug câmera offline: ao abrir câmera na OS, app volta ao menu inicial
+- [x] Melhorar persistência de rota: ao voltar do WhatsApp/Google Maps, retornar à tela da OS

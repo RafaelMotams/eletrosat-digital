@@ -34,28 +34,46 @@ function RoutePersistence() {
   const [location, navigate] = useLocation();
 
   // Salvar rota atual do técnico no localStorage
+  // Não salva /tecnico quando a última rota era uma OS (para não sobrescrever)
   useEffect(() => {
     const isTecnicoRoute =
       TECNICO_ROUTES.includes(location) ||
       location.startsWith(TECNICO_OS_PREFIX);
     if (isTecnicoRoute) {
+      // Se estamos em /tecnico mas a última rota era uma OS, não sobrescreve
+      // (pode ser o SW servindo /tecnico como fallback ao voltar da câmera)
+      if (location === "/tecnico") {
+        const lastRoute = localStorage.getItem("tecnico_last_route");
+        if (lastRoute && lastRoute.startsWith(TECNICO_OS_PREFIX)) {
+          // Não salva — mantém a rota da OS
+          return;
+        }
+      }
       localStorage.setItem("tecnico_last_route", location);
     }
   }, [location]);
 
   // Ao montar, restaurar última rota do técnico se estiver logado
+  // Também restaura quando o SW serve /tecnico como fallback (ao voltar da câmera/WhatsApp/Maps)
   useEffect(() => {
     const tecnicoId = localStorage.getItem("tecnico_id");
     const lastRoute = localStorage.getItem("tecnico_last_route");
     const isAtRoot = location === "/" || location === "";
+    // Também restaura se estamos em /tecnico mas a última rota era uma OS
+    const isAtTecnicoHome = location === "/tecnico";
+    const lastRouteIsOS = lastRoute?.startsWith(TECNICO_OS_PREFIX);
 
-    if (
-      tecnicoId &&
-      lastRoute &&
-      isAtRoot &&
-      (TECNICO_ROUTES.includes(lastRoute) || lastRoute.startsWith(TECNICO_OS_PREFIX))
-    ) {
-      navigate(lastRoute, { replace: true });
+    if (tecnicoId && lastRoute) {
+      if (
+        isAtRoot &&
+        (TECNICO_ROUTES.includes(lastRoute) || lastRoute.startsWith(TECNICO_OS_PREFIX))
+      ) {
+        // Restaura ao abrir o app do zero
+        navigate(lastRoute, { replace: true });
+      } else if (isAtTecnicoHome && lastRouteIsOS) {
+        // SW serviu /tecnico como fallback — restaura para a OS correta
+        navigate(lastRoute, { replace: true });
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
