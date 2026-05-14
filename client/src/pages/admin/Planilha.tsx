@@ -17,6 +17,7 @@ import {
   X,
   Pencil,
   Save,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ type Escola = {
   kitWifi?: number | null;
   apAdicional?: number | null;
   status: string;
+  tecnicoId?: number | null;
 };
 
 type FormEscola = {
@@ -75,12 +77,14 @@ type FormEscola = {
   kitWifi: string;
   apAdicional: string;
   status: string;
+  tecnicoId: string;
 };
 
 export default function AdminPlanilha() {
   const utils = trpc.useUtils();
   const { data: escolas, isLoading } = trpc.planilha.listar.useQuery();
   const { data: municipios } = trpc.escolas.listMunicipios.useQuery();
+  const { data: tecnicos } = trpc.tecnicos.list.useQuery();
   const [busca, setBusca] = useState("");
   const [filtroVelocidade, setFiltroVelocidade] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -98,7 +102,7 @@ export default function AdminPlanilha() {
     nome: "", inep: "", endereco: "", municipio: "", uf: "",
     latitude: "", longitude: "", telefone: "", telefoneWhatsApp: "",
     tipoConexao: "", velocidadeMinima: "", velocidadeOfertada: "",
-    qtdAp: "", kitWifi: "", apAdicional: "", status: "pendente",
+    qtdAp: "", kitWifi: "", apAdicional: "", status: "pendente", tecnicoId: "",
   });
 
   const updateMut = trpc.escolas.update.useMutation({
@@ -110,6 +114,14 @@ export default function AdminPlanilha() {
       setEscolaEditando(null);
     },
     onError: (e) => toast.error(`Erro ao atualizar: ${e.message}`),
+  });
+
+  const atribuirMut = trpc.atribuicoes.porEscola.useMutation({
+    onSuccess: () => {
+      utils.planilha.listar.invalidate();
+      utils.escolas.list.invalidate();
+    },
+    onError: (e) => toast.error(`Erro ao atribuir técnico: ${e.message}`),
   });
 
   const deletarPorCidadeMut = trpc.escolas.deletarPorCidade.useMutation({
@@ -186,12 +198,18 @@ export default function AdminPlanilha() {
       kitWifi: escola.kitWifi != null ? String(escola.kitWifi) : "",
       apAdicional: escola.apAdicional != null ? String(escola.apAdicional) : "",
       status: escola.status ?? "pendente",
+      tecnicoId: escola.tecnicoId != null ? String(escola.tecnicoId) : "",
     });
     setModalEditar(true);
   }
 
   function salvarEdicao() {
     if (!escolaEditando) return;
+    const tecnicoIdNum = formEditar.tecnicoId ? Number(formEditar.tecnicoId) : null;
+    // Se técnico mudou, atribui via mutation de atribuição
+    if (tecnicoIdNum !== null && tecnicoIdNum !== (escolaEditando.tecnicoId ?? null)) {
+      atribuirMut.mutate({ escolaId: escolaEditando.id, tecnicoId: tecnicoIdNum });
+    }
     updateMut.mutate({
       id: escolaEditando.id,
       nome: formEditar.nome || undefined,
@@ -211,6 +229,11 @@ export default function AdminPlanilha() {
       apAdicional: formEditar.apAdicional ? Number(formEditar.apAdicional) : undefined,
       status: formEditar.status as any || undefined,
     });
+  }
+
+  function getTecnicoNome(tecnicoId?: number | null) {
+    if (!tecnicoId || !tecnicos) return null;
+    return tecnicos.find((t) => t.id === tecnicoId)?.nome ?? null;
   }
 
   function getRows() {
@@ -447,6 +470,7 @@ export default function AdminPlanilha() {
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Vel. Ofert.</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Solução</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Status</th>
+                    <th className="text-left px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Técnico</th>
                     <th className="text-center px-3 py-3 font-semibold text-muted-foreground whitespace-nowrap text-xs">Ações</th>
                   </tr>
                 </thead>
@@ -509,6 +533,16 @@ export default function AdminPlanilha() {
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${STATUS_LABELS[escola.status]?.color ?? ""}`}>
                             {STATUS_LABELS[escola.status]?.label ?? escola.status}
                           </span>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {getTecnicoNome((escola as Escola).tecnicoId) ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                              <UserCheck className="w-3 h-3" />
+                              {getTecnicoNome((escola as Escola).tecnicoId)}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           <div className="flex items-center justify-center gap-1">
@@ -696,6 +730,36 @@ export default function AdminPlanilha() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Técnico Responsável */}
+              <div>
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">6</span>
+                  Técnico Responsável
+                </h3>
+                <Select
+                  value={formEditar.tecnicoId || "sem_tecnico"}
+                  onValueChange={v => setFormEditar(f => ({ ...f, tecnicoId: v === "sem_tecnico" ? "" : v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um técnico" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sem_tecnico">— Sem técnico atribuído —</SelectItem>
+                    {(tecnicos ?? []).map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formEditar.tecnicoId && (
+                  <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                    <UserCheck className="w-3 h-3" />
+                    Técnico será atribuído ao salvar
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Footer */}
@@ -706,9 +770,9 @@ export default function AdminPlanilha() {
               <Button
                 className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={salvarEdicao}
-                disabled={updateMut.isPending}
+                disabled={updateMut.isPending || atribuirMut.isPending}
               >
-                {updateMut.isPending ? (
+                {(updateMut.isPending || atribuirMut.isPending) ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Save className="w-4 h-4" />

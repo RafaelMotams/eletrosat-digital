@@ -385,3 +385,8 @@
 - [x] Corrigir botão WhatsApp no app: usar telefone da escola para gerar link clicável
 - [x] Corrigir bug câmera offline: ao abrir câmera na OS, app volta ao menu inicial
 - [x] Melhorar persistência de rota: ao voltar do WhatsApp/Google Maps, retornar à tela da OS
+
+## Atribuição de Técnico na Planilha (14/05/2026)
+- [x] Coluna "Técnico" na tabela da página Planilha mostrando técnico atribuído
+- [x] Seção "Técnico Responsável" no modal de edição com dropdown de técnicos
+- [x] Ao salvar, atribui o técnico via mutation atribuicoes.porEscola
