@@ -30,49 +30,52 @@ import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 
+// ESTRATÉGIA DE PERSISTÊNCIA:
+// - sessionStorage ("tecnico_session_route"): rota de OS ativa — limpa quando o app é fechado
+//   completamente. Persiste ao trocar de app (câmera, WhatsApp, Maps) pois a sessão continua.
+// - localStorage ("tecnico_last_route"): apenas rotas de menu (Home, Mapa, Perfil, Histórico)
+//   — persiste entre sessões para que o técnico volte ao menu correto ao reabrir.
+
 function RoutePersistence() {
   const [location, navigate] = useLocation();
 
-  // Salvar rota atual do técnico no localStorage
-  // Não salva /tecnico quando a última rota era uma OS (para não sobrescrever)
+  // Salvar rota atual
   useEffect(() => {
-    const isTecnicoRoute =
-      TECNICO_ROUTES.includes(location) ||
-      location.startsWith(TECNICO_OS_PREFIX);
-    if (isTecnicoRoute) {
-      // Se estamos em /tecnico mas a última rota era uma OS, não sobrescreve
-      // (pode ser o SW servindo /tecnico como fallback ao voltar da câmera)
-      if (location === "/tecnico") {
-        const lastRoute = localStorage.getItem("tecnico_last_route");
-        if (lastRoute && lastRoute.startsWith(TECNICO_OS_PREFIX)) {
-          // Não salva — mantém a rota da OS
-          return;
-        }
-      }
+    if (location.startsWith(TECNICO_OS_PREFIX)) {
+      // OS ativa: salva em sessionStorage (limpa ao fechar o app)
+      sessionStorage.setItem("tecnico_session_route", location);
+    } else if (TECNICO_ROUTES.includes(location)) {
+      // Menu: salva em localStorage (persiste entre sessões)
       localStorage.setItem("tecnico_last_route", location);
+      // Limpa a rota de OS da sessão ao navegar para o menu
+      sessionStorage.removeItem("tecnico_session_route");
     }
   }, [location]);
 
-  // Ao montar, restaurar última rota do técnico se estiver logado
-  // Também restaura quando o SW serve /tecnico como fallback (ao voltar da câmera/WhatsApp/Maps)
+  // Ao montar: restaurar rota
   useEffect(() => {
     const tecnicoId = localStorage.getItem("tecnico_id");
-    const lastRoute = localStorage.getItem("tecnico_last_route");
-    const isAtRoot = location === "/" || location === "";
-    // Também restaura se estamos em /tecnico mas a última rota era uma OS
-    const isAtTecnicoHome = location === "/tecnico";
-    const lastRouteIsOS = lastRoute?.startsWith(TECNICO_OS_PREFIX);
+    if (!tecnicoId) return;
 
-    if (tecnicoId && lastRoute) {
-      if (
-        isAtRoot &&
-        (TECNICO_ROUTES.includes(lastRoute) || lastRoute.startsWith(TECNICO_OS_PREFIX))
-      ) {
-        // Restaura ao abrir o app do zero
-        navigate(lastRoute, { replace: true });
-      } else if (isAtTecnicoHome && lastRouteIsOS) {
-        // SW serviu /tecnico como fallback — restaura para a OS correta
-        navigate(lastRoute, { replace: true });
+    const sessionRoute = sessionStorage.getItem("tecnico_session_route");
+    const lastMenuRoute = localStorage.getItem("tecnico_last_route");
+    const isAtRoot = location === "/" || location === "";
+    const isAtTecnicoHome = location === "/tecnico";
+
+    if (sessionRoute && sessionRoute.startsWith(TECNICO_OS_PREFIX)) {
+      // Há uma OS ativa na sessão atual (app em background, não foi fechado)
+      if (isAtRoot) {
+        // Abriu via URL raiz mas tem sessão ativa — vai para o menu
+        navigate(lastMenuRoute || "/tecnico", { replace: true });
+      } else if (isAtTecnicoHome) {
+        // SW serviu /tecnico como fallback ao voltar da câmera/WhatsApp
+        navigate(sessionRoute, { replace: true });
+      }
+    } else {
+      // Sem OS ativa na sessão (app foi fechado e reaberto)
+      if (isAtRoot && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
+        // Vai para o menu onde estava (Home, Mapa, etc.) — não para OS
+        navigate(lastMenuRoute, { replace: true });
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
