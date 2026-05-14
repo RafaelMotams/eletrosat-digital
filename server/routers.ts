@@ -671,9 +671,14 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       const ordens = await listOrdensServico({ tecnicoId: input.tecnicoId });
       const osExistente = ordens.find(o => o.escolaId === input.escolaId);
       if (osExistente) {
-        // Já existe — apenas garante que está em andamento
+        // Já existe — garante que está em andamento
         if (osExistente.status === "aberta") {
           await iniciarOrdemServico(osExistente.id);
+        }
+        // CORRIGIDO: sempre atualiza o status da escola, mesmo quando a OS já existia
+        // (bug: escola ficava como 'pendente' na Home mesmo após iniciar)
+        if (escola.status !== "em_andamento" && escola.status !== "concluido" && escola.status !== "nao_instalada") {
+          await updateEscola(input.escolaId, { status: "em_andamento" });
         }
         return { osId: osExistente.id };
       }
@@ -689,6 +694,8 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         const ordensApos = await listOrdensServico({ tecnicoId: input.tecnicoId });
         const osCriada = ordensApos.find(o => o.escolaId === input.escolaId);
         if (!osCriada) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Erro ao criar OS" });
+        // Garante que a escola também fica em_andamento no caso de race condition
+        await updateEscola(input.escolaId, { status: "em_andamento" });
         return { osId: osCriada.id };
       }
       await updateEscola(input.escolaId, { status: "em_andamento" });

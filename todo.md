@@ -396,3 +396,8 @@
 - [x] Ao trocar de app (câmera, WhatsApp, Maps) e voltar, retorna para a OS corretamente
 - [x] sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
 - [x] Service Worker v6 atualizado com mesma lógica
+
+## Bug - Iniciar OS e Status em Andamento (14/05/2026)
+- [x] Corrigir: botão "Iniciar OS" não funciona no app do técnico
+- [x] Corrigir: escolas com status "em_andamento" não aparecem corretamente no app
+- [x] Causa raíz: backend não atualizava status da escola quando OS já existia no banco
