@@ -1,7 +1,8 @@
 // Service Worker — Eletrosat Digital / Netvionis
-// v5 — Cache-first para assets, Network-first para API, Background Sync para OS pendentes
-// CORRIGIDO: fallback offline restaura última rota do técnico em vez de sempre ir para /tecnico
-const CACHE_NAME = 'netvionis-v5';
+// v6 — Cache-first para assets, Network-first para API, Background Sync para OS pendentes
+// CORRIGIDO: ao fechar e reabrir o app, vai para o menu (Home) e não para a OS
+// sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
+const CACHE_NAME = 'netvionis-v6';
 
 // Assets essenciais para funcionar offline
 const OFFLINE_ASSETS = ['/tecnico'];
@@ -82,17 +83,25 @@ self.addEventListener('fetch', (event) => {
             // Clona a resposta e injeta script de restauração de rota
             const text = await tecnicoShell.text();
             const headers = new Headers(tecnicoShell.headers);
-            // Injeta script de restauração ANTES do </head> para redirecionar para a última rota
+            // Injeta script de restauração ANTES do </head> para redirecionar para a rota correta
+            // Usa sessionStorage para rota de OS (limpa ao fechar app) e localStorage para menu
             const injected = text.replace(
               '</head>',
               `<script>
 (function() {
   try {
-    var lastRoute = localStorage.getItem('tecnico_last_route');
     var tecnicoId = localStorage.getItem('tecnico_id');
-    if (tecnicoId && lastRoute && lastRoute !== window.location.pathname) {
-      // Usa history.replaceState para não criar entrada extra no histórico
-      window.history.replaceState(null, '', lastRoute);
+    if (!tecnicoId) return;
+    // Prioridade: rota de OS da sessão atual (app em background)
+    var sessionRoute = sessionStorage.getItem('tecnico_session_route');
+    if (sessionRoute && sessionRoute.startsWith('/tecnico/os/') && sessionRoute !== window.location.pathname) {
+      window.history.replaceState(null, '', sessionRoute);
+      return;
+    }
+    // Sem OS ativa na sessão: vai para o menu (Home, Mapa, etc.)
+    var menuRoute = localStorage.getItem('tecnico_last_route');
+    if (menuRoute && menuRoute !== window.location.pathname && !menuRoute.startsWith('/tecnico/os/')) {
+      window.history.replaceState(null, '', menuRoute);
     }
   } catch(e) {}
 })();
