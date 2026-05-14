@@ -390,9 +390,3 @@
 - [x] Coluna "Técnico" na tabela da página Planilha mostrando técnico atribuído
 - [x] Seção "Técnico Responsável" no modal de edição com dropdown de técnicos
 - [x] Ao salvar, atribui o técnico via mutation atribuicoes.porEscola
-
-## Correção navegação ao fechar app (14/05/2026)
-- [x] Ao fechar completamente o app e reabrir, vai para o menu (Home), não para a OS
-- [x] Ao trocar de app (câmera, WhatsApp, Maps) e voltar, retorna para a OS corretamente
-- [x] sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
-- [x] Service Worker v6 atualizado com mesma lógica

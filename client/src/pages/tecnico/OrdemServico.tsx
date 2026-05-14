@@ -473,11 +473,10 @@ export default function TecnicoOS() {
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        // Salva a rota da OS em sessionStorage (limpa ao fechar o app completamente)
-        // Não usa localStorage para que ao fechar e reabrir vá para o menu
+        // Salva a rota atual no localStorage para garantir persistência
         const currentPath = window.location.pathname;
         if (currentPath.startsWith('/tecnico/os/')) {
-          sessionStorage.setItem('tecnico_session_route', currentPath);
+          localStorage.setItem('tecnico_last_route', currentPath);
         }
       }
     };
