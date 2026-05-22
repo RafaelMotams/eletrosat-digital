@@ -987,18 +987,6 @@ export default function TecnicoOS() {
             )}
 
             <button
-              onClick={() => setOpenConcluir(true)}
-              className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, #065f46, #059669, #10b981)",
-                boxShadow: "0 12px 40px rgba(16,185,129,0.3)",
-                border: "1px solid rgba(16,185,129,0.25)",
-              }}>
-              <CheckCircle className="w-5 h-5" />
-              Marcar como Concluído
-            </button>
-
-            <button
               onClick={() => setOpenNaoInstalada(true)}
               className="w-full py-4 rounded-3xl flex items-center justify-center gap-2.5 font-bold text-sm transition-all active:scale-[0.97]"
               style={{
@@ -1013,19 +1001,236 @@ export default function TecnicoOS() {
         )}
       </div>
 
-      {/* Nota */}
-      <div className="mx-4 mt-5 mb-2">
-        <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl"
-          style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "rgba(148,163,184,0.25)" }} />
-          <p className="text-xs leading-relaxed" style={{ color: "rgba(148,163,184,0.3)" }}>
-            Ao clicar em "Marcar como Concluído", você deverá enviar as fotos obrigatórias e informar a quantidade de APs instalados.
-          </p>
-        </div>
-      </div>
+      {/* ─── Seção de Equipamentos (inline, visível após iniciar OS) ─── */}
+      {isEmAndamento && (
+        <div className="mx-4 mt-6">
+          {/* Título da seção */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(251,191,36,0.18)" }}>
+              <Camera className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
+            </div>
+            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(251,191,36,0.7)" }}>Registro de Equipamentos</p>
+          </div>
 
-      {/* ─── Modal de Conclusão ─── */}
-      {openConcluir && (
+          {/* Barra de progresso das categorias */}
+          <div className="px-4 py-3 rounded-2xl mb-4"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-xs font-black uppercase tracking-wider" style={{ color: "#fbbf24" }}>Fotos por categoria</p>
+              <span className="text-xs font-bold" style={{ color: "rgba(148,163,184,0.6)" }}>
+                {totalFotosPendentes} foto{totalFotosPendentes !== 1 ? "s" : ""} selecionada{totalFotosPendentes !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {CATEGORIAS_FOTOS.map(cat => {
+                const pendentes = fotosPorCategoria[cat.id].length;
+                const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
+                const temFoto = pendentes > 0 || enviadas > 0;
+                return (
+                  <div key={cat.id} className="flex flex-col items-center gap-1 py-2 rounded-xl"
+                    style={{
+                      background: temFoto ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${temFoto ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.07)"}`,
+                    }}>
+                    <span className="text-sm">{cat.icon}</span>
+                    <p className="text-[8px] font-bold text-center px-1 leading-tight" style={{ color: temFoto ? "#34d399" : "rgba(148,163,184,0.4)" }}>
+                      {cat.label.split(" ").slice(-1)[0]}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Cards de upload por categoria */}
+          <div className="space-y-3 mb-5">
+            {CATEGORIAS_FOTOS.map((cat) => (
+              <div key={cat.id}>
+                <CategoriaUploadCard
+                  categoria={cat}
+                  fotos={fotosPorCategoria[cat.id]}
+                  onAddFotos={(novas) => addFotos(cat.id, novas)}
+                  onRemoveFoto={(idx) => removeFoto(cat.id, idx)}
+                />
+                <FotosEnviadas
+                  fotos={fotosEnviadas as { id: number; url: string; categoria: string }[]}
+                  categoria={cat}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Campo de APs */}
+          <div className="mb-4">
+            <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(52,211,153,0.9)" }}>
+              <Wifi className="w-3.5 h-3.5" /> Quantidade de APs Instalados *
+            </label>
+            <div className="relative">
+              <input
+                type="number" min="1" max="99"
+                value={qtdAp}
+                onChange={e => setQtdAp(e.target.value)}
+                placeholder={`Previsto: ${escola.qtdAp ?? 1} AP${(escola.qtdAp ?? 1) > 1 ? "s" : ""}`}
+                className="w-full px-5 py-4 rounded-2xl text-white text-xl font-black outline-none transition-all"
+                style={{
+                  background: "rgba(16,185,129,0.07)",
+                  border: qtdAp ? "1.5px solid rgba(16,185,129,0.4)" : "1.5px solid rgba(16,185,129,0.2)",
+                }}
+              />
+              {qtdAp && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-bold"
+                  style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>✓</div>
+              )}
+            </div>
+          </div>
+
+          {/* Observações */}
+          <div className="mb-5">
+            <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
+              <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+            </label>
+            <textarea
+              rows={2}
+              value={observacao}
+              onChange={e => setObservacao(e.target.value)}
+              placeholder="Alguma observação sobre a instalação..."
+              className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
+            />
+          </div>
+
+          {/* Avisos */}
+          {!qtdAp && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-2"
+              style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
+              <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>Informe a quantidade de APs instalados para finalizar</p>
+            </div>
+          )}
+          {categoriasFaltando.length > 0 && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
+              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#f87171" }} />
+              <div>
+                <p className="text-xs font-bold mb-0.5" style={{ color: "rgba(248,113,113,0.95)" }}>Fotos obrigatórias faltando:</p>
+                {categoriasFaltando.map(cat => (
+                  <p key={cat.id} className="text-xs" style={{ color: "rgba(248,113,113,0.75)" }}>{cat.icon} {cat.label}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Botão Finalizar OS */}
+          <button
+            onClick={async () => {
+              const n = parseInt(qtdAp);
+              if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
+
+              // Modo offline
+              if (!isOnline) {
+                const fotasOffline = CATEGORIAS_FOTOS.flatMap(cat =>
+                  fotosPorCategoria[cat.id].map((f, idx) => ({
+                    categoria: cat.id,
+                    imageBase64: f.base64,
+                    mimeType: f.mime,
+                    clientId: `${escolaId}-${cat.id}-${idx}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                  }))
+                );
+                await dbEnqueueOS({
+                  escolaId, tecnicoId, qtdApInstalado: n,
+                  observacao: observacao || undefined,
+                  dataHora: new Date().toISOString(),
+                  fotos: fotasOffline,
+                });
+                setPendingOffline(true);
+                setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                toast.success(`OS e ${fotasOffline.length} foto${fotasOffline.length !== 1 ? 's' : ''} salvas localmente! Serão enviadas quando você tiver internet.`, { duration: 6000 });
+                return;
+              }
+
+              // Modo online
+              setUploadingAll(true);
+              try {
+                const resultado = await utils.client.tecnicoAuth.concluirEscola.mutate({
+                  tecnicoId, escolaId, qtdApInstalado: n, observacao
+                });
+                const osIdFinal = resultado?.osId ?? osId;
+
+                const todasFotos: { catId: FotoCategoria; foto: FotoPendente }[] = [];
+                for (const cat of CATEGORIAS_FOTOS) {
+                  for (const foto of fotosPorCategoria[cat.id]) {
+                    todasFotos.push({ catId: cat.id, foto });
+                  }
+                }
+                if (todasFotos.length > 0 && osIdFinal > 0) {
+                  toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
+                  let enviadas = 0;
+                  for (const { catId, foto } of todasFotos) {
+                    try {
+                      await uploadOsFotoMut.mutateAsync({
+                        osId: osIdFinal, escolaId, tecnicoId,
+                        categoria: catId, imageBase64: foto.base64, mimeType: foto.mime,
+                        clientId: `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                      });
+                      enviadas++;
+                    } catch (fotoErr) {
+                      console.error(`[OS] Erro ao enviar foto ${catId}:`, fotoErr);
+                    }
+                  }
+                  toast.dismiss("upload-all");
+                  const fotosFalhadas = todasFotos.length - enviadas;
+                  if (enviadas > 0 && fotosFalhadas === 0) {
+                    toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
+                  } else if (fotosFalhadas > 0) {
+                    toast.error(`${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada.`, { duration: 8000 });
+                  }
+                }
+                toast.success("✅ Instalação concluída com sucesso!", { duration: 5000 });
+                setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                utils.tecnicoAuth.minhasEscolas.invalidate();
+                setPendingOffline(false);
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err);
+                const isNetwork = msg.toLowerCase().includes("network") || msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("failed");
+                const isTimeout = msg.toLowerCase().includes("timeout");
+                const isPayload = msg.toLowerCase().includes("grande") || msg.toLowerCase().includes("large");
+                if (isNetwork) toast.error("❌ Sem conexão. Tente novamente ou use o modo offline.", { duration: 8000 });
+                else if (isTimeout) toast.error("⏱ Tempo esgotado. Verifique sua internet e tente novamente.", { duration: 8000 });
+                else if (isPayload) toast.error("📷 Foto muito grande. Máximo 10MB por foto.", { duration: 8000 });
+                else toast.error("❌ Erro ao concluir OS: " + msg.slice(0, 100), { duration: 8000 });
+              } finally {
+                setUploadingAll(false);
+              }
+            }}
+            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos}
+            className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97] mb-3"
+            style={{
+              background: (!qtdAp || !todasCategoriasFotos)
+                ? "rgba(16,185,129,0.15)"
+                : isOnline
+                ? "linear-gradient(135deg, #065f46, #059669, #10b981)"
+                : "linear-gradient(135deg, #d97706, #f59e0b)",
+              boxShadow: (!qtdAp || !todasCategoriasFotos) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
+              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos) ? 0.55 : 1,
+              cursor: (concluirMut.isPending || uploadingAll) ? "not-allowed" : "pointer",
+              border: "1px solid rgba(16,185,129,0.25)",
+            }}>
+            {uploadingAll ? (
+              <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Enviando fotos...</>
+            ) : concluirMut.isPending ? (
+              <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
+            ) : isOnline ? (
+              <><CheckCircle className="w-5 h-5" /> Finalizar Ordem de Serviço</>
+            ) : (
+              <><WifiOff className="w-5 h-5" /> Salvar Offline</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* ─── Modal de Conclusão (removido — fluxo agora é inline) ─── */}
+      {false && (
         <div className="fixed inset-0 z-50 flex items-end justify-center"
           style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(20px)" }}>
           <div className="w-full max-w-lg rounded-t-[2.5rem] overflow-y-auto max-h-[96vh] relative"
@@ -1044,7 +1249,7 @@ export default function TecnicoOS() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-white font-black text-xl">Concluir OS</h3>
-                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(148,163,184,0.5)" }}>{escola.nome}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(148,163,184,0.5)" }}>{escola?.nome}</p>
                 </div>
                 <button onClick={() => setOpenConcluir(false)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -1119,7 +1324,7 @@ export default function TecnicoOS() {
                     type="number" min="1" max="99"
                     value={qtdAp}
                     onChange={e => setQtdAp(e.target.value)}
-                    placeholder={`Previsto: ${escola.qtdAp ?? 1} AP${(escola.qtdAp ?? 1) > 1 ? "s" : ""}`}
+                    placeholder={`Previsto: ${escola?.qtdAp ?? 1} AP${(escola?.qtdAp ?? 1) > 1 ? "s" : ""}`}
                     className="w-full px-5 py-4 rounded-2xl text-white text-xl font-black outline-none transition-all"
                     style={{
                       background: "rgba(16,185,129,0.07)",

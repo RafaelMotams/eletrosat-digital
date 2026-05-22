@@ -406,3 +406,8 @@
 - [x] Adicionar botão "Criar OS" na página de Ordens do admin
 - [x] Modal para selecionar escola + técnico + iniciar OS manualmente
 - [x] Mesmas ações do app: iniciar, concluir, não instalada (botões na tabela)
+
+## Reestruturação fluxo OS (22/05/2026)
+- [x] Remover botão "Marcar como Concluído" e modal de conclusão
+- [x] Exibir seção de equipamentos (fotos + qtd APs) inline na página após iniciar OS
+- [x] Adicionar botão "Finalizar Ordem de Serviço" na mesma página
