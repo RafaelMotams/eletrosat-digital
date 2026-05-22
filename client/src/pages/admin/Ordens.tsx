@@ -8,7 +8,8 @@ import {
   ClipboardList, Plus, Calendar, Image,
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
   Search, Filter, RefreshCw,
-  Wifi, TrendingUp, Trash2, Camera, X, Download, FileSpreadsheet
+  Wifi, TrendingUp, Trash2, Camera, X, Download, FileSpreadsheet,
+  ChevronDown
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -237,6 +238,37 @@ export default function AdminOrdens() {
   const [valorPorAp, setValorPorAp] = useState("");
   const [exportando, setExportando] = useState(false);
   const [exportTecnicoId, setExportTecnicoId] = useState("todos");
+
+  // Estados para modais de gestão de OS
+  const [concluirModal, setConcluirModal] = useState<{ osId: number; escolaNome: string } | null>(null);
+  const [naoInstaladaModal, setNaoInstaladaModal] = useState<{ osId: number; escolaNome: string } | null>(null);
+  const [concluirQtd, setConcluirQtd] = useState("");
+  const [concluirObs, setConcluirObs] = useState("");
+  const [naoInstaladaMotivo, setNaoInstaladaMotivo] = useState<"escola_desativada" | "em_reforma" | "mudanca_endereco">("escola_desativada");
+  const [naoInstaladaObs, setNaoInstaladaObs] = useState("");
+
+  const iniciarMut = trpc.ordens.iniciar.useMutation({
+    onSuccess: () => { toast.success("OS iniciada!"); utils.ordens.list.invalidate(); utils.escolas.list.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const concluirAdminMut = trpc.ordens.concluir.useMutation({
+    onSuccess: () => {
+      toast.success("OS concluída com sucesso!");
+      utils.ordens.list.invalidate(); utils.escolas.list.invalidate(); utils.dashboard.stats.invalidate();
+      setConcluirModal(null); setConcluirQtd(""); setConcluirObs("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const naoInstaladaAdminMut = trpc.ordens.naoInstalada.useMutation({
+    onSuccess: () => {
+      toast.success("Registrado como não instalada!");
+      utils.ordens.list.invalidate(); utils.escolas.list.invalidate();
+      setNaoInstaladaModal(null); setNaoInstaladaObs("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
   async function handleExportarExcel() {
     const valor = parseFloat(valorPorAp.replace(",", "."));
     if (isNaN(valor) || valor < 0) {
@@ -496,7 +528,38 @@ export default function AdminOrdens() {
                     )}
                   </div>
                   {/* Ações */}
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Iniciar OS (apenas se aberta) */}
+                    {os.status === "aberta" && (
+                      <button
+                        onClick={() => iniciarMut.mutate({ osId: os.id })}
+                        disabled={iniciarMut.isPending}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: "oklch(0.94 0.05 240)", color: "oklch(0.28 0.14 240)", border: "1px solid oklch(0.84 0.08 240)" }}>
+                        <Play className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Iniciar</span>
+                      </button>
+                    )}
+                    {/* Concluir OS (se aberta ou em andamento) */}
+                    {(os.status === "aberta" || os.status === "em_andamento") && (
+                      <button
+                        onClick={() => { setConcluirModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId) }); setConcluirQtd(""); setConcluirObs(""); }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: "oklch(0.93 0.07 162)", color: "oklch(0.34 0.16 162)", border: "1px solid oklch(0.82 0.10 162)" }}>
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Concluir</span>
+                      </button>
+                    )}
+                    {/* Não Instalada (se aberta ou em andamento) */}
+                    {(os.status === "aberta" || os.status === "em_andamento") && (
+                      <button
+                        onClick={() => { setNaoInstaladaModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId) }); setNaoInstaladaObs(""); setNaoInstaladaMotivo("escola_desativada"); }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: "oklch(0.96 0.04 25)", color: "oklch(0.45 0.20 25)", border: "1px solid oklch(0.88 0.10 25)" }}>
+                        <XCircle className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Não inst.</span>
+                      </button>
+                    )}
                     {hasFoto && (
                       <button
                         onClick={() => setFotoModal((os as any).fotoMapaCalorUrl)}
@@ -511,7 +574,7 @@ export default function AdminOrdens() {
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                       style={{ background: "oklch(0.94 0.05 240)", color: "oklch(0.30 0.14 240)", border: "1px solid oklch(0.84 0.08 240)" }}>
                       <Camera className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Fotos OS</span>
+                      <span className="hidden sm:inline">Fotos</span>
                     </button>
                   </div>
                 </div>
@@ -531,6 +594,110 @@ export default function AdminOrdens() {
           </div>
         </div>
       )}
+
+      {/* Modal Concluir OS */}
+      <Dialog open={!!concluirModal} onOpenChange={v => !v && setConcluirModal(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-green-100 dark:bg-green-950">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+              </div>
+              Concluir OS
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Escola: <strong>{concluirModal?.escolaNome}</strong></p>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Quantidade de APs Instalados</label>
+              <input
+                type="number" min="0" value={concluirQtd}
+                onChange={e => setConcluirQtd(e.target.value)}
+                placeholder="Ex: 3"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Observação (opcional)</label>
+              <textarea
+                value={concluirObs} onChange={e => setConcluirObs(e.target.value)}
+                placeholder="Observações sobre a instalação..."
+                rows={3}
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConcluirModal(null)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => {
+                const qtd = parseInt(concluirQtd);
+                if (isNaN(qtd) || qtd < 0) { toast.error("Informe a quantidade de APs"); return; }
+                concluirAdminMut.mutate({ osId: concluirModal!.osId, qtdApInstalado: qtd, observacao: concluirObs || undefined });
+              }}
+              disabled={concluirAdminMut.isPending}
+              className="rounded-xl gap-2 bg-green-600 hover:bg-green-700 text-white border-none">
+              {concluirAdminMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Concluindo...</>
+              ) : (
+                <><CheckCircle className="w-4 h-4" />Concluir OS</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Não Instalada */}
+      <Dialog open={!!naoInstaladaModal} onOpenChange={v => !v && setNaoInstaladaModal(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100 dark:bg-red-950">
+                <XCircle className="w-4 h-4 text-red-600" />
+              </div>
+              Registrar como Não Instalada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Escola: <strong>{naoInstaladaModal?.escolaNome}</strong></p>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Motivo</label>
+              <Select value={naoInstaladaMotivo} onValueChange={v => setNaoInstaladaMotivo(v as any)}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="escola_desativada">Escola desativada</SelectItem>
+                  <SelectItem value="em_reforma">Em reforma</SelectItem>
+                  <SelectItem value="mudanca_endereco">Mudança de endereço</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Observação (opcional)</label>
+              <textarea
+                value={naoInstaladaObs} onChange={e => setNaoInstaladaObs(e.target.value)}
+                placeholder="Descreva o motivo com mais detalhes..."
+                rows={3}
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setNaoInstaladaModal(null)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => naoInstaladaAdminMut.mutate({ osId: naoInstaladaModal!.osId, motivo: naoInstaladaMotivo, observacao: naoInstaladaObs || undefined })}
+              disabled={naoInstaladaAdminMut.isPending}
+              className="rounded-xl gap-2 bg-red-600 hover:bg-red-700 text-white border-none">
+              {naoInstaladaAdminMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Registrando...</>
+              ) : (
+                <><XCircle className="w-4 h-4" />Confirmar</>  
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal fotos por categoria */}
       {fotosOsModal && (

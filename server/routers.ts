@@ -455,6 +455,36 @@ const ordensRouter = router({
       });
       return { success: true };
     }),
+  // Admin: iniciar uma OS existente (muda status de aberta para em_andamento)
+  iniciar: tenantAdminProcedure
+    .input(z.object({ osId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined && os.tenantId !== tenantId)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
+      await iniciarOrdemServico(os.id);
+      return { success: true };
+    }),
+
+  // Admin: registrar escola como não instalada
+  naoInstalada: tenantAdminProcedure
+    .input(z.object({
+      osId: z.number(),
+      motivo: z.enum(["escola_desativada", "em_reforma", "mudanca_endereco"]),
+      observacao: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined && os.tenantId !== tenantId)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
+      await registrarNaoInstalada(os.escolaId, os.tecnicoId, input.motivo, input.observacao);
+      return { success: true };
+    }),
+
   // Busca fotos de uma OS pelo admin (publicProcedure para funcionar com qualquer autenticação)
   getOsFotos: publicProcedure
     .input(z.object({ osId: z.number() }))

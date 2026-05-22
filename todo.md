@@ -401,3 +401,8 @@
 - [x] Corrigir: botão "Iniciar OS" não funciona no app do técnico
 - [x] Corrigir: escolas com status "em_andamento" não aparecem corretamente no app
 - [x] Causa raíz: backend não atualizava status da escola quando OS já existia no banco
+
+## Criar OS no Painel Admin (22/05/2026)
+- [x] Adicionar botão "Criar OS" na página de Ordens do admin
+- [x] Modal para selecionar escola + técnico + iniciar OS manualmente
+- [x] Mesmas ações do app: iniciar, concluir, não instalada (botões na tabela)
