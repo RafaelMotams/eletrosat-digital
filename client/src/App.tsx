@@ -29,12 +29,14 @@ import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 // Rotas do técnico que devem ser persistidas (exceto login)
 const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
+const OS_ROUTE_KEY = "tecnico_active_os_route";
+const OS_ROUTE_TS_KEY = "tecnico_active_os_ts";
+const OS_ROUTE_TTL = 4 * 60 * 60 * 1000; // 4 horas em ms
 
 // ESTRATÉGIA DE PERSISTÊNCIA:
-// - sessionStorage ("tecnico_session_route"): rota de OS ativa — limpa quando o app é fechado
-//   completamente. Persiste ao trocar de app (câmera, WhatsApp, Maps) pois a sessão continua.
-// - localStorage ("tecnico_last_route"): apenas rotas de menu (Home, Mapa, Perfil, Histórico)
-//   — persiste entre sessões para que o técnico volte ao menu correto ao reabrir.
+// - localStorage (OS_ROUTE_KEY): rota de OS ativa com timestamp. Persiste ao abrir câmera,
+//   WhatsApp, Maps no Android (onde sessionStorage pode ser limpo). Expira após 4h.
+// - localStorage ("tecnico_last_route"): rotas de menu (Home, Mapa, Perfil, Histórico).
 
 function RoutePersistence() {
   const [location, navigate] = useLocation();
@@ -42,13 +44,14 @@ function RoutePersistence() {
   // Salvar rota atual
   useEffect(() => {
     if (location.startsWith(TECNICO_OS_PREFIX)) {
-      // OS ativa: salva em sessionStorage (limpa ao fechar o app)
-      sessionStorage.setItem("tecnico_session_route", location);
+      // OS ativa: salva em localStorage com timestamp
+      localStorage.setItem(OS_ROUTE_KEY, location);
+      localStorage.setItem(OS_ROUTE_TS_KEY, String(Date.now()));
     } else if (TECNICO_ROUTES.includes(location)) {
-      // Menu: salva em localStorage (persiste entre sessões)
+      // Menu: salva rota de menu e limpa a OS ativa
       localStorage.setItem("tecnico_last_route", location);
-      // Limpa a rota de OS da sessão ao navegar para o menu
-      sessionStorage.removeItem("tecnico_session_route");
+      localStorage.removeItem(OS_ROUTE_KEY);
+      localStorage.removeItem(OS_ROUTE_TS_KEY);
     }
   }, [location]);
 
@@ -57,24 +60,28 @@ function RoutePersistence() {
     const tecnicoId = localStorage.getItem("tecnico_id");
     if (!tecnicoId) return;
 
-    const sessionRoute = sessionStorage.getItem("tecnico_session_route");
+    const activeOsRoute = localStorage.getItem(OS_ROUTE_KEY);
+    const activeOsTs = parseInt(localStorage.getItem(OS_ROUTE_TS_KEY) || "0", 10);
     const lastMenuRoute = localStorage.getItem("tecnico_last_route");
     const isAtRoot = location === "/" || location === "";
     const isAtTecnicoHome = location === "/tecnico";
 
-    if (sessionRoute && sessionRoute.startsWith(TECNICO_OS_PREFIX)) {
-      // Há uma OS ativa na sessão atual (app em background, não foi fechado)
-      if (isAtRoot) {
-        // Abriu via URL raiz mas tem sessão ativa — vai para o menu
-        navigate(lastMenuRoute || "/tecnico", { replace: true });
-      } else if (isAtTecnicoHome) {
-        // SW serviu /tecnico como fallback ao voltar da câmera/WhatsApp
-        navigate(sessionRoute, { replace: true });
+    // Verificar se a OS ativa ainda é válida (dentro do TTL de 4h)
+    const osRouteValida = activeOsRoute &&
+      activeOsRoute.startsWith(TECNICO_OS_PREFIX) &&
+      (Date.now() - activeOsTs) < OS_ROUTE_TTL;
+
+    if (osRouteValida) {
+      // Há uma OS ativa válida (técnico foi para câmera/WhatsApp/Maps)
+      if (isAtRoot || isAtTecnicoHome) {
+        // Retorna para a OS onde estava
+        navigate(activeOsRoute!, { replace: true });
       }
     } else {
-      // Sem OS ativa na sessão (app foi fechado e reaberto)
+      // Sem OS ativa ou expirada (app foi fechado e reaberto após 4h)
+      localStorage.removeItem(OS_ROUTE_KEY);
+      localStorage.removeItem(OS_ROUTE_TS_KEY);
       if (isAtRoot && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
-        // Vai para o menu onde estava (Home, Mapa, etc.) — não para OS
         navigate(lastMenuRoute, { replace: true });
       }
     }

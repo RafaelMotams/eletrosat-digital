@@ -469,15 +469,15 @@ export default function TecnicoOS() {
   const escolaId = Number(params.id);
 
   // ANTI-REDIRECT ao voltar da câmera/WhatsApp/Maps:
-  // Quando o documento fica visível novamente (visibilitychange), garante que a rota está correta
+  // Quando o documento fica visível novamente (visibilitychange), atualiza o timestamp da OS ativa
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        // Salva a rota da OS em sessionStorage (limpa ao fechar o app completamente)
-        // Não usa localStorage para que ao fechar e reabrir vá para o menu
         const currentPath = window.location.pathname;
         if (currentPath.startsWith('/tecnico/os/')) {
-          sessionStorage.setItem('tecnico_session_route', currentPath);
+          // Atualiza localStorage com timestamp para o App.tsx redirecionar corretamente
+          localStorage.setItem('tecnico_active_os_route', currentPath);
+          localStorage.setItem('tecnico_active_os_ts', String(Date.now()));
         }
       }
     };
