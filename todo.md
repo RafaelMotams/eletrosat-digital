@@ -413,5 +413,5 @@
 - [x] Adicionar botão "Finalizar Ordem de Serviço" na mesma página
 
 ## Reenvio de fotos para Google Drive (22/05/2026)
-- [ ] Endpoint backend: buscar todas as fotos salvas e enviar para o Drive
-- [ ] Botão no painel admin com feedback de progresso
+- [x] Endpoint backend: buscar todas as fotos salvas e enviar para o Drive
+- [x] Botão no painel admin com feedback de progresso
