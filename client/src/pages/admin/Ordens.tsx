@@ -306,6 +306,19 @@ export default function AdminOrdens() {
     }
   }
 
+  const [deleteOsModal, setDeleteOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
+
+  const deletarOsMut = trpc.ordens.deletar.useMutation({
+    onSuccess: () => {
+      toast.success("OS excluída com sucesso!");
+      utils.ordens.list.invalidate();
+      utils.escolas.list.invalidate();
+      utils.dashboard.stats.invalidate();
+      setDeleteOsModal(null);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const deletarTodasMut = trpc.ordens.deletarTodas.useMutation({
     onSuccess: (data) => {
       toast.success(`${data.total} OS excluídas com sucesso!`);
@@ -576,6 +589,14 @@ export default function AdminOrdens() {
                       <Camera className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Fotos</span>
                     </button>
+                    {/* Apagar OS */}
+                    <button
+                      onClick={() => setDeleteOsModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId) })}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                      style={{ background: "oklch(0.96 0.04 25)", color: "oklch(0.45 0.20 25)", border: "1px solid oklch(0.88 0.10 25)" }}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Apagar</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -594,6 +615,37 @@ export default function AdminOrdens() {
           </div>
         </div>
       )}
+
+      {/* Modal Apagar OS individual */}
+      <Dialog open={!!deleteOsModal} onOpenChange={v => !v && setDeleteOsModal(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-500" />
+              Apagar Ordem de Serviço
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja apagar a OS da escola <span className="font-semibold text-foreground">{deleteOsModal?.escolaNome}</span>?
+            </p>
+            <p className="text-xs text-red-500 mt-2">Esta ação não pode ser desfeita. As fotos também serão removidas.</p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteOsModal(null)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => deleteOsModal && deletarOsMut.mutate({ osId: deleteOsModal.osId })}
+              disabled={deletarOsMut.isPending}
+              className="rounded-xl gap-2 bg-red-600 hover:bg-red-700 text-white border-none">
+              {deletarOsMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Apagando...</>
+              ) : (
+                <><Trash2 className="w-4 h-4" />Apagar OS</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal Concluir OS */}
       <Dialog open={!!concluirModal} onOpenChange={v => !v && setConcluirModal(null)}>

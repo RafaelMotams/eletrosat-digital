@@ -550,6 +550,23 @@ export async function deleteAllOrdensServico(tenantId?: number): Promise<number>
 }
 
 
+export async function deleteOrdemServico(osId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  // Buscar a OS para saber a escola e o status antes de deletar
+  const os = await db.select().from(ordensServico).where(eq(ordensServico.id, osId)).limit(1);
+  if (os.length === 0) return;
+  const { escolaId, status } = os[0];
+  // Deletar fotos da OS
+  await db.delete(osFotos).where(eq(osFotos.osId, osId));
+  // Deletar a OS
+  await db.delete(ordensServico).where(eq(ordensServico.id, osId));
+  // Se a OS estava em andamento, resetar o status da escola para pendente
+  if (status === "em_andamento") {
+    await db.update(escolas).set({ status: "pendente" }).where(eq(escolas.id, escolaId));
+  }
+}
+
 export async function resetEscolasStatusAposExcluirOS(tenantId?: number): Promise<void> {
   const db = await getDb();
   if (!db) return;

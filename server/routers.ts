@@ -44,6 +44,7 @@ import {
   setValoresApTecnico,
   getValoresApAllTecnicos,
   getOsNaoInstaladas,
+  deleteOrdemServico,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -409,6 +410,13 @@ const ordensRouter = router({
         title: `✅ OS Concluída: ${escola?.nome ?? "Escola"}`,
         content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola?.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
       });
+      return { success: true };
+    }),
+
+  deletar: tenantAdminProcedure
+    .input(z.object({ osId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      await deleteOrdemServico(input.osId);
       return { success: true };
     }),
 
