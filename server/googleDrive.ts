@@ -121,13 +121,12 @@ export async function uploadFotoParaDrive(params: {
   const contentType = response.headers.get("content-type") || "image/jpeg";
   const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
 
-  // Criar estrutura de pastas: Root / Técnico / Escola - Data
-  const tecnicoFolderId = await getOrCreateFolder(tecnicoNome, ROOT_FOLDER_ID, token);
+  // Criar estrutura de pastas: Root / Escola Nome - Data
   const escolaFolderName = `${escolaNome} - ${dataOS}`;
-  const escolaFolderId = await getOrCreateFolder(escolaFolderName, tecnicoFolderId, token);
+  const escolaFolderId = await getOrCreateFolder(escolaFolderName, ROOT_FOLDER_ID, token);
 
   // Upload multipart
-  const fileName = `foto_${String(fotoIndex).padStart(2, "0")}.${ext}`;
+  const fileName = `foto_${String(fotoIndex).padStart(2, "0")}_${tecnicoNome.split(" ")[0]}.${ext}`;
   const metadata = JSON.stringify({ name: fileName, parents: [escolaFolderId] });
   const boundary = "-------NetvionisUploadBoundary";
 
