@@ -411,3 +411,7 @@
 - [x] Remover botão "Marcar como Concluído" e modal de conclusão
 - [x] Exibir seção de equipamentos (fotos + qtd APs) inline na página após iniciar OS
 - [x] Adicionar botão "Finalizar Ordem de Serviço" na mesma página
+
+## Reenvio de fotos para Google Drive (22/05/2026)
+- [ ] Endpoint backend: buscar todas as fotos salvas e enviar para o Drive
+- [ ] Botão no painel admin com feedback de progresso

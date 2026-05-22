@@ -14,6 +14,7 @@ import {
   type InsertOrdemServico,
   type InsertTecnico,
   type InsertOsFoto,
+  type OsFoto,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -743,6 +744,35 @@ export async function listOsFotosByEscola(escolaId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(osFotos).where(eq(osFotos.escolaId, escolaId)).orderBy(osFotos.createdAt);
+}
+
+export async function listAllOsFotosComDados(): Promise<Array<{
+  foto: OsFoto;
+  tecnicoNome: string;
+  escolaNome: string;
+  dataOS: string;
+}>> {
+  const db = await getDb();
+  if (!db) return [];
+  // Busca todas as fotos com dados da escola e técnico via join
+  const rows = await db
+    .select({
+      foto: osFotos,
+      tecnicoNome: tecnicos.nome,
+      escolaNome: escolas.nome,
+      dataOS: ordensServico.createdAt,
+    })
+    .from(osFotos)
+    .leftJoin(tecnicos, eq(osFotos.tecnicoId, tecnicos.id))
+    .leftJoin(escolas, eq(osFotos.escolaId, escolas.id))
+    .leftJoin(ordensServico, eq(osFotos.osId, ordensServico.id))
+    .orderBy(osFotos.id);
+  return rows.map(r => ({
+    foto: r.foto,
+    tecnicoNome: r.tecnicoNome ?? "Tecnico",
+    escolaNome: r.escolaNome ?? `Escola-${r.foto.escolaId}`,
+    dataOS: r.dataOS ? new Date(r.dataOS).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+  }));
 }
 
 export async function countOsFotosByCategoria(osId: number): Promise<Record<string, number>> {

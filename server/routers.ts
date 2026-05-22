@@ -45,6 +45,7 @@ import {
   getValoresApAllTecnicos,
   getOsNaoInstaladas,
   deleteOrdemServico,
+  listAllOsFotosComDados,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -418,6 +419,42 @@ const ordensRouter = router({
     .mutation(async ({ input, ctx }) => {
       await deleteOrdemServico(input.osId);
       return { success: true };
+    }),
+
+  reenviarFotosDrive: tenantAdminProcedure
+    .mutation(async ({ ctx }) => {
+      const { uploadFotoParaDrive } = await import("./googleDrive");
+      const todasFotos = await listAllOsFotosComDados();
+      let sucesso = 0;
+      let falhas = 0;
+      const erros: string[] = [];
+
+      for (const { foto, tecnicoNome, escolaNome, dataOS } of todasFotos) {
+        try {
+          let fotoUrl = foto.url;
+          if (fotoUrl.startsWith("/manus-storage/")) {
+            fotoUrl = `https://netvionis.manus.space${fotoUrl}`;
+          }
+          await uploadFotoParaDrive({
+            tecnicoNome,
+            escolaNome,
+            fotoUrl,
+            fotoIndex: foto.id,
+            dataOS,
+          });
+          sucesso++;
+        } catch (err) {
+          falhas++;
+          erros.push(`Foto ${foto.id}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+
+      return {
+        total: todasFotos.length,
+        sucesso,
+        falhas,
+        erros: erros.slice(0, 10), // Retorna apenas os primeiros 10 erros
+      };
     }),
 
   deletarTodas: tenantAdminProcedure
