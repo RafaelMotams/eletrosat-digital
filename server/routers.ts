@@ -873,42 +873,39 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
         });
 
-        // Upload síncrono das fotos para o Google Drive
-        try {
-          const fotos = await listOsFotos(osId);
-          const fotoUrls = fotos
-            .filter(f => f.url)
-            .map(f => {
-              const url = f.url;
-              // Converter URL relativa para absoluta se necessário
-              if (url.startsWith("/manus-storage/")) {
-                return `https://netvionis.manus.space${url}`;
-              }
-              return url;
-            });
-
-          // Incluir foto do mapa de calor se existir
-          if (input.fotoMapaCalorUrl) {
-            const mapaUrl = input.fotoMapaCalorUrl.startsWith("/manus-storage/")
-              ? `https://netvionis.manus.space${input.fotoMapaCalorUrl}`
-              : input.fotoMapaCalorUrl;
-            fotoUrls.unshift(mapaUrl);
+        // Upload assíncrono das fotos para o Google Drive (não bloqueia a resposta ao técnico)
+        Promise.resolve().then(async () => {
+          try {
+            const fotos = await listOsFotos(osId);
+            const fotoUrls = fotos
+              .filter(f => f.url)
+              .map(f => {
+                const url = f.url;
+                if (url.startsWith("/manus-storage/")) {
+                  return `https://netvionis.manus.space${url}`;
+                }
+                return url;
+              });
+            if (input.fotoMapaCalorUrl) {
+              const mapaUrl = input.fotoMapaCalorUrl.startsWith("/manus-storage/")
+                ? `https://netvionis.manus.space${input.fotoMapaCalorUrl}`
+                : input.fotoMapaCalorUrl;
+              fotoUrls.unshift(mapaUrl);
+            }
+            if (fotoUrls.length > 0) {
+              const dataOS = new Date().toISOString().split("T")[0];
+              const result = await uploadFotosOSParaDrive({
+                tecnicoNome: tecnico?.nome ?? "Tecnico",
+                escolaNome: escola.nome ?? `Escola-${input.escolaId}`,
+                fotos: fotoUrls,
+                dataOS,
+              });
+              console.log(`[Drive] OS ${osId}: ${result.sucesso}/${result.total} fotos enviadas para o Drive`);
+            }
+          } catch (driveErr) {
+            console.error(`[Drive] Erro ao enviar fotos da OS ${osId}:`, driveErr);
           }
-
-          if (fotoUrls.length > 0) {
-            const dataOS = new Date().toISOString().split("T")[0];
-            const result = await uploadFotosOSParaDrive({
-              tecnicoNome: tecnico?.nome ?? "Tecnico",
-              escolaNome: escola.nome ?? `Escola-${input.escolaId}`,
-              fotos: fotoUrls,
-              dataOS,
-            });
-            console.log(`[Drive] OS ${osId}: ${result.sucesso}/${result.total} fotos enviadas para o Drive`);
-          }
-        } catch (driveErr) {
-          // Não bloqueia a conclusão da OS se o Drive falhar
-          console.error(`[Drive] Erro ao enviar fotos da OS ${osId}:`, driveErr);
-        }
+        });
       }
       return { osId };
     }),
