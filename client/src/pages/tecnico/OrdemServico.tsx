@@ -561,6 +561,7 @@ export default function TecnicoOS() {
 
   // Estado local para simular "em andamento" imediatamente (antes do refetch)
   const [localStatus, setLocalStatus] = useState<string | null>(null);
+  const [showSucesso, setShowSucesso] = useState(false);
 
   const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
     onSuccess: () => {
@@ -757,6 +758,31 @@ export default function TecnicoOS() {
 
   return (
     <div className="min-h-screen pb-10" style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
+
+      {/* ─── Tela de Sucesso ─── */}
+      {showSucesso && (
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+          style={{ background: "linear-gradient(160deg, #060b18 0%, #0d1a35 100%)" }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
+            style={{ background: "rgba(16,185,129,0.15)", border: "2px solid rgba(16,185,129,0.4)" }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-black text-white mb-2">Instalação Concluída!</h1>
+          <p className="text-base mb-1" style={{ color: "rgba(148,163,184,0.8)" }}>{escola.nome}</p>
+          <p className="text-sm mb-8" style={{ color: "rgba(16,185,129,0.85)" }}>Ordem de serviço finalizada com sucesso</p>
+          <button
+            onClick={() => navigate("/tecnico")}
+            className="w-full max-w-xs py-4 rounded-3xl font-black text-base text-white"
+            style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
+            Voltar ao Menu
+          </button>
+        </div>
+      )}
+
+      {/* ─── Conteúdo principal (oculto quando concluído) ─── */}
+      {!showSucesso && <>
 
       {/* ─── Header ─── */}
       <div className="sticky top-0 z-30 px-4 pt-5 pb-4"
@@ -1186,7 +1212,7 @@ export default function TecnicoOS() {
                     toast.error(`${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada.`, { duration: 8000 });
                   }
                 }
-                toast.success("✅ Instalação concluída com sucesso!", { duration: 5000 });
+                setShowSucesso(true);
                 setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
                 utils.tecnicoAuth.minhasEscolas.invalidate();
                 setPendingOffline(false);
@@ -1473,7 +1499,7 @@ export default function TecnicoOS() {
                       }
 
                       // ── Finalizar ──
-                      toast.success("✅ Instalação concluída com sucesso!", { duration: 5000 });
+                      setShowSucesso(true);
                       setFotosPorCategoria({
                         mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [],
                       });
@@ -1648,6 +1674,7 @@ export default function TecnicoOS() {
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }
