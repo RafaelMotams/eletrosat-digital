@@ -18,7 +18,7 @@
  */
 
 const DB_NAME = "netvionis_offline";
-const DB_VERSION = 2;
+const DB_VERSION = 3; // v3: store "fotoRascunho" para persistir fotos ao voltar da câmera
 
 export type FotoOffline = {
   categoria: string;
@@ -71,6 +71,10 @@ function openDB(): Promise<IDBDatabase> {
         const store = db.createObjectStore("pendingOS", { keyPath: "id" });
         store.createIndex("status", "status", { unique: false });
         store.createIndex("escolaId", "escolaId", { unique: false });
+      }
+      // v3: rascunho de fotos para persistir ao voltar da câmera no Android
+      if (!db.objectStoreNames.contains("fotoRascunho")) {
+        db.createObjectStore("fotoRascunho", { keyPath: "escolaId" });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -195,4 +199,46 @@ export async function dbRemoveDoneOS(): Promise<void> {
 export async function dbCountPending(): Promise<number> {
   const list = await dbGetPendingOS();
   return list.length;
+}
+
+// ─── Rascunho de fotos (persiste ao voltar da câmera no Android) ──────────────
+
+export type FotoRascunho = {
+  escolaId: number;
+  fotos: Record<string, Array<{ preview: string; base64: string; mime: string }>>;
+  qtdAp: string;
+  observacao: string;
+  ts: number;
+};
+
+export async function dbSaveFotoRascunho(rascunho: FotoRascunho): Promise<void> {
+  try {
+    const db = await openDB();
+    await wrap(tx(db, "fotoRascunho", "readwrite").put(rascunho));
+  } catch {}
+}
+
+export async function dbGetFotoRascunho(escolaId: number): Promise<FotoRascunho | null> {
+  try {
+    const db = await openDB();
+    const entry = await wrap<FotoRascunho | undefined>(
+      tx(db, "fotoRascunho", "readonly").get(escolaId)
+    );
+    if (!entry) return null;
+    // Rascunho válido por 8 horas (jornada de trabalho)
+    if (Date.now() - entry.ts > 8 * 60 * 60 * 1000) {
+      await dbClearFotoRascunho(escolaId);
+      return null;
+    }
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+export async function dbClearFotoRascunho(escolaId: number): Promise<void> {
+  try {
+    const db = await openDB();
+    await wrap(tx(db, "fotoRascunho", "readwrite").delete(escolaId));
+  } catch {}
 }

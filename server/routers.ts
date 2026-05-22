@@ -876,20 +876,12 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         // Upload síncrono das fotos para o Google Drive
         try {
           const fotos = await listOsFotos(osId);
+          // Passa as URLs relativas diretamente — googleDrive.ts resolve via storageGetSignedUrl
           const fotoUrls = fotos
             .filter(f => f.url)
-            .map(f => {
-              const url = f.url;
-              if (url.startsWith("/manus-storage/")) {
-                return `https://netvionis.manus.space${url}`;
-              }
-              return url;
-            });
+            .map(f => f.url);
           if (input.fotoMapaCalorUrl) {
-            const mapaUrl = input.fotoMapaCalorUrl.startsWith("/manus-storage/")
-              ? `https://netvionis.manus.space${input.fotoMapaCalorUrl}`
-              : input.fotoMapaCalorUrl;
-            fotoUrls.unshift(mapaUrl);
+            fotoUrls.unshift(input.fotoMapaCalorUrl);
           }
           if (fotoUrls.length > 0) {
             const dataOS = new Date().toISOString().split("T")[0];
