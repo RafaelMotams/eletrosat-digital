@@ -562,6 +562,24 @@ export default function TecnicoOS() {
   // Estado local para simular "em andamento" imediatamente (antes do refetch)
   const [localStatus, setLocalStatus] = useState<string | null>(null);
   const [showSucesso, setShowSucesso] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+
+  // Contagem regressiva e redirecionamento automático ao menu
+  useEffect(() => {
+    if (!showSucesso) return;
+    setCountdown(5);
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          navigate("/tecnico");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showSucesso, navigate]);
 
   const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
     onSuccess: () => {
@@ -771,12 +789,15 @@ export default function TecnicoOS() {
           </div>
           <h1 className="text-2xl font-black text-white mb-2">Instalação Concluída!</h1>
           <p className="text-base mb-1" style={{ color: "rgba(148,163,184,0.8)" }}>{escola.nome}</p>
-          <p className="text-sm mb-8" style={{ color: "rgba(16,185,129,0.85)" }}>Ordem de serviço finalizada com sucesso</p>
+          <p className="text-sm mb-6" style={{ color: "rgba(16,185,129,0.85)" }}>Ordem de serviço finalizada com sucesso</p>
+          <p className="text-sm mb-6" style={{ color: "rgba(148,163,184,0.55)" }}>
+            Voltando ao menu em <span className="font-black text-white">{countdown}s</span>...
+          </p>
           <button
             onClick={() => navigate("/tecnico")}
             className="w-full max-w-xs py-4 rounded-3xl font-black text-base text-white"
             style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-            Voltar ao Menu
+            Ir para o Menu Agora
           </button>
         </div>
       )}
