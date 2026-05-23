@@ -182,14 +182,24 @@ export default function TecnicoHome() {
     }
   }, [escolasOnline, tecnicoId]);
 
-  // Carrega escolas do IndexedDB quando offline
+  // Carrega escolas do cache local SEMPRE ao iniciar (independente de estar online ou offline)
+  // Isso garante que as escolas aparecem imediatamente, mesmo sem internet
   useEffect(() => {
-    if (!isOnline && tecnicoId) {
+    if (tecnicoId) {
       dbGetCachedEscolas(tecnicoId).then((cached) => {
-        if (cached) setOfflineEscolas(cached as Escola[]);
+        if (cached && cached.length > 0) {
+          setOfflineEscolas(cached as Escola[]);
+        }
       });
     }
-  }, [isOnline, tecnicoId]);
+  }, [tecnicoId]);
+
+  // Limpa o cache offline quando dados online chegam (online tem prioridade)
+  useEffect(() => {
+    if (escolasOnline && escolasOnline.length > 0) {
+      setOfflineEscolas(null);
+    }
+  }, [escolasOnline]);
 
   const escolas = ((escolasOnline ?? offlineEscolas ?? []) as Escola[]);
   const sortedEscolas = sortByRoute(escolas);

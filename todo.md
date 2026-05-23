@@ -415,3 +415,7 @@
 ## Reenvio de fotos para Google Drive (22/05/2026)
 - [x] Endpoint backend: buscar todas as fotos salvas e enviar para o Drive
 - [x] Botão no painel admin com feedback de progresso
+
+## Bug - Escolas não aparecem offline (23/05/2026)
+- [x] Salvar escolas no cache local (IndexedDB) ao carregar com internet
+- [x] Restaurar escolas do cache ao abrir sem internet (carrega cache imediatamente ao iniciar)
