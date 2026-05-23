@@ -216,6 +216,39 @@ function InfoCard({
   );
 }
 
+// ─── Compressor de imagem via Canvas ────────────────────────────────────────
+async function comprimirImagem(
+  file: File,
+  maxWidth = 1280,
+  quality = 0.72
+): Promise<{ preview: string; base64: string; mime: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      resolve({
+        preview: dataUrl,
+        base64: dataUrl.split(",")[1],
+        mime: "image/jpeg",
+      });
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
+  });
+}
+
 // ─── Componente simples de upload por categoria ───────────────────────────────
 function CategoriaUploadCard({
   categoria,
@@ -238,23 +271,33 @@ function CategoriaUploadCard({
     if (!files.length) return;
     const remaining = categoria.maxFotos - fotos.length;
     const toProcess = files.slice(0, remaining);
-    const novas: FotoPendente[] = [];
-    let processed = 0;
-    for (const file of toProcess) {
-      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: máximo 10MB por foto`); processed++; continue; }
-      const mime = file.type || "image/jpeg";
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const result = ev.target?.result as string;
-        novas.push({ preview: result, base64: result.split(",")[1], mime });
-        processed++;
-        if (processed === toProcess.length) {
-          onAddFotos(novas);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
     e.target.value = "";
+
+    // Comprime todas as fotos em paralelo antes de adicionar
+    Promise.all(
+      toProcess.map(async (file) => {
+        if (file.size > 20 * 1024 * 1024) {
+          toast.error(`${file.name}: máximo 20MB por foto`);
+          return null;
+        }
+        try {
+          return await comprimirImagem(file, 1280, 0.72);
+        } catch {
+          // Fallback: usa o arquivo original sem compressão
+          return new Promise<{ preview: string; base64: string; mime: string }>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const result = ev.target?.result as string;
+              resolve({ preview: result, base64: result.split(",")[1], mime: file.type || "image/jpeg" });
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+      })
+    ).then((resultados) => {
+      const novas: FotoPendente[] = resultados.filter(Boolean) as FotoPendente[];
+      if (novas.length > 0) onAddFotos(novas);
+    });
   }
 
   return (
