@@ -153,38 +153,74 @@ function FotosOsModal({
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {fotosAba.map((f: { id: number; url: string }) => (
-                  <button key={f.id}
-                    onClick={() => setLightbox(f.url)}
-                    className="aspect-square rounded-2xl overflow-hidden transition-all hover:scale-105 active:scale-95"
+                {fotosAba.map((f: { id: number; url: string }, idx: number) => (
+                  <div key={f.id} className="relative group aspect-square rounded-2xl overflow-hidden"
                     style={{ border: "1.5px solid rgba(255,255,255,0.08)" }}>
-                    <img src={f.url} alt="Foto OS" className="w-full h-full object-cover" />
-                  </button>
+                    <button
+                      onClick={() => setLightbox(f.url)}
+                      className="w-full h-full">
+                      <img src={f.url} alt="Foto OS" className="w-full h-full object-cover" />
+                    </button>
+                    {/* Botão download individual */}
+                    <a
+                      href={f.url}
+                      download={`foto_${idx + 1}_${escolaNome.replace(/\s+/g, "_")}.jpg`}
+                      onClick={e => e.stopPropagation()}
+                      className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: "rgba(0,0,0,0.75)", border: "1px solid rgba(255,255,255,0.2)" }}
+                      title="Baixar foto">
+                      <Download className="w-3.5 h-3.5 text-white" />
+                    </a>
+                  </div>
                 ))}
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-3 flex items-center justify-between"
+          <div className="px-5 py-3 flex items-center justify-between gap-3"
             style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <p className="text-xs" style={{ color: "rgba(148,163,184,0.4)" }}>
               Total: <span className="font-bold text-white">{(fotos ?? []).length}</span> foto{(fotos ?? []).length !== 1 ? "s" : ""}
             </p>
-            <div className="flex gap-1">
-              {CATS_FOTOS.map(cat => {
-                const temFoto = (fotos ?? []).some((f: { categoria: string }) => f.categoria === cat.id);
-                return (
-                  <div key={cat.id}
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
-                    style={{
-                      background: temFoto ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)",
-                      color: temFoto ? "#34d399" : "rgba(148,163,184,0.3)",
-                    }}>
-                    {temFoto ? "✓" : "·"}
-                  </div>
-                );
-              })}
+            <div className="flex items-center gap-2">
+              {/* Botão baixar todas as fotos */}
+              {(fotos ?? []).length > 0 && (
+                <button
+                  onClick={async () => {
+                    for (let i = 0; i < (fotos ?? []).length; i++) {
+                      const f = (fotos ?? [])[i] as { id: number; url: string; categoria: string };
+                      const catLabel = CATS_FOTOS.find(c => c.id === f.categoria)?.label ?? f.categoria;
+                      const a = document.createElement("a");
+                      a.href = f.url;
+                      a.download = `${escolaNome.replace(/\s+/g, "_")}_${catLabel}_${i + 1}.jpg`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      await new Promise(r => setTimeout(r, 200));
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
+                  style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#60a5fa" }}>
+                  <Download className="w-3.5 h-3.5" />
+                  Baixar todas
+                </button>
+              )}
+              <div className="flex gap-1">
+                {CATS_FOTOS.map(cat => {
+                  const temFoto = (fotos ?? []).some((f: { categoria: string }) => f.categoria === cat.id);
+                  return (
+                    <div key={cat.id}
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      style={{
+                        background: temFoto ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)",
+                        color: temFoto ? "#34d399" : "rgba(148,163,184,0.3)",
+                      }}>
+                      {temFoto ? "✓" : "·"}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -196,6 +232,16 @@ function FotosOsModal({
           style={{ background: "rgba(0,0,0,0.96)" }}
           onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="Foto" className="max-w-full max-h-full rounded-2xl object-contain" />
+          {/* Botão download no lightbox */}
+          <a
+            href={lightbox}
+            download={`foto_${escolaNome.replace(/\s+/g, "_")}.jpg`}
+            onClick={e => e.stopPropagation()}
+            className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+            style={{ background: "rgba(59,130,246,0.9)", color: "white" }}>
+            <Download className="w-4 h-4" />
+            Baixar foto
+          </a>
           <button className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center"
             style={{ background: "rgba(255,255,255,0.15)" }}
             onClick={() => setLightbox(null)}>
