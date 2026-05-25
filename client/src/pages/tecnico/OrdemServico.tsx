@@ -933,6 +933,15 @@ export default function TecnicoOS() {
               iconColor="#60a5fa"
               labelColor="rgba(96,165,250,0.7)"
             />
+            {/* Tipo de Solução */}
+            <InfoCard
+              icon={escola.tipoConexao?.toLowerCase().includes("fibra") ? <Layers className="w-5 h-5" /> : <Signal className="w-5 h-5" />}
+              label="Tipo de Solução"
+              value={escola.tipoConexao ?? "Fibra"}
+              iconBg={escola.tipoConexao?.toLowerCase().includes("fibra") ? "rgba(34,197,94,0.15)" : "rgba(251,146,60,0.15)"}
+              iconColor={escola.tipoConexao?.toLowerCase().includes("fibra") ? "#4ade80" : "#fb923c"}
+              labelColor={escola.tipoConexao?.toLowerCase().includes("fibra") ? "rgba(74,222,128,0.7)" : "rgba(251,146,60,0.7)"}
+            />
             {/* Velocidade */}
             <InfoCard
               icon={<Gauge className="w-5 h-5" />}
