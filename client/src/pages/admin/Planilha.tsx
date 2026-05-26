@@ -88,6 +88,7 @@ export default function AdminPlanilha() {
   const [busca, setBusca] = useState("");
   const [filtroVelocidade, setFiltroVelocidade] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroTecnico, setFiltroTecnico] = useState("todos");
 
   // Modal de exclusão
   const [modalExcluir, setModalExcluir] = useState(false);
@@ -167,9 +168,14 @@ export default function AdminPlanilha() {
       const matchVel =
         filtroVelocidade === "todos" || String(e.velocidadeOfertada) === filtroVelocidade;
       const matchStatus = filtroStatus === "todos" || e.status === filtroStatus;
-      return matchBusca && matchVel && matchStatus;
+      const matchTecnico = filtroTecnico === "todos"
+        ? true
+        : filtroTecnico === "sem_tecnico"
+          ? !e.tecnicoId
+          : String(e.tecnicoId) === filtroTecnico;
+      return matchBusca && matchVel && matchStatus && matchTecnico;
     });
-  }, [escolas, busca, filtroVelocidade, filtroStatus]);
+  }, [escolas, busca, filtroVelocidade, filtroStatus, filtroTecnico]);
 
   const totais = useMemo(() => {
     const totalKits = escolasFiltradas.reduce((acc, e) => acc + (e.kitWifi ?? 0), 0);
@@ -428,10 +434,29 @@ export default function AdminPlanilha() {
                 <SelectItem value="nao_instalada">Não Instalada</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={filtroTecnico} onValueChange={setFiltroTecnico}>
+              <SelectTrigger className="w-full sm:w-52">
+                <SelectValue placeholder="Técnico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os técnicos</SelectItem>
+                <SelectItem value="sem_tecnico">Sem técnico</SelectItem>
+                {(tecnicos ?? []).map((t) => (
+                  <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Exibindo <strong>{escolasFiltradas.length}</strong> de <strong>{escolas?.length ?? 0}</strong> escolas
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-muted-foreground">
+              Exibindo <strong>{escolasFiltradas.length}</strong> de <strong>{escolas?.length ?? 0}</strong> escolas
+            </p>
+            {filtroTecnico !== "todos" && (
+              <p className="text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                Total APs: <strong>{totais.totalAps}</strong> &nbsp;|&nbsp; Kits: <strong>{totais.totalKits}</strong> &nbsp;|&nbsp; Escolas: <strong>{escolasFiltradas.length}</strong>
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
