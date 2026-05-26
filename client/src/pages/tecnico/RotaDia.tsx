@@ -166,7 +166,8 @@ export default function RotaDia() {
       const maps = e.latitude && e.longitude
         ? `\n   🗺 https://maps.google.com/?q=${e.latitude},${e.longitude}`
         : "";
-      return `${i + 1}. *${e.nome}*${ap}${end}${maps}`;
+      const inep = e.inep ? `\n   🏫 INEP: ${e.inep}` : "";
+      return `${i + 1}. *${e.nome}*${ap}${inep}${end}${maps}`;
     });
     const msg = `📋 *Rota do Dia — ${hoje}*\n\n${linhas.join("\n\n")}\n\n✅ Total: ${rotaOrdenada.length} escola${rotaOrdenada.length > 1 ? "s" : ""} | ${totalAps} AP${totalAps !== 1 ? "s" : ""}`;
     const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
@@ -321,41 +322,46 @@ export default function RotaDia() {
           const isSelecionada = selecionadas.includes(escola.id);
           const cor = statusColor[escola.status] ?? "#94a3b8";
           return (
-            <button
+            <div
               key={escola.id}
-              onClick={() => toggleEscola(escola.id)}
               style={{
-                width: "100%", textAlign: "left",
                 background: isSelecionada ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.03)",
                 border: `1px solid ${isSelecionada ? "rgba(99,102,241,0.3)" : "rgba(255,255,255,0.06)"}`,
                 borderRadius: 12, padding: "12px 14px", marginBottom: 8,
-                display: "flex", alignItems: "center", gap: 12,
+                display: "flex", alignItems: "flex-start", gap: 12,
                 transition: "all 0.15s ease"
               }}>
               {/* Checkbox */}
-              <div style={{
-                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                background: isSelecionada ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.05)",
-                border: `2px solid ${isSelecionada ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
-                display: "flex", alignItems: "center", justifyContent: "center"
-              }}>
-                {isSelecionada && <CheckCircle className="w-3.5 h-3.5 text-white" />}
-              </div>
-
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {escola.nome}
-                  </p>
+              <button
+                onClick={() => toggleEscola(escola.id)}
+                style={{ flexShrink: 0, marginTop: 2, padding: 0, background: "none", border: "none" }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  background: isSelecionada ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.05)",
+                  border: `2px solid ${isSelecionada ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  {isSelecionada && <CheckCircle className="w-3.5 h-3.5 text-white" />}
                 </div>
+              </button>
+
+              {/* Info — clicar abre OS */}
+              <button
+                onClick={() => navigate(`/tecnico/os/${escola.id}`)}
+                style={{ flex: 1, minWidth: 0, textAlign: "left", background: "none", border: "none", padding: 0 }}>
+                <p style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 700, marginBottom: 3, lineHeight: 1.3 }}>
+                  {escola.nome}
+                </p>
+                {escola.inep && (
+                  <p style={{ color: "rgba(148,163,184,0.5)", fontSize: 11, marginBottom: 2 }}>INEP: {escola.inep}</p>
+                )}
+                {(escola.endereco || escola.municipio) && (
+                  <p style={{ color: "rgba(148,163,184,0.6)", fontSize: 12, marginBottom: 4, lineHeight: 1.4 }}>
+                    <MapPin className="w-3 h-3 inline mr-0.5" style={{ verticalAlign: "middle" }} />
+                    {[escola.endereco, escola.municipio].filter(Boolean).join(", ")}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span style={{ color: "rgba(148,163,184,0.5)", fontSize: 11 }}>{escola.inep}</span>
-                  {escola.municipio && (
-                    <span style={{ color: "rgba(148,163,184,0.4)", fontSize: 11 }}>
-                      <MapPin className="w-3 h-3 inline mr-0.5" />{escola.municipio}
-                    </span>
-                  )}
                   {escola.qtdAp && (
                     <span style={{ color: "#818cf8", fontSize: 11, fontWeight: 600 }}>
                       <Wifi className="w-3 h-3 inline mr-0.5" />{escola.qtdAp} AP{escola.qtdAp > 1 ? "s" : ""}
@@ -365,8 +371,8 @@ export default function RotaDia() {
                     {escola.status === "em_andamento" ? "Em andamento" : escola.status === "pendente" ? "Pendente" : escola.status}
                   </span>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           );
         })}
       </div>
