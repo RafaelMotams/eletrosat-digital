@@ -19,6 +19,7 @@ import TecnicoOS from "./pages/tecnico/OrdemServico";
 import TecnicoMapa from "./pages/tecnico/Mapa";
 import TecnicoPerfil from "./pages/tecnico/Perfil";
 import TecnicoHistorico from "./pages/tecnico/Historico";
+import TecnicoRotaDia from "./pages/tecnico/RotaDia";
 import Home from "./pages/Home";
 import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
@@ -27,7 +28,7 @@ import AdminConfiguracoes from "./pages/admin/Configuracoes";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 
 // Rotas do técnico que devem ser persistidas (exceto login)
-const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico"];
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const OS_ROUTE_KEY = "tecnico_active_os_route";
 const OS_ROUTE_TS_KEY = "tecnico_active_os_ts";
@@ -117,6 +118,7 @@ function Router() {
       <Route path="/tecnico/mapa" component={TecnicoMapa} />
       <Route path="/tecnico/perfil" component={TecnicoPerfil} />
       <Route path="/tecnico/historico" component={TecnicoHistorico} />
+      <Route path="/tecnico/rota" component={TecnicoRotaDia} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
