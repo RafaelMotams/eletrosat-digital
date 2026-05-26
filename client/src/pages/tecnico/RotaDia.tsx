@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   Route, CheckCircle, Circle, Share2, MessageCircle,
   MapPin, Wifi, ChevronLeft, Search, Navigation,
-  ListChecks, Trash2, ArrowUp, ArrowDown
+  ListChecks, Trash2, ArrowUp, ArrowDown, Play
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbGetCachedEscolas } from "@/hooks/useOfflineDB";
@@ -237,6 +237,25 @@ export default function RotaDia() {
               {totalAps} AP{totalAps !== 1 ? "s" : ""}
             </span>
           </div>
+
+          {/* Botão Iniciar Rota */}
+          <button
+            onClick={() => {
+              if (rotaOrdenada.length > 0) {
+                navigate(`/tecnico/os/${rotaOrdenada[0].id}`);
+              }
+            }}
+            style={{
+              width: "100%", padding: "10px", borderRadius: 10, fontSize: 13, fontWeight: 700,
+              background: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+              border: "none", color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
+              marginBottom: 8
+            }}>
+            <Play className="w-4 h-4" />
+            Iniciar Rota ({rotaOrdenada.length} escola{rotaOrdenada.length > 1 ? "s" : ""})
+          </button>
 
           <div className="flex gap-2">
             {/* Ordenar por rota */}

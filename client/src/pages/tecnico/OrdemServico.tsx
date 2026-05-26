@@ -1285,6 +1285,19 @@ export default function TecnicoOS() {
                     toast.error(`${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada.`, { duration: 8000 });
                   }
                 }
+                // Remover escola da rota do dia ao concluir
+                try {
+                  const rotaKey = `tecnico_rota_dia`;
+                  const rotaSalva = localStorage.getItem(rotaKey);
+                  if (rotaSalva) {
+                    const rotaData = JSON.parse(rotaSalva);
+                    const escolaId = Number(params.id);
+                    if (rotaData.ids && Array.isArray(rotaData.ids)) {
+                      rotaData.ids = rotaData.ids.filter((id: number) => id !== escolaId);
+                      localStorage.setItem(rotaKey, JSON.stringify(rotaData));
+                    }
+                  }
+                } catch { /* noop */ }
                 setShowSucesso(true);
                 setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
                 utils.tecnicoAuth.minhasEscolas.invalidate();
@@ -1571,6 +1584,19 @@ export default function TecnicoOS() {
                         }
                       }
 
+                      // Remover escola da rota do dia ao concluir
+                      try {
+                        const rotaKey = `tecnico_rota_dia`;
+                        const rotaSalva = localStorage.getItem(rotaKey);
+                        if (rotaSalva) {
+                          const rotaData = JSON.parse(rotaSalva);
+                          const escolaId = Number(params.id);
+                          if (rotaData.ids && Array.isArray(rotaData.ids)) {
+                            rotaData.ids = rotaData.ids.filter((id: number) => id !== escolaId);
+                            localStorage.setItem(rotaKey, JSON.stringify(rotaData));
+                          }
+                        }
+                      } catch { /* noop */ }
                       // ── Finalizar ──
                       setShowSucesso(true);
                       setFotosPorCategoria({

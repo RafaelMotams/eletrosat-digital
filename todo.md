@@ -425,3 +425,7 @@
 - [x] Botão de compartilhar lista pelo WhatsApp
 - [x] Registrar rota /tecnico/rota no App.tsx
 - [x] Adicionar aba Rota no TecnicoBottomNav (5º item, ícone roxo)
+
+## Melhorias Rota do Dia (26/05/2026)
+- [x] Ao concluir OS, escola é removida automaticamente da lista da Rota do Dia (localStorage tecnico_rota_dia)
+- [x] Botão "Iniciar Rota" na tela RotaDia.tsx: navega para a primeira escola da rota ao clicar
