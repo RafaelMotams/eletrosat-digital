@@ -182,7 +182,15 @@ export default function AdminPlanilha() {
     const totalAps = escolasFiltradas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
     const concluidas = escolasFiltradas.filter((e) => e.status === "concluido").length;
     const pendentes = escolasFiltradas.filter((e) => e.status === "pendente").length;
-    return { totalKits, totalAps, concluidas, pendentes };
+    // Distribuição: quantas escolas têm 1 AP, 2 APs, 3 APs, etc.
+    const distribuicaoAps: Record<number, number> = {};
+    for (const e of escolasFiltradas) {
+      const qtd = e.qtdAp ?? 0;
+      if (qtd > 0) {
+        distribuicaoAps[qtd] = (distribuicaoAps[qtd] ?? 0) + 1;
+      }
+    }
+    return { totalKits, totalAps, concluidas, pendentes, distribuicaoAps };
   }, [escolasFiltradas]);
 
   function abrirModalEditar(escola: Escola) {
@@ -452,9 +460,39 @@ export default function AdminPlanilha() {
               Exibindo <strong>{escolasFiltradas.length}</strong> de <strong>{escolas?.length ?? 0}</strong> escolas
             </p>
             {filtroTecnico !== "todos" && (
-              <p className="text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
-                Total APs: <strong>{totais.totalAps}</strong> &nbsp;|&nbsp; Kits: <strong>{totais.totalKits}</strong> &nbsp;|&nbsp; Escolas: <strong>{escolasFiltradas.length}</strong>
-              </p>
+              <div className="mt-3 w-full">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                    Total APs: <strong>{totais.totalAps}</strong>
+                  </span>
+                  <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                    Kits: <strong>{totais.totalKits}</strong>
+                  </span>
+                  <span className="text-xs font-semibold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                    Escolas: <strong>{escolasFiltradas.length}</strong>
+                  </span>
+                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                    Concluídas: <strong>{totais.concluidas}</strong>
+                  </span>
+                </div>
+                {Object.keys(totais.distribuicaoAps).length > 0 && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-slate-600 mb-2">Distribuição por quantidade de APs:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(totais.distribuicaoAps)
+                        .sort(([a], [b]) => Number(a) - Number(b))
+                        .map(([qtd, count]) => (
+                          <div key={qtd} className="flex items-center gap-1 bg-white border border-slate-200 rounded-md px-2 py-1">
+                            <span className="text-xs font-bold text-slate-800">{qtd} AP{Number(qtd) > 1 ? "s" : ""}</span>
+                            <span className="text-xs text-slate-400">→</span>
+                            <span className="text-xs font-semibold text-purple-700">{count} escola{count > 1 ? "s" : ""}</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </CardContent>
