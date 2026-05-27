@@ -530,6 +530,28 @@ const ordensRouter = router({
       return { success: true };
     }),
 
+  // Admin: editar quantidade de APs e observação de uma OS já concluída
+  editarQtdAp: tenantAdminProcedure
+    .input(z.object({
+      osId: z.number(),
+      qtdApInstalado: z.number().int().min(0),
+      observacao: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined && os.tenantId !== tenantId)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      await db
+        .update(ordensServico)
+        .set({ qtdApInstalado: input.qtdApInstalado, observacao: input.observacao ?? os.observacao ?? "" })
+        .where(eq(ordensServico.id, input.osId));
+      return { success: true };
+    }),
+
   // Busca fotos de uma OS pelo admin (publicProcedure para funcionar com qualquer autenticação)
   getOsFotos: publicProcedure
     .input(z.object({ osId: z.number() }))
