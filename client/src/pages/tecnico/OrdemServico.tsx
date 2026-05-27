@@ -68,7 +68,7 @@ const MOTIVOS = [
 ] as const;
 
 // ─── Categorias de fotos obrigatórias ────────────────────────────────────────
-type FotoCategoria = "mapa_calor" | "fotos_ap" | "etiqueta_controladora" | "etiqueta_nobreak" | "etiqueta_switch";
+type FotoCategoria = "mapa_calor";
 
 const CATEGORIAS_FOTOS: {
   id: FotoCategoria;
@@ -89,46 +89,6 @@ const CATEGORIAS_FOTOS: {
     bg: "rgba(249,115,22,0.08)",
     border: "rgba(249,115,22,0.25)",
     maxFotos: 1,
-  },
-  {
-    id: "fotos_ap",
-    label: "Etiqueta do AP",
-    desc: "Até 15 fotos da etiqueta dos access points instalados",
-    icon: "🏷️",
-    color: "#8b5cf6",
-    bg: "rgba(139,92,246,0.08)",
-    border: "rgba(139,92,246,0.25)",
-    maxFotos: 15,
-  },
-  {
-    id: "etiqueta_controladora",
-    label: "Etiqueta da Controladora",
-    desc: "Foto da etiqueta da controladora",
-    icon: "🖥️",
-    color: "#06b6d4",
-    bg: "rgba(6,182,212,0.08)",
-    border: "rgba(6,182,212,0.25)",
-    maxFotos: 1,
-  },
-  {
-    id: "etiqueta_nobreak",
-    label: "Etiqueta do Nobreak",
-    desc: "Foto da etiqueta do nobreak",
-    icon: "🔋",
-    color: "#10b981",
-    bg: "rgba(16,185,129,0.08)",
-    border: "rgba(16,185,129,0.25)",
-    maxFotos: 1,
-  },
-  {
-    id: "etiqueta_switch",
-    label: "Etiqueta do Switch",
-    desc: "Foto da etiqueta do switch de rede (até 3 fotos)",
-    icon: "🔀",
-    color: "#f59e0b",
-    bg: "rgba(245,158,11,0.08)",
-    border: "rgba(245,158,11,0.25)",
-    maxFotos: 3,
   },
 ];
 
@@ -476,10 +436,7 @@ export default function TecnicoOS() {
   // Estado simples de fotos por categoria — um array de FotoPendente por categoria
   const [fotosPorCategoria, setFotosPorCategoria] = useState<Record<FotoCategoria, FotoPendente[]>>({
     mapa_calor: [],
-    fotos_ap: [],
-    etiqueta_controladora: [],
-    etiqueta_nobreak: [],
-    etiqueta_switch: [],
+
   });
 
   const [qtdAp, setQtdAp] = useState("");
@@ -1243,7 +1200,7 @@ export default function TecnicoOS() {
                   fotos: fotasOffline,
                 });
                 setPendingOffline(true);
-                setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                setFotosPorCategoria({ mapa_calor: [] });
                 toast.success(`OS e ${fotasOffline.length} foto${fotasOffline.length !== 1 ? 's' : ''} salvas localmente! Serão enviadas quando você tiver internet.`, { duration: 6000 });
                 return;
               }
@@ -1318,7 +1275,7 @@ export default function TecnicoOS() {
                   }
                 } catch { /* noop */ }
                 setShowSucesso(true);
-                setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                setFotosPorCategoria({ mapa_calor: [] });
                 utils.tecnicoAuth.minhasEscolas.invalidate();
                 setPendingOffline(false);
               } catch (err: unknown) {
@@ -1547,7 +1504,7 @@ export default function TecnicoOS() {
                       });
                       setPendingOffline(true);
                       setOpenConcluir(false);
-                      setFotosPorCategoria({ mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [] });
+                      setFotosPorCategoria({ mapa_calor: [] });
                       toast.success(`OS e ${fotasOffline.length} foto${fotasOffline.length !== 1 ? 's' : ''} salvas localmente! Serão enviadas quando você tiver internet.`, { duration: 6000 });
                       return;
                     }
@@ -1630,7 +1587,7 @@ export default function TecnicoOS() {
                       // ── Finalizar ──
                       setShowSucesso(true);
                       setFotosPorCategoria({
-                        mapa_calor: [], fotos_ap: [], etiqueta_controladora: [], etiqueta_nobreak: [], etiqueta_switch: [],
+                        mapa_calor: [],
                       });
                       utils.tecnicoAuth.minhasEscolas.invalidate();
                       setOpenConcluir(false);

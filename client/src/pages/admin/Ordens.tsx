@@ -27,11 +27,7 @@ const MOTIVO_LABEL: Record<string, string> = {
 };
 
 const CATS_FOTOS = [
-  { id: "mapa_calor",             label: "Mapa de Calor",  icon: "🌡️", color: "#f97316" },
-  { id: "fotos_ap",               label: "Etiqueta do AP", icon: "🏷️", color: "#8b5cf6" },
-  { id: "etiqueta_controladora",  label: "Controladora",   icon: "🖥️", color: "#06b6d4" },
-  { id: "etiqueta_nobreak",       label: "Nobreak",        icon: "🔋", color: "#10b981" },
-  { id: "etiqueta_switch",        label: "Switch",         icon: "🔀", color: "#f59e0b" },
+  { id: "mapa_calor", label: "Mapa de Calor", icon: "🌡️", color: "#f97316" },
 ] as const;
 
 function StatusBadge({ status }: { status: string }) {

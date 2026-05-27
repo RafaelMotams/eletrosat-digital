@@ -190,7 +190,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
         for (const foto of os.fotos) {
           try {
             // Valida categoria antes de enviar
-            const categoriasValidas = ["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
+            const categoriasValidas = ["mapa_calor"] as const;
             const catValida = categoriasValidas.includes(foto.categoria as typeof categoriasValidas[number]);
             if (!catValida) {
               console.warn("[SyncOffline] Categoria inválida, pulando:", foto.categoria);
@@ -204,12 +204,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
                   osId: osIdFinal,
                   escolaId: os.escolaId,
                   tecnicoId: os.tecnicoId,
-                  categoria: foto.categoria as
-                    | "mapa_calor"
-                    | "fotos_ap"
-                    | "etiqueta_controladora"
-                    | "etiqueta_nobreak"
-                    | "etiqueta_switch",
+                  categoria: foto.categoria as "mapa_calor",
                   imageBase64: foto.imageBase64,
                   mimeType: foto.mimeType,
                   // clientId garante idempotência: mesmo que o upload seja chamado

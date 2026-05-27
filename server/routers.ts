@@ -928,13 +928,13 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       return { url, key };
     }),
 
-  // Upload de foto por categoria (mapa_calor, fotos_ap, etiqueta_serial_ap, etiqueta_controladora, etiqueta_nobreak, etiqueta_switch)
+  // Upload de foto por categoria (apenas mapa_calor)
   uploadOsFoto: publicProcedure
     .input(z.object({
       osId: z.number(),
       escolaId: z.number(),
       tecnicoId: z.number(),
-      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]),
+      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]).default("mapa_calor"),
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
       // clientId: ID único gerado pelo app offline para garantir idempotência
@@ -982,7 +982,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .input(z.object({ osId: z.number() }))
     .query(async ({ input }) => {
       const counts = await countOsFotosByCategoria(input.osId);
-      const categorias = ["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"] as const;
+      const categorias = ["mapa_calor"] as const;
       const resultado: Record<string, boolean> = {};
       for (const cat of categorias) {
         resultado[cat] = (counts[cat] ?? 0) > 0;
