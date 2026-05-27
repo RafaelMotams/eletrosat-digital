@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { trpc } from "@/lib/trpc";
+import { trpc, trpcUploadClient } from "@/lib/trpc";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import {
@@ -1265,24 +1265,43 @@ export default function TecnicoOS() {
                 if (todasFotos.length > 0 && osIdFinal > 0) {
                   toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
                   let enviadas = 0;
+                  const fotasFalhadasLista: { catId: FotoCategoria; foto: FotoPendente; clientId: string }[] = [];
                   for (const { catId, foto } of todasFotos) {
-                    try {
-                      await uploadOsFotoMut.mutateAsync({
-                        osId: osIdFinal, escolaId, tecnicoId,
-                        categoria: catId, imageBase64: foto.base64, mimeType: foto.mime,
-                        clientId: `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                      });
+                    const clientId = `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                    let ok = false;
+                    // 3 tentativas por foto com backoff
+                    for (let tentativa = 1; tentativa <= 3; tentativa++) {
+                      try {
+                        // Usa httpLink (sem batching) para garantir request separado por foto
+                        await trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
+                          osId: osIdFinal, escolaId, tecnicoId,
+                          categoria: catId, imageBase64: foto.base64, mimeType: foto.mime,
+                          clientId,
+                        });
+                        ok = true;
+                        break;
+                      } catch (fotoErr) {
+                        const errMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
+                        console.error(`[OS] Tentativa ${tentativa}/3 falhou para foto ${catId}:`, errMsg);
+                        if (tentativa < 3) {
+                          await new Promise(r => setTimeout(r, tentativa * 1000));
+                        }
+                      }
+                    }
+                    if (ok) {
                       enviadas++;
-                    } catch (fotoErr) {
-                      console.error(`[OS] Erro ao enviar foto ${catId}:`, fotoErr);
+                      toast.loading(`Enviando fotos... ${enviadas}/${todasFotos.length}`, { id: "upload-all" });
+                    } else {
+                      fotasFalhadasLista.push({ catId, foto, clientId });
                     }
                   }
                   toast.dismiss("upload-all");
-                  const fotosFalhadas = todasFotos.length - enviadas;
+                  const fotosFalhadas = fotasFalhadasLista.length;
                   if (enviadas > 0 && fotosFalhadas === 0) {
                     toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
                   } else if (fotosFalhadas > 0) {
-                    toast.error(`${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada.`, { duration: 8000 });
+                    toast.error(`⚠️ ${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas (verifique a conexão). As demais foram salvas.`, { duration: 10000 });
+                    console.error("[OS] Fotos que falharam:", fotasFalhadasLista.map(f => f.catId));
                   }
                 }
                 // Remover escola da rota do dia ao concluir
@@ -1552,35 +1571,46 @@ export default function TecnicoOS() {
                       if (todasFotos.length > 0 && osIdFinal > 0) {
                         toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
                         let enviadas = 0;
+                        const fotasFalhadasLista2: { catId: FotoCategoria; foto: FotoPendente }[] = [];
                         for (const { catId, foto } of todasFotos) {
-                          try {
-                            await uploadOsFotoMut.mutateAsync({
-                              osId: osIdFinal,
-                              escolaId,
-                              tecnicoId,
-                              categoria: catId,
-                              imageBase64: foto.base64,
-                              mimeType: foto.mime,
-                              // clientId garante idempotência: se o usuário clicar duas vezes
-                              // ou a conexão cair durante o upload, o backend não duplica
-                              clientId: `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                            });
+                          const clientId = `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                          let ok = false;
+                          // 3 tentativas por foto com backoff exponencial
+                          for (let tentativa = 1; tentativa <= 3; tentativa++) {
+                            try {
+                              // Usa httpLink (sem batching) para garantir request separado por foto
+                              await trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
+                                osId: osIdFinal, escolaId, tecnicoId,
+                                categoria: catId, imageBase64: foto.base64, mimeType: foto.mime,
+                                clientId,
+                              });
+                              ok = true;
+                              break;
+                            } catch (fotoErr) {
+                              const fotoErrMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
+                              console.error(`[OS] Tentativa ${tentativa}/3 falhou para foto ${catId}:`, fotoErrMsg);
+                              if (tentativa < 3) {
+                                await new Promise(r => setTimeout(r, tentativa * 1000));
+                              }
+                            }
+                          }
+                          if (ok) {
                             enviadas++;
-                          } catch (fotoErr) {
-                            const fotoErrMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
-                            console.error(`[OS] Erro ao enviar foto ${catId}:`, fotoErrMsg);
-                            // continua com as outras fotos mesmo se uma falhar
+                            toast.loading(`Enviando fotos... ${enviadas}/${todasFotos.length}`, { id: "upload-all" });
+                          } else {
+                            fotasFalhadasLista2.push({ catId, foto });
                           }
                         }
                         toast.dismiss("upload-all");
-                        const fotosFalhadas = todasFotos.length - enviadas;
+                        const fotosFalhadas = fotasFalhadasLista2.length;
                         if (enviadas > 0 && fotosFalhadas === 0) {
                           toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
                         } else if (fotosFalhadas > 0) {
                           toast.error(
-                            `${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada, mas verifique as fotos.`,
-                            { duration: 8000 }
+                            `⚠️ ${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas. A OS foi registrada, mas verifique a conexão.`,
+                            { duration: 10000 }
                           );
+                          console.error("[OS] Fotos que falharam (modal):", fotasFalhadasLista2.map(f => f.catId));
                         }
                       }
 

@@ -1,0 +1,19 @@
+{
+  "query": "\nSELECT os.id, os.escolaId, os.tecnicoId, os.status, os.createdAt, os.updatedAt,\n       t.nome as tecnico_nome\nFROM ordens_servico os\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.escolaId = 420261\nORDER BY os.createdAt DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT os.id, os.escolaId, os.tecnicoId, os.status, os.createdAt, os.updatedAt,\n       t.nome as tecnico_nome\nFROM ordens_servico os\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.escolaId = 420261\nORDER BY os.createdAt DESC;\n",
+  "rows": [
+    {
+      "id": "1440001",
+      "escolaId": "420261",
+      "tecnicoId": "150001",
+      "status": "concluida",
+      "createdAt": "2026-05-27 15:43:36",
+      "updatedAt": "2026-05-27 15:44:38",
+      "tecnico_nome": "Rodrigo Mota"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tescolaId\ttecnicoId\tstatus\tcreatedAt\tupdatedAt\ttecnico_nome\n1440001\t420261\t150001\tconcluida\t2026-05-27 15:43:36\t2026-05-27 15:44:38\tRodrigo Mota\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

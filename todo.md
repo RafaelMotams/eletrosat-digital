@@ -429,3 +429,9 @@
 ## Melhorias Rota do Dia (26/05/2026)
 - [x] Ao concluir OS, escola é removida automaticamente da lista da Rota do Dia (localStorage tecnico_rota_dia)
 - [x] Botão "Iniciar Rota" na tela RotaDia.tsx: navega para a primeira escola da rota ao clicar
+
+## Correção de Bug - Upload de Fotos (27/05/2026)
+- [x] Bug crítico: upload de fotos usava httpBatchLink (agrupava múltiplas fotos em 1 request) — substituído por trpcUploadClient com httpLink (1 request por foto) em ambos os fluxos de conclusão
+- [x] Bug crítico: upload ao Google Drive era feito ANTES das fotos serem enviadas ao S3 — corrigido para agendar o Drive 30s após a conclusão da OS
+- [x] Melhoria: retry automático (3 tentativas com backoff 1s/2s) por foto no fluxo online
+- [x] Melhoria: toast de progresso mostra "Enviando fotos... X/Y" durante o upload

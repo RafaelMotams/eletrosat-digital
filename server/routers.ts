@@ -873,30 +873,33 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
         });
 
-        // Upload síncrono das fotos para o Google Drive
-        try {
-          const fotos = await listOsFotos(osId);
-          // Passa as URLs relativas diretamente — googleDrive.ts resolve via storageGetSignedUrl
-          const fotoUrls = fotos
-            .filter(f => f.url)
-            .map(f => f.url);
-          if (input.fotoMapaCalorUrl) {
-            fotoUrls.unshift(input.fotoMapaCalorUrl);
+        // NOTA: O upload ao Google Drive é feito DEPOIS que as fotos são enviadas ao S3
+        // via uploadOsFoto. O Drive é acionado pelo endpoint reenviarParaDrive ou
+        // automaticamente 30s após a conclusão da OS para garantir que todas as fotos
+        // já estejam salvas no S3 antes de tentar enviar ao Drive.
+        // Aqui fazemos apenas um agendamento assíncrono (não bloqueante).
+        const osIdCapturado = osId;
+        const tecnicoNomeCapturado = tecnico?.nome ?? "Tecnico";
+        const escolaNomeCapturado = escola.nome ?? `Escola-${input.escolaId}`;
+        setTimeout(async () => {
+          try {
+            const fotos = await listOsFotos(osIdCapturado);
+            const fotoUrls = fotos.filter(f => f.url).map(f => f.url);
+            if (input.fotoMapaCalorUrl) fotoUrls.unshift(input.fotoMapaCalorUrl);
+            if (fotoUrls.length > 0) {
+              const dataOS = new Date().toISOString().split("T")[0];
+              const result = await uploadFotosOSParaDrive({
+                tecnicoNome: tecnicoNomeCapturado,
+                escolaNome: escolaNomeCapturado,
+                fotos: fotoUrls,
+                dataOS,
+              });
+              console.log(`[Drive] OS ${osIdCapturado}: ${result.sucesso}/${result.total} fotos enviadas para o Drive (agendado)`);
+            }
+          } catch (driveErr) {
+            console.error(`[Drive] Erro ao enviar fotos da OS ${osIdCapturado} ao Drive (agendado):`, driveErr);
           }
-          if (fotoUrls.length > 0) {
-            const dataOS = new Date().toISOString().split("T")[0];
-            const result = await uploadFotosOSParaDrive({
-              tecnicoNome: tecnico?.nome ?? "Tecnico",
-              escolaNome: escola.nome ?? `Escola-${input.escolaId}`,
-              fotos: fotoUrls,
-              dataOS,
-            });
-            console.log(`[Drive] OS ${osId}: ${result.sucesso}/${result.total} fotos enviadas para o Drive`);
-          }
-        } catch (driveErr) {
-          // Não bloqueia a conclusão da OS se o Drive falhar
-          console.error(`[Drive] Erro ao enviar fotos da OS ${osId}:`, driveErr);
-        }
+        }, 30000); // 30s de espera para garantir que todas as fotos já foram enviadas ao S3
       }
       return { osId };
     }),

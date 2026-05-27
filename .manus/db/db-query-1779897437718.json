@@ -1,0 +1,37 @@
+{
+  "query": "\nSELECT f.id, f.osId, f.escolaId, f.tecnicoId, f.categoria, f.createdAt, f.clientId\nFROM os_fotos f\nWHERE f.escolaId = 420261\nORDER BY f.categoria, f.createdAt;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT f.id, f.osId, f.escolaId, f.tecnicoId, f.categoria, f.createdAt, f.clientId\nFROM os_fotos f\nWHERE f.escolaId = 420261\nORDER BY f.categoria, f.createdAt;\n",
+  "rows": [
+    {
+      "id": "720001",
+      "osId": "1440001",
+      "escolaId": "420261",
+      "tecnicoId": "150001",
+      "categoria": "mapa_calor",
+      "createdAt": "2026-05-27 15:44:39",
+      "clientId": "online-420261-mapa_calor-1779896678677-brn3qsyx39h"
+    },
+    {
+      "id": "720002",
+      "osId": "1440001",
+      "escolaId": "420261",
+      "tecnicoId": "150001",
+      "categoria": "fotos_ap",
+      "createdAt": "2026-05-27 15:44:40",
+      "clientId": "online-420261-fotos_ap-1779896679388-1tcszviu528j"
+    },
+    {
+      "id": "720003",
+      "osId": "1440001",
+      "escolaId": "420261",
+      "tecnicoId": "150001",
+      "categoria": "fotos_ap",
+      "createdAt": "2026-05-27 15:45:01",
+      "clientId": "online-420261-fotos_ap-1779896680812-wk7imcwrqmq"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tosId\tescolaId\ttecnicoId\tcategoria\tcreatedAt\tclientId\n720001\t1440001\t420261\t150001\tmapa_calor\t2026-05-27 15:44:39\tonline-420261-mapa_calor-1779896678677-brn3qsyx39h\n720002\t1440001\t420261\t150001\tfotos_ap\t2026-05-27 15:44:40\tonline-420261-fotos_ap-1779896679388-1tcszviu528j\n720003\t1440001\t420261\t150001\tfotos_ap\t2026-05-27 15:45:01\tonline-420261-fotos_ap-1779896680812-wk7imcwrqmq\n",
+  "stderr": "",
+  "execution_time_ms": 269
+}

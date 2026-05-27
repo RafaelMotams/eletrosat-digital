@@ -1,0 +1,34 @@
+{
+  "query": "\nSELECT f.id, f.osId, f.categoria, f.url, f.fileKey, f.createdAt\nFROM os_fotos f\nWHERE f.osId = 1440001\nORDER BY f.categoria, f.createdAt;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT f.id, f.osId, f.categoria, f.url, f.fileKey, f.createdAt\nFROM os_fotos f\nWHERE f.osId = 1440001\nORDER BY f.categoria, f.createdAt;\n",
+  "rows": [
+    {
+      "id": "720001",
+      "osId": "1440001",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-1440001-1779896679254_d8b65fde.jpg",
+      "fileKey": "os-fotos/mapa_calor/os-1440001-1779896679254.jpg",
+      "createdAt": "2026-05-27 15:44:39"
+    },
+    {
+      "id": "720002",
+      "osId": "1440001",
+      "categoria": "fotos_ap",
+      "url": "/manus-storage/os-fotos/fotos_ap/os-1440001-1779896680786_7eb910d0.jpg",
+      "fileKey": "os-fotos/fotos_ap/os-1440001-1779896680786.jpg",
+      "createdAt": "2026-05-27 15:44:40"
+    },
+    {
+      "id": "720003",
+      "osId": "1440001",
+      "categoria": "fotos_ap",
+      "url": "/manus-storage/os-fotos/fotos_ap/os-1440001-1779896701393_a997491f.jpg",
+      "fileKey": "os-fotos/fotos_ap/os-1440001-1779896701393.jpg",
+      "createdAt": "2026-05-27 15:45:01"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tosId\tcategoria\turl\tfileKey\tcreatedAt\n720001\t1440001\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-1440001-1779896679254_d8b65fde.jpg\tos-fotos/mapa_calor/os-1440001-1779896679254.jpg\t2026-05-27 15:44:39\n720002\t1440001\tfotos_ap\t/manus-storage/os-fotos/fotos_ap/os-1440001-1779896680786_7eb910d0.jpg\tos-fotos/fotos_ap/os-1440001-1779896680786.jpg\t2026-05-27 15:44:40\n720003\t1440001\tfotos_ap\t/manus-storage/os-fotos/fotos_ap/os-1440001-1779896701393_a997491f.jpg\tos-fotos/fotos_ap/os-1440001-1779896701393.jpg\t2026-05-27 15:45:01\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT os.id, os.escola_id, os.tecnico_id, os.status, os.created_at, os.updated_at,\n       t.nome as tecnico_nome\nFROM ordens_servico os\nLEFT JOIN tecnicos t ON t.id = os.tecnico_id\nWHERE os.escola_id = 420261\nORDER BY os.created_at DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT os.id, os.escola_id, os.tecnico_id, os.status, os.created_at, os.updated_at,\n       t.nome as tecnico_nome\nFROM ordens_servico os\nLEFT JOIN tecnicos t ON t.id = os.tecnico_id\nWHERE os.escola_id = 420261\nORDER BY os.created_at DESC;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'os.tecnico_id' in 'on clause'"
+  ]
+}

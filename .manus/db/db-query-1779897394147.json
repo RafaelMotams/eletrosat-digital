@@ -1,0 +1,16 @@
+{
+  "query": "\nSELECT e.id, e.nome, e.inep, e.status\nFROM escolas e\nWHERE e.nome LIKE '%Mirins%' OR e.nome LIKE '%mirins%' OR e.nome LIKE '%MIRINS%'\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT e.id, e.nome, e.inep, e.status\nFROM escolas e\nWHERE e.nome LIKE '%Mirins%' OR e.nome LIKE '%mirins%' OR e.nome LIKE '%MIRINS%'\nLIMIT 10;\n",
+  "rows": [
+    {
+      "id": "420261",
+      "nome": "ESCOLA MIRINS COM ALEGRIA",
+      "inep": "29120543",
+      "status": "concluido"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\tinep\tstatus\n420261\tESCOLA MIRINS COM ALEGRIA\t29120543\tconcluido\n",
+  "stderr": "",
+  "execution_time_ms": 2667
+}
