@@ -401,6 +401,7 @@ export default function AdminOrdens() {
   });
 
   function getEscolaNome(id: number) { return escolas?.find(e => e.id === id)?.nome ?? `Escola #${id}`; }
+  function getEscolaInep(id: number) { return escolas?.find(e => e.id === id)?.inep ?? null; }
   function getTecnicoNome(id: number) { return tecnicos?.find(t => t.id === id)?.nome ?? `Técnico #${id}`; }
 
   const filtered = useMemo(() => {
@@ -578,7 +579,12 @@ export default function AdminOrdens() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{getEscolaNome(os.escolaId)}</p>
-                      <p className="text-xs text-muted-foreground">OS #{os.id}</p>
+                      <div className="flex items-center gap-2">
+                        {getEscolaInep(os.escolaId) && (
+                          <span className="text-xs font-mono text-muted-foreground">INEP: {getEscolaInep(os.escolaId)}</span>
+                        )}
+                        <span className="text-xs text-muted-foreground">OS #{os.id}</span>
+                      </div>
                     </div>
                   </div>
                   {/* Técnico */}
