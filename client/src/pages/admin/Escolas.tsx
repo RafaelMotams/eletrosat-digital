@@ -27,7 +27,7 @@ export default function AdminEscolas() {
   const { data: escolas, isLoading, refetch } = trpc.escolas.list.useQuery({});
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("nao_concluidas");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [deleteCidadeOpen, setDeleteCidadeOpen] = useState(false);
   const [cidadeSelecionada, setCidadeSelecionada] = useState("");
@@ -74,7 +74,10 @@ export default function AdminEscolas() {
       e.nome.toLowerCase().includes(search.toLowerCase()) ||
       (e.municipio ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (e.inep ?? "").includes(search);
-    const matchStatus = statusFilter === "todos" || e.status === statusFilter;
+    const matchStatus =
+      statusFilter === "todos" ||
+      (statusFilter === "nao_concluidas" && e.status !== "concluido") ||
+      e.status === statusFilter;
     return matchSearch && matchStatus;
   }) ?? [];
 
@@ -336,14 +339,21 @@ export default function AdminEscolas() {
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {["todos", "pendente", "em_andamento", "concluido", "nao_instalada"].map(s => (
+          {[
+            { value: "nao_concluidas", label: "Não concluídas" },
+            { value: "todos", label: "Todas" },
+            { value: "pendente", label: statusLabel["pendente"] },
+            { value: "em_andamento", label: statusLabel["em_andamento"] },
+            { value: "concluido", label: statusLabel["concluido"] },
+            { value: "nao_instalada", label: statusLabel["nao_instalada"] },
+          ].map(s => (
             <Button
-              key={s}
-              variant={statusFilter === s ? "default" : "outline"}
+              key={s.value}
+              variant={statusFilter === s.value ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(s)}
+              onClick={() => setStatusFilter(s.value)}
             >
-              {s === "todos" ? "Todos" : statusLabel[s]}
+              {s.label}
             </Button>
           ))}
         </div>
