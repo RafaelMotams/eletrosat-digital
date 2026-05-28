@@ -82,7 +82,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   nao_instalada:{ label: "Não instalada",color: "#ef4444", bg: "rgba(239,68,68,0.1)",   border: "rgba(239,68,68,0.2)",   icon: AlertCircle },
 };
 
-type FilterType = "todos" | "pendente" | "em_andamento" | "concluido" | "nao_instalada";
+type FilterType = "todos" | "pendente" | "em_andamento" | "concluido" | "nao_instalada" | "nao_concluidas";
 
 // Welcome modal — shows only on first login
 function WelcomeModal({ nome, onClose }: { nome: string; onClose: () => void }) {
@@ -120,7 +120,7 @@ export default function TecnicoHome() {
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
   const [locating, setLocating] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("nao_concluidas");
   // Welcome modal removido conforme solicitado
   const [pendingOsCount, setPendingOsCount] = useState(0);
   const isOnline = useOnlineStatus();
@@ -236,9 +236,12 @@ export default function TecnicoHome() {
   const finalSorted = routeEscolas();
 
   // Apply filter
-  const filteredByStatus = activeFilter === "todos"
-    ? finalSorted
-    : finalSorted.filter(e => e.status === activeFilter);
+  const filteredByStatus =
+    activeFilter === "todos"
+      ? finalSorted
+      : activeFilter === "nao_concluidas"
+      ? finalSorted.filter(e => e.status !== "concluido")
+      : finalSorted.filter(e => e.status === activeFilter);
 
   const filtered = filteredByStatus.filter(e =>
     !search || e.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -272,12 +275,14 @@ export default function TecnicoHome() {
     );
   }
 
+  const naoConcluidasCount = pendentes + emAndamento + naoInstaladas;
   const filterTabs: { key: FilterType; label: string; count: number; color: string }[] = [
-    { key: "todos",        label: "Todos",       count: total,        color: "#94a3b8" },
-    { key: "pendente",     label: "Pendentes",   count: pendentes,    color: "#f59e0b" },
-    { key: "em_andamento", label: "Andamento",   count: emAndamento,  color: "#3b82f6" },
-    { key: "concluido",    label: "Concluídos",  count: concluidas,   color: "#10b981" },
-    { key: "nao_instalada",label: "Não inst.",   count: naoInstaladas,color: "#ef4444" },
+    { key: "nao_concluidas", label: "Ativos",      count: naoConcluidasCount, color: "#6366f1" },
+    { key: "todos",          label: "Todos",       count: total,             color: "#94a3b8" },
+    { key: "pendente",       label: "Pendentes",   count: pendentes,         color: "#f59e0b" },
+    { key: "em_andamento",   label: "Andamento",   count: emAndamento,       color: "#3b82f6" },
+    { key: "concluido",      label: "Concluídos",  count: concluidas,        color: "#10b981" },
+    { key: "nao_instalada",  label: "Não inst.",   count: naoInstaladas,     color: "#ef4444" },
   ];
 
   return (
