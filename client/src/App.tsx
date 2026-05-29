@@ -32,7 +32,7 @@ const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnic
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const OS_ROUTE_KEY = "tecnico_active_os_route";
 const OS_ROUTE_TS_KEY = "tecnico_active_os_ts";
-const OS_ROUTE_TTL = 4 * 60 * 60 * 1000; // 4 horas em ms
+const OS_ROUTE_TTL = 12 * 60 * 60 * 1000; // 12 horas em ms
 
 // ESTRATÉGIA DE PERSISTÊNCIA:
 // - localStorage (OS_ROUTE_KEY): rota de OS ativa com timestamp. Persiste ao abrir câmera,
@@ -64,25 +64,26 @@ function RoutePersistence() {
     const activeOsRoute = localStorage.getItem(OS_ROUTE_KEY);
     const activeOsTs = parseInt(localStorage.getItem(OS_ROUTE_TS_KEY) || "0", 10);
     const lastMenuRoute = localStorage.getItem("tecnico_last_route");
+    // Considera qualquer rota que não seja a OS em si como candidata a redirect
     const isAtRoot = location === "/" || location === "";
-    const isAtTecnicoHome = location === "/tecnico";
+    const isAtTecnicoMenu = TECNICO_ROUTES.includes(location);
 
-    // Verificar se a OS ativa ainda é válida (dentro do TTL de 4h)
+    // Verificar se a OS ativa ainda é válida (dentro do TTL de 12h)
     const osRouteValida = activeOsRoute &&
       activeOsRoute.startsWith(TECNICO_OS_PREFIX) &&
       (Date.now() - activeOsTs) < OS_ROUTE_TTL;
 
     if (osRouteValida) {
-      // Há uma OS ativa válida (técnico foi para câmera/WhatsApp/Maps)
-      if (isAtRoot || isAtTecnicoHome) {
-        // Retorna para a OS onde estava
+      // Há uma OS ativa válida — redireciona de qualquer tela de menu ou raiz
+      if (isAtRoot || isAtTecnicoMenu) {
         navigate(activeOsRoute!, { replace: true });
       }
     } else {
-      // Sem OS ativa ou expirada (app foi fechado e reaberto após 4h)
+      // Sem OS ativa ou expirada
       localStorage.removeItem(OS_ROUTE_KEY);
       localStorage.removeItem(OS_ROUTE_TS_KEY);
-      if (isAtRoot && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
+      // Restaura última tela de menu visitada (ex: Mapa, Histórico, Rota)
+      if ((isAtRoot || location === "/tecnico") && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
         navigate(lastMenuRoute, { replace: true });
       }
     }
