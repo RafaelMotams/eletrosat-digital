@@ -103,17 +103,18 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     // Larguras
     ws.columns = [
-      { key: "seq",       width: 5  },
-      { key: "escola",    width: 40 },
-      { key: "inep",      width: 13 },
-      { key: "municipio", width: 20 },
-      { key: "data",      width: 13 },
-      { key: "aps",       width: 10 },
-      { key: "valorAp",   width: 16 },
-      { key: "total",     width: 18 },
+      { key: "seq",        width: 5  },
+      { key: "escola",     width: 38 },
+      { key: "inep",       width: 13 },
+      { key: "municipio",  width: 20 },
+      { key: "data",       width: 13 },
+      { key: "aps",        width: 10 },
+      { key: "valorAp",    width: 16 },
+      { key: "total",      width: 18 },
+      { key: "observacao", width: 35 },
     ];
 
-    const NCOLS = 8;
+    const NCOLS = 9;
 
     // ── Cabeçalho principal ──────────────────────────────────────────────────
     ws.mergeCells(1, 1, 1, NCOLS);
@@ -156,7 +157,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       rowIdx++;
 
       // Cabeçalho das colunas
-      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)"];
+      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)", "Observação"];
       const colRow = ws.getRow(rowIdx);
       colRow.height = 22;
       colHeaders.forEach((v, i) => {
@@ -187,6 +188,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           os.qtdApInstalado ?? 0,
           valorPorAp,
           total,
+          os.observacao ?? "",
         ];
 
         const dataRow = ws.getRow(rowIdx);
@@ -198,11 +200,12 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
             i === 0 ? "center" :
             i === 2 ? "center" :
             i === 4 ? "center" :
+            i === 8 ? "left" :
             i >= 5 ? "right" : "left";
           aplicarEstiloCelula(cell, {
             bg, fg: C.cinzaEscuro, size: 9,
             hAlign,
-            wrap: i === 1,
+            wrap: i === 1 || i === 8,
             numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
             border: borda(),
           });
@@ -218,7 +221,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       subRow.height = 22;
       const subLabels: (string | number)[] = [
         "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
-        "", totalAps, valorPorAp, totalTecnico,
+        "", totalAps, valorPorAp, totalTecnico, "",
       ];
       subLabels.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
@@ -241,7 +244,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const totalApsGeral = concluidas.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
     const totalGeralVal = valorPorAp * totalApsGeral;
 
-    ws.mergeCells(rowIdx, 1, rowIdx, 5);
+    ws.mergeCells(rowIdx, 1, rowIdx, 6);
     const tgLabel = ws.getCell(rowIdx, 1);
     tgLabel.value = `TOTAL GERAL — ${concluidas.length} OS Concluídas`;
     aplicarEstiloCelula(tgLabel, {
@@ -249,21 +252,21 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       hAlign: "right", border: bordaMedia(),
     });
 
-    const tgAps = ws.getCell(rowIdx, 6);
+    const tgAps = ws.getCell(rowIdx, 7);
     tgAps.value = totalApsGeral;
     aplicarEstiloCelula(tgAps, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
       hAlign: "right", border: bordaMedia(),
     });
 
-    const tgValAp = ws.getCell(rowIdx, 7);
+    const tgValAp = ws.getCell(rowIdx, 8);
     tgValAp.value = valorPorAp;
     aplicarEstiloCelula(tgValAp, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
       hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
     });
 
-    const tgTotal = ws.getCell(rowIdx, 8);
+    const tgTotal = ws.getCell(rowIdx, 9);
     tgTotal.value = totalGeralVal;
     aplicarEstiloCelula(tgTotal, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 13,
@@ -386,15 +389,16 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       properties: { tabColor: { argb: vermelho } },
     });
 
-    const NCOLS3 = 7;
+    const NCOLS3 = 8;
     ws3.columns = [
-      { key: "seq",       width: 5  },
-      { key: "escola",    width: 42 },
-      { key: "inep",      width: 13 },
-      { key: "municipio", width: 20 },
-      { key: "tecnico",   width: 24 },
-      { key: "motivo",    width: 24 },
-      { key: "data",      width: 14 },
+      { key: "seq",        width: 5  },
+      { key: "escola",     width: 40 },
+      { key: "inep",       width: 13 },
+      { key: "municipio",  width: 20 },
+      { key: "tecnico",    width: 24 },
+      { key: "motivo",     width: 24 },
+      { key: "data",       width: 14 },
+      { key: "observacao", width: 35 },
     ];
 
     // Título
@@ -420,7 +424,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     ws3.getRow(4).height = 6;
 
     // Cabeçalho das colunas
-    const niColHeaders = ["#", "Nome da Escola", "INEP", "Município", "Técnico", "Motivo", "Data"];
+    const niColHeaders = ["#", "Nome da Escola", "INEP", "Município", "Técnico", "Motivo", "Data", "Observação"];
     const niHeaderRow = ws3.getRow(5);
     niHeaderRow.height = 22;
     niColHeaders.forEach((v, i) => {
@@ -455,6 +459,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           ni.tecnicoNome,
           ni.motivoLabel,
           dataStr,
+          ni.observacao ?? "",
         ];
 
         const niRow = ws3.getRow(6 + idx);
@@ -470,7 +475,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           aplicarEstiloCelula(cell, {
             bg, fg: C.cinzaEscuro, size: 9,
             hAlign,
-            wrap: i === 1,
+            wrap: i === 1 || i === 7,
             border: borda(),
           });
           // Destaque na coluna de motivo
