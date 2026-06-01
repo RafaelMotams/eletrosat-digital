@@ -1144,15 +1144,15 @@ export default function TecnicoOS() {
           {/* Observações */}
           <div className="mb-5">
             <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-              <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+              <FileText className="w-3.5 h-3.5" /> RDO — Relatório Diário de Obra <span style={{ color: "#f87171" }}>*</span>
             </label>
             <textarea
-              rows={2}
+              rows={3}
               value={observacao}
               onChange={e => setObservacao(e.target.value)}
-              placeholder="Alguma observação sobre a instalação..."
+              placeholder="Descreva o que foi feito na instalação (obrigatório)..."
               className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
+              style={{ background: "rgba(255,255,255,0.05)", border: `1.5px solid ${observacao.trim() ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.09)'}` }}
             />
           </div>
 
@@ -1182,6 +1182,7 @@ export default function TecnicoOS() {
             onClick={async () => {
               const n = parseInt(qtdAp);
               if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
+              if (!observacao.trim()) { toast.error("Preencha o RDO antes de finalizar"); return; }
 
               // Modo offline
               if (!isOnline) {
@@ -1429,15 +1430,15 @@ export default function TecnicoOS() {
               {/* Observações */}
               <div className="mb-5">
                 <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-                  <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+                  <FileText className="w-3.5 h-3.5" /> RDO — Relatório Diário de Obra <span style={{ color: "#f87171" }}>*</span>
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={observacao}
                   onChange={e => setObservacao(e.target.value)}
-                  placeholder="Alguma observação sobre a instalação..."
+                  placeholder="Descreva o que foi feito na instalação (obrigatório)..."
                   className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
+                  style={{ background: "rgba(255,255,255,0.05)", border: `1.5px solid ${observacao.trim() ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.09)'}` }}
                 />
               </div>
 
@@ -1481,6 +1482,10 @@ export default function TecnicoOS() {
                     const n = parseInt(qtdAp);
                     if (!qtdAp || isNaN(n) || n < 1) {
                       toast.error("Informe a quantidade de APs instalados");
+                      return;
+                    }
+                    if (!observacao.trim()) {
+                      toast.error("Preencha o RDO antes de finalizar");
                       return;
                     }
 

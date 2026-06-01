@@ -1,0 +1,90 @@
+{
+  "query": "SELECT id, escolaId, status, qtdApInstalado, observacao, dataConclusao FROM ordens_servico WHERE observacao IS NOT NULL AND observacao != '' LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute SELECT id, escolaId, status, qtdApInstalado, observacao, dataConclusao FROM ordens_servico WHERE observacao IS NOT NULL AND observacao != '' LIMIT 10;",
+  "rows": [
+    {
+      "id": "1350001",
+      "escolaId": "420024",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluido ",
+      "dataConclusao": "2026-05-27 16:42:38"
+    },
+    {
+      "id": "1560001",
+      "escolaId": "420023",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-27 21:55:02"
+    },
+    {
+      "id": "1620001",
+      "escolaId": "420022",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-28 02:21:28"
+    },
+    {
+      "id": "1890001",
+      "escolaId": "420244",
+      "status": "concluida",
+      "qtdApInstalado": "4",
+      "observacao": "Aguardando só a RE ",
+      "dataConclusao": "2026-05-29 13:16:44"
+    },
+    {
+      "id": "1920001",
+      "escolaId": "420019",
+      "status": "concluida",
+      "qtdApInstalado": "6",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-29 12:14:23"
+    },
+    {
+      "id": "1980001",
+      "escolaId": "420315",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-29 14:01:24"
+    },
+    {
+      "id": "2040001",
+      "escolaId": "420242",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Aguardando só a RE ",
+      "dataConclusao": "2026-05-29 15:04:33"
+    },
+    {
+      "id": "2070001",
+      "escolaId": "420303",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Falta rede externa",
+      "dataConclusao": "2026-05-29 17:28:31"
+    },
+    {
+      "id": "2130001",
+      "escolaId": "420264",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-29 22:59:21"
+    },
+    {
+      "id": "2160001",
+      "escolaId": "420320",
+      "status": "concluida",
+      "qtdApInstalado": "1",
+      "observacao": "Concluído ",
+      "dataConclusao": "2026-05-29 19:45:12"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tescolaId\tstatus\tqtdApInstalado\tobservacao\tdataConclusao\n1350001\t420024\tconcluida\t1\tConcluido \t2026-05-27 16:42:38\n1560001\t420023\tconcluida\t1\tConcluído \t2026-05-27 21:55:02\n1620001\t420022\tconcluida\t1\tConcluído \t2026-05-28 02:21:28\n1890001\t420244\tconcluida\t4\tAguardando só a RE \t2026-05-29 13:16:44\n1920001\t420019\tconcluida\t6\tConcluído \t2026-05-29 12:14:23\n1980001\t420315\tconcluida\t1\tConcluído \t2026-05-29 14:01:24\n2040001\t420242\tconcluida\t1\tAguardando só a RE \t2026-05-29 15:04:33\n2070001\t420303\tconcluida\t1\tFalta rede externa\t2026-05-29 17:28:31\n2130001\t420264\tconcluida\t1\tConcluído \t2026-05-29 22:59:21\n2160001\t420320\tconcluida\t1\tConcluído \t2026-05-29 19:45:12\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}
