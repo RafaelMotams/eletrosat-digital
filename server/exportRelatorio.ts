@@ -196,23 +196,8 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         dataRow.height = 20;
         vals.forEach((v, i) => {
           const cell = ws.getCell(rowIdx, i + 1);
-          // Coluna do nome da escola (índice 1): adicionar hyperlink se tiver foto
-          if (i === 1 && (os as any).fotoMapaCalorUrl) {
-            const fotoUrl = (os as any).fotoMapaCalorUrl as string;
-            // Montar URL absoluta se for relativa
-            const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
-            cell.value = {
-              text: os.escolaNome,
-              hyperlink: urlAbsoluta,
-              tooltip: `Ver mapa de calor: ${os.escolaNome}`,
-            };
-            aplicarEstiloCelula(cell, {
-              bg, fg: C.azulClaro, size: 9,
-              hAlign: "left",
-              wrap: true,
-              border: borda(),
-            });
-            cell.font = { ...cell.font, underline: true, color: { argb: C.azulClaro } };
+          if (false) {
+            // placeholder removido
           } else {
             cell.value = v;
             const hAlign: ExcelJS.Alignment["horizontal"] =
@@ -236,11 +221,12 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         const fotoUrl = (os as any).fotoMapaCalorUrl as string | null;
         if (fotoUrl) {
           const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
-          fotoCell.value = { text: "📷 Ver Foto", hyperlink: urlAbsoluta, tooltip: "Clique para ver o mapa de calor" };
+          // ExcelJS: definir valor como {text, hyperlink} via cast any
+          (fotoCell as any).value = { text: "Ver Foto", hyperlink: urlAbsoluta };
           aplicarEstiloCelula(fotoCell, { bg, fg: C.azulClaro, size: 9, hAlign: "center", border: borda() });
-          fotoCell.font = { name: "Calibri", size: 9, underline: true, color: { argb: C.azulClaro }, bold: true };
+          fotoCell.font = { name: "Calibri", size: 9, underline: true, color: { argb: "FF0563C1" }, bold: true };
         } else {
-          fotoCell.value = "—";
+          fotoCell.value = "Sem foto";
           aplicarEstiloCelula(fotoCell, { bg, fg: C.cinzaMedio, size: 9, hAlign: "center", border: borda() });
         }
 
