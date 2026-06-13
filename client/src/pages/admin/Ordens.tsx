@@ -271,6 +271,7 @@ export default function AdminOrdens() {
   const [escolaSel, setEscolaSel] = useState("");
   const [tecnicoSel, setTecnicoSel] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [tecnicoFilter, setTecnicoFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [fotoModal, setFotoModal] = useState<string | null>(null);
   const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaId: number; escolaNome: string } | null>(null);
@@ -407,6 +408,7 @@ export default function AdminOrdens() {
   const filtered = useMemo(() => {
     let list = ordens ?? [];
     if (statusFilter !== "todos") list = list.filter(o => o.status === statusFilter);
+    if (tecnicoFilter !== "todos") list = list.filter(o => String(o.tecnicoId) === tecnicoFilter);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(o =>
@@ -417,7 +419,7 @@ export default function AdminOrdens() {
       );
     }
     return list;
-  }, [ordens, statusFilter, searchQuery, escolas, tecnicos]);
+  }, [ordens, statusFilter, tecnicoFilter, searchQuery, escolas, tecnicos]);
 
   const counts = useMemo(() => {
     const all = ordens ?? [];
@@ -487,6 +489,17 @@ export default function AdminOrdens() {
                 <SelectItem value="em_andamento">Em andamento ({counts.em_andamento})</SelectItem>
                 <SelectItem value="concluida">Concluídas ({counts.concluida})</SelectItem>
                 <SelectItem value="nao_instalada">Não instaladas ({counts.nao_instalada})</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={tecnicoFilter} onValueChange={setTecnicoFilter}>
+              <SelectTrigger className="w-44 rounded-xl">
+                <SelectValue placeholder="Todos os técnicos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os técnicos</SelectItem>
+                {tecnicos?.slice().sort((a, b) => a.nome.localeCompare(b.nome)).map(t => (
+                  <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
