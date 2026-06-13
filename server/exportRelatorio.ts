@@ -112,9 +112,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       { key: "valorAp",    width: 16 },
       { key: "total",      width: 18 },
       { key: "observacao", width: 35 },
+      { key: "foto",       width: 14 },
     ];
 
-    const NCOLS = 9;
+    const NCOLS = 10;
 
     // ── Cabeçalho principal ──────────────────────────────────────────────────
     ws.mergeCells(1, 1, 1, NCOLS);
@@ -157,7 +158,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       rowIdx++;
 
       // Cabeçalho das colunas
-      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)", "Observação"];
+      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)", "Observação", "📷 Ver Foto"];
       const colRow = ws.getRow(rowIdx);
       colRow.height = 22;
       colHeaders.forEach((v, i) => {
@@ -229,6 +230,20 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
             });
           }
         });
+
+        // Coluna 10: link direto para a foto (coluna separada)
+        const fotoCell = ws.getCell(rowIdx, 10);
+        const fotoUrl = (os as any).fotoMapaCalorUrl as string | null;
+        if (fotoUrl) {
+          const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
+          fotoCell.value = { text: "📷 Ver Foto", hyperlink: urlAbsoluta, tooltip: "Clique para ver o mapa de calor" };
+          aplicarEstiloCelula(fotoCell, { bg, fg: C.azulClaro, size: 9, hAlign: "center", border: borda() });
+          fotoCell.font = { name: "Calibri", size: 9, underline: true, color: { argb: C.azulClaro }, bold: true };
+        } else {
+          fotoCell.value = "—";
+          aplicarEstiloCelula(fotoCell, { bg, fg: C.cinzaMedio, size: 9, hAlign: "center", border: borda() });
+        }
+
         rowIdx++;
       });
 
@@ -240,7 +255,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       subRow.height = 22;
       const subLabels: (string | number)[] = [
         "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
-        "", totalAps, valorPorAp, totalTecnico, "",
+        "", totalAps, valorPorAp, totalTecnico, "", "",
       ];
       subLabels.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
@@ -291,6 +306,12 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 13,
       hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
     });
+
+    // Coluna 10 do total geral (foto) — vazia
+    const tgFoto = ws.getCell(rowIdx, 10);
+    tgFoto.value = "";
+    aplicarEstiloCelula(tgFoto, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 9, border: bordaMedia() });
+
     ws.getRow(rowIdx).height = 28;
 
     // ═══════════════════════════════════════════════════════════════════════════
