@@ -1,0 +1,54 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.tecnicoId,\n  t.nome AS tecnico_atribuido,\n  os.id AS os_id,\n  os.status AS os_status,\n  os.tecnicoId AS os_tecnico_id,\n  t2.nome AS os_tecnico_nome\nFROM escolas e\nLEFT JOIN tecnicos t ON t.id = e.tecnicoId\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t2 ON t2.id = os.tecnicoId\nWHERE e.inep IN ('29436958','29393337','29123739','29124840');\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.tecnicoId,\n  t.nome AS tecnico_atribuido,\n  os.id AS os_id,\n  os.status AS os_status,\n  os.tecnicoId AS os_tecnico_id,\n  t2.nome AS os_tecnico_nome\nFROM escolas e\nLEFT JOIN tecnicos t ON t.id = e.tecnicoId\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t2 ON t2.id = os.tecnicoId\nWHERE e.inep IN ('29436958','29393337','29123739','29124840');\n",
+  "rows": [
+    {
+      "inep": "29393337",
+      "escola": "CRECHE JOSE TURIBIO DOS SANTOS",
+      "municipio": "Tucano",
+      "tecnicoId": "360002",
+      "tecnico_atribuido": "Ricardo ",
+      "os_id": "NULL",
+      "os_status": "NULL",
+      "os_tecnico_id": "NULL",
+      "os_tecnico_nome": "NULL"
+    },
+    {
+      "inep": "29436958",
+      "escola": "ESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS",
+      "municipio": "Araci",
+      "tecnicoId": "300001",
+      "tecnico_atribuido": "Zé Orlando ",
+      "os_id": "NULL",
+      "os_status": "NULL",
+      "os_tecnico_id": "NULL",
+      "os_tecnico_nome": "NULL"
+    },
+    {
+      "inep": "29123739",
+      "escola": "ESCOLA MUNICIPAL OLAVO BILAC",
+      "municipio": "Tucano",
+      "tecnicoId": "360002",
+      "tecnico_atribuido": "Ricardo ",
+      "os_id": "NULL",
+      "os_status": "NULL",
+      "os_tecnico_id": "NULL",
+      "os_tecnico_nome": "NULL"
+    },
+    {
+      "inep": "29124840",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "tecnicoId": "240001",
+      "tecnico_atribuido": " Luizinho ",
+      "os_id": "NULL",
+      "os_status": "NULL",
+      "os_tecnico_id": "NULL",
+      "os_tecnico_nome": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\ttecnicoId\ttecnico_atribuido\tos_id\tos_status\tos_tecnico_id\tos_tecnico_nome\n29393337\tCRECHE JOSE TURIBIO DOS SANTOS\tTucano\t360002\tRicardo \tNULL\tNULL\tNULL\tNULL\n29436958\tESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS\tAraci\t300001\tZé Orlando \tNULL\tNULL\tNULL\tNULL\n29123739\tESCOLA MUNICIPAL OLAVO BILAC\tTucano\t360002\tRicardo \tNULL\tNULL\tNULL\tNULL\n29124840\tESCOLA MUNICIPAL SAO JOSE\tUauá\t240001\t Luizinho \tNULL\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1131
+}

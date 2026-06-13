@@ -1,0 +1,1420 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.endereco,\n  e.latitude,\n  e.longitude,\n  COALESCE(t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE (os.status IS NULL OR os.status IN ('aberta', 'sem_os'))\n  AND e.tecnicoId IS NOT NULL\nORDER BY t_esc.nome ASC, e.municipio ASC, e.nome ASC\nLIMIT 200;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.endereco,\n  e.latitude,\n  e.longitude,\n  COALESCE(t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE (os.status IS NULL OR os.status IN ('aberta', 'sem_os'))\n  AND e.tecnicoId IS NOT NULL\nORDER BY t_esc.nome ASC, e.municipio ASC, e.nome ASC\nLIMIT 200;\n",
+  "rows": [
+    {
+      "inep": "29481082",
+      "escola": "CENTRO MUNICIPAL DE EDUCACAO INFANTIL VALDETE MARIA MARTINS GUEDES",
+      "municipio": "Canudos",
+      "endereco": "AVENIDA RUI BARBOSA, S/N PREDIO. CALIFORNIA. 48520-000 Canudos - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": " Luizinho ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29116660",
+      "escola": "EDUCANDARIO MUNICIPAL JAIRO AZI",
+      "municipio": "Canudos",
+      "endereco": "RUA SANTO ANTONIO, SN PREDIO. CENTRO. 48520-000 Canudos - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": " Luizinho ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117143",
+      "escola": "ESCOLA MUNICIPAL ANTERO HONORIO DOS REIS",
+      "municipio": "Canudos",
+      "endereco": "POV BOM JARDIM, SN CASA. RURAL. 48520-000 Canudos - BA.",
+      "latitude": "-10.12119000",
+      "longitude": "-39.12169000",
+      "tecnico": " Luizinho ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117046",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA REGINA CARDOSO DE CARVALHO",
+      "municipio": "Canudos",
+      "endereco": "RUA PRACA DO PREDIO, S/N PREDIO. POVOADO NUCLEO II - 150 - CANUDOS. 48520-000 Canudos - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": " Luizinho ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29152160",
+      "escola": "ESCOLA MUNICIPAL JOAO PAULO II",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA PEGA, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29152178",
+      "escola": "ESCOLA MUNICIPAL JOAO RAMALHO",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA GAIOSO, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "-12.14461500",
+      "longitude": "-38.16133500",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29433037",
+      "escola": "ESCOLA MUNICIPAL JORGE AMADO",
+      "municipio": "Araçás",
+      "endereco": "ASSENTAMENTO SAO MATEUS, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "-12.21225333",
+      "longitude": "-38.20114667",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29152399",
+      "escola": "ESCOLA MUNICIPAL PE MANOEL DA NOBREGA",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA MATO LIMPO, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29152283",
+      "escola": "ESCOLA MUNICIPAL SAO JUDAS TADEU",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA RIACHO SUJO, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29152380",
+      "escola": "ESCOLA MUNICIPAL ULISSES GUIMARAES",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA OLHOS D AGUA, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29457378",
+      "escola": "IRMA DULCE",
+      "municipio": "Araçás",
+      "endereco": "FAZENDA PE DE SERRA, S/N ZONA RURAL. 48108-000 Araçás - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29334772",
+      "escola": "EE - ESCOLA MUNICIPAL JOSE PONCIANO DO NASCIMENTO",
+      "municipio": "Rio Real",
+      "endereco": "RUA SAO ROQUE, SN PREDIO. CENTRO. 48330-000 Rio Real - BA.",
+      "latitude": "-11.48429500",
+      "longitude": "-37.93426618",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154065",
+      "escola": "ESC MUL ANA MARIA DA CONCEICAO SOUZA",
+      "municipio": "Rio Real",
+      "endereco": "OLHOS DAGUA, S/N ESCOLA. POVOADO. 48330-000 Rio Real - BA.",
+      "latitude": "-11.45037752",
+      "longitude": "-37.95841104",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154146",
+      "escola": "ESC MUL DOIS DE JULHO",
+      "municipio": "Rio Real",
+      "endereco": "LAGOA DE BAIXO, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.58286010",
+      "longitude": "-37.88942090",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154197",
+      "escola": "ESC MUL GETULIO VARGAS",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO TABOA, S/N POVOADO. ZONA RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.45849740",
+      "longitude": "-38.04440800",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154405",
+      "escola": "ESC MUL PRINCESA ISABEL",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO MOCAMBO DO RIO AZUL, 48330-000 Rio Real - BA.",
+      "latitude": "-11.65771107",
+      "longitude": "-37.82653601",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154413",
+      "escola": "ESC MUL RUI BARBOSA",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO BREJINHO DA PALMEIRA, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.60740780",
+      "longitude": "-37.91547353",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154502",
+      "escola": "ESC MUL TIRADENTES",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO PALMEIRA, ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.64399808",
+      "longitude": "-37.91080691",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154340",
+      "escola": "ESC MUNICIPAL NILDA VALENCA BAPTISTA",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO PINDOBA, 48330-000 Rio Real - BA.",
+      "latitude": "-11.47769330",
+      "longitude": "-37.88633210",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154537",
+      "escola": "ESCOLA MUL COSME E DAMIAO",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO CARANGUEIJO, ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.63591890",
+      "longitude": "-37.83540354",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154162",
+      "escola": "ESCOLA MUNICIPAL ANTONIO EZEQUIEL GONCALVES",
+      "municipio": "Rio Real",
+      "endereco": "PUBA, SN POVOADO. ZONA RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.55861269",
+      "longitude": "-37.94179157",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154391",
+      "escola": "ESCOLA MUNICIPAL JOAO ALVES DA FONSECA",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO MARIMBONDO, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.47618150",
+      "longitude": "-37.90605640",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154456",
+      "escola": "ESCOLA MUNICIPAL JOSE MARTINS BARBOSA",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO TANQUE DO MARQUES, S/N 48330-000 Rio Real - BA.",
+      "latitude": "-11.42601521",
+      "longitude": "-38.00341789",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154227",
+      "escola": "ESCOLA MUNICIPAL JOSEFA DOS SANTOS ALVES",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO LORETO RODOVIA ESTADUAL, BA 396, S/N ESCOLA. POVOADO. 48330-000 Rio Real - BA.",
+      "latitude": "-11.53439818",
+      "longitude": "-37.86373044",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29154359",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA SANTANA",
+      "municipio": "Rio Real",
+      "endereco": "POVOADO SACO DA CANDEIA, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.",
+      "latitude": "-11.47669130",
+      "longitude": "-38.02639520",
+      "tecnico": "Adelbrando",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29397103",
+      "escola": "COLEGIO MUNICIPAL CINCO DE JULHO",
+      "municipio": "Antônio Gonçalves",
+      "endereco": "AVENIDA LOMANTO JUNIOR, 02 COLEGIO. CENTRO. 44780-000 Antônio Gonçalves - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29048362",
+      "escola": "ESCOLA MUNCIPAL ROMULO GALVAO",
+      "municipio": "Antônio Gonçalves",
+      "endereco": "FAZENDA LAGOA GRANDE, 44780-000 Antônio Gonçalves - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29391741",
+      "escola": "COLEGIO ARMANDO TRAJANO MAIA",
+      "municipio": "Campo Formoso",
+      "endereco": "PACUI, ZONA RURAL. 44790-000 Campo Formoso - BA.",
+      "latitude": "-10.11114834",
+      "longitude": "-40.82141801",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29431549",
+      "escola": "COLEGIO MUNICIPAL JOAO MALTA CORREIA",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE TUIUTIBA, ZONA RURAL. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29048591",
+      "escola": "COLEGIO MUNICIPAL JOSE TELESPHORO FERREIRA DE ARAUJO",
+      "municipio": "Campo Formoso",
+      "endereco": "RUA OTAVIO MANGABEIRA, PX. AUGUSTO GALVAO. CENTRO - ZONA URBANA. 44790-000 Campo Formoso - BA.",
+      "latitude": "-10.51189959",
+      "longitude": "-40.32220807",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29391776",
+      "escola": "COLEGIO MUNICIPAL ROSALINA GOMES DE SOUZA",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE OLHO DAGUA DAS POMBAS, OLHO DAGUA DAS POMBAS. 44790-000 Campo Formoso - BA.",
+      "latitude": "-10.11944000",
+      "longitude": "-40.59945000",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29048621",
+      "escola": "COLEGIO MUNICIPAL ROSALVO LUIZ CELESTINO",
+      "municipio": "Campo Formoso",
+      "endereco": "LAJE DOS NEGROS, S/N POVOADO DE LAGE DOS NEGROS. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29391660",
+      "escola": "CRECHE LAR MENINO JESUS",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE SITIO DO MEIO, S/N SITIO DO MEIO. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049016",
+      "escola": "ESCOLA CORACAO DE JESUS",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE ALGODOES, POVOADO DE ALGODOES. POVOADO DE ALGODOES. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049415",
+      "escola": "ESCOLA JOSE GABRIEL TORRES",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE POUSO ALEGRE, CURRAL DA PONTA. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049440",
+      "escola": "ESCOLA JOSE NICOLAU DE OLIVEIRA",
+      "municipio": "Campo Formoso",
+      "endereco": "LAGE DE CIMA II, LAGE DOS NEGROS. 44790-974 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049687",
+      "escola": "ESCOLA MINERVINO GERONIMO DE SANTANA",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE ALAGADICO DA BORDA DA MATA, ZONA RURAL. REGIAO DE POCOS. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049741",
+      "escola": "ESCOLA MUNICIPAL DE MUCAMBO",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE MUCAMBO, REGIAO DE ARARAS. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29049903",
+      "escola": "ESCOLA NOSSA SENHORA DE FATIMA",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE PIABAS, SALITRE. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29050391",
+      "escola": "ESCOLA SANTA ISABEL",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE MANDACARU, PREDIO ESCOLAR. TUIUTIBA. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29050448",
+      "escola": "ESCOLA SANTA RITA",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE VARZEA DOS PAUZINHOS, S/N VARZEA DOS PAUZINHOS. 44790-000 Campo Formoso - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29050790",
+      "escola": "ESCOLA SAO FRANCISCO",
+      "municipio": "Campo Formoso",
+      "endereco": "POVOADO DE CANTINHO, REGIAO DE CURRAL DA PONTA. 44790-000 Campo Formoso - BA.",
+      "latitude": "-10.42257000",
+      "longitude": "-40.30675000",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29470560",
+      "escola": "COLEGIO ESTADUAL DO CAMPO AGNALDO ALMEIDA DISTRITO DE SANTANA DO SOBRADO TEMPO INTEGRAL",
+      "municipio": "Casa Nova",
+      "endereco": "RUA RUI BARBOSA, 10 CENTRO. 47300-000 Casa Nova - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29023262",
+      "escola": "COLEGIO MUNICIPAL PROFESSOR IVO BRAGA",
+      "municipio": "Curaçá",
+      "endereco": "AVENIDA DOS MARUJOS, 586 PREDIO. CENTRO. 48930-000 Curaçá - BA.",
+      "latitude": "-8.99692900",
+      "longitude": "-39.90820000",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29023505",
+      "escola": "ESCOLA MUNICIPAL CHAPEUZINHO VERMELHO",
+      "municipio": "Curaçá",
+      "endereco": "AVENIDA DR EUVALDO AQUINO, 00 PREDIO ESCOLAR. CENTRO. 48930-000 Curaçá - BA.",
+      "latitude": "-8.99529920",
+      "longitude": "-39.90865420",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29361591",
+      "escola": "ESCOLA MUNICIPAL LIBERATO FELIX MARTINS",
+      "municipio": "Curaçá",
+      "endereco": "POVOADO SAO BENTO, 00 ZONA RURAL. SEDE RURAL. 48930-000 Curaçá - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29023378",
+      "escola": "ESCOLA MUNICIPAL MOISES NUNES DOS SANTOS",
+      "municipio": "Curaçá",
+      "endereco": "FAZENDA DO MEIO, SEDE RURAL. 48930-000 Curaçá - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Alex",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29158796",
+      "escola": "ESCOLA MUNICIPAL CICERO REIS",
+      "municipio": "Catu",
+      "endereco": "FAZENDA LAGOA ENCANTADA, S/N PREDIO ESCOLAR. RURAL. 48110-000 Catu - BA.",
+      "latitude": "-12.34671202",
+      "longitude": "-38.40764732",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29158907",
+      "escola": "ESCOLA MUNICIPAL GEMINIANA SOUZA ASSUNCAO",
+      "municipio": "Catu",
+      "endereco": "DISTRITO BELA FLOR, S/N PREDIO ESCOLAR. DISTRITO BELA FLOR. 48110-000 Catu - BA.",
+      "latitude": "-12.40140621",
+      "longitude": "-38.46407625",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159199",
+      "escola": "ESCOLA MUNICIPAL JOAO DE DEUS ARAUJO",
+      "municipio": "Catu",
+      "endereco": "FAZENDA VEADINHO, S/N PREDIO ESCOLAR. FAZENDA VEADINHO. 48110-000 Catu - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29158940",
+      "escola": "ESCOLA MUNICIPAL JOAO RIBEIRO",
+      "municipio": "Catu",
+      "endereco": "FAZENDA PANELAS, S/N PREDIO ESCOLAR. FAZENDA PANELAS. 48110-000 Catu - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159105",
+      "escola": "ESCOLA MUNICIPAL OSCAR PEREIRA DE SOUZA",
+      "municipio": "Catu",
+      "endereco": "FAZENDA ESTANQUES, S/N PREDIO ESCOLAR. RURAL. 48110-000 Catu - BA.",
+      "latitude": "-12.30389269",
+      "longitude": "-38.45841156",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159202",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Catu",
+      "endereco": "FAZENDA PEDRAS, S/N PREDIO ESCOLAR. FAZENDA PEDRAS. 48110-000 Catu - BA.",
+      "latitude": "-12.41889000",
+      "longitude": "-38.49778000",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159261",
+      "escola": "ESCOLA RURAL DOM JUSTINO JOSE SANTANA",
+      "municipio": "Catu",
+      "endereco": "AVENIDA DA LESTE SETE CASAS, S/N PREDIO ESCOLAR. SITIO NOVO. 48110-000 Catu - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29757622",
+      "escola": "CRECHE CONRADO JOSE DE AMORIM",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "POVOADO DE BARROCAS, COMUNIDADE RURAL. DISTRITO. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.89936853",
+      "longitude": "-38.33630977",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132789",
+      "escola": "ESC EST 1 GRAU DR MURILO CAVALCANTE",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "RUA DO POCO VERDE/RASPADOR, COMUNIDADE RURAL/RAS. RASPADOR. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.83370170",
+      "longitude": "-38.29261000",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132703",
+      "escola": "ESC EST 1 GRAU MARIA FERREIRA DA SILVA",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "PRACA VENANCIO MIRANDA-BOA HORASN, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.96389000",
+      "longitude": "-38.52417000",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132681",
+      "escola": "ESC EST DE 1 GRAU ANTONIO DANTAS MACEDO",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "PRACA VENANCIO MIRADA, SN PREDIO ESCOLAR. POVOADO DE BOA HORA. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.95618066",
+      "longitude": "-38.36500643",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132819",
+      "escola": "ESC MUL NOVA INFANCIA",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ 1001-BOA HORA, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-11.05232645",
+      "longitude": "-38.51307314",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132843",
+      "escola": "ESC MUL PE OTAVIO",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ AVENIDA, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-11.08665929",
+      "longitude": "-38.36855657",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132967",
+      "escola": "ESCOLA MUN SAO FRANCISCO DE ASSIS",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ CABO VERDE-BARROCAS, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.83436236",
+      "longitude": "-38.29747495",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29429960",
+      "escola": "ESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "POVOADO DE BARROCAS, SN ZONA RURAL. POVOADO. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.89648500",
+      "longitude": "-38.33584330",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29407770",
+      "escola": "ESCOLA MUNICIPAL LUIZ VIANA",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ BAIXA DO SALGADO, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-11.03876945",
+      "longitude": "-38.43233957",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29133017",
+      "escola": "ESCOLA MUNICIPAL SANTA LUZIA",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "RUA DA SARAMANDAIA-RASPADOR, COMUNIDADE RURAL. DISTRITO. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.83435735",
+      "longitude": "-38.29743722",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29133025",
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA I",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ BAIXA DA JUREMA, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-11.03878795",
+      "longitude": "-38.43220821",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29429900",
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA II",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ BATATAS, 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29330238",
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA III",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ JUREMA/RASPADOR, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-10.85821697",
+      "longitude": "-38.24640530",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29330300",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE IV",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZ MARIA PRETA, SN 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29132827",
+      "escola": "PAULO VI",
+      "municipio": "Ribeira do Amparo",
+      "endereco": "FAZENDA LAGES, S COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.",
+      "latitude": "-11.08667871",
+      "longitude": "-38.36854080",
+      "tecnico": "Everson",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151511",
+      "escola": "ESCOLA MUNICIPAL AMANDO ALVES DE AZEVEDO",
+      "municipio": "Alagoinhas",
+      "endereco": "BR 110 KM 19 RIACHO DA GUIA, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.",
+      "latitude": "-11.99172051",
+      "longitude": "-38.37157006",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29150400",
+      "escola": "ESCOLA MUNICIPAL ERICO VERISSIMO",
+      "municipio": "Alagoinhas",
+      "endereco": "AREA RURAL, SN POVOADO CAPOEIRA. AREA RURAL DE ALAGOINHAS. 48024-899 Alagoinhas - BA.",
+      "latitude": "-12.12971910",
+      "longitude": "-38.36457426",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151295",
+      "escola": "ESCOLA MUNICIPAL GONCALO MUNIZ",
+      "municipio": "Alagoinhas",
+      "endereco": "POVOADO PINDOBAL, SN RURAL. 48030-000 Alagoinhas - BA.",
+      "latitude": "-12.26486625",
+      "longitude": "-38.47097297",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151384",
+      "escola": "ESCOLA MUNICIPAL JOSE ANTONIO DA SILVA LIMA",
+      "municipio": "Alagoinhas",
+      "endereco": "BR 110 KM 12, SN RURAL. 48031-000 Alagoinhas - BA.",
+      "latitude": "-12.05330000",
+      "longitude": "-38.36127000",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29441390",
+      "escola": "ESCOLA MUNICIPAL PERICLES NOGUEIRA MAGALHAES",
+      "municipio": "Alagoinhas",
+      "endereco": "POVOADO DA CONCEICAO II, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.",
+      "latitude": "-11.94292000",
+      "longitude": "-38.46605000",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151341",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA JULINDA CAPINAM",
+      "municipio": "Alagoinhas",
+      "endereco": "POVOADO TUCUM, SN RURAL. 48030-000 Alagoinhas - BA.",
+      "latitude": "-12.23472531",
+      "longitude": "-38.50556446",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151228",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA LUZIA MARGARIDA PINTO",
+      "municipio": "Alagoinhas",
+      "endereco": "PONTO DO BEIJU, SN BR 110. RURAL. 48030-000 Alagoinhas - BA.",
+      "latitude": "-12.22950519",
+      "longitude": "-38.41220900",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151449",
+      "escola": "ESCOLA MUNICIPAL QUILOMBOLA MAE ERNESTINA",
+      "municipio": "Alagoinhas",
+      "endereco": "POVOADO DO CATUZINHO, SN RURAL. 48031-000 Alagoinhas - BA.",
+      "latitude": "-12.04804438",
+      "longitude": "-38.43393869",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29151244",
+      "escola": "ESCOLA MUNICIPAL TIRADENTES",
+      "municipio": "Alagoinhas",
+      "endereco": "POVOADO BOA VISTA, SN RURAL. 48030-000 Alagoinhas - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159334",
+      "escola": "ESCOLA MUNICIPAL ALDEIA DOS CURUMINS",
+      "municipio": "Itanagra",
+      "endereco": "RUA PADRE LUIZ PALMEIRAS, S/N PREDIO. CENTRO. 48290-000 Itanagra - BA.",
+      "latitude": "-12.26406591",
+      "longitude": "-38.03922354",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159342",
+      "escola": "ESCOLA MUNICIPAL ANA AUGUSTA BOTELHO",
+      "municipio": "Itanagra",
+      "endereco": "POVOADO DE VILA MARGARIDA, SN RURAL. 48290-000 Itanagra - BA.",
+      "latitude": "-12.41229480",
+      "longitude": "-38.03937690",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159350",
+      "escola": "ESCOLA MUNICIPAL ANA MARIA GOMES",
+      "municipio": "Itanagra",
+      "endereco": "POVOADO DO TREME, SN PREDIO ESCOLAR. RURAL. 48290-000 Itanagra - BA.",
+      "latitude": "-12.31289420",
+      "longitude": "-38.00694279",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159385",
+      "escola": "ESCOLA MUNICIPAL IRMA DULCE",
+      "municipio": "Itanagra",
+      "endereco": "ITAPICIRICA, RURAL. 48290-000 Itanagra - BA.",
+      "latitude": "-12.38504790",
+      "longitude": "-37.97222980",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159393",
+      "escola": "ESCOLA MUNICIPAL MANOEL ALCANTARA",
+      "municipio": "Itanagra",
+      "endereco": "POVOADO DE SEIS MARIA, RURAL. 48290-000 Itanagra - BA.",
+      "latitude": "-12.19238389",
+      "longitude": "-38.06595738",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29159415",
+      "escola": "ESCOLA MUNICIPAL RECANTO DO SABER",
+      "municipio": "Itanagra",
+      "endereco": "QUADRA A, SN SAO JOSE DO AVENA. VILA. 48290-000 Itanagra - BA.",
+      "latitude": "-12.36333355",
+      "longitude": "-38.11594324",
+      "tecnico": "Felipe",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29080886",
+      "escola": "ESCOLA MANOEL DOMINGOS DE AMORIM",
+      "municipio": "Baixa Grande",
+      "endereco": "POVOADO DE MANDACARU, POVOADO DE MANDACARU. 44620-000 Baixa Grande - BA.",
+      "latitude": "-11.87779853",
+      "longitude": "-40.05447329",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29080584",
+      "escola": "ESCOLA WILSON GUIMARAES BASTOS",
+      "municipio": "Baixa Grande",
+      "endereco": "POVOADO NOVO SITIO, 44620-000 Baixa Grande - BA.",
+      "latitude": "-11.85512913",
+      "longitude": "-40.18376980",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29069572",
+      "escola": "COL MUL TARCILIA EVANGELISTA DE ANDRADE",
+      "municipio": "Capim Grosso",
+      "endereco": "RUA TRES PODERES, 340 CASA. SACRAMENTO. 44695-000 Capim Grosso - BA.",
+      "latitude": "-11.37965732",
+      "longitude": "-40.00964586",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29409004",
+      "escola": "CRECHE MUNICIPAL GUARACI SIMOES DE ANDRADE",
+      "municipio": "Jacobina",
+      "endereco": "RUA JUSCELINO KUBITSCHEK, 121 CAEIRA. 44700-000 Jacobina - BA.",
+      "latitude": "-11.18032951",
+      "longitude": "-40.51148970",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29369436",
+      "escola": "COLEGIO CLARIEZER VICENTE DOS ANJOS",
+      "municipio": "Miguel Calmon",
+      "endereco": "RUA SECUNDA ROSA, S/N CENTRO. 44720-000 Miguel Calmon - BA.",
+      "latitude": "-11.42984631",
+      "longitude": "-40.59986612",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29073316",
+      "escola": "ESCOLA SANTO ANTONIO4",
+      "municipio": "Miguel Calmon",
+      "endereco": "RUA DO PREDIO, S/N CASA. PALMEIRINHA. 44720-000 Miguel Calmon - BA.",
+      "latitude": "-11.54831670",
+      "longitude": "-40.45424928",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29073294",
+      "escola": "SAO FRANCISCO",
+      "municipio": "Miguel Calmon",
+      "endereco": "POVOADO TAQUARA, SEM NUMERO ZONA RURAL. 44720-000 Miguel Calmon - BA.",
+      "latitude": "-11.42653398",
+      "longitude": "-40.49934080",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29087112",
+      "escola": "COLEGIO MUNICIPAL OLIMPIA MASCARENHAS",
+      "municipio": "Mundo Novo",
+      "endereco": "RUA DO CLUBE, SN PREDIO. POVOADO DE UMBUZEIRO. 44800-000 Mundo Novo - BA.",
+      "latitude": "-11.67361990",
+      "longitude": "-40.37402640",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29079969",
+      "escola": "CENTRO EDUC JOAO DE SOUZA OLIVEIRA",
+      "municipio": "Várzea Nova",
+      "endereco": "PRACA OTACILIO ALCANTARA, S/N PREDIO. CENTRO. 44690-000 Várzea Nova - BA.",
+      "latitude": "-11.25744500",
+      "longitude": "-40.94381430",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29340330",
+      "escola": "COLEGIO ESTADUAL PROFESSORA ADJACI MARTINS DURANS TEMPO INTEGRAL",
+      "municipio": "Várzea Nova",
+      "endereco": "RUA MANOEL FRAGA RIOS, 194 CENTRO. 44690-000 Várzea Nova - BA.",
+      "latitude": "-11.25981878",
+      "longitude": "-40.94720211",
+      "tecnico": "José Felix ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117216",
+      "escola": "CENTRO EDUCACIONAL DE CARNAIBA",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE CARNAIBA, S/N PREDIO. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29412030",
+      "escola": "CENTRO EDUCACIONAL DE MURITY",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE MURITI, ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29417872",
+      "escola": "CENTRO EDUCACIONAL DE SERRA BRANCA",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO SERRA BRANCA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117615",
+      "escola": "CENTRO EDUCACIONAL JUVINIANO GOMES DOS SANTOS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "BR 116, KM 230, S/N PREDIO escolar. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29756626",
+      "escola": "CENTRO EDUCACIONAL PROFESSORA DURVALINA ABREU DE ANDRADE",
+      "municipio": "Euclides da Cunha",
+      "endereco": "LOTEAMENTO JARDIM DAS ACACIAS, S/N PREDIO. URBIS. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29418429",
+      "escola": "CENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO ZILDA ALMEIDA DOS SANTOS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "AV. ALMERINDO REHEN, S/N PREDIO ESCOLAR. NOVA AMERICA. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117313",
+      "escola": "COLEGIO JOSE ARAS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "RUA PROFESSOR PEDRO MONTEIRO, 116 CENTRO. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29117747",
+      "escola": "ESCOLA MUNICIPAL JOAQUIM SILVA DANTAS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "RUA TEAGO FERREIRA CARVALHO, 253 PREDIO. CENTRO. 48500-000 Euclides da Cunha - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Julielson ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29149347",
+      "escola": "ESCOLA MUNICIPAL ALBINO CARLOS GUIMARAES",
+      "municipio": "Valente",
+      "endereco": "FAZ. CIPO DE LEITE, 48890-000 Valente - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Marcos ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29149037",
+      "escola": "ESCOLA MUNICIPAL DOM LUCAS NEVES",
+      "municipio": "Valente",
+      "endereco": "FAZENDA LAGEDINHO / FORMIGA, PREDIO. ZONA RURAL. 48890-000 Valente - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Marcos ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29405939",
+      "escola": "CENTRO EDUCACIONAL IRINEU BATISTA DOS SANTOS",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO DE LAGOA, S/N PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "latitude": "-11.89813930",
+      "longitude": "-38.26918970",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29153255",
+      "escola": "COLEGIO MUNICIPAL DR LUIS COELHO",
+      "municipio": "Inhambupe",
+      "endereco": "PRACA PADRE ANCHIETA, SN PRACA DE EVENTOS. CENTRO. 48490-000 Inhambupe - BA.",
+      "latitude": "-11.78760430",
+      "longitude": "-38.35615810",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29153670",
+      "escola": "ESCOLA MUNICIPAL CLEONICE MARIA DE PINHO",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO VOLTA DE CIMA, 48490-000 Inhambupe - BA.",
+      "latitude": "-11.79493610",
+      "longitude": "-38.48693340",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29153832",
+      "escola": "ESCOLA MUNICIPAL DE MATINHA",
+      "municipio": "Inhambupe",
+      "endereco": "MATINHA, MATINHA. 48490-000 Inhambupe - BA.",
+      "latitude": "-11.93965970",
+      "longitude": "-38.46998120",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29153441",
+      "escola": "ESCOLA MUNICIPAL LOURIVAL RIBEIRO DA COSTA",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO ARACATUBA, ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "latitude": "-11.69883220",
+      "longitude": "-38.40491040",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29160707",
+      "escola": "ESCOLA MUNICIPAL NELSON XAVIER",
+      "municipio": "Pojuca",
+      "endereco": "FAZENDA RIACHAO, SN ZONA RURAL. 48120-000 Pojuca - BA.",
+      "latitude": "-12.37534000",
+      "longitude": "-38.28083000",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29464099",
+      "escola": "ESCOLA MUNICIPAL PROF JOAO SILVA DE ASSIS",
+      "municipio": "Pojuca",
+      "endereco": "ESTRADA CABOCLO, SN CABOCLO. 48120-000 Pojuca - BA.",
+      "latitude": "-12.41913810",
+      "longitude": "-38.33703020",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29375770",
+      "escola": "NUCLEO EDUCACIONAL PEDRO LEAL CARDOSO",
+      "municipio": "Pojuca",
+      "endereco": "MIRANGA SEDE, SN ESCOLA. MIRANGA. 48120-000 Pojuca - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Matheus",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29393337",
+      "escola": "CRECHE JOSE TURIBIO DOS SANTOS",
+      "municipio": "Tucano",
+      "endereco": "POVOADO CAJUEIRO, ZONA RURAL. 48790-000 Tucano - BA.",
+      "latitude": "-10.83250000",
+      "longitude": "-38.86278000",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123275",
+      "escola": "ESCOLA MUNICIPAL CASTELO BRANCO",
+      "municipio": "Tucano",
+      "endereco": "POVOADO MANDACARU, PREDIO. ZONA RURAL. 48790-000 Tucano - BA.",
+      "latitude": "-10.97833000",
+      "longitude": "-39.07861000",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123291",
+      "escola": "ESCOLA MUNICIPAL CECILIA MEIRELES",
+      "municipio": "Tucano",
+      "endereco": "POVOADO POCAO, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29124255",
+      "escola": "ESCOLA MUNICIPAL JOSE PENEDO",
+      "municipio": "Tucano",
+      "endereco": "AVENIDA JORGE AMADO, S/N LOGRADOURO. CENTRO. 48793-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123550",
+      "escola": "ESCOLA MUNICIPAL JOSE VALDIR DE SANTANA",
+      "municipio": "Tucano",
+      "endereco": "DISTRITO RUA NOVA, SN PREDIO. RURAL. 48790-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123593",
+      "escola": "ESCOLA MUNICIPAL MADRE PAULINA",
+      "municipio": "Tucano",
+      "endereco": "RUA JOSE ALVES FARIAS, 45 ESCOLA. CALDAS DO JORRO. 48793-000 Tucano - BA.",
+      "latitude": "-11.03372000",
+      "longitude": "-38.79086000",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123739",
+      "escola": "ESCOLA MUNICIPAL OLAVO BILAC",
+      "municipio": "Tucano",
+      "endereco": "POVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123151",
+      "escola": "ESCOLA MUNICIPAL PROFª ZELIA DE BRITO MOREIRA RAMIRO",
+      "municipio": "Tucano",
+      "endereco": "RUA FRANCISCO ARAUJO SOUZA, 655 CASA. CENTRO. 48790-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29124077",
+      "escola": "ESCOLA MUNICIPAL SAO THIAGO",
+      "municipio": "Tucano",
+      "endereco": "POVOADO PEDRA GRANDE DO CURTUME, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Ricardo ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29471893",
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO",
+      "municipio": "Acajutiba",
+      "endereco": "RUA PINTO DANTAS, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.",
+      "latitude": "-11.66286095",
+      "longitude": "-38.02009811",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29392853",
+      "escola": "CENTRO MUNICIPAL DE EDUCACAO INFANTIL DR GERALDO VASCONCELOS DE SEIXAS PEREIRA",
+      "municipio": "Acajutiba",
+      "endereco": "PRACA RUY BARBOSA, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.",
+      "latitude": "-11.66229345",
+      "longitude": "-38.01719685",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29460271",
+      "escola": "CRECHE MUNICIPAL JOSE DOS REIS",
+      "municipio": "Acajutiba",
+      "endereco": "RUA BEDO FERREIRA BRITO, SN PREDIO. CENTRO. 48360-000 Acajutiba - BA.",
+      "latitude": "-11.65766629",
+      "longitude": "-38.00613629",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29467136",
+      "escola": "CRECHE MUNICIPAL PROFESSORA MATILDES LOURENCO DOS SANTOS",
+      "municipio": "Acajutiba",
+      "endereco": "POVOADO CANATUBIA, SN PREDIO. RURAL. 48360-000 Acajutiba - BA.",
+      "latitude": "-11.70557239",
+      "longitude": "-38.01341217",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29448476",
+      "escola": "ESCOLA MUNICIPAL EM TEMPO INTEGRAL PROFESSORA MARIA DE LOURDES DE OLIVEIRA VASCONCELOS",
+      "municipio": "Acajutiba",
+      "endereco": "RUA DR. RAIMUNDO BRITO, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.",
+      "latitude": "-11.68158152",
+      "longitude": "-38.01835847",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29131626",
+      "escola": "ESCOLA CASTRO ALVES",
+      "municipio": "Olindina",
+      "endereco": "POVOADO FUNIL, SN PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.",
+      "latitude": "-11.41305000",
+      "longitude": "-38.42528000",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29131928",
+      "escola": "ESCOLA JOAO BARRETO DE VASCONCELOS",
+      "municipio": "Olindina",
+      "endereco": "POVOADO CARRAPATINHO, PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29131936",
+      "escola": "ESCOLA JOAQUIM PRIMO DA FONSECA",
+      "municipio": "Olindina",
+      "endereco": "POVOADO UMBUZEIRO, SN PREDIO ESCOLAR. RURAL. 48470-000 Olindina - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29131871",
+      "escola": "ESCOLA TOMAZ DE SOUZA",
+      "municipio": "Olindina",
+      "endereco": "POVOADO LAGOA DOCE, S/Nº PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.",
+      "latitude": "-11.48250000",
+      "longitude": "-38.39667000",
+      "tecnico": "Roberto ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29118964",
+      "escola": "ESCOLA MUNICIPAL AYRTON OLIVEIRA DE FREITAS",
+      "municipio": "Monte Santo",
+      "endereco": "RUA LAURENTINO SILVA, S/N PREDIO. CENTRO. 48800-000 Monte Santo - BA.",
+      "latitude": "-10.44007077",
+      "longitude": "-39.33098597",
+      "tecnico": "Rodrigo Mota",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29112850",
+      "escola": "ESC MUL ANTENOR AMARO NETO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO LAGOA DO MATO, SN ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "latitude": "-10.08763500",
+      "longitude": "-38.13289667",
+      "tecnico": "Victor ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29113083",
+      "escola": "ESC MUL MANOEL CARVALHO SANTANA",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO MONTE ALEGRE, SN ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "latitude": "-9.91352167",
+      "longitude": "-38.17280833",
+      "tecnico": "Victor ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29112710",
+      "escola": "ESCOLA MUNICIPAL DR HAILTON JOSE DE BRITO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO RIACHO SAO JOSE, SN ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "latitude": "-10.18327000",
+      "longitude": "-38.19791167",
+      "tecnico": "Victor ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29436958",
+      "escola": "ESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS",
+      "municipio": "Araci",
+      "endereco": "RUA VENCESLAU QUINTINO, S/N GUARANI. 48760-000 Araci - BA.",
+      "latitude": "-11.33000955",
+      "longitude": "-38.96469084",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29134897",
+      "escola": "ESCOLA MUNICIPAL JOSE BONIFACIO",
+      "municipio": "Araci",
+      "endereco": "POVOADO CALDEIRAO, SN ZONA RURAL. 48760-000 Araci - BA.",
+      "latitude": "-11.29235833",
+      "longitude": "-39.00634833",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29393345",
+      "escola": "ESCOLA MUNICIPAL VALDECI SOUSA DE CARVALHO",
+      "municipio": "Araci",
+      "endereco": "RUA ANTONIO EVARISTO DE CARVALHO, SN MUNICIPIO. 48760-000 Araci - BA.",
+      "latitude": "-11.34205346",
+      "longitude": "-38.96525096",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29135800",
+      "escola": "GRUPO ESCOLAR ANA OLIVEIRA",
+      "municipio": "Araci",
+      "endereco": "RUA AMERINO OLIVEIRA LIMA, 193 CENTRO. 48760-000 Araci - BA.",
+      "latitude": "-11.33865000",
+      "longitude": "-38.95930000",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29457530",
+      "escola": "NUCLEO DE EDUCACAO ESPECIAL",
+      "municipio": "Araci",
+      "endereco": "RUA DOMICIANO OLIVEIRA MOTA, SN CENTRO. 48760-000 Araci - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29148685",
+      "escola": "ESCOLA GABRIEL ARCANJO DA PAIXAO",
+      "municipio": "Teofilândia",
+      "endereco": "COMUNIDADE LAGOA DO RAMO, SN PREDIO ESCOLAR. ZONA RURAL. 48770-000 Teofilândia - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29148693",
+      "escola": "ESCOLA MARIA QUITERIA",
+      "municipio": "Teofilândia",
+      "endereco": "POVOADO BOLA VERDE, SN ZONA RURAL. 48770-000 Teofilândia - BA.",
+      "latitude": "NULL",
+      "longitude": "NULL",
+      "tecnico": "Zé Orlando ",
+      "status": "sem_os"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\tendereco\tlatitude\tlongitude\ttecnico\tstatus\n29481082\tCENTRO MUNICIPAL DE EDUCACAO INFANTIL VALDETE MARIA MARTINS GUEDES\tCanudos\tAVENIDA RUI BARBOSA, S/N PREDIO. CALIFORNIA. 48520-000 Canudos - BA.\tNULL\tNULL\t Luizinho \tsem_os\n29116660\tEDUCANDARIO MUNICIPAL JAIRO AZI\tCanudos\tRUA SANTO ANTONIO, SN PREDIO. CENTRO. 48520-000 Canudos - BA.\tNULL\tNULL\t Luizinho \tsem_os\n29117143\tESCOLA MUNICIPAL ANTERO HONORIO DOS REIS\tCanudos\tPOV BOM JARDIM, SN CASA. RURAL. 48520-000 Canudos - BA.\t-10.12119000\t-39.12169000\t Luizinho \tsem_os\n29117046\tESCOLA MUNICIPAL PROFESSORA REGINA CARDOSO DE CARVALHO\tCanudos\tRUA PRACA DO PREDIO, S/N PREDIO. POVOADO NUCLEO II - 150 - CANUDOS. 48520-000 Canudos - BA.\tNULL\tNULL\t Luizinho \tsem_os\n29152160\tESCOLA MUNICIPAL JOAO PAULO II\tAraçás\tFAZENDA PEGA, S/N ZONA RURAL. 48108-000 Araçás - BA.\tNULL\tNULL\tAdelbrando\tsem_os\n29152178\tESCOLA MUNICIPAL JOAO RAMALHO\tAraçás\tFAZENDA GAIOSO, S/N ZONA RURAL. 48108-000 Araçás - BA.\t-12.14461500\t-38.16133500\tAdelbrando\tsem_os\n29433037\tESCOLA MUNICIPAL JORGE AMADO\tAraçás\tASSENTAMENTO SAO MATEUS, S/N ZONA RURAL. 48108-000 Araçás - BA.\t-12.21225333\t-38.20114667\tAdelbrando\tsem_os\n29152399\tESCOLA MUNICIPAL PE MANOEL DA NOBREGA\tAraçás\tFAZENDA MATO LIMPO, S/N ZONA RURAL. 48108-000 Araçás - BA.\tNULL\tNULL\tAdelbrando\tsem_os\n29152283\tESCOLA MUNICIPAL SAO JUDAS TADEU\tAraçás\tFAZENDA RIACHO SUJO, S/N ZONA RURAL. 48108-000 Araçás - BA.\tNULL\tNULL\tAdelbrando\tsem_os\n29152380\tESCOLA MUNICIPAL ULISSES GUIMARAES\tAraçás\tFAZENDA OLHOS D AGUA, S/N ZONA RURAL. 48108-000 Araçás - BA.\tNULL\tNULL\tAdelbrando\tsem_os\n29457378\tIRMA DULCE\tAraçás\tFAZENDA PE DE SERRA, S/N ZONA RURAL. 48108-000 Araçás - BA.\tNULL\tNULL\tAdelbrando\tsem_os\n29334772\tEE - ESCOLA MUNICIPAL JOSE PONCIANO DO NASCIMENTO\tRio Real\tRUA SAO ROQUE, SN PREDIO. CENTRO. 48330-000 Rio Real - BA.\t-11.48429500\t-37.93426618\tAdelbrando\tsem_os\n29154065\tESC MUL ANA MARIA DA CONCEICAO SOUZA\tRio Real\tOLHOS DAGUA, S/N ESCOLA. POVOADO. 48330-000 Rio Real - BA.\t-11.45037752\t-37.95841104\tAdelbrando\tsem_os\n29154146\tESC MUL DOIS DE JULHO\tRio Real\tLAGOA DE BAIXO, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.58286010\t-37.88942090\tAdelbrando\tsem_os\n29154197\tESC MUL GETULIO VARGAS\tRio Real\tPOVOADO TABOA, S/N POVOADO. ZONA RURAL. 48330-000 Rio Real - BA.\t-11.45849740\t-38.04440800\tAdelbrando\tsem_os\n29154405\tESC MUL PRINCESA ISABEL\tRio Real\tPOVOADO MOCAMBO DO RIO AZUL, 48330-000 Rio Real - BA.\t-11.65771107\t-37.82653601\tAdelbrando\tsem_os\n29154413\tESC MUL RUI BARBOSA\tRio Real\tPOVOADO BREJINHO DA PALMEIRA, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.60740780\t-37.91547353\tAdelbrando\tsem_os\n29154502\tESC MUL TIRADENTES\tRio Real\tPOVOADO PALMEIRA, ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.64399808\t-37.91080691\tAdelbrando\tsem_os\n29154340\tESC MUNICIPAL NILDA VALENCA BAPTISTA\tRio Real\tPOVOADO PINDOBA, 48330-000 Rio Real - BA.\t-11.47769330\t-37.88633210\tAdelbrando\tsem_os\n29154537\tESCOLA MUL COSME E DAMIAO\tRio Real\tPOVOADO CARANGUEIJO, ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.63591890\t-37.83540354\tAdelbrando\tsem_os\n29154162\tESCOLA MUNICIPAL ANTONIO EZEQUIEL GONCALVES\tRio Real\tPUBA, SN POVOADO. ZONA RURAL. 48330-000 Rio Real - BA.\t-11.55861269\t-37.94179157\tAdelbrando\tsem_os\n29154391\tESCOLA MUNICIPAL JOAO ALVES DA FONSECA\tRio Real\tPOVOADO MARIMBONDO, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.47618150\t-37.90605640\tAdelbrando\tsem_os\n29154456\tESCOLA MUNICIPAL JOSE MARTINS BARBOSA\tRio Real\tPOVOADO TANQUE DO MARQUES, S/N 48330-000 Rio Real - BA.\t-11.42601521\t-38.00341789\tAdelbrando\tsem_os\n29154227\tESCOLA MUNICIPAL JOSEFA DOS SANTOS ALVES\tRio Real\tPOVOADO LORETO RODOVIA ESTADUAL, BA 396, S/N ESCOLA. POVOADO. 48330-000 Rio Real - BA.\t-11.53439818\t-37.86373044\tAdelbrando\tsem_os\n29154359\tESCOLA MUNICIPAL NOSSA SENHORA SANTANA\tRio Real\tPOVOADO SACO DA CANDEIA, S/N ESCOLA. RURAL. 48330-000 Rio Real - BA.\t-11.47669130\t-38.02639520\tAdelbrando\tsem_os\n29397103\tCOLEGIO MUNICIPAL CINCO DE JULHO\tAntônio Gonçalves\tAVENIDA LOMANTO JUNIOR, 02 COLEGIO. CENTRO. 44780-000 Antônio Gonçalves - BA.\tNULL\tNULL\tAlex\tsem_os\n29048362\tESCOLA MUNCIPAL ROMULO GALVAO\tAntônio Gonçalves\tFAZENDA LAGOA GRANDE, 44780-000 Antônio Gonçalves - BA.\tNULL\tNULL\tAlex\tsem_os\n29391741\tCOLEGIO ARMANDO TRAJANO MAIA\tCampo Formoso\tPACUI, ZONA RURAL. 44790-000 Campo Formoso - BA.\t-10.11114834\t-40.82141801\tAlex\tsem_os\n29431549\tCOLEGIO MUNICIPAL JOAO MALTA CORREIA\tCampo Formoso\tPOVOADO DE TUIUTIBA, ZONA RURAL. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29048591\tCOLEGIO MUNICIPAL JOSE TELESPHORO FERREIRA DE ARAUJO\tCampo Formoso\tRUA OTAVIO MANGABEIRA, PX. AUGUSTO GALVAO. CENTRO - ZONA URBANA. 44790-000 Campo Formoso - BA.\t-10.51189959\t-40.32220807\tAlex\tsem_os\n29391776\tCOLEGIO MUNICIPAL ROSALINA GOMES DE SOUZA\tCampo Formoso\tPOVOADO DE OLHO DAGUA DAS POMBAS, OLHO DAGUA DAS POMBAS. 44790-000 Campo Formoso - BA.\t-10.11944000\t-40.59945000\tAlex\tsem_os\n29048621\tCOLEGIO MUNICIPAL ROSALVO LUIZ CELESTINO\tCampo Formoso\tLAJE DOS NEGROS, S/N POVOADO DE LAGE DOS NEGROS. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29391660\tCRECHE LAR MENINO JESUS\tCampo Formoso\tPOVOADO DE SITIO DO MEIO, S/N SITIO DO MEIO. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049016\tESCOLA CORACAO DE JESUS\tCampo Formoso\tPOVOADO DE ALGODOES, POVOADO DE ALGODOES. POVOADO DE ALGODOES. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049415\tESCOLA JOSE GABRIEL TORRES\tCampo Formoso\tPOVOADO DE POUSO ALEGRE, CURRAL DA PONTA. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049440\tESCOLA JOSE NICOLAU DE OLIVEIRA\tCampo Formoso\tLAGE DE CIMA II, LAGE DOS NEGROS. 44790-974 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049687\tESCOLA MINERVINO GERONIMO DE SANTANA\tCampo Formoso\tPOVOADO DE ALAGADICO DA BORDA DA MATA, ZONA RURAL. REGIAO DE POCOS. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049741\tESCOLA MUNICIPAL DE MUCAMBO\tCampo Formoso\tPOVOADO DE MUCAMBO, REGIAO DE ARARAS. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29049903\tESCOLA NOSSA SENHORA DE FATIMA\tCampo Formoso\tPOVOADO DE PIABAS, SALITRE. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29050391\tESCOLA SANTA ISABEL\tCampo Formoso\tPOVOADO DE MANDACARU, PREDIO ESCOLAR. TUIUTIBA. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29050448\tESCOLA SANTA RITA\tCampo Formoso\tPOVOADO DE VARZEA DOS PAUZINHOS, S/N VARZEA DOS PAUZINHOS. 44790-000 Campo Formoso - BA.\tNULL\tNULL\tAlex\tsem_os\n29050790\tESCOLA SAO FRANCISCO\tCampo Formoso\tPOVOADO DE CANTINHO, REGIAO DE CURRAL DA PONTA. 44790-000 Campo Formoso - BA.\t-10.42257000\t-40.30675000\tAlex\tsem_os\n29470560\tCOLEGIO ESTADUAL DO CAMPO AGNALDO ALMEIDA DISTRITO DE SANTANA DO SOBRADO TEMPO INTEGRAL\tCasa Nova\tRUA RUI BARBOSA, 10 CENTRO. 47300-000 Casa Nova - BA.\tNULL\tNULL\tAlex\tsem_os\n29023262\tCOLEGIO MUNICIPAL PROFESSOR IVO BRAGA\tCuraçá\tAVENIDA DOS MARUJOS, 586 PREDIO. CENTRO. 48930-000 Curaçá - BA.\t-8.99692900\t-39.90820000\tAlex\tsem_os\n29023505\tESCOLA MUNICIPAL CHAPEUZINHO VERMELHO\tCuraçá\tAVENIDA DR EUVALDO AQUINO, 00 PREDIO ESCOLAR. CENTRO. 48930-000 Curaçá - BA.\t-8.99529920\t-39.90865420\tAlex\tsem_os\n29361591\tESCOLA MUNICIPAL LIBERATO FELIX MARTINS\tCuraçá\tPOVOADO SAO BENTO, 00 ZONA RURAL. SEDE RURAL. 48930-000 Curaçá - BA.\tNULL\tNULL\tAlex\tsem_os\n29023378\tESCOLA MUNICIPAL MOISES NUNES DOS SANTOS\tCuraçá\tFAZENDA DO MEIO, SEDE RURAL. 48930-000 Curaçá - BA.\tNULL\tNULL\tAlex\tsem_os\n29158796\tESCOLA MUNICIPAL CICERO REIS\tCatu\tFAZENDA LAGOA ENCANTADA, S/N PREDIO ESCOLAR. RURAL. 48110-000 Catu - BA.\t-12.34671202\t-38.40764732\tEverson\tsem_os\n29158907\tESCOLA MUNICIPAL GEMINIANA SOUZA ASSUNCAO\tCatu\tDISTRITO BELA FLOR, S/N PREDIO ESCOLAR. DISTRITO BELA FLOR. 48110-000 Catu - BA.\t-12.40140621\t-38.46407625\tEverson\tsem_os\n29159199\tESCOLA MUNICIPAL JOAO DE DEUS ARAUJO\tCatu\tFAZENDA VEADINHO, S/N PREDIO ESCOLAR. FAZENDA VEADINHO. 48110-000 Catu - BA.\tNULL\tNULL\tEverson\tsem_os\n29158940\tESCOLA MUNICIPAL JOAO RIBEIRO\tCatu\tFAZENDA PANELAS, S/N PREDIO ESCOLAR. FAZENDA PANELAS. 48110-000 Catu - BA.\tNULL\tNULL\tEverson\tsem_os\n29159105\tESCOLA MUNICIPAL OSCAR PEREIRA DE SOUZA\tCatu\tFAZENDA ESTANQUES, S/N PREDIO ESCOLAR. RURAL. 48110-000 Catu - BA.\t-12.30389269\t-38.45841156\tEverson\tsem_os\n29159202\tESCOLA MUNICIPAL SAO JOSE\tCatu\tFAZENDA PEDRAS, S/N PREDIO ESCOLAR. FAZENDA PEDRAS. 48110-000 Catu - BA.\t-12.41889000\t-38.49778000\tEverson\tsem_os\n29159261\tESCOLA RURAL DOM JUSTINO JOSE SANTANA\tCatu\tAVENIDA DA LESTE SETE CASAS, S/N PREDIO ESCOLAR. SITIO NOVO. 48110-000 Catu - BA.\tNULL\tNULL\tEverson\tsem_os\n29757622\tCRECHE CONRADO JOSE DE AMORIM\tRibeira do Amparo\tPOVOADO DE BARROCAS, COMUNIDADE RURAL. DISTRITO. 48440-000 Ribeira do Amparo - BA.\t-10.89936853\t-38.33630977\tEverson\tsem_os\n29132789\tESC EST 1 GRAU DR MURILO CAVALCANTE\tRibeira do Amparo\tRUA DO POCO VERDE/RASPADOR, COMUNIDADE RURAL/RAS. RASPADOR. 48440-000 Ribeira do Amparo - BA.\t-10.83370170\t-38.29261000\tEverson\tsem_os\n29132703\tESC EST 1 GRAU MARIA FERREIRA DA SILVA\tRibeira do Amparo\tPRACA VENANCIO MIRANDA-BOA HORASN, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-10.96389000\t-38.52417000\tEverson\tsem_os\n29132681\tESC EST DE 1 GRAU ANTONIO DANTAS MACEDO\tRibeira do Amparo\tPRACA VENANCIO MIRADA, SN PREDIO ESCOLAR. POVOADO DE BOA HORA. 48440-000 Ribeira do Amparo - BA.\t-10.95618066\t-38.36500643\tEverson\tsem_os\n29132819\tESC MUL NOVA INFANCIA\tRibeira do Amparo\tFAZ 1001-BOA HORA, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-11.05232645\t-38.51307314\tEverson\tsem_os\n29132843\tESC MUL PE OTAVIO\tRibeira do Amparo\tFAZ AVENIDA, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-11.08665929\t-38.36855657\tEverson\tsem_os\n29132967\tESCOLA MUN SAO FRANCISCO DE ASSIS\tRibeira do Amparo\tFAZ CABO VERDE-BARROCAS, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-10.83436236\t-38.29747495\tEverson\tsem_os\n29429960\tESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA\tRibeira do Amparo\tPOVOADO DE BARROCAS, SN ZONA RURAL. POVOADO. 48440-000 Ribeira do Amparo - BA.\t-10.89648500\t-38.33584330\tEverson\tsem_os\n29407770\tESCOLA MUNICIPAL LUIZ VIANA\tRibeira do Amparo\tFAZ BAIXA DO SALGADO, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-11.03876945\t-38.43233957\tEverson\tsem_os\n29133017\tESCOLA MUNICIPAL SANTA LUZIA\tRibeira do Amparo\tRUA DA SARAMANDAIA-RASPADOR, COMUNIDADE RURAL. DISTRITO. 48440-000 Ribeira do Amparo - BA.\t-10.83435735\t-38.29743722\tEverson\tsem_os\n29133025\tESCOLA MUNICIPAL SANTA TEREZA I\tRibeira do Amparo\tFAZ BAIXA DA JUREMA, COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-11.03878795\t-38.43220821\tEverson\tsem_os\n29429900\tESCOLA MUNICIPAL SANTA TEREZA II\tRibeira do Amparo\tFAZ BATATAS, 48440-000 Ribeira do Amparo - BA.\tNULL\tNULL\tEverson\tsem_os\n29330238\tESCOLA MUNICIPAL SANTA TEREZA III\tRibeira do Amparo\tFAZ JUREMA/RASPADOR, SN COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-10.85821697\t-38.24640530\tEverson\tsem_os\n29330300\tESCOLA MUNICIPAL SAO JOSE IV\tRibeira do Amparo\tFAZ MARIA PRETA, SN 48440-000 Ribeira do Amparo - BA.\tNULL\tNULL\tEverson\tsem_os\n29132827\tPAULO VI\tRibeira do Amparo\tFAZENDA LAGES, S COMUNIDADE RURAL. 48440-000 Ribeira do Amparo - BA.\t-11.08667871\t-38.36854080\tEverson\tsem_os\n29151511\tESCOLA MUNICIPAL AMANDO ALVES DE AZEVEDO\tAlagoinhas\tBR 110 KM 19 RIACHO DA GUIA, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.\t-11.99172051\t-38.37157006\tFelipe\tsem_os\n29150400\tESCOLA MUNICIPAL ERICO VERISSIMO\tAlagoinhas\tAREA RURAL, SN POVOADO CAPOEIRA. AREA RURAL DE ALAGOINHAS. 48024-899 Alagoinhas - BA.\t-12.12971910\t-38.36457426\tFelipe\tsem_os\n29151295\tESCOLA MUNICIPAL GONCALO MUNIZ\tAlagoinhas\tPOVOADO PINDOBAL, SN RURAL. 48030-000 Alagoinhas - BA.\t-12.26486625\t-38.47097297\tFelipe\tsem_os\n29151384\tESCOLA MUNICIPAL JOSE ANTONIO DA SILVA LIMA\tAlagoinhas\tBR 110 KM 12, SN RURAL. 48031-000 Alagoinhas - BA.\t-12.05330000\t-38.36127000\tFelipe\tsem_os\n29441390\tESCOLA MUNICIPAL PERICLES NOGUEIRA MAGALHAES\tAlagoinhas\tPOVOADO DA CONCEICAO II, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.\t-11.94292000\t-38.46605000\tFelipe\tsem_os\n29151341\tESCOLA MUNICIPAL PROFESSORA JULINDA CAPINAM\tAlagoinhas\tPOVOADO TUCUM, SN RURAL. 48030-000 Alagoinhas - BA.\t-12.23472531\t-38.50556446\tFelipe\tsem_os\n29151228\tESCOLA MUNICIPAL PROFESSORA LUZIA MARGARIDA PINTO\tAlagoinhas\tPONTO DO BEIJU, SN BR 110. RURAL. 48030-000 Alagoinhas - BA.\t-12.22950519\t-38.41220900\tFelipe\tsem_os\n29151449\tESCOLA MUNICIPAL QUILOMBOLA MAE ERNESTINA\tAlagoinhas\tPOVOADO DO CATUZINHO, SN RURAL. 48031-000 Alagoinhas - BA.\t-12.04804438\t-38.43393869\tFelipe\tsem_os\n29151244\tESCOLA MUNICIPAL TIRADENTES\tAlagoinhas\tPOVOADO BOA VISTA, SN RURAL. 48030-000 Alagoinhas - BA.\tNULL\tNULL\tFelipe\tsem_os\n29159334\tESCOLA MUNICIPAL ALDEIA DOS CURUMINS\tItanagra\tRUA PADRE LUIZ PALMEIRAS, S/N PREDIO. CENTRO. 48290-000 Itanagra - BA.\t-12.26406591\t-38.03922354\tFelipe\tsem_os\n29159342\tESCOLA MUNICIPAL ANA AUGUSTA BOTELHO\tItanagra\tPOVOADO DE VILA MARGARIDA, SN RURAL. 48290-000 Itanagra - BA.\t-12.41229480\t-38.03937690\tFelipe\tsem_os\n29159350\tESCOLA MUNICIPAL ANA MARIA GOMES\tItanagra\tPOVOADO DO TREME, SN PREDIO ESCOLAR. RURAL. 48290-000 Itanagra - BA.\t-12.31289420\t-38.00694279\tFelipe\tsem_os\n29159385\tESCOLA MUNICIPAL IRMA DULCE\tItanagra\tITAPICIRICA, RURAL. 48290-000 Itanagra - BA.\t-12.38504790\t-37.97222980\tFelipe\tsem_os\n29159393\tESCOLA MUNICIPAL MANOEL ALCANTARA\tItanagra\tPOVOADO DE SEIS MARIA, RURAL. 48290-000 Itanagra - BA.\t-12.19238389\t-38.06595738\tFelipe\tsem_os\n29159415\tESCOLA MUNICIPAL RECANTO DO SABER\tItanagra\tQUADRA A, SN SAO JOSE DO AVENA. VILA. 48290-000 Itanagra - BA.\t-12.36333355\t-38.11594324\tFelipe\tsem_os\n29080886\tESCOLA MANOEL DOMINGOS DE AMORIM\tBaixa Grande\tPOVOADO DE MANDACARU, POVOADO DE MANDACARU. 44620-000 Baixa Grande - BA.\t-11.87779853\t-40.05447329\tJosé Felix \tsem_os\n29080584\tESCOLA WILSON GUIMARAES BASTOS\tBaixa Grande\tPOVOADO NOVO SITIO, 44620-000 Baixa Grande - BA.\t-11.85512913\t-40.18376980\tJosé Felix \tsem_os\n29069572\tCOL MUL TARCILIA EVANGELISTA DE ANDRADE\tCapim Grosso\tRUA TRES PODERES, 340 CASA. SACRAMENTO. 44695-000 Capim Grosso - BA.\t-11.37965732\t-40.00964586\tJosé Felix \tsem_os\n29409004\tCRECHE MUNICIPAL GUARACI SIMOES DE ANDRADE\tJacobina\tRUA JUSCELINO KUBITSCHEK, 121 CAEIRA. 44700-000 Jacobina - BA.\t-11.18032951\t-40.51148970\tJosé Felix \tsem_os\n29369436\tCOLEGIO CLARIEZER VICENTE DOS ANJOS\tMiguel Calmon\tRUA SECUNDA ROSA, S/N CENTRO. 44720-000 Miguel Calmon - BA.\t-11.42984631\t-40.59986612\tJosé Felix \tsem_os\n29073316\tESCOLA SANTO ANTONIO4\tMiguel Calmon\tRUA DO PREDIO, S/N CASA. PALMEIRINHA. 44720-000 Miguel Calmon - BA.\t-11.54831670\t-40.45424928\tJosé Felix \tsem_os\n29073294\tSAO FRANCISCO\tMiguel Calmon\tPOVOADO TAQUARA, SEM NUMERO ZONA RURAL. 44720-000 Miguel Calmon - BA.\t-11.42653398\t-40.49934080\tJosé Felix \tsem_os\n29087112\tCOLEGIO MUNICIPAL OLIMPIA MASCARENHAS\tMundo Novo\tRUA DO CLUBE, SN PREDIO. POVOADO DE UMBUZEIRO. 44800-000 Mundo Novo - BA.\t-11.67361990\t-40.37402640\tJosé Felix \tsem_os\n29079969\tCENTRO EDUC JOAO DE SOUZA OLIVEIRA\tVárzea Nova\tPRACA OTACILIO ALCANTARA, S/N PREDIO. CENTRO. 44690-000 Várzea Nova - BA.\t-11.25744500\t-40.94381430\tJosé Felix \tsem_os\n29340330\tCOLEGIO ESTADUAL PROFESSORA ADJACI MARTINS DURANS TEMPO INTEGRAL\tVárzea Nova\tRUA MANOEL FRAGA RIOS, 194 CENTRO. 44690-000 Várzea Nova - BA.\t-11.25981878\t-40.94720211\tJosé Felix \tsem_os\n29117216\tCENTRO EDUCACIONAL DE CARNAIBA\tEuclides da Cunha\tPOVOADO DE CARNAIBA, S/N PREDIO. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29412030\tCENTRO EDUCACIONAL DE MURITY\tEuclides da Cunha\tPOVOADO DE MURITI, ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29417872\tCENTRO EDUCACIONAL DE SERRA BRANCA\tEuclides da Cunha\tPOVOADO SERRA BRANCA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29117615\tCENTRO EDUCACIONAL JUVINIANO GOMES DOS SANTOS\tEuclides da Cunha\tBR 116, KM 230, S/N PREDIO escolar. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29756626\tCENTRO EDUCACIONAL PROFESSORA DURVALINA ABREU DE ANDRADE\tEuclides da Cunha\tLOTEAMENTO JARDIM DAS ACACIAS, S/N PREDIO. URBIS. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29418429\tCENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO ZILDA ALMEIDA DOS SANTOS\tEuclides da Cunha\tAV. ALMERINDO REHEN, S/N PREDIO ESCOLAR. NOVA AMERICA. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29117313\tCOLEGIO JOSE ARAS\tEuclides da Cunha\tRUA PROFESSOR PEDRO MONTEIRO, 116 CENTRO. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29117747\tESCOLA MUNICIPAL JOAQUIM SILVA DANTAS\tEuclides da Cunha\tRUA TEAGO FERREIRA CARVALHO, 253 PREDIO. CENTRO. 48500-000 Euclides da Cunha - BA.\tNULL\tNULL\tJulielson \tsem_os\n29149347\tESCOLA MUNICIPAL ALBINO CARLOS GUIMARAES\tValente\tFAZ. CIPO DE LEITE, 48890-000 Valente - BA.\tNULL\tNULL\tMarcos \tsem_os\n29149037\tESCOLA MUNICIPAL DOM LUCAS NEVES\tValente\tFAZENDA LAGEDINHO / FORMIGA, PREDIO. ZONA RURAL. 48890-000 Valente - BA.\tNULL\tNULL\tMarcos \tsem_os\n29405939\tCENTRO EDUCACIONAL IRINEU BATISTA DOS SANTOS\tInhambupe\tPOVOADO DE LAGOA, S/N PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.\t-11.89813930\t-38.26918970\tMatheus\tsem_os\n29153255\tCOLEGIO MUNICIPAL DR LUIS COELHO\tInhambupe\tPRACA PADRE ANCHIETA, SN PRACA DE EVENTOS. CENTRO. 48490-000 Inhambupe - BA.\t-11.78760430\t-38.35615810\tMatheus\tsem_os\n29153670\tESCOLA MUNICIPAL CLEONICE MARIA DE PINHO\tInhambupe\tPOVOADO VOLTA DE CIMA, 48490-000 Inhambupe - BA.\t-11.79493610\t-38.48693340\tMatheus\tsem_os\n29153832\tESCOLA MUNICIPAL DE MATINHA\tInhambupe\tMATINHA, MATINHA. 48490-000 Inhambupe - BA.\t-11.93965970\t-38.46998120\tMatheus\tsem_os\n29153441\tESCOLA MUNICIPAL LOURIVAL RIBEIRO DA COSTA\tInhambupe\tPOVOADO ARACATUBA, ZONA RURAL. 48490-000 Inhambupe - BA.\t-11.69883220\t-38.40491040\tMatheus\tsem_os\n29160707\tESCOLA MUNICIPAL NELSON XAVIER\tPojuca\tFAZENDA RIACHAO, SN ZONA RURAL. 48120-000 Pojuca - BA.\t-12.37534000\t-38.28083000\tMatheus\tsem_os\n29464099\tESCOLA MUNICIPAL PROF JOAO SILVA DE ASSIS\tPojuca\tESTRADA CABOCLO, SN CABOCLO. 48120-000 Pojuca - BA.\t-12.41913810\t-38.33703020\tMatheus\tsem_os\n29375770\tNUCLEO EDUCACIONAL PEDRO LEAL CARDOSO\tPojuca\tMIRANGA SEDE, SN ESCOLA. MIRANGA. 48120-000 Pojuca - BA.\tNULL\tNULL\tMatheus\tsem_os\n29393337\tCRECHE JOSE TURIBIO DOS SANTOS\tTucano\tPOVOADO CAJUEIRO, ZONA RURAL. 48790-000 Tucano - BA.\t-10.83250000\t-38.86278000\tRicardo \tsem_os\n29123275\tESCOLA MUNICIPAL CASTELO BRANCO\tTucano\tPOVOADO MANDACARU, PREDIO. ZONA RURAL. 48790-000 Tucano - BA.\t-10.97833000\t-39.07861000\tRicardo \tsem_os\n29123291\tESCOLA MUNICIPAL CECILIA MEIRELES\tTucano\tPOVOADO POCAO, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29124255\tESCOLA MUNICIPAL JOSE PENEDO\tTucano\tAVENIDA JORGE AMADO, S/N LOGRADOURO. CENTRO. 48793-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29123550\tESCOLA MUNICIPAL JOSE VALDIR DE SANTANA\tTucano\tDISTRITO RUA NOVA, SN PREDIO. RURAL. 48790-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29123593\tESCOLA MUNICIPAL MADRE PAULINA\tTucano\tRUA JOSE ALVES FARIAS, 45 ESCOLA. CALDAS DO JORRO. 48793-000 Tucano - BA.\t-11.03372000\t-38.79086000\tRicardo \tsem_os\n29123739\tESCOLA MUNICIPAL OLAVO BILAC\tTucano\tPOVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29123151\tESCOLA MUNICIPAL PROFª ZELIA DE BRITO MOREIRA RAMIRO\tTucano\tRUA FRANCISCO ARAUJO SOUZA, 655 CASA. CENTRO. 48790-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29124077\tESCOLA MUNICIPAL SAO THIAGO\tTucano\tPOVOADO PEDRA GRANDE DO CURTUME, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.\tNULL\tNULL\tRicardo \tsem_os\n29471893\tCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO\tAcajutiba\tRUA PINTO DANTAS, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.\t-11.66286095\t-38.02009811\tRoberto \tsem_os\n29392853\tCENTRO MUNICIPAL DE EDUCACAO INFANTIL DR GERALDO VASCONCELOS DE SEIXAS PEREIRA\tAcajutiba\tPRACA RUY BARBOSA, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.\t-11.66229345\t-38.01719685\tRoberto \tsem_os\n29460271\tCRECHE MUNICIPAL JOSE DOS REIS\tAcajutiba\tRUA BEDO FERREIRA BRITO, SN PREDIO. CENTRO. 48360-000 Acajutiba - BA.\t-11.65766629\t-38.00613629\tRoberto \tsem_os\n29467136\tCRECHE MUNICIPAL PROFESSORA MATILDES LOURENCO DOS SANTOS\tAcajutiba\tPOVOADO CANATUBIA, SN PREDIO. RURAL. 48360-000 Acajutiba - BA.\t-11.70557239\t-38.01341217\tRoberto \tsem_os\n29448476\tESCOLA MUNICIPAL EM TEMPO INTEGRAL PROFESSORA MARIA DE LOURDES DE OLIVEIRA VASCONCELOS\tAcajutiba\tRUA DR. RAIMUNDO BRITO, S/N PREDIO. CENTRO. 48360-000 Acajutiba - BA.\t-11.68158152\t-38.01835847\tRoberto \tsem_os\n29131626\tESCOLA CASTRO ALVES\tOlindina\tPOVOADO FUNIL, SN PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.\t-11.41305000\t-38.42528000\tRoberto \tsem_os\n29131928\tESCOLA JOAO BARRETO DE VASCONCELOS\tOlindina\tPOVOADO CARRAPATINHO, PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.\tNULL\tNULL\tRoberto \tsem_os\n29131936\tESCOLA JOAQUIM PRIMO DA FONSECA\tOlindina\tPOVOADO UMBUZEIRO, SN PREDIO ESCOLAR. RURAL. 48470-000 Olindina - BA.\tNULL\tNULL\tRoberto \tsem_os\n29131871\tESCOLA TOMAZ DE SOUZA\tOlindina\tPOVOADO LAGOA DOCE, S/Nº PREDIO ESCOLAR. ZONA RURAL. 48470-000 Olindina - BA.\t-11.48250000\t-38.39667000\tRoberto \tsem_os\n29118964\tESCOLA MUNICIPAL AYRTON OLIVEIRA DE FREITAS\tMonte Santo\tRUA LAURENTINO SILVA, S/N PREDIO. CENTRO. 48800-000 Monte Santo - BA.\t-10.44007077\t-39.33098597\tRodrigo Mota\tsem_os\n29112850\tESC MUL ANTENOR AMARO NETO\tJeremoabo\tPOVOADO LAGOA DO MATO, SN ZONA RURAL. 48540-000 Jeremoabo - BA.\t-10.08763500\t-38.13289667\tVictor \tsem_os\n29113083\tESC MUL MANOEL CARVALHO SANTANA\tJeremoabo\tPOVOADO MONTE ALEGRE, SN ZONA RURAL. 48540-000 Jeremoabo - BA.\t-9.91352167\t-38.17280833\tVictor \tsem_os\n29112710\tESCOLA MUNICIPAL DR HAILTON JOSE DE BRITO\tJeremoabo\tPOVOADO RIACHO SAO JOSE, SN ZONA RURAL. 48540-000 Jeremoabo - BA.\t-10.18327000\t-38.19791167\tVictor \tsem_os\n29436958\tESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS\tAraci\tRUA VENCESLAU QUINTINO, S/N GUARANI. 48760-000 Araci - BA.\t-11.33000955\t-38.96469084\tZé Orlando \tsem_os\n29134897\tESCOLA MUNICIPAL JOSE BONIFACIO\tAraci\tPOVOADO CALDEIRAO, SN ZONA RURAL. 48760-000 Araci - BA.\t-11.29235833\t-39.00634833\tZé Orlando \tsem_os\n29393345\tESCOLA MUNICIPAL VALDECI SOUSA DE CARVALHO\tAraci\tRUA ANTONIO EVARISTO DE CARVALHO, SN MUNICIPIO. 48760-000 Araci - BA.\t-11.34205346\t-38.96525096\tZé Orlando \tsem_os\n29135800\tGRUPO ESCOLAR ANA OLIVEIRA\tAraci\tRUA AMERINO OLIVEIRA LIMA, 193 CENTRO. 48760-000 Araci - BA.\t-11.33865000\t-38.95930000\tZé Orlando \tsem_os\n29457530\tNUCLEO DE EDUCACAO ESPECIAL\tAraci\tRUA DOMICIANO OLIVEIRA MOTA, SN CENTRO. 48760-000 Araci - BA.\tNULL\tNULL\tZé Orlando \tsem_os\n29148685\tESCOLA GABRIEL ARCANJO DA PAIXAO\tTeofilândia\tCOMUNIDADE LAGOA DO RAMO, SN PREDIO ESCOLAR. ZONA RURAL. 48770-000 Teofilândia - BA.\tNULL\tNULL\tZé Orlando \tsem_os\n29148693\tESCOLA MARIA QUITERIA\tTeofilândia\tPOVOADO BOLA VERDE, SN ZONA RURAL. 48770-000 Teofilândia - BA.\tNULL\tNULL\tZé Orlando \tsem_os\n",
+  "stderr": "",
+  "execution_time_ms": 1076
+}

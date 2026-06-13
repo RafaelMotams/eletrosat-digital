@@ -630,6 +630,24 @@ export async function getOsDetalhadas(filters: {
     .where(and(...conditions))
     .orderBy(desc(sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.createdAt})`));
 
+  // Buscar fotos de mapa de calor para cada OS
+  const osIds = rows.map((r) => r.osId);
+  let fotoMapaByOsId: Record<number, string> = {};
+  if (osIds.length > 0) {
+    const fotos = await db
+      .select({ osId: osFotos.osId, url: osFotos.url })
+      .from(osFotos)
+      .where(and(
+        inArray(osFotos.osId, osIds),
+        eq(osFotos.categoria, "mapa_calor")
+      ));
+    for (const f of fotos) {
+      if (f.osId && !fotoMapaByOsId[f.osId]) {
+        fotoMapaByOsId[f.osId] = f.url;
+      }
+    }
+  }
+
   return rows.map((r) => ({
     osId: r.osId,
     escolaId: r.escolaId,
@@ -643,6 +661,7 @@ export async function getOsDetalhadas(filters: {
     tecnicoNome: r.tecnicoNome ?? "Desconhecido",
     dataConclusao: r.dataConclusao ?? r.createdAt ?? null,
     observacao: r.observacao ?? "",
+    fotoMapaCalorUrl: fotoMapaByOsId[r.osId] ?? null,
   }));
 }
 

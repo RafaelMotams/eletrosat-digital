@@ -1,0 +1,9 @@
+{
+  "query": "\nSELECT \n  os.id,\n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado,\n  os.fotoMapaCalorUrl,\n  os.dataConclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.fotoMapaCalorUrl IS NOT NULL\n  AND os.fotoMapaCalorUrl != ''\nORDER BY t.nome, e.nome\nLIMIT 200;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  os.id,\n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado,\n  os.fotoMapaCalorUrl,\n  os.dataConclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.fotoMapaCalorUrl IS NOT NULL\n  AND os.fotoMapaCalorUrl != ''\nORDER BY t.nome, e.nome\nLIMIT 200;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 358
+}

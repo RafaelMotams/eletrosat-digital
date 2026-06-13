@@ -1,0 +1,90 @@
+{
+  "query": "\nSELECT os.id, os.fotoMapaCalorUrl, os.fotoMapaCalorKey, os.qtdApInstalado, e.nome, t.nome as tecnico\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT os.id, os.fotoMapaCalorUrl, os.fotoMapaCalorKey, os.qtdApInstalado, e.nome, t.nome as tecnico\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\nLIMIT 10;\n",
+  "rows": [
+    {
+      "id": "990001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "2",
+      "nome": "ESC LUIZ GONZAGA CARDOSO",
+      "tecnico": "Rodrigo Mota"
+    },
+    {
+      "id": "1260001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "2",
+      "nome": "ESC ANTONIO BRANCO",
+      "tecnico": "Rodrigo Mota"
+    },
+    {
+      "id": "1290001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "7",
+      "nome": "ESC NOSSA SRA DO ROSARIO",
+      "tecnico": "Rodrigo Mota"
+    },
+    {
+      "id": "1320001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "1",
+      "nome": "CRECHE MUNICIPAL VO JERONIMO",
+      "tecnico": " Luizinho "
+    },
+    {
+      "id": "1350001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "1",
+      "nome": "ESCOLA MUNICIPAL DA FAZENDA CASABU",
+      "tecnico": "Roberto "
+    },
+    {
+      "id": "1380001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "1",
+      "nome": "ESC MUL MARIVALDO MOREIRA",
+      "tecnico": "Victor "
+    },
+    {
+      "id": "1410001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "1",
+      "nome": "ESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO",
+      "tecnico": " Luizinho "
+    },
+    {
+      "id": "1440001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "3",
+      "nome": "ESCOLA MIRINS COM ALEGRIA",
+      "tecnico": "Rodrigo Mota"
+    },
+    {
+      "id": "1500001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "2",
+      "nome": "ESC SAO JORGE",
+      "tecnico": "Rodrigo Mota"
+    },
+    {
+      "id": "1530001",
+      "fotoMapaCalorUrl": "NULL",
+      "fotoMapaCalorKey": "NULL",
+      "qtdApInstalado": "7",
+      "nome": "ESC MUNICIPAL IZAURA EDVIRGENS CARDOSO",
+      "tecnico": " Luizinho "
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tfotoMapaCalorUrl\tfotoMapaCalorKey\tqtdApInstalado\tnome\ttecnico\n990001\tNULL\tNULL\t2\tESC LUIZ GONZAGA CARDOSO\tRodrigo Mota\n1260001\tNULL\tNULL\t2\tESC ANTONIO BRANCO\tRodrigo Mota\n1290001\tNULL\tNULL\t7\tESC NOSSA SRA DO ROSARIO\tRodrigo Mota\n1320001\tNULL\tNULL\t1\tCRECHE MUNICIPAL VO JERONIMO\t Luizinho \n1350001\tNULL\tNULL\t1\tESCOLA MUNICIPAL DA FAZENDA CASABU\tRoberto \n1380001\tNULL\tNULL\t1\tESC MUL MARIVALDO MOREIRA\tVictor \n1410001\tNULL\tNULL\t1\tESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO\t Luizinho \n1440001\tNULL\tNULL\t3\tESCOLA MIRINS COM ALEGRIA\tRodrigo Mota\n1500001\tNULL\tNULL\t2\tESC SAO JORGE\tRodrigo Mota\n1530001\tNULL\tNULL\t7\tESC MUNICIPAL IZAURA EDVIRGENS CARDOSO\t Luizinho \n",
+  "stderr": "",
+  "execution_time_ms": 263
+}

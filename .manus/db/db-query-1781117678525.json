@@ -1,0 +1,847 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  t.nome AS tecnico,\n  os.status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nORDER BY t.nome ASC, e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  t.nome AS tecnico,\n  os.status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nORDER BY t.nome ASC, e.nome ASC;\n",
+  "rows": [
+    {
+      "inep": "29393337",
+      "escola": "CRECHE JOSE TURIBIO DOS SANTOS",
+      "municipio": "Tucano",
+      "tecnico": "NULL",
+      "status": "NULL",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29436958",
+      "escola": "ESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS",
+      "municipio": "Araci",
+      "tecnico": "NULL",
+      "status": "NULL",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29123739",
+      "escola": "ESCOLA MUNICIPAL OLAVO BILAC",
+      "municipio": "Tucano",
+      "tecnico": "NULL",
+      "status": "NULL",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29124840",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "tecnico": "NULL",
+      "status": "NULL",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29401780",
+      "escola": "CRECHE ESC TIBERIO GONCALVES",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29606616",
+      "escola": "CRECHE MUNICIPAL VO JERONIMO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29401250",
+      "escola": "ESC MUN NOSSA SENHORA DO PERPETUO SOCORRO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "9",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29378672",
+      "escola": "ESC MUNICIPAL IZAURA EDVIRGENS CARDOSO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29124999",
+      "escola": "ESCOLA MUNICIPAL DE PEDRA GRANDE",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29125138",
+      "escola": "ESCOLA MUNICIPAL MIGUEL AVELINO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "3",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29422035",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "27/05/2026"
+    },
+    {
+      "inep": "29363535",
+      "escola": "ESCOLA MUNICIPAL RECANTO DA CRIANCA",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "12",
+      "data_conclusao": "07/06/2026"
+    },
+    {
+      "inep": "29124832",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29076862",
+      "escola": "ESC MUL DE ACUDE",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29076900",
+      "escola": "ESC MUL DE BARREIRA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29077028",
+      "escola": "ESC MUL DE VARZEA DA MOLA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29077044",
+      "escola": "ESC MUL DE VARZEA DA PEDRA - CAPIM",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "4",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29077249",
+      "escola": "ESCOLA MUL DE ALAGADICO DAS PANELAS",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29077265",
+      "escola": "ESCOLA MUL DE FORTUNA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29077303",
+      "escola": "ESCOLA MUL DE MARRECAS",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29077354",
+      "escola": "ESCOLA MUL DE VARGINHA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29077443",
+      "escola": "ESCOLA MUNICIPAL DE CAICARA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29077575",
+      "escola": "EMEF ANTONIO LUCIO DE SANTANA",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29077958",
+      "escola": "EMEF CORINTO SANTOS",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "04/06/2026"
+    },
+    {
+      "inep": "29077745",
+      "escola": "EMEF JOAO OLIVEIRA DOS SANTOS",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29077842",
+      "escola": "EMEF MANOEL VILARONGA RIOS",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "status": "concluida",
+      "aps": "3",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29077877",
+      "escola": "EMEF POLICARPIO MANOEL ANCELMO",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29449880",
+      "escola": "CRECHE NOSSA SENHORA DE FATIMA",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29117801",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BALBINO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "3",
+      "data_conclusao": "08/06/2026"
+    },
+    {
+      "inep": "29117771",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29117917",
+      "escola": "ESCOLA MUNICIPAL ANTONIO PEDRO DA COSTA",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "nao_instalada",
+      "aps": "NULL",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29117372",
+      "escola": "ESCOLA MUNICIPAL JOSE BEZERRA NETO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29117577",
+      "escola": "ESCOLA MUNICIPAL JOSE DE ANCHIETA",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "em_andamento",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29118026",
+      "escola": "ESCOLA MUNICIPAL MAJOR ANTONINO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29118760",
+      "escola": "ESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "4",
+      "data_conclusao": "05/06/2026"
+    },
+    {
+      "inep": "29118808",
+      "escola": "ESCOLA MUNICIPAL SAO GABRIEL",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29393833",
+      "escola": "ESCOLA MUNICIPAL SAO JOAQUIM",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29118620",
+      "escola": "ESCOLA MUNICIPAL SENHOR DOS PASSOS",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29153298",
+      "escola": "CENTRO EDUCACIONAL DE BAIXA GRANDE",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "4",
+      "data_conclusao": "04/06/2026"
+    },
+    {
+      "inep": "29483506",
+      "escola": "CRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29153352",
+      "escola": "ESCOLA MUNICIPAL CANDIDO NERY",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29153336",
+      "escola": "ESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29153409",
+      "escola": "ESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "05/06/2026"
+    },
+    {
+      "inep": "29153468",
+      "escola": "ESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29153786",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29153620",
+      "escola": "ESCOLA MUNICIPAL MARIA SOLEDADE CALDAS",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29153654",
+      "escola": "ESCOLA MUNICIPAL NAIR MOREIRA DA SILVA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29153662",
+      "escola": "ESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "04/06/2026"
+    },
+    {
+      "inep": "29153816",
+      "escola": "ESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29124433",
+      "escola": "ESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "status": "concluida",
+      "aps": "8",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29123631",
+      "escola": "ESCOLA MUNICIPAL MARIO MONTINO",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29399343",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "06/06/2026"
+    },
+    {
+      "inep": "29482496",
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "status": "em_andamento",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29420652",
+      "escola": "CRECHE BONS MOMENTOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29420075",
+      "escola": "CRECHE CASA FELIZ",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29420458",
+      "escola": "CRECHE CRESCER JUNTOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29420083",
+      "escola": "CRECHE GRANDE LUTA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29438136",
+      "escola": "CRECHE PEQUENO PRINCIPE",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29152941",
+      "escola": "ESC MUL LOURENCO JOSE DOS SANTOS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "status": "em_andamento",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "inep": "29122554",
+      "escola": "ESCOLA MANOEL FIDELIS DA SILVA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "9",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29153140",
+      "escola": "ESCOLA MUL CLODOALDO NARCISO REIS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29122562",
+      "escola": "ESCOLA MUN ANDRE FERREIRA DE ANDRADE",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29122600",
+      "escola": "ESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29122678",
+      "escola": "ESCOLA MUN DA FAZENDA JUREMA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29123062",
+      "escola": "ESCOLA MUNICIPAL DA FAZ TATU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29122821",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CASABU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "27/05/2026"
+    },
+    {
+      "inep": "29122830",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CRU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "27/05/2026"
+    },
+    {
+      "inep": "29122775",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29118930",
+      "escola": "ESC DAVID FERRERA DA SILVA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29119340",
+      "escola": "ESC NOSSA SRA DO DESTERRO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29119600",
+      "escola": "ESC SAO JORGE",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29118913",
+      "escola": "ESCOLA CAMINHO SUAVE",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29120489",
+      "escola": "ESCOLA EDUCANDARIO HORIZONTE NOVO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29120535",
+      "escola": "ESCOLA LUIZ JOSE DANTAS",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29464838",
+      "escola": "ESCOLA MODELO ISABEL AZEVEDO PINTO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "07/06/2026"
+    },
+    {
+      "inep": "29120500",
+      "escola": "ESCOLA MUNICIPAL JOSE DE SOUZA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29476640",
+      "escola": "ESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29120640",
+      "escola": "ESCOLA SAO JOAO DOS CAMPOS",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29381657",
+      "escola": "ESCOLA SENHOR DO BONFIM",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29423678",
+      "escola": "COLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "4",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29112923",
+      "escola": "ESC MUL DEPUTADO MANOEL NOVAES",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29112982",
+      "escola": "ESC MUL GUILHERME JOSE DE SANTANA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29112990",
+      "escola": "ESC MUL IRMA DULCE",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29113091",
+      "escola": "ESC MUL MANOEL DANTAS DE CARVALHO",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29113423",
+      "escola": "ESCOLA LUZIA EULINA SA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29337429",
+      "escola": "ESCOLA MUNICIPAL DE BAIXA DOS QUELES",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29113784",
+      "escola": "ESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29134790",
+      "escola": "ESCOLA MUNICIPAL JARBAS PASSARINHO",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "03/06/2026"
+    },
+    {
+      "inep": "29134803",
+      "escola": "ESCOLA MUNICIPAL JESUS AMADO",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29135176",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "08/06/2026"
+    },
+    {
+      "inep": "29135214",
+      "escola": "ESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "30/05/2026"
+    },
+    {
+      "inep": "29135516",
+      "escola": "ESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29148790",
+      "escola": "ESCOLA MUNICIPAL TOME DE SOUZA",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "10/06/2026"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\ttecnico\tstatus\taps\tdata_conclusao\n29393337\tCRECHE JOSE TURIBIO DOS SANTOS\tTucano\tNULL\tNULL\tNULL\tNULL\n29436958\tESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS\tAraci\tNULL\tNULL\tNULL\tNULL\n29123739\tESCOLA MUNICIPAL OLAVO BILAC\tTucano\tNULL\tNULL\tNULL\tNULL\n29124840\tESCOLA MUNICIPAL SAO JOSE\tUauá\tNULL\tNULL\tNULL\tNULL\n29401780\tCRECHE ESC TIBERIO GONCALVES\tUauá\t Luizinho \tconcluida\t1\t29/05/2026\n29606616\tCRECHE MUNICIPAL VO JERONIMO\tUauá\t Luizinho \tconcluida\t1\t02/06/2026\n29401250\tESC MUN NOSSA SENHORA DO PERPETUO SOCORRO\tUauá\t Luizinho \tconcluida\t9\t03/06/2026\n29378672\tESC MUNICIPAL IZAURA EDVIRGENS CARDOSO\tUauá\t Luizinho \tconcluida\t7\t09/06/2026\n29124999\tESCOLA MUNICIPAL DE PEDRA GRANDE\tUauá\t Luizinho \tconcluida\t1\t29/05/2026\n29125138\tESCOLA MUNICIPAL MIGUEL AVELINO\tUauá\t Luizinho \tconcluida\t3\t03/06/2026\n29422035\tESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO\tUauá\t Luizinho \tconcluida\t1\t27/05/2026\n29363535\tESCOLA MUNICIPAL RECANTO DA CRIANCA\tUauá\t Luizinho \tconcluida\t12\t07/06/2026\n29124832\tESCOLA MUNICIPAL SAO JOSE\tUauá\t Luizinho \tconcluida\t1\t29/05/2026\n29076862\tESC MUL DE ACUDE\tPonto Novo\tAlex\tconcluida\t1\t30/05/2026\n29076900\tESC MUL DE BARREIRA\tPonto Novo\tAlex\tconcluida\t1\t29/05/2026\n29077028\tESC MUL DE VARZEA DA MOLA\tPonto Novo\tAlex\tconcluida\t1\t30/05/2026\n29077044\tESC MUL DE VARZEA DA PEDRA - CAPIM\tPonto Novo\tAlex\tconcluida\t4\t29/05/2026\n29077249\tESCOLA MUL DE ALAGADICO DAS PANELAS\tPonto Novo\tAlex\tconcluida\t1\t01/06/2026\n29077265\tESCOLA MUL DE FORTUNA\tPonto Novo\tAlex\tconcluida\t1\t30/05/2026\n29077303\tESCOLA MUL DE MARRECAS\tPonto Novo\tAlex\tconcluida\t1\t01/06/2026\n29077354\tESCOLA MUL DE VARGINHA\tPonto Novo\tAlex\tconcluida\t1\t30/05/2026\n29077443\tESCOLA MUNICIPAL DE CAICARA\tPonto Novo\tAlex\tconcluida\t1\t30/05/2026\n29077575\tEMEF ANTONIO LUCIO DE SANTANA\tQuixabeira\tJosé Felix \tconcluida\t7\t09/06/2026\n29077958\tEMEF CORINTO SANTOS\tQuixabeira\tJosé Felix \tconcluida\t2\t04/06/2026\n29077745\tEMEF JOAO OLIVEIRA DOS SANTOS\tQuixabeira\tJosé Felix \tconcluida\t2\t06/06/2026\n29077842\tEMEF MANOEL VILARONGA RIOS\tQuixabeira\tJosé Felix \tconcluida\t3\t06/06/2026\n29077877\tEMEF POLICARPIO MANOEL ANCELMO\tQuixabeira\tJosé Felix \tconcluida\t1\t03/06/2026\n29449880\tCRECHE NOSSA SENHORA DE FATIMA\tEuclides da Cunha\tJulielson \tconcluida\t1\t02/06/2026\n29117801\tESCOLA MUNICIPAL ANTONIO BALBINO\tEuclides da Cunha\tJulielson \tconcluida\t3\t08/06/2026\n29117771\tESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO\tEuclides da Cunha\tJulielson \tconcluida\t1\t29/05/2026\n29117917\tESCOLA MUNICIPAL ANTONIO PEDRO DA COSTA\tEuclides da Cunha\tJulielson \tnao_instalada\tNULL\t28/05/2026\n29117372\tESCOLA MUNICIPAL JOSE BEZERRA NETO\tEuclides da Cunha\tJulielson \tconcluida\t1\t01/06/2026\n29117577\tESCOLA MUNICIPAL JOSE DE ANCHIETA\tEuclides da Cunha\tJulielson \tem_andamento\tNULL\tNULL\n29118026\tESCOLA MUNICIPAL MAJOR ANTONINO\tEuclides da Cunha\tJulielson \tconcluida\t2\t03/06/2026\n29118760\tESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS\tEuclides da Cunha\tJulielson \tconcluida\t4\t05/06/2026\n29118808\tESCOLA MUNICIPAL SAO GABRIEL\tEuclides da Cunha\tJulielson \tconcluida\t2\t09/06/2026\n29393833\tESCOLA MUNICIPAL SAO JOAQUIM\tEuclides da Cunha\tJulielson \tconcluida\t1\t29/05/2026\n29118620\tESCOLA MUNICIPAL SENHOR DOS PASSOS\tEuclides da Cunha\tJulielson \tconcluida\t1\t01/06/2026\n29153298\tCENTRO EDUCACIONAL DE BAIXA GRANDE\tInhambupe\tMatheus\tconcluida\t4\t04/06/2026\n29483506\tCRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA\tInhambupe\tMatheus\tconcluida\t1\t02/06/2026\n29153352\tESCOLA MUNICIPAL CANDIDO NERY\tInhambupe\tMatheus\tconcluida\t1\t06/06/2026\n29153336\tESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO\tInhambupe\tMatheus\tconcluida\t1\t06/06/2026\n29153409\tESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA\tInhambupe\tMatheus\tconcluida\t2\t05/06/2026\n29153468\tESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS\tInhambupe\tMatheus\tconcluida\t2\t09/06/2026\n29153786\tESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA\tInhambupe\tMatheus\tconcluida\t1\t01/06/2026\n29153620\tESCOLA MUNICIPAL MARIA SOLEDADE CALDAS\tInhambupe\tMatheus\tconcluida\t1\t06/06/2026\n29153654\tESCOLA MUNICIPAL NAIR MOREIRA DA SILVA\tInhambupe\tMatheus\tconcluida\t1\t06/06/2026\n29153662\tESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO\tInhambupe\tMatheus\tconcluida\t2\t04/06/2026\n29153816\tESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA\tInhambupe\tMatheus\tconcluida\t2\t09/06/2026\n29124433\tESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO\tTucano\tRicardo \tconcluida\t8\t03/06/2026\n29123631\tESCOLA MUNICIPAL MARIO MONTINO\tTucano\tRicardo \tconcluida\t5\t03/06/2026\n29399343\tESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS\tTucano\tRicardo \tconcluida\t7\t06/06/2026\n29482496\tCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE\tCrisópolis\tRoberto \tem_andamento\tNULL\tNULL\n29420652\tCRECHE BONS MOMENTOS\tQuijingue\tRoberto \tconcluida\t1\t28/05/2026\n29420075\tCRECHE CASA FELIZ\tQuijingue\tRoberto \tconcluida\t1\t29/05/2026\n29420458\tCRECHE CRESCER JUNTOS\tQuijingue\tRoberto \tconcluida\t1\t01/06/2026\n29420083\tCRECHE GRANDE LUTA\tQuijingue\tRoberto \tconcluida\t1\t01/06/2026\n29438136\tCRECHE PEQUENO PRINCIPE\tQuijingue\tRoberto \tconcluida\t1\t29/05/2026\n29152941\tESC MUL LOURENCO JOSE DOS SANTOS\tCrisópolis\tRoberto \tem_andamento\tNULL\tNULL\n29122554\tESCOLA MANOEL FIDELIS DA SILVA\tQuijingue\tRoberto \tconcluida\t9\t03/06/2026\n29153140\tESCOLA MUL CLODOALDO NARCISO REIS\tCrisópolis\tRoberto \tconcluida\t2\t10/06/2026\n29122562\tESCOLA MUN ANDRE FERREIRA DE ANDRADE\tQuijingue\tRoberto \tconcluida\t1\t30/05/2026\n29122600\tESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS\tQuijingue\tRoberto \tconcluida\t1\t29/05/2026\n29122678\tESCOLA MUN DA FAZENDA JUREMA\tQuijingue\tRoberto \tconcluida\t2\t30/05/2026\n29123062\tESCOLA MUNICIPAL DA FAZ TATU\tQuijingue\tRoberto \tconcluida\t6\t29/05/2026\n29122821\tESCOLA MUNICIPAL DA FAZENDA CASABU\tQuijingue\tRoberto \tconcluida\t1\t27/05/2026\n29122830\tESCOLA MUNICIPAL DA FAZENDA CRU\tQuijingue\tRoberto \tconcluida\t1\t27/05/2026\n29122775\tESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO\tQuijingue\tRoberto \tconcluida\t1\t30/05/2026\n29118930\tESC DAVID FERRERA DA SILVA\tMonte Santo\tRodrigo Mota\tconcluida\t1\t10/06/2026\n29119340\tESC NOSSA SRA DO DESTERRO\tMonte Santo\tRodrigo Mota\tconcluida\t2\t09/06/2026\n29119600\tESC SAO JORGE\tMonte Santo\tRodrigo Mota\tconcluida\t2\t01/06/2026\n29118913\tESCOLA CAMINHO SUAVE\tMonte Santo\tRodrigo Mota\tconcluida\t1\t10/06/2026\n29120489\tESCOLA EDUCANDARIO HORIZONTE NOVO\tMonte Santo\tRodrigo Mota\tconcluida\t7\t09/06/2026\n29120535\tESCOLA LUIZ JOSE DANTAS\tMonte Santo\tRodrigo Mota\tconcluida\t5\t28/05/2026\n29464838\tESCOLA MODELO ISABEL AZEVEDO PINTO\tMonte Santo\tRodrigo Mota\tconcluida\t6\t07/06/2026\n29120500\tESCOLA MUNICIPAL JOSE DE SOUZA\tMonte Santo\tRodrigo Mota\tconcluida\t2\t09/06/2026\n29476640\tESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA\tMonte Santo\tRodrigo Mota\tconcluida\t5\t29/05/2026\n29120640\tESCOLA SAO JOAO DOS CAMPOS\tMonte Santo\tRodrigo Mota\tconcluida\t7\t02/06/2026\n29381657\tESCOLA SENHOR DO BONFIM\tMonte Santo\tRodrigo Mota\tconcluida\t6\t03/06/2026\n29423678\tCOLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA\tJeremoabo\tVictor \tconcluida\t4\t01/06/2026\n29112923\tESC MUL DEPUTADO MANOEL NOVAES\tJeremoabo\tVictor \tconcluida\t1\t28/05/2026\n29112982\tESC MUL GUILHERME JOSE DE SANTANA\tJeremoabo\tVictor \tconcluida\t1\t01/06/2026\n29112990\tESC MUL IRMA DULCE\tJeremoabo\tVictor \tconcluida\t1\t02/06/2026\n29113091\tESC MUL MANOEL DANTAS DE CARVALHO\tJeremoabo\tVictor \tconcluida\t2\t28/05/2026\n29113423\tESCOLA LUZIA EULINA SA\tJeremoabo\tVictor \tconcluida\t5\t29/05/2026\n29337429\tESCOLA MUNICIPAL DE BAIXA DOS QUELES\tJeremoabo\tVictor \tconcluida\t2\t10/06/2026\n29113784\tESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO\tJeremoabo\tVictor \tconcluida\t1\t30/05/2026\n29134790\tESCOLA MUNICIPAL JARBAS PASSARINHO\tAraci\tZé Orlando \tconcluida\t2\t03/06/2026\n29134803\tESCOLA MUNICIPAL JESUS AMADO\tAraci\tZé Orlando \tconcluida\t2\t02/06/2026\n29135176\tESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES\tAraci\tZé Orlando \tconcluida\t2\t08/06/2026\n29135214\tESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE\tAraci\tZé Orlando \tconcluida\t1\t30/05/2026\n29135516\tESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS\tAraci\tZé Orlando \tconcluida\t2\t01/06/2026\n29148790\tESCOLA MUNICIPAL TOME DE SOUZA\tTeofilândia\tZé Orlando \tconcluida\t6\t10/06/2026\n",
+  "stderr": "",
+  "execution_time_ms": 347
+}

@@ -1,0 +1,1770 @@
+{
+  "query": "\nSELECT \n  os.id AS osId,\n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado,\n  f.url AS fotoUrl,\n  os.dataConclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nJOIN os_fotos f ON f.osId = os.id AND f.categoria = 'mapa_calor'\nWHERE os.status = 'concluida'\nORDER BY t.nome, e.nome\nLIMIT 200;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  os.id AS osId,\n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado,\n  f.url AS fotoUrl,\n  os.dataConclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nJOIN os_fotos f ON f.osId = os.id AND f.categoria = 'mapa_calor'\nWHERE os.status = 'concluida'\nORDER BY t.nome, e.nome\nLIMIT 200;\n",
+  "rows": [
+    {
+      "osId": "1860003",
+      "escola": "CRECHE ESC TIBERIO GONCALVES",
+      "inep": "29401780",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1860003-1780088277659_8e519b80.jpg",
+      "dataConclusao": "2026-05-29 20:57:57"
+    },
+    {
+      "osId": "1320001",
+      "escola": "CRECHE MUNICIPAL VO JERONIMO",
+      "inep": "29606616",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1320001-1780426037423_17d8b04c.jpg",
+      "dataConclusao": "2026-06-02 18:47:17"
+    },
+    {
+      "osId": "1740001",
+      "escola": "CRECHE SORRISO DE CRIANCA",
+      "inep": "29401770",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1740001-1779982254771_9293fb74.jpg",
+      "dataConclusao": "2026-05-28 15:30:54"
+    },
+    {
+      "osId": "2700001",
+      "escola": "ESC MUN NOSSA SENHORA DO PERPETUO SOCORRO",
+      "inep": "29401250",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "9",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2700001-1780484951552_15303f5f.jpg",
+      "dataConclusao": "2026-06-03 11:09:11"
+    },
+    {
+      "osId": "1530001",
+      "escola": "ESC MUNICIPAL IZAURA EDVIRGENS CARDOSO",
+      "inep": "29378672",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1530001-1780969004752_8a025d95.jpg",
+      "dataConclusao": "2026-06-09 01:36:44"
+    },
+    {
+      "osId": "1830001",
+      "escola": "ESCOLA MUNICIPAL DAO PEDRO",
+      "inep": "29125375",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1830001-1780002026380_14d08f6a.jpg",
+      "dataConclusao": "2026-05-28 21:00:23"
+    },
+    {
+      "osId": "1860002",
+      "escola": "ESCOLA MUNICIPAL DE PEDRA GRANDE",
+      "inep": "29124999",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1860002-1780069069658_92d9d1a3.jpg",
+      "dataConclusao": "2026-05-29 15:37:49"
+    },
+    {
+      "osId": "3750001",
+      "escola": "ESCOLA MUNICIPAL MIGUEL AVELINO",
+      "inep": "29125138",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3750001-1780519035719_8e90df8c.jpg",
+      "dataConclusao": "2026-06-03 20:37:15"
+    },
+    {
+      "osId": "1410001",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO",
+      "inep": "29422035",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1410001-1779902413381_9eb1a23c.jpg",
+      "dataConclusao": "2026-05-27 17:20:12"
+    },
+    {
+      "osId": "3630001",
+      "escola": "ESCOLA MUNICIPAL PADRE GREGORIO",
+      "inep": "29125545",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "8",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3630001-1781188854133_d20b3b0a.jpg",
+      "dataConclusao": "2026-06-11 14:40:53"
+    },
+    {
+      "osId": "3990001",
+      "escola": "ESCOLA MUNICIPAL RECANTO DA CRIANCA",
+      "inep": "29363535",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "12",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3990001-1780831750928_1898a33f.jpg",
+      "dataConclusao": "2026-06-07 11:29:10"
+    },
+    {
+      "osId": "1860001",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "inep": "29124832",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1860001-1780081363276_aac453d3.jpg",
+      "dataConclusao": "2026-05-29 19:02:43"
+    },
+    {
+      "osId": "5760001",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "inep": "29124840",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5760001-1781189004758_f8019be6.jpg",
+      "dataConclusao": "2026-06-11 14:43:24"
+    },
+    {
+      "osId": "4230003",
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO PSICOPEDAGOGICO DE PINDOBACU",
+      "inep": "29859840",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4230003-1780748667823_0f0d89e1.jpg",
+      "dataConclusao": "2026-06-06 12:24:26"
+    },
+    {
+      "osId": "2820001",
+      "escola": "CENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE",
+      "inep": "29475759",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2820001-1780333854646_648e7f64.jpg",
+      "dataConclusao": "2026-06-01 17:10:54"
+    },
+    {
+      "osId": "3390001",
+      "escola": "COLEGIO MUNICIPAL ANTONIO JOAQUIM DE MIRANDA",
+      "inep": "29055105",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3390001-1780427313021_c6edf252.jpg",
+      "dataConclusao": "2026-06-02 19:08:32"
+    },
+    {
+      "osId": "4230002",
+      "escola": "COLEGIO MUNICIPAL FAUSTINO DIAS LIMA",
+      "inep": "29336252",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4230002-1780652303396_39d04a69.jpg",
+      "dataConclusao": "2026-06-05 09:38:23"
+    },
+    {
+      "osId": "3390002",
+      "escola": "COLEGIO MUNICIPAL SERRA DE CARNAIBA",
+      "inep": "29055032",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "12",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3390002-1780527386877_407fcaf0.jpg",
+      "dataConclusao": "2026-06-03 22:56:26"
+    },
+    {
+      "osId": "5010001",
+      "escola": "CRECHE CARINHO BETH SHALOM",
+      "inep": "29396263",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5010001-1781009525752_d707bd8b.jpg",
+      "dataConclusao": "2026-06-09 12:52:04"
+    },
+    {
+      "osId": "4440002",
+      "escola": "CRECHE CARINHO DE LAGINHA",
+      "inep": "29396271",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4440002-1780748563519_e1a3e6b3.jpg",
+      "dataConclusao": "2026-06-06 12:22:41"
+    },
+    {
+      "osId": "2460003",
+      "escola": "ESC MUL DE ACUDE",
+      "inep": "29076862",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2460003-1780182357128_d59447d1.jpg",
+      "dataConclusao": "2026-05-30 23:05:55"
+    },
+    {
+      "osId": "2040001",
+      "escola": "ESC MUL DE BARREIRA",
+      "inep": "29076900",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2040001-1780067073937_549afa84.jpg",
+      "dataConclusao": "2026-05-29 15:04:33"
+    },
+    {
+      "osId": "2460002",
+      "escola": "ESC MUL DE VARZEA DA MOLA",
+      "inep": "29077028",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2460002-1780176458978_b87e1ab0.jpg",
+      "dataConclusao": "2026-05-30 21:27:37"
+    },
+    {
+      "osId": "1890001",
+      "escola": "ESC MUL DE VARZEA DA PEDRA - CAPIM",
+      "inep": "29077044",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1890001-1780060607193_5f8cd7a6.jpg",
+      "dataConclusao": "2026-05-29 13:16:44"
+    },
+    {
+      "osId": "2610002",
+      "escola": "ESCOLA MUL DE ALAGADICO DAS PANELAS",
+      "inep": "29077249",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2610002-1780280463144_15a26430.jpg",
+      "dataConclusao": "2026-06-01 02:21:03"
+    },
+    {
+      "osId": "2460001",
+      "escola": "ESCOLA MUL DE FORTUNA",
+      "inep": "29077265",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2460001-1780176348853_be7f71c7.jpg",
+      "dataConclusao": "2026-05-30 21:25:46"
+    },
+    {
+      "osId": "2610001",
+      "escola": "ESCOLA MUL DE MARRECAS",
+      "inep": "29077303",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2610001-1780280369362_0acfbf31.jpg",
+      "dataConclusao": "2026-06-01 02:19:29"
+    },
+    {
+      "osId": "2400001",
+      "escola": "ESCOLA MUL DE VARGINHA",
+      "inep": "29077354",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2400001-1780157934906_9f39e943.jpg",
+      "dataConclusao": "2026-05-30 16:18:53"
+    },
+    {
+      "osId": "6120001",
+      "escola": "ESCOLA MUNCIPAL ROMULO GALVAO",
+      "inep": "29048362",
+      "municipio": "Antônio Gonçalves",
+      "tecnico": "Alex",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-6120001-1781343050895_f4150e9a.jpg",
+      "dataConclusao": "2026-06-13 09:30:50"
+    },
+    {
+      "osId": "4440001",
+      "escola": "ESCOLA MUNICIPAL AURELIO BRAZ DA SILVA",
+      "inep": "29055237",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4440001-1780748440760_d45202ae.jpg",
+      "dataConclusao": "2026-06-06 12:20:40"
+    },
+    {
+      "osId": "2310001",
+      "escola": "ESCOLA MUNICIPAL DE CAICARA",
+      "inep": "29077443",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2310001-1780156217201_e1d563a9.jpg",
+      "dataConclusao": "2026-05-30 15:50:14"
+    },
+    {
+      "osId": "5940001",
+      "escola": "ESCOLA PROFESSORA MARIA DO CARMO DE ARAUJO MAIA",
+      "inep": "29050570",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtdApInstalado": "8",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5940001-1781228090241_1fc54e1d.jpg",
+      "dataConclusao": "2026-06-12 01:34:49"
+    },
+    {
+      "osId": "6060001",
+      "escola": "PAULO VI",
+      "inep": "29132827",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-6060001-1781290318529_deab8204.jpg",
+      "dataConclusao": "2026-06-12 18:51:58"
+    },
+    {
+      "osId": "5100001",
+      "escola": "ESCOLA MUNICIPAL ALAIDE SANTANA SANTOS",
+      "inep": "29151503",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5100001-1781017682140_a218af68.jpg",
+      "dataConclusao": "2026-06-09 15:08:01"
+    },
+    {
+      "osId": "5820001",
+      "escola": "ESCOLA MUNICIPAL GENERAL OSORIO",
+      "inep": "29150469",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5820001-1781206629449_66b0914a.jpg",
+      "dataConclusao": "2026-06-11 19:37:09"
+    },
+    {
+      "osId": "5910001",
+      "escola": "ESCOLA MUNICIPAL LIODORIO BORGES DOS SANTOS",
+      "inep": "29151406",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5910001-1781223671863_3ba39c32.jpg",
+      "dataConclusao": "2026-06-12 00:21:11"
+    },
+    {
+      "osId": "5730001",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES SANTOS",
+      "inep": "29150655",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5730001-1781185183202_9859a190.jpg",
+      "dataConclusao": "2026-06-11 13:39:42"
+    },
+    {
+      "osId": "5190001",
+      "escola": "ESCOLA MUNICIPAL SANTA RITA",
+      "inep": "29151481",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5190001-1781032936467_59d4242f.jpg",
+      "dataConclusao": "2026-06-09 19:22:16"
+    },
+    {
+      "osId": "6030001",
+      "escola": "ESCOLA MUNICIPAL TIRADENTES",
+      "inep": "29151244",
+      "municipio": "Alagoinhas",
+      "tecnico": "Felipe",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-6030001-1781273350139_695c16cc.jpg",
+      "dataConclusao": "2026-06-12 14:09:10"
+    },
+    {
+      "osId": "4620001",
+      "escola": "EMEF ANTONIO LUCIO DE SANTANA",
+      "inep": "29077575",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4620001-1780965541606_5d07d050.jpg",
+      "dataConclusao": "2026-06-09 00:39:01"
+    },
+    {
+      "osId": "4020001",
+      "escola": "EMEF CORINTO SANTOS",
+      "inep": "29077958",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4020001-1780605672803_d9e62b30.jpg",
+      "dataConclusao": "2026-06-04 20:41:11"
+    },
+    {
+      "osId": "4530001",
+      "escola": "EMEF JOAO OLIVEIRA DOS SANTOS",
+      "inep": "29077745",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4530001-1780774551474_9567ee65.jpg",
+      "dataConclusao": "2026-06-06 19:35:51"
+    },
+    {
+      "osId": "4260001",
+      "escola": "EMEF MANOEL VILARONGA RIOS",
+      "inep": "29077842",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4260001-1780707522394_d8489533.jpg",
+      "dataConclusao": "2026-06-06 00:58:42"
+    },
+    {
+      "osId": "3810001",
+      "escola": "EMEF POLICARPIO MANOEL ANCELMO",
+      "inep": "29077877",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3810001-1780512743555_1e47aa0f.jpg",
+      "dataConclusao": "2026-06-03 18:52:22"
+    },
+    {
+      "osId": "5130001",
+      "escola": "EMEF RAULINDO DE ARAUJO RIOS",
+      "inep": "29077974",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5130001-1781132209230_4da0989b.jpg",
+      "dataConclusao": "2026-06-10 22:56:48"
+    },
+    {
+      "osId": "6000001",
+      "escola": "ESC MUL JUVENCIO JOSE DA SILVA",
+      "inep": "29069840",
+      "municipio": "Capim Grosso",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-6000001-1781278140134_982217a5.jpg",
+      "dataConclusao": "2026-06-12 15:28:59"
+    },
+    {
+      "osId": "5850001",
+      "escola": "ESCOLA JOSE OTAVIO DE SENA",
+      "inep": "29072778",
+      "municipio": "Miguel Calmon",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5850001-1781222110473_68a2b1d3.jpg",
+      "dataConclusao": "2026-06-11 23:55:10"
+    },
+    {
+      "osId": "5610001",
+      "escola": "ESCOLA MATIAS FREIRE",
+      "inep": "29072840",
+      "municipio": "Miguel Calmon",
+      "tecnico": "José Felix ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5610001-1781212299093_8c3dcba7.jpg",
+      "dataConclusao": "2026-06-11 21:11:38"
+    },
+    {
+      "osId": "3570001",
+      "escola": "CRECHE NOSSA SENHORA DE FATIMA",
+      "inep": "29449880",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3570001-1780443211532_642a913c.jpg",
+      "dataConclusao": "2026-06-02 23:33:23"
+    },
+    {
+      "osId": "4860001",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BALBINO",
+      "inep": "29117801",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4860001-1780951782486_8af95c97.jpg",
+      "dataConclusao": "2026-06-08 20:49:41"
+    },
+    {
+      "osId": "2100001",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO",
+      "inep": "29117771",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2100001-1780075962839_daf628a0.jpg",
+      "dataConclusao": "2026-05-29 17:32:42"
+    },
+    {
+      "osId": "3060002",
+      "escola": "ESCOLA MUNICIPAL JOSE BEZERRA NETO",
+      "inep": "29117372",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3060002-1780357547520_94ce0e8f.jpg",
+      "dataConclusao": "2026-06-01 23:45:47"
+    },
+    {
+      "osId": "5430001",
+      "escola": "ESCOLA MUNICIPAL JOSE DE ANCHIETA",
+      "inep": "29117577",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5430001-1781197828284_8959aebc.jpg",
+      "dataConclusao": "2026-06-11 17:10:28"
+    },
+    {
+      "osId": "3870001",
+      "escola": "ESCOLA MUNICIPAL MAJOR ANTONINO",
+      "inep": "29118026",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3870001-1780522062139_7702ed2d.jpg",
+      "dataConclusao": "2026-06-03 21:27:41"
+    },
+    {
+      "osId": "4290001",
+      "escola": "ESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS",
+      "inep": "29118760",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4290001-1780698308403_9d37efaa.jpg",
+      "dataConclusao": "2026-06-05 22:25:07"
+    },
+    {
+      "osId": "3690001",
+      "escola": "ESCOLA MUNICIPAL ROSA MISTICA",
+      "inep": "29393876",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3690001-1780505121285_3e7bae68.jpg",
+      "dataConclusao": "2026-06-03 16:45:19"
+    },
+    {
+      "osId": "4980001",
+      "escola": "ESCOLA MUNICIPAL SAO GABRIEL",
+      "inep": "29118808",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4980001-1781035278957_483746a2.jpg",
+      "dataConclusao": "2026-06-09 20:01:18"
+    },
+    {
+      "osId": "2070001",
+      "escola": "ESCOLA MUNICIPAL SAO JOAQUIM",
+      "inep": "29393833",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2070001-1780075711612_b1800898.jpg",
+      "dataConclusao": "2026-05-29 17:28:31"
+    },
+    {
+      "osId": "3060001",
+      "escola": "ESCOLA MUNICIPAL SENHOR DOS PASSOS",
+      "inep": "29118620",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3060001-1780357488040_abe82927.jpg",
+      "dataConclusao": "2026-06-01 23:44:47"
+    },
+    {
+      "osId": "5040001",
+      "escola": "ESCOLA MUNICIPAL ANA NERI",
+      "inep": "29136083",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5040001-1781103060358_28ef598f.jpg",
+      "dataConclusao": "2026-06-10 14:51:00"
+    },
+    {
+      "osId": "3420001",
+      "escola": "ESCOLA MUNICIPAL CASTRO ALVES",
+      "inep": "29136156",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3420001-1780444429177_6cfd57b6.jpg",
+      "dataConclusao": "2026-06-02 23:53:49"
+    },
+    {
+      "osId": "4740001",
+      "escola": "ESCOLA MUNICIPAL MANOEL PEDREIRA GOMES",
+      "inep": "29136113",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4740001-1780934744244_98d04872.jpg",
+      "dataConclusao": "2026-06-08 16:05:42"
+    },
+    {
+      "osId": "5430002",
+      "escola": "ESCOLA MUNICIPAL MANOEL PEREIRA CARDOSO",
+      "inep": "29136121",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5430002-1781126936417_40781869.jpg",
+      "dataConclusao": "2026-06-10 21:28:56"
+    },
+    {
+      "osId": "3660001",
+      "escola": "ESCOLA MUNICIPAL MARIA CARDOSO PEDREIRA",
+      "inep": "29379890",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3660001-1780493078288_83d6be79.jpg",
+      "dataConclusao": "2026-06-03 13:24:16"
+    },
+    {
+      "osId": "3780001",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DA VITORIA",
+      "inep": "29136474",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3780001-1780502821275_bce30596.jpg",
+      "dataConclusao": "2026-06-03 16:07:01"
+    },
+    {
+      "osId": "3270001",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DAS GRACAS",
+      "inep": "29136180",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3270001-1780416802556_b2178053.jpg",
+      "dataConclusao": "2026-06-02 16:13:22"
+    },
+    {
+      "osId": "3360001",
+      "escola": "ESCOLA MUNICIPAL OSVALDO CRUZ",
+      "inep": "29136199",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3360001-1780431690003_313265a9.jpg",
+      "dataConclusao": "2026-06-02 20:21:29"
+    },
+    {
+      "osId": "4830001",
+      "escola": "ESCOLA MUNICIPAL RUBEM BRAGA",
+      "inep": "29136164",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4830001-1781011862322_5207610d.jpg",
+      "dataConclusao": "2026-06-09 13:31:02"
+    },
+    {
+      "osId": "3840001",
+      "escola": "ESCOLA MUNICIPAL RUI BARBOSA",
+      "inep": "29136202",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3840001-1780524438801_52a67c5b.jpg",
+      "dataConclusao": "2026-06-03 22:07:18"
+    },
+    {
+      "osId": "5790001",
+      "escola": "ESCOLA MUNICIPAL SANTA CECILIA",
+      "inep": "29136288",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5790001-1781201433147_9b2c76af.jpg",
+      "dataConclusao": "2026-06-11 18:10:32"
+    },
+    {
+      "osId": "2760001",
+      "escola": "ESCOLA MUNICIPAL SANTA MARGARIDA",
+      "inep": "29136318",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2760001-1780355026166_e223da5e.jpg",
+      "dataConclusao": "2026-06-01 23:03:45"
+    },
+    {
+      "osId": "5610002",
+      "escola": "ESCOLA MUNICIPAL SANTO ANTONIO",
+      "inep": "29136334",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5610002-1781185481733_879f15a2.jpg",
+      "dataConclusao": "2026-06-11 13:44:40"
+    },
+    {
+      "osId": "3120001",
+      "escola": "ESCOLA MUNICIPAL TEREZA SIMOES",
+      "inep": "29432073",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3120001-1780406761270_148ce3f6.jpg",
+      "dataConclusao": "2026-06-02 13:26:01"
+    },
+    {
+      "osId": "4050001",
+      "escola": "CENTRO EDUCACIONAL DE BAIXA GRANDE",
+      "inep": "29153298",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4050001-1780573480315_7fafed38.jpg",
+      "dataConclusao": "2026-06-04 11:44:39"
+    },
+    {
+      "osId": "3540001",
+      "escola": "CRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA",
+      "inep": "29483506",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3540001-1780441346618_13f3713d.jpg",
+      "dataConclusao": "2026-06-02 23:02:26"
+    },
+    {
+      "osId": "4890001",
+      "escola": "ESCOLA MUNICIPAL AGENOR BATISTA DA SILVA",
+      "inep": "29153301",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "10",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4890001-1780961497886_736da266.jpg",
+      "dataConclusao": "2026-06-08 23:31:37"
+    },
+    {
+      "osId": "3330001",
+      "escola": "ESCOLA MUNICIPAL AMENAIDE CRUZ NERI DOS SANTOS",
+      "inep": "29153310",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3330001-1780417668714_42fceb3b.jpg",
+      "dataConclusao": "2026-06-02 16:27:48"
+    },
+    {
+      "osId": "4590001",
+      "escola": "ESCOLA MUNICIPAL CANDIDO NERY",
+      "inep": "29153352",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4590001-1780784177249_a24ecafa.jpg",
+      "dataConclusao": "2026-06-06 22:16:16"
+    },
+    {
+      "osId": "4380001",
+      "escola": "ESCOLA MUNICIPAL DE CONCEICAO",
+      "inep": "29153522",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4380001-1780711537946_457c9c21.jpg",
+      "dataConclusao": "2026-06-06 02:05:37"
+    },
+    {
+      "osId": "4230001",
+      "escola": "ESCOLA MUNICIPAL DR ARMANDO BERENGUER",
+      "inep": "29153395",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4230001-1780652338117_898da1c1.jpg",
+      "dataConclusao": "2026-06-05 09:38:57"
+    },
+    {
+      "osId": "4410001",
+      "escola": "ESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO",
+      "inep": "29153336",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4410001-1780714351672_842e2e7b.jpg",
+      "dataConclusao": "2026-06-06 02:52:31"
+    },
+    {
+      "osId": "5490002",
+      "escola": "ESCOLA MUNICIPAL FRANCISCO DE PAULA SANTOS",
+      "inep": "29373301",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5490002-1781127883536_401e1111.jpg",
+      "dataConclusao": "2026-06-10 21:44:43"
+    },
+    {
+      "osId": "5490001",
+      "escola": "ESCOLA MUNICIPAL HELENA BARBOSA DE FIGUEREDO",
+      "inep": "29153239",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5490001-1781127837132_2d93fc7d.jpg",
+      "dataConclusao": "2026-06-10 21:43:56"
+    },
+    {
+      "osId": "5310002",
+      "escola": "ESCOLA MUNICIPAL JUSCELINO KUBITSCHEK DE OLIVEIRA",
+      "inep": "29131510",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5310002-1781048338624_20c8e2e6.jpg",
+      "dataConclusao": "2026-06-09 23:38:58"
+    },
+    {
+      "osId": "4170001",
+      "escola": "ESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA",
+      "inep": "29153409",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4170001-1780619574610_1f470842.jpg",
+      "dataConclusao": "2026-06-05 00:32:54"
+    },
+    {
+      "osId": "5310003",
+      "escola": "ESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS",
+      "inep": "29153468",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5310003-1781048433593_5901f6d3.jpg",
+      "dataConclusao": "2026-06-09 23:40:33"
+    },
+    {
+      "osId": "2790001",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA",
+      "inep": "29153786",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2790001-1780330735718_867183bb.jpg",
+      "dataConclusao": "2026-06-01 16:18:55"
+    },
+    {
+      "osId": "4560001",
+      "escola": "ESCOLA MUNICIPAL MARIA SOLEDADE CALDAS",
+      "inep": "29153620",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4560001-1780784099376_03fb9b20.jpg",
+      "dataConclusao": "2026-06-06 22:14:59"
+    },
+    {
+      "osId": "3240001",
+      "escola": "ESCOLA MUNICIPAL MIGUEL MENDES",
+      "inep": "29153794",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3240001-1780406905047_a10bb86b.jpg",
+      "dataConclusao": "2026-06-02 13:28:25"
+    },
+    {
+      "osId": "4590002",
+      "escola": "ESCOLA MUNICIPAL NAIR MOREIRA DA SILVA",
+      "inep": "29153654",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4590002-1780784377959_83fe452f.jpg",
+      "dataConclusao": "2026-06-06 22:19:37"
+    },
+    {
+      "osId": "4140001",
+      "escola": "ESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO",
+      "inep": "29153662",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4140001-1780604927792_392b0b7e.jpg",
+      "dataConclusao": "2026-06-04 20:28:47"
+    },
+    {
+      "osId": "2910001",
+      "escola": "ESCOLA MUNICIPAL PROFA FRANCISCA PINTO DAS VIRGENS",
+      "inep": "29153700",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2910001-1780345795226_cae937a9.jpg",
+      "dataConclusao": "2026-06-01 20:29:54"
+    },
+    {
+      "osId": "5310001",
+      "escola": "ESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA",
+      "inep": "29153816",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5310001-1781048302604_ce6a9a6e.jpg",
+      "dataConclusao": "2026-06-09 23:38:22"
+    },
+    {
+      "osId": "3960001",
+      "escola": "ESCOLA MUNICIPAL DR THEOTONIO MARTINS",
+      "inep": "29124450",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3960001-1780526242127_71319fb6.jpg",
+      "dataConclusao": "2026-06-03 22:37:22"
+    },
+    {
+      "osId": "3900001",
+      "escola": "ESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO",
+      "inep": "29124433",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "qtdApInstalado": "8",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3900001-1780515542323_44af86c1.jpg",
+      "dataConclusao": "2026-06-03 19:39:02"
+    },
+    {
+      "osId": "1590001",
+      "escola": "ESCOLA MUNICIPAL MARIO MONTINO",
+      "inep": "29123631",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1590001-1780516703180_eff0a9c0.jpg",
+      "dataConclusao": "2026-06-03 19:58:22"
+    },
+    {
+      "osId": "4500001",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS",
+      "inep": "29399343",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4500001-1780750574151_6d5adf39.jpg",
+      "dataConclusao": "2026-06-06 12:56:13"
+    },
+    {
+      "osId": "1620001",
+      "escola": "CRECHE BONS MOMENTOS",
+      "inep": "29420652",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1620001-1779934888691_670690df.jpg",
+      "dataConclusao": "2026-05-28 02:21:28"
+    },
+    {
+      "osId": "1980001",
+      "escola": "CRECHE CASA FELIZ",
+      "inep": "29420075",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1980001-1780063285558_671967a2.jpg",
+      "dataConclusao": "2026-05-29 14:01:24"
+    },
+    {
+      "osId": "2670001",
+      "escola": "CRECHE CRESCER JUNTOS",
+      "inep": "29420458",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2670001-1780325093924_113f08db.jpg",
+      "dataConclusao": "2026-06-01 14:44:53"
+    },
+    {
+      "osId": "2670002",
+      "escola": "CRECHE GRANDE LUTA",
+      "inep": "29420083",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2670002-1780349890402_9138a00a.jpg",
+      "dataConclusao": "2026-06-01 21:38:03"
+    },
+    {
+      "osId": "2160001",
+      "escola": "CRECHE PEQUENO PRINCIPE",
+      "inep": "29438136",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2160001-1780083913204_65717a8a.jpg",
+      "dataConclusao": "2026-05-29 19:45:12"
+    },
+    {
+      "osId": "4770001",
+      "escola": "ESC LADISLAU PEREIRA DE SOUZA",
+      "inep": "29152844",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4770001-1781035280621_76b87b09.jpg",
+      "dataConclusao": "2026-06-09 20:01:20"
+    },
+    {
+      "osId": "5670001",
+      "escola": "ESC MUL BOM JESUS",
+      "inep": "29153115",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5670001-1781190195878_c0a23962.jpg",
+      "dataConclusao": "2026-06-11 15:03:14"
+    },
+    {
+      "osId": "4800001",
+      "escola": "ESC MUL LOURENCO JOSE DOS SANTOS",
+      "inep": "29152941",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4800001-1781118160847_cfa473c3.jpg",
+      "dataConclusao": "2026-06-10 19:02:40"
+    },
+    {
+      "osId": "5880001",
+      "escola": "ESC MUL MAJOR RODOLFO DANTAS COELHO",
+      "inep": "29152950",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5880001-1781290463358_ff81344d.jpg",
+      "dataConclusao": "2026-06-12 18:54:23"
+    },
+    {
+      "osId": "5160001",
+      "escola": "ESC NAPOLEAO CALDAS",
+      "inep": "29153042",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5160001-1781122543495_31d5ba10.jpg",
+      "dataConclusao": "2026-06-10 20:15:42"
+    },
+    {
+      "osId": "2580001",
+      "escola": "ESCOLA MANOEL FIDELIS DA SILVA",
+      "inep": "29122554",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "9",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2580001-1780520884848_279911d5.jpg",
+      "dataConclusao": "2026-06-03 21:08:03"
+    },
+    {
+      "osId": "5160002",
+      "escola": "ESCOLA MUL CLODOALDO NARCISO REIS",
+      "inep": "29153140",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5160002-1781053429184_b545f329.jpg",
+      "dataConclusao": "2026-06-10 01:03:48"
+    },
+    {
+      "osId": "2370001",
+      "escola": "ESCOLA MUN ANDRE FERREIRA DE ANDRADE",
+      "inep": "29122562",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2370001-1780174380767_086649e6.jpg",
+      "dataConclusao": "2026-05-30 20:53:00"
+    },
+    {
+      "osId": "2130001",
+      "escola": "ESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS",
+      "inep": "29122600",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2130001-1780095561360_773b355c.jpg",
+      "dataConclusao": "2026-05-29 22:59:21"
+    },
+    {
+      "osId": "2340001",
+      "escola": "ESCOLA MUN DA FAZENDA JUREMA",
+      "inep": "29122678",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2340001-1780162564825_d9fa21a0.jpg",
+      "dataConclusao": "2026-05-30 17:36:03"
+    },
+    {
+      "osId": "1920001",
+      "escola": "ESCOLA MUNICIPAL DA FAZ TATU",
+      "inep": "29123062",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1920001-1780056863350_05a269c1.jpg",
+      "dataConclusao": "2026-05-29 12:14:23"
+    },
+    {
+      "osId": "1350001",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CASABU",
+      "inep": "29122821",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1350001-1779900160321_15dd3e39.jpg",
+      "dataConclusao": "2026-05-27 16:42:38"
+    },
+    {
+      "osId": "1560001",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CRU",
+      "inep": "29122830",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1560001-1779918905430_0e57f29f.jpg",
+      "dataConclusao": "2026-05-27 21:55:02"
+    },
+    {
+      "osId": "2250001",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO",
+      "inep": "29122775",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2250001-1780141949688_cfcf7bb5.jpg",
+      "dataConclusao": "2026-05-30 11:52:27"
+    },
+    {
+      "osId": "3450002",
+      "escola": "ESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO",
+      "inep": "29122961",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3450002-1780492303842_ebd819ed.jpg",
+      "dataConclusao": "2026-06-03 13:11:43"
+    },
+    {
+      "osId": "5700001",
+      "escola": "ESCOLA MUNICIPAL DR CLERISTON ANDRADE",
+      "inep": "29152887",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5700001-1781221259286_dd96a7fb.jpg",
+      "dataConclusao": "2026-06-11 23:40:58"
+    },
+    {
+      "osId": "5460001",
+      "escola": "ESCOLA MUNICIPAL OLAVO DANTAS COELHO",
+      "inep": "29153050",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5460001-1781142278295_81a84886.jpg",
+      "dataConclusao": "2026-06-11 01:44:38"
+    },
+    {
+      "osId": "2940001",
+      "escola": "ESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS",
+      "inep": "29122740",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2940001-1780526634223_7dcba904.jpg",
+      "dataConclusao": "2026-06-03 22:43:52"
+    },
+    {
+      "osId": "1260001",
+      "escola": "ESC ANTONIO BRANCO",
+      "inep": "29118867",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1260001-1779728524076_f7d8dfeb.jpg",
+      "dataConclusao": "2026-05-25 17:02:03"
+    },
+    {
+      "osId": "2730001",
+      "escola": "ESC BELARMINO CORDEIRO",
+      "inep": "29118883",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2730001-1780319661649_010035f8.jpg",
+      "dataConclusao": "2026-06-01 13:14:21"
+    },
+    {
+      "osId": "2550001",
+      "escola": "ESC BELO MONTE",
+      "inep": "29118905",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2550001-1780239892132_77d196f8.jpg",
+      "dataConclusao": "2026-05-31 15:04:51"
+    },
+    {
+      "osId": "5340002",
+      "escola": "ESC DAVID FERRERA DA SILVA",
+      "inep": "29118930",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5340002-1781101529965_2f8ca671.jpg",
+      "dataConclusao": "2026-06-10 14:25:29"
+    },
+    {
+      "osId": "2520001",
+      "escola": "ESC JOAO LOPES",
+      "inep": "29119049",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2520001-1780181164596_b5a19189.jpg",
+      "dataConclusao": "2026-05-30 22:46:04"
+    },
+    {
+      "osId": "2970001",
+      "escola": "ESC JOAO SOARES",
+      "inep": "29119057",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2970001-1780353658682_2b29dc79.jpg",
+      "dataConclusao": "2026-06-01 22:40:58"
+    },
+    {
+      "osId": "2220001",
+      "escola": "ESC LOURIVAL CUSTODIO",
+      "inep": "29119170",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2220001-1780084038230_aee2f91f.jpg",
+      "dataConclusao": "2026-05-29 19:47:18"
+    },
+    {
+      "osId": "990001",
+      "escola": "ESC LUIZ GONZAGA CARDOSO",
+      "inep": "29119189",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-990001-1779485294416_747716f9.jpg",
+      "dataConclusao": "2026-05-22 21:28:13"
+    },
+    {
+      "osId": "4350001",
+      "escola": "ESC MUNICIPAL JOSE ANDRADE",
+      "inep": "29393469",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4350001-1780699035164_da227af6.jpg",
+      "dataConclusao": "2026-06-05 22:37:14"
+    },
+    {
+      "osId": "4680001",
+      "escola": "ESC NOSSA SENHORA DA CONCEICAO",
+      "inep": "29119294",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4680001-1780854545926_5e3ccf65.jpg",
+      "dataConclusao": "2026-06-07 17:49:05"
+    },
+    {
+      "osId": "5220001",
+      "escola": "ESC NOSSA SRA DO DESTERRO",
+      "inep": "29119340",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5220001-1781033660543_c2cd02b2.jpg",
+      "dataConclusao": "2026-06-09 19:34:20"
+    },
+    {
+      "osId": "1290001",
+      "escola": "ESC NOSSA SRA DO ROSARIO",
+      "inep": "29119367",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1290001-1779834355239_c191dac4.jpg",
+      "dataConclusao": "2026-05-26 22:25:54"
+    },
+    {
+      "osId": "1500001",
+      "escola": "ESC SAO JORGE",
+      "inep": "29119600",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1500001-1780353620489_301f522e.jpg",
+      "dataConclusao": "2026-06-01 22:40:20"
+    },
+    {
+      "osId": "5340001",
+      "escola": "ESCOLA CAMINHO SUAVE",
+      "inep": "29118913",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5340001-1781101411802_b87320d0.jpg",
+      "dataConclusao": "2026-06-10 14:23:31"
+    },
+    {
+      "osId": "4950001",
+      "escola": "ESCOLA EDUCANDARIO HORIZONTE NOVO",
+      "inep": "29120489",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4950001-1780994799360_ce8af119.jpg",
+      "dataConclusao": "2026-06-09 08:46:38"
+    },
+    {
+      "osId": "1710001",
+      "escola": "ESCOLA LUIZ JOSE DANTAS",
+      "inep": "29120535",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1710001-1779979749056_65ee666c.jpg",
+      "dataConclusao": "2026-05-28 14:49:08"
+    },
+    {
+      "osId": "1440001",
+      "escola": "ESCOLA MIRINS COM ALEGRIA",
+      "inep": "29120543",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1440001-1779896679254_d8b65fde.jpg",
+      "dataConclusao": "2026-05-27 15:44:38"
+    },
+    {
+      "osId": "4680002",
+      "escola": "ESCOLA MODELO ISABEL AZEVEDO PINTO",
+      "inep": "29464838",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4680002-1780854596628_b2243a5d.jpg",
+      "dataConclusao": "2026-06-07 17:49:56"
+    },
+    {
+      "osId": "5070001",
+      "escola": "ESCOLA MUNICIPAL JOSE DE SOUZA",
+      "inep": "29120500",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5070001-1781033690179_b0c36c47.jpg",
+      "dataConclusao": "2026-06-09 19:34:49"
+    },
+    {
+      "osId": "2010001",
+      "escola": "ESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA",
+      "inep": "29476640",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2010001-1780060455477_bf5310d3.jpg",
+      "dataConclusao": "2026-05-29 13:14:15"
+    },
+    {
+      "osId": "3510001",
+      "escola": "ESCOLA SAO JOAO DOS CAMPOS",
+      "inep": "29120640",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "7",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3510001-1780439961172_1ec777fd.jpg",
+      "dataConclusao": "2026-06-02 22:39:21"
+    },
+    {
+      "osId": "3930001",
+      "escola": "ESCOLA SENHOR DO BONFIM",
+      "inep": "29381657",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3930001-1780521269956_3ae7d3b0.jpg",
+      "dataConclusao": "2026-06-03 21:14:29"
+    },
+    {
+      "osId": "2640001",
+      "escola": "COLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA",
+      "inep": "29423678",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2640001-1780308213249_25fd9bd0.jpg",
+      "dataConclusao": "2026-06-01 10:03:32"
+    },
+    {
+      "osId": "2430001",
+      "escola": "ESC MUL ANTONIO MANOEL DE CARVALHO",
+      "inep": "29112885",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2430001-1780160457109_05968c65.jpg",
+      "dataConclusao": "2026-05-30 17:00:56"
+    },
+    {
+      "osId": "1800001",
+      "escola": "ESC MUL DEPUTADO MANOEL NOVAES",
+      "inep": "29112923",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1800001-1779983107463_39b06018.jpg",
+      "dataConclusao": "2026-05-28 15:45:03"
+    },
+    {
+      "osId": "4650001",
+      "escola": "ESC MUL DO CARITA",
+      "inep": "29372674",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4650001-1780837248310_2fff86f1.jpg",
+      "dataConclusao": "2026-06-07 13:00:48"
+    },
+    {
+      "osId": "2880001",
+      "escola": "ESC MUL DUQUE DE CAXIAS",
+      "inep": "29112940",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2880001-1780342971418_c86bd439.jpg",
+      "dataConclusao": "2026-06-01 19:42:51"
+    },
+    {
+      "osId": "2880002",
+      "escola": "ESC MUL GUILHERME JOSE DE SANTANA",
+      "inep": "29112982",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2880002-1780343005026_1b131a0a.jpg",
+      "dataConclusao": "2026-06-01 19:43:24"
+    },
+    {
+      "osId": "3090001",
+      "escola": "ESC MUL IRMA DULCE",
+      "inep": "29112990",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3090001-1780381987302_5861dd1a.jpg",
+      "dataConclusao": "2026-06-02 06:33:07"
+    },
+    {
+      "osId": "1650001",
+      "escola": "ESC MUL MANOEL DANTAS DE CARVALHO",
+      "inep": "29113091",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1650001-1779959669227_6ee7c7a7.jpg",
+      "dataConclusao": "2026-05-28 09:14:28"
+    },
+    {
+      "osId": "1380001",
+      "escola": "ESC MUL MARIVALDO MOREIRA",
+      "inep": "29113148",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1380001-1779901772237_afaf55e2.jpg",
+      "dataConclusao": "2026-05-27 17:09:31"
+    },
+    {
+      "osId": "5370003",
+      "escola": "ESC MUL PROF REMES CAVALCANTE",
+      "inep": "29113288",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5370003-1781102776389_15db478b.jpg",
+      "dataConclusao": "2026-06-10 14:46:16"
+    },
+    {
+      "osId": "4650002",
+      "escola": "ESC MUL PROFA JULIANA DANTAS",
+      "inep": "29113270",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4650002-1780837273872_619a5dff.jpg",
+      "dataConclusao": "2026-06-07 13:01:13"
+    },
+    {
+      "osId": "4320001",
+      "escola": "ESC MUL PROFESSORA HELENITA DE CARVALHO",
+      "inep": "29112796",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4320001-1780687154993_071f6efe.jpg",
+      "dataConclusao": "2026-06-05 19:19:14"
+    },
+    {
+      "osId": "4110003",
+      "escola": "ESC MUL ZACARIAS LOURENCO",
+      "inep": "29113350",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4110003-1780596646111_cdd6faf8.jpg",
+      "dataConclusao": "2026-06-04 18:10:45"
+    },
+    {
+      "osId": "1890002",
+      "escola": "ESCOLA LUZIA EULINA SA",
+      "inep": "29113423",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-1890002-1780055397090_3502fdde.jpg",
+      "dataConclusao": "2026-05-29 11:49:56"
+    },
+    {
+      "osId": "2430002",
+      "escola": "ESCOLA MUL BENTO DE SA CARVALHO",
+      "inep": "29113440",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2430002-1780160494013_0cc47808.jpg",
+      "dataConclusao": "2026-05-30 17:01:33"
+    },
+    {
+      "osId": "5370001",
+      "escola": "ESCOLA MUNICIPAL DE BAIXA DOS QUELES",
+      "inep": "29337429",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5370001-1781102731216_199ce022.jpg",
+      "dataConclusao": "2026-06-10 14:45:30"
+    },
+    {
+      "osId": "5370004",
+      "escola": "ESCOLA MUNICIPAL DO ALTO DA TAPERA",
+      "inep": "29415985",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5370004-1781102800042_7b857bd5.jpg",
+      "dataConclusao": "2026-06-10 14:46:39"
+    },
+    {
+      "osId": "4200001",
+      "escola": "ESCOLA MUNICIPAL JOAQUIM DE FRANCA ALMEIDA",
+      "inep": "29113490",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4200001-1780634138935_65094b81.jpg",
+      "dataConclusao": "2026-06-05 04:35:38"
+    },
+    {
+      "osId": "3150001",
+      "escola": "ESCOLA MUNICIPAL JOSE MANOEL DE OLIVEIRA",
+      "inep": "29112907",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "5",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3150001-1780404445910_39cf5b6d.jpg",
+      "dataConclusao": "2026-06-02 12:47:25"
+    },
+    {
+      "osId": "2490001",
+      "escola": "ESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO",
+      "inep": "29113784",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2490001-1780179625536_a7329ab2.jpg",
+      "dataConclusao": "2026-05-30 22:20:25"
+    },
+    {
+      "osId": "4080001",
+      "escola": "ESCOLA MUNICIPAL LUIS EDUARDO MAGALHAES",
+      "inep": "29112737",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4080001-1780596112591_da605744.jpg",
+      "dataConclusao": "2026-06-04 18:01:52"
+    },
+    {
+      "osId": "5580001",
+      "escola": "ESCOLA MUNICIPAL PRAXEDES BALDOINO DE SANTANA",
+      "inep": "29389917",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5580001-1781140815791_7f3d2195.jpg",
+      "dataConclusao": "2026-06-11 01:20:15"
+    },
+    {
+      "osId": "2190001",
+      "escola": "ESCOLA MUNICIPAL QUILOMETRO 18",
+      "inep": "29113539",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2190001-1780080318738_10e07d8f.jpg",
+      "dataConclusao": "2026-05-29 18:45:18"
+    },
+    {
+      "osId": "5970001",
+      "escola": "CRECHE PRE-ESCOLA CRIANCA FELIZ V",
+      "inep": "29420229",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5970001-1781254602717_0bba7d8e.jpg",
+      "dataConclusao": "2026-06-12 08:56:42"
+    },
+    {
+      "osId": "5550001",
+      "escola": "ESCOLA JOSE DA SILVA",
+      "inep": "29372453",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "4",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5550001-1781205259212_bed22fb9.jpg",
+      "dataConclusao": "2026-06-11 19:14:18"
+    },
+    {
+      "osId": "6090001",
+      "escola": "ESCOLA MARIA QUITERIA",
+      "inep": "29148693",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "3",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-6090001-1781335696554_c583c23e.jpg",
+      "dataConclusao": "2026-06-13 07:28:16"
+    },
+    {
+      "osId": "5520001",
+      "escola": "ESCOLA MUNICIPAL COMUNITARIA DA FUBA",
+      "inep": "29134536",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5520001-1781137388089_b2d702f8.jpg",
+      "dataConclusao": "2026-06-11 00:23:07"
+    },
+    {
+      "osId": "3600001",
+      "escola": "ESCOLA MUNICIPAL JARBAS PASSARINHO",
+      "inep": "29134790",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3600001-1780444914273_9121f5bc.jpg",
+      "dataConclusao": "2026-06-03 00:01:54"
+    },
+    {
+      "osId": "3300002",
+      "escola": "ESCOLA MUNICIPAL JESUS AMADO",
+      "inep": "29134803",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-3300002-1780413759760_22a827ff.jpg",
+      "dataConclusao": "2026-06-02 15:22:38"
+    },
+    {
+      "osId": "2280002",
+      "escola": "ESCOLA MUNICIPAL JOSE REGINALDO DE SANTANA",
+      "inep": "29135869",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2280002-1780144105393_09700d8a.jpg",
+      "dataConclusao": "2026-05-30 12:28:25"
+    },
+    {
+      "osId": "4710001",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES",
+      "inep": "29135176",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-4710001-1780918967131_c8a38acb.jpg",
+      "dataConclusao": "2026-06-08 11:42:46"
+    },
+    {
+      "osId": "2280001",
+      "escola": "ESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE",
+      "inep": "29135214",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "1",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2280001-1780143838831_9569ae39.jpg",
+      "dataConclusao": "2026-05-30 12:23:58"
+    },
+    {
+      "osId": "2850001",
+      "escola": "ESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS",
+      "inep": "29135516",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "2",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-2850001-1780340787578_56389851.jpg",
+      "dataConclusao": "2026-06-01 19:06:26"
+    },
+    {
+      "osId": "5400001",
+      "escola": "ESCOLA MUNICIPAL TOME DE SOUZA",
+      "inep": "29148790",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtdApInstalado": "6",
+      "fotoUrl": "/manus-storage/os-fotos/mapa_calor/os-5400001-1781106754012_e16b126f.jpg",
+      "dataConclusao": "2026-06-10 15:52:33"
+    }
+  ],
+  "messages": [],
+  "stdout": "osId\tescola\tinep\tmunicipio\ttecnico\tqtdApInstalado\tfotoUrl\tdataConclusao\n1860003\tCRECHE ESC TIBERIO GONCALVES\t29401780\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1860003-1780088277659_8e519b80.jpg\t2026-05-29 20:57:57\n1320001\tCRECHE MUNICIPAL VO JERONIMO\t29606616\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1320001-1780426037423_17d8b04c.jpg\t2026-06-02 18:47:17\n1740001\tCRECHE SORRISO DE CRIANCA\t29401770\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1740001-1779982254771_9293fb74.jpg\t2026-05-28 15:30:54\n2700001\tESC MUN NOSSA SENHORA DO PERPETUO SOCORRO\t29401250\tUauá\t Luizinho \t9\t/manus-storage/os-fotos/mapa_calor/os-2700001-1780484951552_15303f5f.jpg\t2026-06-03 11:09:11\n1530001\tESC MUNICIPAL IZAURA EDVIRGENS CARDOSO\t29378672\tUauá\t Luizinho \t7\t/manus-storage/os-fotos/mapa_calor/os-1530001-1780969004752_8a025d95.jpg\t2026-06-09 01:36:44\n1830001\tESCOLA MUNICIPAL DAO PEDRO\t29125375\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1830001-1780002026380_14d08f6a.jpg\t2026-05-28 21:00:23\n1860002\tESCOLA MUNICIPAL DE PEDRA GRANDE\t29124999\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1860002-1780069069658_92d9d1a3.jpg\t2026-05-29 15:37:49\n3750001\tESCOLA MUNICIPAL MIGUEL AVELINO\t29125138\tUauá\t Luizinho \t3\t/manus-storage/os-fotos/mapa_calor/os-3750001-1780519035719_8e90df8c.jpg\t2026-06-03 20:37:15\n1410001\tESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO\t29422035\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1410001-1779902413381_9eb1a23c.jpg\t2026-05-27 17:20:12\n3630001\tESCOLA MUNICIPAL PADRE GREGORIO\t29125545\tUauá\t Luizinho \t8\t/manus-storage/os-fotos/mapa_calor/os-3630001-1781188854133_d20b3b0a.jpg\t2026-06-11 14:40:53\n3990001\tESCOLA MUNICIPAL RECANTO DA CRIANCA\t29363535\tUauá\t Luizinho \t12\t/manus-storage/os-fotos/mapa_calor/os-3990001-1780831750928_1898a33f.jpg\t2026-06-07 11:29:10\n1860001\tESCOLA MUNICIPAL SAO JOSE\t29124832\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-1860001-1780081363276_aac453d3.jpg\t2026-05-29 19:02:43\n5760001\tESCOLA MUNICIPAL SAO JOSE\t29124840\tUauá\t Luizinho \t1\t/manus-storage/os-fotos/mapa_calor/os-5760001-1781189004758_f8019be6.jpg\t2026-06-11 14:43:24\n4230003\tCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO PSICOPEDAGOGICO DE PINDOBACU\t29859840\tPindobaçu\tAlex\t3\t/manus-storage/os-fotos/mapa_calor/os-4230003-1780748667823_0f0d89e1.jpg\t2026-06-06 12:24:26\n2820001\tCENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE\t29475759\tPonto Novo\tAlex\t6\t/manus-storage/os-fotos/mapa_calor/os-2820001-1780333854646_648e7f64.jpg\t2026-06-01 17:10:54\n3390001\tCOLEGIO MUNICIPAL ANTONIO JOAQUIM DE MIRANDA\t29055105\tPindobaçu\tAlex\t7\t/manus-storage/os-fotos/mapa_calor/os-3390001-1780427313021_c6edf252.jpg\t2026-06-02 19:08:32\n4230002\tCOLEGIO MUNICIPAL FAUSTINO DIAS LIMA\t29336252\tPindobaçu\tAlex\t7\t/manus-storage/os-fotos/mapa_calor/os-4230002-1780652303396_39d04a69.jpg\t2026-06-05 09:38:23\n3390002\tCOLEGIO MUNICIPAL SERRA DE CARNAIBA\t29055032\tPindobaçu\tAlex\t12\t/manus-storage/os-fotos/mapa_calor/os-3390002-1780527386877_407fcaf0.jpg\t2026-06-03 22:56:26\n5010001\tCRECHE CARINHO BETH SHALOM\t29396263\tPindobaçu\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-5010001-1781009525752_d707bd8b.jpg\t2026-06-09 12:52:04\n4440002\tCRECHE CARINHO DE LAGINHA\t29396271\tPindobaçu\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-4440002-1780748563519_e1a3e6b3.jpg\t2026-06-06 12:22:41\n2460003\tESC MUL DE ACUDE\t29076862\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2460003-1780182357128_d59447d1.jpg\t2026-05-30 23:05:55\n2040001\tESC MUL DE BARREIRA\t29076900\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2040001-1780067073937_549afa84.jpg\t2026-05-29 15:04:33\n2460002\tESC MUL DE VARZEA DA MOLA\t29077028\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2460002-1780176458978_b87e1ab0.jpg\t2026-05-30 21:27:37\n1890001\tESC MUL DE VARZEA DA PEDRA - CAPIM\t29077044\tPonto Novo\tAlex\t4\t/manus-storage/os-fotos/mapa_calor/os-1890001-1780060607193_5f8cd7a6.jpg\t2026-05-29 13:16:44\n2610002\tESCOLA MUL DE ALAGADICO DAS PANELAS\t29077249\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2610002-1780280463144_15a26430.jpg\t2026-06-01 02:21:03\n2460001\tESCOLA MUL DE FORTUNA\t29077265\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2460001-1780176348853_be7f71c7.jpg\t2026-05-30 21:25:46\n2610001\tESCOLA MUL DE MARRECAS\t29077303\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2610001-1780280369362_0acfbf31.jpg\t2026-06-01 02:19:29\n2400001\tESCOLA MUL DE VARGINHA\t29077354\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2400001-1780157934906_9f39e943.jpg\t2026-05-30 16:18:53\n6120001\tESCOLA MUNCIPAL ROMULO GALVAO\t29048362\tAntônio Gonçalves\tAlex\t2\t/manus-storage/os-fotos/mapa_calor/os-6120001-1781343050895_f4150e9a.jpg\t2026-06-13 09:30:50\n4440001\tESCOLA MUNICIPAL AURELIO BRAZ DA SILVA\t29055237\tPindobaçu\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-4440001-1780748440760_d45202ae.jpg\t2026-06-06 12:20:40\n2310001\tESCOLA MUNICIPAL DE CAICARA\t29077443\tPonto Novo\tAlex\t1\t/manus-storage/os-fotos/mapa_calor/os-2310001-1780156217201_e1d563a9.jpg\t2026-05-30 15:50:14\n5940001\tESCOLA PROFESSORA MARIA DO CARMO DE ARAUJO MAIA\t29050570\tCampo Formoso\tAlex\t8\t/manus-storage/os-fotos/mapa_calor/os-5940001-1781228090241_1fc54e1d.jpg\t2026-06-12 01:34:49\n6060001\tPAULO VI\t29132827\tRibeira do Amparo\tEverson\t5\t/manus-storage/os-fotos/mapa_calor/os-6060001-1781290318529_deab8204.jpg\t2026-06-12 18:51:58\n5100001\tESCOLA MUNICIPAL ALAIDE SANTANA SANTOS\t29151503\tAlagoinhas\tFelipe\t2\t/manus-storage/os-fotos/mapa_calor/os-5100001-1781017682140_a218af68.jpg\t2026-06-09 15:08:01\n5820001\tESCOLA MUNICIPAL GENERAL OSORIO\t29150469\tAlagoinhas\tFelipe\t2\t/manus-storage/os-fotos/mapa_calor/os-5820001-1781206629449_66b0914a.jpg\t2026-06-11 19:37:09\n5910001\tESCOLA MUNICIPAL LIODORIO BORGES DOS SANTOS\t29151406\tAlagoinhas\tFelipe\t1\t/manus-storage/os-fotos/mapa_calor/os-5910001-1781223671863_3ba39c32.jpg\t2026-06-12 00:21:11\n5730001\tESCOLA MUNICIPAL MARIA DE LOURDES SANTOS\t29150655\tAlagoinhas\tFelipe\t5\t/manus-storage/os-fotos/mapa_calor/os-5730001-1781185183202_9859a190.jpg\t2026-06-11 13:39:42\n5190001\tESCOLA MUNICIPAL SANTA RITA\t29151481\tAlagoinhas\tFelipe\t1\t/manus-storage/os-fotos/mapa_calor/os-5190001-1781032936467_59d4242f.jpg\t2026-06-09 19:22:16\n6030001\tESCOLA MUNICIPAL TIRADENTES\t29151244\tAlagoinhas\tFelipe\t1\t/manus-storage/os-fotos/mapa_calor/os-6030001-1781273350139_695c16cc.jpg\t2026-06-12 14:09:10\n4620001\tEMEF ANTONIO LUCIO DE SANTANA\t29077575\tQuixabeira\tJosé Felix \t7\t/manus-storage/os-fotos/mapa_calor/os-4620001-1780965541606_5d07d050.jpg\t2026-06-09 00:39:01\n4020001\tEMEF CORINTO SANTOS\t29077958\tQuixabeira\tJosé Felix \t2\t/manus-storage/os-fotos/mapa_calor/os-4020001-1780605672803_d9e62b30.jpg\t2026-06-04 20:41:11\n4530001\tEMEF JOAO OLIVEIRA DOS SANTOS\t29077745\tQuixabeira\tJosé Felix \t2\t/manus-storage/os-fotos/mapa_calor/os-4530001-1780774551474_9567ee65.jpg\t2026-06-06 19:35:51\n4260001\tEMEF MANOEL VILARONGA RIOS\t29077842\tQuixabeira\tJosé Felix \t3\t/manus-storage/os-fotos/mapa_calor/os-4260001-1780707522394_d8489533.jpg\t2026-06-06 00:58:42\n3810001\tEMEF POLICARPIO MANOEL ANCELMO\t29077877\tQuixabeira\tJosé Felix \t1\t/manus-storage/os-fotos/mapa_calor/os-3810001-1780512743555_1e47aa0f.jpg\t2026-06-03 18:52:22\n5130001\tEMEF RAULINDO DE ARAUJO RIOS\t29077974\tQuixabeira\tJosé Felix \t7\t/manus-storage/os-fotos/mapa_calor/os-5130001-1781132209230_4da0989b.jpg\t2026-06-10 22:56:48\n6000001\tESC MUL JUVENCIO JOSE DA SILVA\t29069840\tCapim Grosso\tJosé Felix \t2\t/manus-storage/os-fotos/mapa_calor/os-6000001-1781278140134_982217a5.jpg\t2026-06-12 15:28:59\n5850001\tESCOLA JOSE OTAVIO DE SENA\t29072778\tMiguel Calmon\tJosé Felix \t2\t/manus-storage/os-fotos/mapa_calor/os-5850001-1781222110473_68a2b1d3.jpg\t2026-06-11 23:55:10\n5610001\tESCOLA MATIAS FREIRE\t29072840\tMiguel Calmon\tJosé Felix \t2\t/manus-storage/os-fotos/mapa_calor/os-5610001-1781212299093_8c3dcba7.jpg\t2026-06-11 21:11:38\n3570001\tCRECHE NOSSA SENHORA DE FATIMA\t29449880\tEuclides da Cunha\tJulielson \t1\t/manus-storage/os-fotos/mapa_calor/os-3570001-1780443211532_642a913c.jpg\t2026-06-02 23:33:23\n4860001\tESCOLA MUNICIPAL ANTONIO BALBINO\t29117801\tEuclides da Cunha\tJulielson \t3\t/manus-storage/os-fotos/mapa_calor/os-4860001-1780951782486_8af95c97.jpg\t2026-06-08 20:49:41\n2100001\tESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO\t29117771\tEuclides da Cunha\tJulielson \t1\t/manus-storage/os-fotos/mapa_calor/os-2100001-1780075962839_daf628a0.jpg\t2026-05-29 17:32:42\n3060002\tESCOLA MUNICIPAL JOSE BEZERRA NETO\t29117372\tEuclides da Cunha\tJulielson \t1\t/manus-storage/os-fotos/mapa_calor/os-3060002-1780357547520_94ce0e8f.jpg\t2026-06-01 23:45:47\n5430001\tESCOLA MUNICIPAL JOSE DE ANCHIETA\t29117577\tEuclides da Cunha\tJulielson \t3\t/manus-storage/os-fotos/mapa_calor/os-5430001-1781197828284_8959aebc.jpg\t2026-06-11 17:10:28\n3870001\tESCOLA MUNICIPAL MAJOR ANTONINO\t29118026\tEuclides da Cunha\tJulielson \t2\t/manus-storage/os-fotos/mapa_calor/os-3870001-1780522062139_7702ed2d.jpg\t2026-06-03 21:27:41\n4290001\tESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS\t29118760\tEuclides da Cunha\tJulielson \t4\t/manus-storage/os-fotos/mapa_calor/os-4290001-1780698308403_9d37efaa.jpg\t2026-06-05 22:25:07\n3690001\tESCOLA MUNICIPAL ROSA MISTICA\t29393876\tEuclides da Cunha\tJulielson \t2\t/manus-storage/os-fotos/mapa_calor/os-3690001-1780505121285_3e7bae68.jpg\t2026-06-03 16:45:19\n4980001\tESCOLA MUNICIPAL SAO GABRIEL\t29118808\tEuclides da Cunha\tJulielson \t2\t/manus-storage/os-fotos/mapa_calor/os-4980001-1781035278957_483746a2.jpg\t2026-06-09 20:01:18\n2070001\tESCOLA MUNICIPAL SAO JOAQUIM\t29393833\tEuclides da Cunha\tJulielson \t1\t/manus-storage/os-fotos/mapa_calor/os-2070001-1780075711612_b1800898.jpg\t2026-05-29 17:28:31\n3060001\tESCOLA MUNICIPAL SENHOR DOS PASSOS\t29118620\tEuclides da Cunha\tJulielson \t1\t/manus-storage/os-fotos/mapa_calor/os-3060001-1780357488040_abe82927.jpg\t2026-06-01 23:44:47\n5040001\tESCOLA MUNICIPAL ANA NERI\t29136083\tBiritinga\tMarcos \t5\t/manus-storage/os-fotos/mapa_calor/os-5040001-1781103060358_28ef598f.jpg\t2026-06-10 14:51:00\n3420001\tESCOLA MUNICIPAL CASTRO ALVES\t29136156\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3420001-1780444429177_6cfd57b6.jpg\t2026-06-02 23:53:49\n4740001\tESCOLA MUNICIPAL MANOEL PEDREIRA GOMES\t29136113\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-4740001-1780934744244_98d04872.jpg\t2026-06-08 16:05:42\n5430002\tESCOLA MUNICIPAL MANOEL PEREIRA CARDOSO\t29136121\tBiritinga\tMarcos \t2\t/manus-storage/os-fotos/mapa_calor/os-5430002-1781126936417_40781869.jpg\t2026-06-10 21:28:56\n3660001\tESCOLA MUNICIPAL MARIA CARDOSO PEDREIRA\t29379890\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3660001-1780493078288_83d6be79.jpg\t2026-06-03 13:24:16\n3780001\tESCOLA MUNICIPAL NOSSA SENHORA DA VITORIA\t29136474\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3780001-1780502821275_bce30596.jpg\t2026-06-03 16:07:01\n3270001\tESCOLA MUNICIPAL NOSSA SENHORA DAS GRACAS\t29136180\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3270001-1780416802556_b2178053.jpg\t2026-06-02 16:13:22\n3360001\tESCOLA MUNICIPAL OSVALDO CRUZ\t29136199\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3360001-1780431690003_313265a9.jpg\t2026-06-02 20:21:29\n4830001\tESCOLA MUNICIPAL RUBEM BRAGA\t29136164\tBiritinga\tMarcos \t2\t/manus-storage/os-fotos/mapa_calor/os-4830001-1781011862322_5207610d.jpg\t2026-06-09 13:31:02\n3840001\tESCOLA MUNICIPAL RUI BARBOSA\t29136202\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3840001-1780524438801_52a67c5b.jpg\t2026-06-03 22:07:18\n5790001\tESCOLA MUNICIPAL SANTA CECILIA\t29136288\tBiritinga\tMarcos \t2\t/manus-storage/os-fotos/mapa_calor/os-5790001-1781201433147_9b2c76af.jpg\t2026-06-11 18:10:32\n2760001\tESCOLA MUNICIPAL SANTA MARGARIDA\t29136318\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-2760001-1780355026166_e223da5e.jpg\t2026-06-01 23:03:45\n5610002\tESCOLA MUNICIPAL SANTO ANTONIO\t29136334\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-5610002-1781185481733_879f15a2.jpg\t2026-06-11 13:44:40\n3120001\tESCOLA MUNICIPAL TEREZA SIMOES\t29432073\tBiritinga\tMarcos \t1\t/manus-storage/os-fotos/mapa_calor/os-3120001-1780406761270_148ce3f6.jpg\t2026-06-02 13:26:01\n4050001\tCENTRO EDUCACIONAL DE BAIXA GRANDE\t29153298\tInhambupe\tMatheus\t4\t/manus-storage/os-fotos/mapa_calor/os-4050001-1780573480315_7fafed38.jpg\t2026-06-04 11:44:39\n3540001\tCRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA\t29483506\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-3540001-1780441346618_13f3713d.jpg\t2026-06-02 23:02:26\n4890001\tESCOLA MUNICIPAL AGENOR BATISTA DA SILVA\t29153301\tInhambupe\tMatheus\t10\t/manus-storage/os-fotos/mapa_calor/os-4890001-1780961497886_736da266.jpg\t2026-06-08 23:31:37\n3330001\tESCOLA MUNICIPAL AMENAIDE CRUZ NERI DOS SANTOS\t29153310\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-3330001-1780417668714_42fceb3b.jpg\t2026-06-02 16:27:48\n4590001\tESCOLA MUNICIPAL CANDIDO NERY\t29153352\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-4590001-1780784177249_a24ecafa.jpg\t2026-06-06 22:16:16\n4380001\tESCOLA MUNICIPAL DE CONCEICAO\t29153522\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-4380001-1780711537946_457c9c21.jpg\t2026-06-06 02:05:37\n4230001\tESCOLA MUNICIPAL DR ARMANDO BERENGUER\t29153395\tInhambupe\tMatheus\t3\t/manus-storage/os-fotos/mapa_calor/os-4230001-1780652338117_898da1c1.jpg\t2026-06-05 09:38:57\n4410001\tESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO\t29153336\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-4410001-1780714351672_842e2e7b.jpg\t2026-06-06 02:52:31\n5490002\tESCOLA MUNICIPAL FRANCISCO DE PAULA SANTOS\t29373301\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-5490002-1781127883536_401e1111.jpg\t2026-06-10 21:44:43\n5490001\tESCOLA MUNICIPAL HELENA BARBOSA DE FIGUEREDO\t29153239\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-5490001-1781127837132_2d93fc7d.jpg\t2026-06-10 21:43:56\n5310002\tESCOLA MUNICIPAL JUSCELINO KUBITSCHEK DE OLIVEIRA\t29131510\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-5310002-1781048338624_20c8e2e6.jpg\t2026-06-09 23:38:58\n4170001\tESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA\t29153409\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-4170001-1780619574610_1f470842.jpg\t2026-06-05 00:32:54\n5310003\tESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS\t29153468\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-5310003-1781048433593_5901f6d3.jpg\t2026-06-09 23:40:33\n2790001\tESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA\t29153786\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-2790001-1780330735718_867183bb.jpg\t2026-06-01 16:18:55\n4560001\tESCOLA MUNICIPAL MARIA SOLEDADE CALDAS\t29153620\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-4560001-1780784099376_03fb9b20.jpg\t2026-06-06 22:14:59\n3240001\tESCOLA MUNICIPAL MIGUEL MENDES\t29153794\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-3240001-1780406905047_a10bb86b.jpg\t2026-06-02 13:28:25\n4590002\tESCOLA MUNICIPAL NAIR MOREIRA DA SILVA\t29153654\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-4590002-1780784377959_83fe452f.jpg\t2026-06-06 22:19:37\n4140001\tESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO\t29153662\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-4140001-1780604927792_392b0b7e.jpg\t2026-06-04 20:28:47\n2910001\tESCOLA MUNICIPAL PROFA FRANCISCA PINTO DAS VIRGENS\t29153700\tInhambupe\tMatheus\t1\t/manus-storage/os-fotos/mapa_calor/os-2910001-1780345795226_cae937a9.jpg\t2026-06-01 20:29:54\n5310001\tESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA\t29153816\tInhambupe\tMatheus\t2\t/manus-storage/os-fotos/mapa_calor/os-5310001-1781048302604_ce6a9a6e.jpg\t2026-06-09 23:38:22\n3960001\tESCOLA MUNICIPAL DR THEOTONIO MARTINS\t29124450\tTucano\tRicardo \t6\t/manus-storage/os-fotos/mapa_calor/os-3960001-1780526242127_71319fb6.jpg\t2026-06-03 22:37:22\n3900001\tESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO\t29124433\tTucano\tRicardo \t8\t/manus-storage/os-fotos/mapa_calor/os-3900001-1780515542323_44af86c1.jpg\t2026-06-03 19:39:02\n1590001\tESCOLA MUNICIPAL MARIO MONTINO\t29123631\tTucano\tRicardo \t5\t/manus-storage/os-fotos/mapa_calor/os-1590001-1780516703180_eff0a9c0.jpg\t2026-06-03 19:58:22\n4500001\tESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS\t29399343\tTucano\tRicardo \t7\t/manus-storage/os-fotos/mapa_calor/os-4500001-1780750574151_6d5adf39.jpg\t2026-06-06 12:56:13\n1620001\tCRECHE BONS MOMENTOS\t29420652\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-1620001-1779934888691_670690df.jpg\t2026-05-28 02:21:28\n1980001\tCRECHE CASA FELIZ\t29420075\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-1980001-1780063285558_671967a2.jpg\t2026-05-29 14:01:24\n2670001\tCRECHE CRESCER JUNTOS\t29420458\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2670001-1780325093924_113f08db.jpg\t2026-06-01 14:44:53\n2670002\tCRECHE GRANDE LUTA\t29420083\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2670002-1780349890402_9138a00a.jpg\t2026-06-01 21:38:03\n2160001\tCRECHE PEQUENO PRINCIPE\t29438136\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2160001-1780083913204_65717a8a.jpg\t2026-05-29 19:45:12\n4770001\tESC LADISLAU PEREIRA DE SOUZA\t29152844\tCrisópolis\tRoberto \t2\t/manus-storage/os-fotos/mapa_calor/os-4770001-1781035280621_76b87b09.jpg\t2026-06-09 20:01:20\n5670001\tESC MUL BOM JESUS\t29153115\tCrisópolis\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-5670001-1781190195878_c0a23962.jpg\t2026-06-11 15:03:14\n4800001\tESC MUL LOURENCO JOSE DOS SANTOS\t29152941\tCrisópolis\tRoberto \t3\t/manus-storage/os-fotos/mapa_calor/os-4800001-1781118160847_cfa473c3.jpg\t2026-06-10 19:02:40\n5880001\tESC MUL MAJOR RODOLFO DANTAS COELHO\t29152950\tCrisópolis\tRoberto \t4\t/manus-storage/os-fotos/mapa_calor/os-5880001-1781290463358_ff81344d.jpg\t2026-06-12 18:54:23\n5160001\tESC NAPOLEAO CALDAS\t29153042\tCrisópolis\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-5160001-1781122543495_31d5ba10.jpg\t2026-06-10 20:15:42\n2580001\tESCOLA MANOEL FIDELIS DA SILVA\t29122554\tQuijingue\tRoberto \t9\t/manus-storage/os-fotos/mapa_calor/os-2580001-1780520884848_279911d5.jpg\t2026-06-03 21:08:03\n5160002\tESCOLA MUL CLODOALDO NARCISO REIS\t29153140\tCrisópolis\tRoberto \t2\t/manus-storage/os-fotos/mapa_calor/os-5160002-1781053429184_b545f329.jpg\t2026-06-10 01:03:48\n2370001\tESCOLA MUN ANDRE FERREIRA DE ANDRADE\t29122562\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2370001-1780174380767_086649e6.jpg\t2026-05-30 20:53:00\n2130001\tESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS\t29122600\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2130001-1780095561360_773b355c.jpg\t2026-05-29 22:59:21\n2340001\tESCOLA MUN DA FAZENDA JUREMA\t29122678\tQuijingue\tRoberto \t2\t/manus-storage/os-fotos/mapa_calor/os-2340001-1780162564825_d9fa21a0.jpg\t2026-05-30 17:36:03\n1920001\tESCOLA MUNICIPAL DA FAZ TATU\t29123062\tQuijingue\tRoberto \t6\t/manus-storage/os-fotos/mapa_calor/os-1920001-1780056863350_05a269c1.jpg\t2026-05-29 12:14:23\n1350001\tESCOLA MUNICIPAL DA FAZENDA CASABU\t29122821\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-1350001-1779900160321_15dd3e39.jpg\t2026-05-27 16:42:38\n1560001\tESCOLA MUNICIPAL DA FAZENDA CRU\t29122830\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-1560001-1779918905430_0e57f29f.jpg\t2026-05-27 21:55:02\n2250001\tESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO\t29122775\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2250001-1780141949688_cfcf7bb5.jpg\t2026-05-30 11:52:27\n3450002\tESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO\t29122961\tQuijingue\tRoberto \t5\t/manus-storage/os-fotos/mapa_calor/os-3450002-1780492303842_ebd819ed.jpg\t2026-06-03 13:11:43\n5700001\tESCOLA MUNICIPAL DR CLERISTON ANDRADE\t29152887\tCrisópolis\tRoberto \t3\t/manus-storage/os-fotos/mapa_calor/os-5700001-1781221259286_dd96a7fb.jpg\t2026-06-11 23:40:58\n5460001\tESCOLA MUNICIPAL OLAVO DANTAS COELHO\t29153050\tCrisópolis\tRoberto \t2\t/manus-storage/os-fotos/mapa_calor/os-5460001-1781142278295_81a84886.jpg\t2026-06-11 01:44:38\n2940001\tESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS\t29122740\tQuijingue\tRoberto \t1\t/manus-storage/os-fotos/mapa_calor/os-2940001-1780526634223_7dcba904.jpg\t2026-06-03 22:43:52\n1260001\tESC ANTONIO BRANCO\t29118867\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-1260001-1779728524076_f7d8dfeb.jpg\t2026-05-25 17:02:03\n2730001\tESC BELARMINO CORDEIRO\t29118883\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-2730001-1780319661649_010035f8.jpg\t2026-06-01 13:14:21\n2550001\tESC BELO MONTE\t29118905\tMonte Santo\tRodrigo Mota\t1\t/manus-storage/os-fotos/mapa_calor/os-2550001-1780239892132_77d196f8.jpg\t2026-05-31 15:04:51\n5340002\tESC DAVID FERRERA DA SILVA\t29118930\tMonte Santo\tRodrigo Mota\t1\t/manus-storage/os-fotos/mapa_calor/os-5340002-1781101529965_2f8ca671.jpg\t2026-06-10 14:25:29\n2520001\tESC JOAO LOPES\t29119049\tMonte Santo\tRodrigo Mota\t7\t/manus-storage/os-fotos/mapa_calor/os-2520001-1780181164596_b5a19189.jpg\t2026-05-30 22:46:04\n2970001\tESC JOAO SOARES\t29119057\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-2970001-1780353658682_2b29dc79.jpg\t2026-06-01 22:40:58\n2220001\tESC LOURIVAL CUSTODIO\t29119170\tMonte Santo\tRodrigo Mota\t4\t/manus-storage/os-fotos/mapa_calor/os-2220001-1780084038230_aee2f91f.jpg\t2026-05-29 19:47:18\n990001\tESC LUIZ GONZAGA CARDOSO\t29119189\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-990001-1779485294416_747716f9.jpg\t2026-05-22 21:28:13\n4350001\tESC MUNICIPAL JOSE ANDRADE\t29393469\tMonte Santo\tRodrigo Mota\t6\t/manus-storage/os-fotos/mapa_calor/os-4350001-1780699035164_da227af6.jpg\t2026-06-05 22:37:14\n4680001\tESC NOSSA SENHORA DA CONCEICAO\t29119294\tMonte Santo\tRodrigo Mota\t4\t/manus-storage/os-fotos/mapa_calor/os-4680001-1780854545926_5e3ccf65.jpg\t2026-06-07 17:49:05\n5220001\tESC NOSSA SRA DO DESTERRO\t29119340\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-5220001-1781033660543_c2cd02b2.jpg\t2026-06-09 19:34:20\n1290001\tESC NOSSA SRA DO ROSARIO\t29119367\tMonte Santo\tRodrigo Mota\t7\t/manus-storage/os-fotos/mapa_calor/os-1290001-1779834355239_c191dac4.jpg\t2026-05-26 22:25:54\n1500001\tESC SAO JORGE\t29119600\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-1500001-1780353620489_301f522e.jpg\t2026-06-01 22:40:20\n5340001\tESCOLA CAMINHO SUAVE\t29118913\tMonte Santo\tRodrigo Mota\t1\t/manus-storage/os-fotos/mapa_calor/os-5340001-1781101411802_b87320d0.jpg\t2026-06-10 14:23:31\n4950001\tESCOLA EDUCANDARIO HORIZONTE NOVO\t29120489\tMonte Santo\tRodrigo Mota\t7\t/manus-storage/os-fotos/mapa_calor/os-4950001-1780994799360_ce8af119.jpg\t2026-06-09 08:46:38\n1710001\tESCOLA LUIZ JOSE DANTAS\t29120535\tMonte Santo\tRodrigo Mota\t5\t/manus-storage/os-fotos/mapa_calor/os-1710001-1779979749056_65ee666c.jpg\t2026-05-28 14:49:08\n1440001\tESCOLA MIRINS COM ALEGRIA\t29120543\tMonte Santo\tRodrigo Mota\t3\t/manus-storage/os-fotos/mapa_calor/os-1440001-1779896679254_d8b65fde.jpg\t2026-05-27 15:44:38\n4680002\tESCOLA MODELO ISABEL AZEVEDO PINTO\t29464838\tMonte Santo\tRodrigo Mota\t6\t/manus-storage/os-fotos/mapa_calor/os-4680002-1780854596628_b2243a5d.jpg\t2026-06-07 17:49:56\n5070001\tESCOLA MUNICIPAL JOSE DE SOUZA\t29120500\tMonte Santo\tRodrigo Mota\t2\t/manus-storage/os-fotos/mapa_calor/os-5070001-1781033690179_b0c36c47.jpg\t2026-06-09 19:34:49\n2010001\tESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA\t29476640\tMonte Santo\tRodrigo Mota\t5\t/manus-storage/os-fotos/mapa_calor/os-2010001-1780060455477_bf5310d3.jpg\t2026-05-29 13:14:15\n3510001\tESCOLA SAO JOAO DOS CAMPOS\t29120640\tMonte Santo\tRodrigo Mota\t7\t/manus-storage/os-fotos/mapa_calor/os-3510001-1780439961172_1ec777fd.jpg\t2026-06-02 22:39:21\n3930001\tESCOLA SENHOR DO BONFIM\t29381657\tMonte Santo\tRodrigo Mota\t6\t/manus-storage/os-fotos/mapa_calor/os-3930001-1780521269956_3ae7d3b0.jpg\t2026-06-03 21:14:29\n2640001\tCOLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA\t29423678\tJeremoabo\tVictor \t4\t/manus-storage/os-fotos/mapa_calor/os-2640001-1780308213249_25fd9bd0.jpg\t2026-06-01 10:03:32\n2430001\tESC MUL ANTONIO MANOEL DE CARVALHO\t29112885\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-2430001-1780160457109_05968c65.jpg\t2026-05-30 17:00:56\n1800001\tESC MUL DEPUTADO MANOEL NOVAES\t29112923\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-1800001-1779983107463_39b06018.jpg\t2026-05-28 15:45:03\n4650001\tESC MUL DO CARITA\t29372674\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-4650001-1780837248310_2fff86f1.jpg\t2026-06-07 13:00:48\n2880001\tESC MUL DUQUE DE CAXIAS\t29112940\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-2880001-1780342971418_c86bd439.jpg\t2026-06-01 19:42:51\n2880002\tESC MUL GUILHERME JOSE DE SANTANA\t29112982\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-2880002-1780343005026_1b131a0a.jpg\t2026-06-01 19:43:24\n3090001\tESC MUL IRMA DULCE\t29112990\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-3090001-1780381987302_5861dd1a.jpg\t2026-06-02 06:33:07\n1650001\tESC MUL MANOEL DANTAS DE CARVALHO\t29113091\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-1650001-1779959669227_6ee7c7a7.jpg\t2026-05-28 09:14:28\n1380001\tESC MUL MARIVALDO MOREIRA\t29113148\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-1380001-1779901772237_afaf55e2.jpg\t2026-05-27 17:09:31\n5370003\tESC MUL PROF REMES CAVALCANTE\t29113288\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-5370003-1781102776389_15db478b.jpg\t2026-06-10 14:46:16\n4650002\tESC MUL PROFA JULIANA DANTAS\t29113270\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-4650002-1780837273872_619a5dff.jpg\t2026-06-07 13:01:13\n4320001\tESC MUL PROFESSORA HELENITA DE CARVALHO\t29112796\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-4320001-1780687154993_071f6efe.jpg\t2026-06-05 19:19:14\n4110003\tESC MUL ZACARIAS LOURENCO\t29113350\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-4110003-1780596646111_cdd6faf8.jpg\t2026-06-04 18:10:45\n1890002\tESCOLA LUZIA EULINA SA\t29113423\tJeremoabo\tVictor \t5\t/manus-storage/os-fotos/mapa_calor/os-1890002-1780055397090_3502fdde.jpg\t2026-05-29 11:49:56\n2430002\tESCOLA MUL BENTO DE SA CARVALHO\t29113440\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-2430002-1780160494013_0cc47808.jpg\t2026-05-30 17:01:33\n5370001\tESCOLA MUNICIPAL DE BAIXA DOS QUELES\t29337429\tJeremoabo\tVictor \t2\t/manus-storage/os-fotos/mapa_calor/os-5370001-1781102731216_199ce022.jpg\t2026-06-10 14:45:30\n5370004\tESCOLA MUNICIPAL DO ALTO DA TAPERA\t29415985\tJeremoabo\tVictor \t3\t/manus-storage/os-fotos/mapa_calor/os-5370004-1781102800042_7b857bd5.jpg\t2026-06-10 14:46:39\n4200001\tESCOLA MUNICIPAL JOAQUIM DE FRANCA ALMEIDA\t29113490\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-4200001-1780634138935_65094b81.jpg\t2026-06-05 04:35:38\n3150001\tESCOLA MUNICIPAL JOSE MANOEL DE OLIVEIRA\t29112907\tJeremoabo\tVictor \t5\t/manus-storage/os-fotos/mapa_calor/os-3150001-1780404445910_39cf5b6d.jpg\t2026-06-02 12:47:25\n2490001\tESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO\t29113784\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-2490001-1780179625536_a7329ab2.jpg\t2026-05-30 22:20:25\n4080001\tESCOLA MUNICIPAL LUIS EDUARDO MAGALHAES\t29112737\tJeremoabo\tVictor \t4\t/manus-storage/os-fotos/mapa_calor/os-4080001-1780596112591_da605744.jpg\t2026-06-04 18:01:52\n5580001\tESCOLA MUNICIPAL PRAXEDES BALDOINO DE SANTANA\t29389917\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-5580001-1781140815791_7f3d2195.jpg\t2026-06-11 01:20:15\n2190001\tESCOLA MUNICIPAL QUILOMETRO 18\t29113539\tJeremoabo\tVictor \t1\t/manus-storage/os-fotos/mapa_calor/os-2190001-1780080318738_10e07d8f.jpg\t2026-05-29 18:45:18\n5970001\tCRECHE PRE-ESCOLA CRIANCA FELIZ V\t29420229\tTeofilândia\tZé Orlando \t1\t/manus-storage/os-fotos/mapa_calor/os-5970001-1781254602717_0bba7d8e.jpg\t2026-06-12 08:56:42\n5550001\tESCOLA JOSE DA SILVA\t29372453\tTeofilândia\tZé Orlando \t4\t/manus-storage/os-fotos/mapa_calor/os-5550001-1781205259212_bed22fb9.jpg\t2026-06-11 19:14:18\n6090001\tESCOLA MARIA QUITERIA\t29148693\tTeofilândia\tZé Orlando \t3\t/manus-storage/os-fotos/mapa_calor/os-6090001-1781335696554_c583c23e.jpg\t2026-06-13 07:28:16\n5520001\tESCOLA MUNICIPAL COMUNITARIA DA FUBA\t29134536\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-5520001-1781137388089_b2d702f8.jpg\t2026-06-11 00:23:07\n3600001\tESCOLA MUNICIPAL JARBAS PASSARINHO\t29134790\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-3600001-1780444914273_9121f5bc.jpg\t2026-06-03 00:01:54\n3300002\tESCOLA MUNICIPAL JESUS AMADO\t29134803\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-3300002-1780413759760_22a827ff.jpg\t2026-06-02 15:22:38\n2280002\tESCOLA MUNICIPAL JOSE REGINALDO DE SANTANA\t29135869\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-2280002-1780144105393_09700d8a.jpg\t2026-05-30 12:28:25\n4710001\tESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES\t29135176\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-4710001-1780918967131_c8a38acb.jpg\t2026-06-08 11:42:46\n2280001\tESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE\t29135214\tAraci\tZé Orlando \t1\t/manus-storage/os-fotos/mapa_calor/os-2280001-1780143838831_9569ae39.jpg\t2026-05-30 12:23:58\n2850001\tESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS\t29135516\tAraci\tZé Orlando \t2\t/manus-storage/os-fotos/mapa_calor/os-2850001-1780340787578_56389851.jpg\t2026-06-01 19:06:26\n5400001\tESCOLA MUNICIPAL TOME DE SOUZA\t29148790\tTeofilândia\tZé Orlando \t6\t/manus-storage/os-fotos/mapa_calor/os-5400001-1781106754012_e16b126f.jpg\t2026-06-10 15:52:33\n",
+  "stderr": "",
+  "execution_time_ms": 336
+}

@@ -1,0 +1,70 @@
+{
+  "query": "\nSELECT osId, categoria, url, createdAt \nFROM os_fotos \nWHERE categoria = 'mapa_calor'\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT osId, categoria, url, createdAt \nFROM os_fotos \nWHERE categoria = 'mapa_calor'\nLIMIT 10;\n",
+  "rows": [
+    {
+      "osId": "360035",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-330001-1777755341928_10f3d918.jpg",
+      "createdAt": "2026-05-02 20:55:42"
+    },
+    {
+      "osId": "360032",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360003-1777756883393_36feb708.jpg",
+      "createdAt": "2026-05-02 21:21:23"
+    },
+    {
+      "osId": "1",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-1-1777757137295_7260cab1.jpg",
+      "createdAt": "2026-05-02 21:25:37"
+    },
+    {
+      "osId": "1",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-1-1777757141737_9069caea.jpg",
+      "createdAt": "2026-05-02 21:25:41"
+    },
+    {
+      "osId": "360028",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-0-1777757770903_87193eda.jpg",
+      "createdAt": "2026-05-02 21:36:11"
+    },
+    {
+      "osId": "360031",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360006-1777758514703_df39a9c3.jpg",
+      "createdAt": "2026-05-02 21:48:34"
+    },
+    {
+      "osId": "360036",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360008-1777758752829_d374751c.jpg",
+      "createdAt": "2026-05-02 21:52:33"
+    },
+    {
+      "osId": "360036",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360008-1777758795469_1860eeb1.jpg",
+      "createdAt": "2026-05-02 21:53:15"
+    },
+    {
+      "osId": "360030",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360010-1777759711682_b9b97fc4.jpg",
+      "createdAt": "2026-05-02 22:08:31"
+    },
+    {
+      "osId": "360001",
+      "categoria": "mapa_calor",
+      "url": "/manus-storage/os-fotos/mapa_calor/os-360001-1777760164380_150d775f.jpg",
+      "createdAt": "2026-05-02 22:16:04"
+    }
+  ],
+  "messages": [],
+  "stdout": "osId\tcategoria\turl\tcreatedAt\n360035\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-330001-1777755341928_10f3d918.jpg\t2026-05-02 20:55:42\n360032\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360003-1777756883393_36feb708.jpg\t2026-05-02 21:21:23\n1\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-1-1777757137295_7260cab1.jpg\t2026-05-02 21:25:37\n1\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-1-1777757141737_9069caea.jpg\t2026-05-02 21:25:41\n360028\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-0-1777757770903_87193eda.jpg\t2026-05-02 21:36:11\n360031\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360006-1777758514703_df39a9c3.jpg\t2026-05-02 21:48:34\n360036\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360008-1777758752829_d374751c.jpg\t2026-05-02 21:52:33\n360036\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360008-1777758795469_1860eeb1.jpg\t2026-05-02 21:53:15\n360030\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360010-1777759711682_b9b97fc4.jpg\t2026-05-02 22:08:31\n360001\tmapa_calor\t/manus-storage/os-fotos/mapa_calor/os-360001-1777760164380_150d775f.jpg\t2026-05-02 22:16:04\n",
+  "stderr": "",
+  "execution_time_ms": 278
+}

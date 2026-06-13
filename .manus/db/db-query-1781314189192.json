@@ -1,0 +1,114 @@
+{
+  "query": "\nSELECT \n  t.nome AS tecnico,\n  COUNT(os.id) AS total_os,\n  COUNT(DISTINCT DATE(os.dataConclusao)) AS dias_trabalhados,\n  ROUND(COUNT(os.id) / NULLIF(COUNT(DISTINCT DATE(os.dataConclusao)), 0), 1) AS media_os_por_dia,\n  MIN(DATE(os.dataConclusao)) AS primeiro_dia,\n  MAX(DATE(os.dataConclusao)) AS ultimo_dia\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.dataConclusao IS NOT NULL\nGROUP BY t.id, t.nome\nORDER BY media_os_por_dia DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  t.nome AS tecnico,\n  COUNT(os.id) AS total_os,\n  COUNT(DISTINCT DATE(os.dataConclusao)) AS dias_trabalhados,\n  ROUND(COUNT(os.id) / NULLIF(COUNT(DISTINCT DATE(os.dataConclusao)), 0), 1) AS media_os_por_dia,\n  MIN(DATE(os.dataConclusao)) AS primeiro_dia,\n  MAX(DATE(os.dataConclusao)) AS ultimo_dia\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.dataConclusao IS NOT NULL\nGROUP BY t.id, t.nome\nORDER BY media_os_por_dia DESC;\n",
+  "rows": [
+    {
+      "tecnico": "Matheus",
+      "total_os": "20",
+      "dias_trabalhados": "8",
+      "media_os_por_dia": "2.5",
+      "primeiro_dia": "2026-06-01",
+      "ultimo_dia": "2026-06-10"
+    },
+    {
+      "tecnico": "Roberto ",
+      "total_os": "23",
+      "dias_trabalhados": "10",
+      "media_os_por_dia": "2.3",
+      "primeiro_dia": "2026-05-27",
+      "ultimo_dia": "2026-06-12"
+    },
+    {
+      "tecnico": "Victor ",
+      "total_os": "23",
+      "dias_trabalhados": "11",
+      "media_os_por_dia": "2.1",
+      "primeiro_dia": "2026-05-27",
+      "ultimo_dia": "2026-06-11"
+    },
+    {
+      "tecnico": "Marcos ",
+      "total_os": "14",
+      "dias_trabalhados": "7",
+      "media_os_por_dia": "2.0",
+      "primeiro_dia": "2026-06-01",
+      "ultimo_dia": "2026-06-11"
+    },
+    {
+      "tecnico": "Ricardo ",
+      "total_os": "4",
+      "dias_trabalhados": "2",
+      "media_os_por_dia": "2.0",
+      "primeiro_dia": "2026-06-03",
+      "ultimo_dia": "2026-06-06"
+    },
+    {
+      "tecnico": "Alex",
+      "total_os": "18",
+      "dias_trabalhados": "9",
+      "media_os_por_dia": "2.0",
+      "primeiro_dia": "2026-05-29",
+      "ultimo_dia": "2026-06-12"
+    },
+    {
+      "tecnico": "Felipe",
+      "total_os": "6",
+      "dias_trabalhados": "3",
+      "media_os_por_dia": "2.0",
+      "primeiro_dia": "2026-06-09",
+      "ultimo_dia": "2026-06-12"
+    },
+    {
+      "tecnico": " Luizinho ",
+      "total_os": "13",
+      "dias_trabalhados": "8",
+      "media_os_por_dia": "1.6",
+      "primeiro_dia": "2026-05-27",
+      "ultimo_dia": "2026-06-11"
+    },
+    {
+      "tecnico": "Rodrigo Mota",
+      "total_os": "22",
+      "dias_trabalhados": "15",
+      "media_os_por_dia": "1.5",
+      "primeiro_dia": "2026-05-22",
+      "ultimo_dia": "2026-06-10"
+    },
+    {
+      "tecnico": "Julielson ",
+      "total_os": "11",
+      "dias_trabalhados": "8",
+      "media_os_por_dia": "1.4",
+      "primeiro_dia": "2026-05-29",
+      "ultimo_dia": "2026-06-11"
+    },
+    {
+      "tecnico": "Zé Orlando ",
+      "total_os": "10",
+      "dias_trabalhados": "8",
+      "media_os_por_dia": "1.3",
+      "primeiro_dia": "2026-05-30",
+      "ultimo_dia": "2026-06-12"
+    },
+    {
+      "tecnico": "José Felix ",
+      "total_os": "9",
+      "dias_trabalhados": "7",
+      "media_os_por_dia": "1.3",
+      "primeiro_dia": "2026-06-03",
+      "ultimo_dia": "2026-06-12"
+    },
+    {
+      "tecnico": "Everson",
+      "total_os": "1",
+      "dias_trabalhados": "1",
+      "media_os_por_dia": "1.0",
+      "primeiro_dia": "2026-06-12",
+      "ultimo_dia": "2026-06-12"
+    }
+  ],
+  "messages": [],
+  "stdout": "tecnico\ttotal_os\tdias_trabalhados\tmedia_os_por_dia\tprimeiro_dia\tultimo_dia\nMatheus\t20\t8\t2.5\t2026-06-01\t2026-06-10\nRoberto \t23\t10\t2.3\t2026-05-27\t2026-06-12\nVictor \t23\t11\t2.1\t2026-05-27\t2026-06-11\nMarcos \t14\t7\t2.0\t2026-06-01\t2026-06-11\nRicardo \t4\t2\t2.0\t2026-06-03\t2026-06-06\nAlex\t18\t9\t2.0\t2026-05-29\t2026-06-12\nFelipe\t6\t3\t2.0\t2026-06-09\t2026-06-12\n Luizinho \t13\t8\t1.6\t2026-05-27\t2026-06-11\nRodrigo Mota\t22\t15\t1.5\t2026-05-22\t2026-06-10\nJulielson \t11\t8\t1.4\t2026-05-29\t2026-06-11\nZé Orlando \t10\t8\t1.3\t2026-05-30\t2026-06-12\nJosé Felix \t9\t7\t1.3\t2026-06-03\t2026-06-12\nEverson\t1\t1\t1.0\t2026-06-12\t2026-06-12\n",
+  "stderr": "",
+  "execution_time_ms": 279
+}

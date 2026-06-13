@@ -1,0 +1,109 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  t.nome AS tecnico,\n  os.status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nJOIN ordens_servico os ON os.escolaId = e.id\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nAND t.nome LIKE '%Rodrigo%'\nORDER BY os.status, e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  t.nome AS tecnico,\n  os.status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nJOIN ordens_servico os ON os.escolaId = e.id\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nAND t.nome LIKE '%Rodrigo%'\nORDER BY os.status, e.nome ASC;\n",
+  "rows": [
+    {
+      "inep": "29118930",
+      "escola": "ESC DAVID FERRERA DA SILVA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29119340",
+      "escola": "ESC NOSSA SRA DO DESTERRO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29119600",
+      "escola": "ESC SAO JORGE",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "01/06/2026"
+    },
+    {
+      "inep": "29118913",
+      "escola": "ESCOLA CAMINHO SUAVE",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "1",
+      "data_conclusao": "10/06/2026"
+    },
+    {
+      "inep": "29120489",
+      "escola": "ESCOLA EDUCANDARIO HORIZONTE NOVO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29120535",
+      "escola": "ESCOLA LUIZ JOSE DANTAS",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "28/05/2026"
+    },
+    {
+      "inep": "29464838",
+      "escola": "ESCOLA MODELO ISABEL AZEVEDO PINTO",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "07/06/2026"
+    },
+    {
+      "inep": "29120500",
+      "escola": "ESCOLA MUNICIPAL JOSE DE SOUZA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "2",
+      "data_conclusao": "09/06/2026"
+    },
+    {
+      "inep": "29476640",
+      "escola": "ESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "5",
+      "data_conclusao": "29/05/2026"
+    },
+    {
+      "inep": "29120640",
+      "escola": "ESCOLA SAO JOAO DOS CAMPOS",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "7",
+      "data_conclusao": "02/06/2026"
+    },
+    {
+      "inep": "29381657",
+      "escola": "ESCOLA SENHOR DO BONFIM",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida",
+      "aps": "6",
+      "data_conclusao": "03/06/2026"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\ttecnico\tstatus\taps\tdata_conclusao\n29118930\tESC DAVID FERRERA DA SILVA\tMonte Santo\tRodrigo Mota\tconcluida\t1\t10/06/2026\n29119340\tESC NOSSA SRA DO DESTERRO\tMonte Santo\tRodrigo Mota\tconcluida\t2\t09/06/2026\n29119600\tESC SAO JORGE\tMonte Santo\tRodrigo Mota\tconcluida\t2\t01/06/2026\n29118913\tESCOLA CAMINHO SUAVE\tMonte Santo\tRodrigo Mota\tconcluida\t1\t10/06/2026\n29120489\tESCOLA EDUCANDARIO HORIZONTE NOVO\tMonte Santo\tRodrigo Mota\tconcluida\t7\t09/06/2026\n29120535\tESCOLA LUIZ JOSE DANTAS\tMonte Santo\tRodrigo Mota\tconcluida\t5\t28/05/2026\n29464838\tESCOLA MODELO ISABEL AZEVEDO PINTO\tMonte Santo\tRodrigo Mota\tconcluida\t6\t07/06/2026\n29120500\tESCOLA MUNICIPAL JOSE DE SOUZA\tMonte Santo\tRodrigo Mota\tconcluida\t2\t09/06/2026\n29476640\tESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA\tMonte Santo\tRodrigo Mota\tconcluida\t5\t29/05/2026\n29120640\tESCOLA SAO JOAO DOS CAMPOS\tMonte Santo\tRodrigo Mota\tconcluida\t7\t02/06/2026\n29381657\tESCOLA SENHOR DO BONFIM\tMonte Santo\tRodrigo Mota\tconcluida\t6\t03/06/2026\n",
+  "stderr": "",
+  "execution_time_ms": 1520
+}

@@ -1,0 +1,13 @@
+{
+  "query": "\nSELECT DISTINCT municipio FROM escolas WHERE municipio LIKE '%Ribeira%' OR municipio LIKE '%Amparo%' LIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT DISTINCT municipio FROM escolas WHERE municipio LIKE '%Ribeira%' OR municipio LIKE '%Amparo%' LIMIT 10;\n",
+  "rows": [
+    {
+      "municipio": "Ribeira do Amparo"
+    }
+  ],
+  "messages": [],
+  "stdout": "municipio\nRibeira do Amparo\n",
+  "stderr": "",
+  "execution_time_ms": 365
+}

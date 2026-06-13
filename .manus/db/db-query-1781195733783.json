@@ -1,0 +1,9 @@
+{
+  "query": "\nSELECT \n  t.nome AS tecnico,\n  COUNT(*) AS total,\n  SUM(os.qtdApInstalado) AS total_aps\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND e.municipio LIKE '%Ribeira do Amparo%'\nGROUP BY t.nome\nORDER BY total DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  t.nome AS tecnico,\n  COUNT(*) AS total,\n  SUM(os.qtdApInstalado) AS total_aps\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND e.municipio LIKE '%Ribeira do Amparo%'\nGROUP BY t.nome\nORDER BY total DESC;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 4022
+}

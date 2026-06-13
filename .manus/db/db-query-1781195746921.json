@@ -1,0 +1,138 @@
+{
+  "query": "\nSELECT \n  e.nome AS escola,\n  e.inep,\n  COALESCE(t_os.nome, t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_os ON t_os.id = os.tecnicoId\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE e.municipio = 'Ribeira do Amparo'\nORDER BY os.status ASC, e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.nome AS escola,\n  e.inep,\n  COALESCE(t_os.nome, t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_os ON t_os.id = os.tecnicoId\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE e.municipio = 'Ribeira do Amparo'\nORDER BY os.status ASC, e.nome ASC;\n",
+  "rows": [
+    {
+      "escola": "CRECHE CONRADO JOSE DE AMORIM",
+      "inep": "29757622",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC EST 1 GRAU DR MURILO CAVALCANTE",
+      "inep": "29132789",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC EST 1 GRAU MARIA FERREIRA DA SILVA",
+      "inep": "29132703",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC EST DE 1 GRAU ANTONIO DANTAS MACEDO",
+      "inep": "29132681",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC MUL NOVA INFANCIA",
+      "inep": "29132819",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC MUL PE OTAVIO",
+      "inep": "29132843",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUN SAO FRANCISCO DE ASSIS",
+      "inep": "29132967",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA",
+      "inep": "29429960",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL LUIZ VIANA",
+      "inep": "29407770",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA LUZIA",
+      "inep": "29133017",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA I",
+      "inep": "29133025",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA II",
+      "inep": "29429900",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA III",
+      "inep": "29330238",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SAO JOSE IV",
+      "inep": "29330300",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "PAULO VI",
+      "inep": "29132827",
+      "tecnico": "Everson",
+      "status": "sem_os",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    },
+    {
+      "escola": "ESC MUL JOAO CARLOS DE CERQUEIRA",
+      "inep": "29132754",
+      "tecnico": "Everson",
+      "status": "em_andamento",
+      "aps": "NULL",
+      "data_conclusao": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "escola\tinep\ttecnico\tstatus\taps\tdata_conclusao\nCRECHE CONRADO JOSE DE AMORIM\t29757622\tEverson\tsem_os\tNULL\tNULL\nESC EST 1 GRAU DR MURILO CAVALCANTE\t29132789\tEverson\tsem_os\tNULL\tNULL\nESC EST 1 GRAU MARIA FERREIRA DA SILVA\t29132703\tEverson\tsem_os\tNULL\tNULL\nESC EST DE 1 GRAU ANTONIO DANTAS MACEDO\t29132681\tEverson\tsem_os\tNULL\tNULL\nESC MUL NOVA INFANCIA\t29132819\tEverson\tsem_os\tNULL\tNULL\nESC MUL PE OTAVIO\t29132843\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUN SAO FRANCISCO DE ASSIS\t29132967\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA\t29429960\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL LUIZ VIANA\t29407770\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL SANTA LUZIA\t29133017\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL SANTA TEREZA I\t29133025\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL SANTA TEREZA II\t29429900\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL SANTA TEREZA III\t29330238\tEverson\tsem_os\tNULL\tNULL\nESCOLA MUNICIPAL SAO JOSE IV\t29330300\tEverson\tsem_os\tNULL\tNULL\nPAULO VI\t29132827\tEverson\tsem_os\tNULL\tNULL\nESC MUL JOAO CARLOS DE CERQUEIRA\t29132754\tEverson\tem_andamento\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 411
+}

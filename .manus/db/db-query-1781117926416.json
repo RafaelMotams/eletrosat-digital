@@ -1,0 +1,38 @@
+{
+  "query": "\nSELECT e.inep, e.nome, e.municipio, t.nome as tecnico, os.status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN ('29124433','29124840','29153786','29401250')\nORDER BY e.inep;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT e.inep, e.nome, e.municipio, t.nome as tecnico, os.status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN ('29124433','29124840','29153786','29401250')\nORDER BY e.inep;\n",
+  "rows": [
+    {
+      "inep": "29124433",
+      "nome": "ESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124840",
+      "nome": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "tecnico": "NULL",
+      "status": "NULL"
+    },
+    {
+      "inep": "29153786",
+      "nome": "ESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29401250",
+      "nome": "ESC MUN NOSSA SENHORA DO PERPETUO SOCORRO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tnome\tmunicipio\ttecnico\tstatus\n29124433\tESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO\tTucano\tRicardo \tconcluida\n29124840\tESCOLA MUNICIPAL SAO JOSE\tUauá\tNULL\tNULL\n29153786\tESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA\tInhambupe\tMatheus\tconcluida\n29401250\tESC MUN NOSSA SENHORA DO PERPETUO SOCORRO\tUauá\t Luizinho \tconcluida\n",
+  "stderr": "",
+  "execution_time_ms": 933
+}

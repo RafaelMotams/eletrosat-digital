@@ -1,0 +1,17 @@
+{
+  "query": "\nSELECT \n  SUM(CASE WHEN os.status = 'concluida' THEN 1 ELSE 0 END) AS concluidas,\n  SUM(CASE WHEN os.status = 'nao_instalada' THEN 1 ELSE 0 END) AS nao_instaladas,\n  SUM(CASE WHEN os.status IN ('aberta','em_andamento') THEN 1 ELSE 0 END) AS em_aberto,\n  SUM(CASE WHEN os.id IS NULL THEN 1 ELSE 0 END) AS sem_os,\n  COUNT(e.id) AS total_escolas\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  SUM(CASE WHEN os.status = 'concluida' THEN 1 ELSE 0 END) AS concluidas,\n  SUM(CASE WHEN os.status = 'nao_instalada' THEN 1 ELSE 0 END) AS nao_instaladas,\n  SUM(CASE WHEN os.status IN ('aberta','em_andamento') THEN 1 ELSE 0 END) AS em_aberto,\n  SUM(CASE WHEN os.id IS NULL THEN 1 ELSE 0 END) AS sem_os,\n  COUNT(e.id) AS total_escolas\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id;\n",
+  "rows": [
+    {
+      "concluidas": "174",
+      "nao_instaladas": "14",
+      "em_aberto": "5",
+      "sem_os": "139",
+      "total_escolas": "332"
+    }
+  ],
+  "messages": [],
+  "stdout": "concluidas\tnao_instaladas\tem_aberto\tsem_os\ttotal_escolas\n174\t14\t5\t139\t332\n",
+  "stderr": "",
+  "execution_time_ms": 1163
+}

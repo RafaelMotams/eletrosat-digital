@@ -1,0 +1,178 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  COALESCE(e.endereco, '') AS endereco,\n  COALESCE(t_os.nome, t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_os ON t_os.id = os.tecnicoId\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE e.inep IN (\n  '29153301','29055032','29055237','29077575','29112885','29113148','29113440','29113539',\n  '29118867','29119049','29119367','29122740','29122961','29124433','29124450','29131510',\n  '29136083','29151503','29153310','29153522','29401770'\n)\nORDER BY COALESCE(t_os.nome, t_esc.nome) ASC, e.municipio ASC, e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  COALESCE(e.endereco, '') AS endereco,\n  COALESCE(t_os.nome, t_esc.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t_os ON t_os.id = os.tecnicoId\nLEFT JOIN tecnicos t_esc ON t_esc.id = e.tecnicoId\nWHERE e.inep IN (\n  '29153301','29055032','29055237','29077575','29112885','29113148','29113440','29113539',\n  '29118867','29119049','29119367','29122740','29122961','29124433','29124450','29131510',\n  '29136083','29151503','29153310','29153522','29401770'\n)\nORDER BY COALESCE(t_os.nome, t_esc.nome) ASC, e.municipio ASC, e.nome ASC;\n",
+  "rows": [
+    {
+      "inep": "29401770",
+      "escola": "CRECHE SORRISO DE CRIANCA",
+      "municipio": "Uauá",
+      "endereco": "POVOADO LAGOA DO PIRES, SN CASA. RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29055032",
+      "escola": "COLEGIO MUNICIPAL SERRA DE CARNAIBA",
+      "municipio": "Pindobaçu",
+      "endereco": "RUA DA FEIRINHA, S/N DISTRITO DE SERRA DA CARNAIBA. 44770-000 Pindobaçu - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29055237",
+      "escola": "ESCOLA MUNICIPAL AURELIO BRAZ DA SILVA",
+      "municipio": "Pindobaçu",
+      "endereco": "FAZENDA OLHOS DAGUA, S/N 44770-000 Pindobaçu - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29151503",
+      "escola": "ESCOLA MUNICIPAL ALAIDE SANTANA SANTOS",
+      "municipio": "Alagoinhas",
+      "endereco": "TOMBADOR RIACHO DA GUIA, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.",
+      "tecnico": "Felipe",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077575",
+      "escola": "EMEF ANTONIO LUCIO DE SANTANA",
+      "municipio": "Quixabeira",
+      "endereco": "COMUNIDADE QUILOMBOLA DE ALTO DO CAPIM, COMUNIDADE. 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29136083",
+      "escola": "ESCOLA MUNICIPAL ANA NERI",
+      "municipio": "Biritinga",
+      "endereco": "FAZENDA CAMPO DA EMA, S/N PREDIO ESCOLAR. ZONA RURAL. 48780-000 Biritinga - BA.",
+      "tecnico": "Marcos ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153301",
+      "escola": "ESCOLA MUNICIPAL AGENOR BATISTA DA SILVA",
+      "municipio": "Inhambupe",
+      "endereco": "COLONIA ROBERTO SANTOS, SN ZONA RURAL. ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153310",
+      "escola": "ESCOLA MUNICIPAL AMENAIDE CRUZ NERI DOS SANTOS",
+      "municipio": "Inhambupe",
+      "endereco": "POCA DAGUA, 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153522",
+      "escola": "ESCOLA MUNICIPAL DE CONCEICAO",
+      "municipio": "Inhambupe",
+      "endereco": "CONCEICAO, CONCEICAO. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29131510",
+      "escola": "ESCOLA MUNICIPAL JUSCELINO KUBITSCHEK DE OLIVEIRA",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO COLONIA NOVA, 00 PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124450",
+      "escola": "ESCOLA MUNICIPAL DR THEOTONIO MARTINS",
+      "municipio": "Tucano",
+      "endereco": "AV. DR. OLIVEIRA BRITO, SN CASA. CENTRO. 48790-000 Tucano - BA.",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124433",
+      "escola": "ESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO",
+      "municipio": "Tucano",
+      "endereco": "BR 116 -ENTROCAMENTO, ENTROCAMENTO. 48790-000 Tucano - BA.",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122961",
+      "escola": "ESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO MONTE CRUZEIRO, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122740",
+      "escola": "ESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS",
+      "municipio": "Quijingue",
+      "endereco": "FAZENDA LAGOINHA DO OLIMPIO, SN CASA. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118867",
+      "escola": "ESC ANTONIO BRANCO",
+      "municipio": "Monte Santo",
+      "endereco": "FAZENDA CAIXAO, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29119049",
+      "escola": "ESC JOAO LOPES",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO DE SACO FUNDO, SN PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29119367",
+      "escola": "ESC NOSSA SRA DO ROSARIO",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29112885",
+      "escola": "ESC MUL ANTONIO MANOEL DE CARVALHO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO PAU D AUGUA, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113148",
+      "escola": "ESC MUL MARIVALDO MOREIRA",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO ESPINHEIRO, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113440",
+      "escola": "ESCOLA MUL BENTO DE SA CARVALHO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO MALHADA VERMELHA, ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113539",
+      "escola": "ESCOLA MUNICIPAL QUILOMETRO 18",
+      "municipio": "Jeremoabo",
+      "endereco": "FAZENDA KM 18, 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\tendereco\ttecnico\tstatus\n29401770\tCRECHE SORRISO DE CRIANCA\tUauá\tPOVOADO LAGOA DO PIRES, SN CASA. RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29055032\tCOLEGIO MUNICIPAL SERRA DE CARNAIBA\tPindobaçu\tRUA DA FEIRINHA, S/N DISTRITO DE SERRA DA CARNAIBA. 44770-000 Pindobaçu - BA.\tAlex\tconcluida\n29055237\tESCOLA MUNICIPAL AURELIO BRAZ DA SILVA\tPindobaçu\tFAZENDA OLHOS DAGUA, S/N 44770-000 Pindobaçu - BA.\tAlex\tconcluida\n29151503\tESCOLA MUNICIPAL ALAIDE SANTANA SANTOS\tAlagoinhas\tTOMBADOR RIACHO DA GUIA, SN RIACHO DA GUIA. RURAL. 48031-000 Alagoinhas - BA.\tFelipe\tconcluida\n29077575\tEMEF ANTONIO LUCIO DE SANTANA\tQuixabeira\tCOMUNIDADE QUILOMBOLA DE ALTO DO CAPIM, COMUNIDADE. 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29136083\tESCOLA MUNICIPAL ANA NERI\tBiritinga\tFAZENDA CAMPO DA EMA, S/N PREDIO ESCOLAR. ZONA RURAL. 48780-000 Biritinga - BA.\tMarcos \tconcluida\n29153301\tESCOLA MUNICIPAL AGENOR BATISTA DA SILVA\tInhambupe\tCOLONIA ROBERTO SANTOS, SN ZONA RURAL. ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153310\tESCOLA MUNICIPAL AMENAIDE CRUZ NERI DOS SANTOS\tInhambupe\tPOCA DAGUA, 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153522\tESCOLA MUNICIPAL DE CONCEICAO\tInhambupe\tCONCEICAO, CONCEICAO. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29131510\tESCOLA MUNICIPAL JUSCELINO KUBITSCHEK DE OLIVEIRA\tInhambupe\tPOVOADO COLONIA NOVA, 00 PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29124450\tESCOLA MUNICIPAL DR THEOTONIO MARTINS\tTucano\tAV. DR. OLIVEIRA BRITO, SN CASA. CENTRO. 48790-000 Tucano - BA.\tRicardo \tconcluida\n29124433\tESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO\tTucano\tBR 116 -ENTROCAMENTO, ENTROCAMENTO. 48790-000 Tucano - BA.\tRicardo \tconcluida\n29122961\tESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO\tQuijingue\tPOVOADO MONTE CRUZEIRO, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122740\tESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS\tQuijingue\tFAZENDA LAGOINHA DO OLIMPIO, SN CASA. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29118867\tESC ANTONIO BRANCO\tMonte Santo\tFAZENDA CAIXAO, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29119049\tESC JOAO LOPES\tMonte Santo\tPOVOADO DE SACO FUNDO, SN PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29119367\tESC NOSSA SRA DO ROSARIO\tMonte Santo\tPOVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29112885\tESC MUL ANTONIO MANOEL DE CARVALHO\tJeremoabo\tPOVOADO PAU D AUGUA, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113148\tESC MUL MARIVALDO MOREIRA\tJeremoabo\tPOVOADO ESPINHEIRO, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113440\tESCOLA MUL BENTO DE SA CARVALHO\tJeremoabo\tPOVOADO MALHADA VERMELHA, ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113539\tESCOLA MUNICIPAL QUILOMETRO 18\tJeremoabo\tFAZENDA KM 18, 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n",
+  "stderr": "",
+  "execution_time_ms": 342
+}

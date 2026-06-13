@@ -1,0 +1,208 @@
+{
+  "query": "\nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao,\n  COALESCE(os.observacao, '') AS observacao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND (e.municipio LIKE '%Monte Santo%' OR e.municipio LIKE '%monte santo%')\nORDER BY e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado AS aps,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y') AS data_conclusao,\n  COALESCE(os.observacao, '') AS observacao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND (e.municipio LIKE '%Monte Santo%' OR e.municipio LIKE '%monte santo%')\nORDER BY e.nome ASC;\n",
+  "rows": [
+    {
+      "escola": "ESC ANTONIO BRANCO",
+      "inep": "29118867",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "25/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC BELARMINO CORDEIRO",
+      "inep": "29118883",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "01/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC BELO MONTE",
+      "inep": "29118905",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "1",
+      "data_conclusao": "31/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC DAVID FERRERA DA SILVA",
+      "inep": "29118930",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "1",
+      "data_conclusao": "10/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC JOAO LOPES",
+      "inep": "29119049",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "7",
+      "data_conclusao": "30/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC JOAO SOARES",
+      "inep": "29119057",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "01/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC LOURIVAL CUSTODIO",
+      "inep": "29119170",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "4",
+      "data_conclusao": "29/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC LUIZ GONZAGA CARDOSO",
+      "inep": "29119189",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "22/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC MUNICIPAL JOSE ANDRADE",
+      "inep": "29393469",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "6",
+      "data_conclusao": "05/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC NOSSA SENHORA DA CONCEICAO",
+      "inep": "29119294",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "4",
+      "data_conclusao": "07/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC NOSSA SRA DO DESTERRO",
+      "inep": "29119340",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "09/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC NOSSA SRA DO ROSARIO",
+      "inep": "29119367",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "7",
+      "data_conclusao": "26/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESC SAO JORGE",
+      "inep": "29119600",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "01/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA CAMINHO SUAVE",
+      "inep": "29118913",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "1",
+      "data_conclusao": "10/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA EDUCANDARIO HORIZONTE NOVO",
+      "inep": "29120489",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "7",
+      "data_conclusao": "09/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA LUIZ JOSE DANTAS",
+      "inep": "29120535",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "5",
+      "data_conclusao": "28/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA MIRINS COM ALEGRIA",
+      "inep": "29120543",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "3",
+      "data_conclusao": "27/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA MODELO ISABEL AZEVEDO PINTO",
+      "inep": "29464838",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "6",
+      "data_conclusao": "07/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL JOSE DE SOUZA",
+      "inep": "29120500",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "2",
+      "data_conclusao": "09/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA",
+      "inep": "29476640",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "5",
+      "data_conclusao": "29/05/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA SAO JOAO DOS CAMPOS",
+      "inep": "29120640",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "7",
+      "data_conclusao": "02/06/2026",
+      "observacao": ""
+    },
+    {
+      "escola": "ESCOLA SENHOR DO BONFIM",
+      "inep": "29381657",
+      "municipio": "Monte Santo",
+      "tecnico": "Rodrigo Mota",
+      "aps": "6",
+      "data_conclusao": "03/06/2026",
+      "observacao": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "escola\tinep\tmunicipio\ttecnico\taps\tdata_conclusao\tobservacao\nESC ANTONIO BRANCO\t29118867\tMonte Santo\tRodrigo Mota\t2\t25/05/2026\t\nESC BELARMINO CORDEIRO\t29118883\tMonte Santo\tRodrigo Mota\t2\t01/06/2026\t\nESC BELO MONTE\t29118905\tMonte Santo\tRodrigo Mota\t1\t31/05/2026\t\nESC DAVID FERRERA DA SILVA\t29118930\tMonte Santo\tRodrigo Mota\t1\t10/06/2026\t\nESC JOAO LOPES\t29119049\tMonte Santo\tRodrigo Mota\t7\t30/05/2026\t\nESC JOAO SOARES\t29119057\tMonte Santo\tRodrigo Mota\t2\t01/06/2026\t\nESC LOURIVAL CUSTODIO\t29119170\tMonte Santo\tRodrigo Mota\t4\t29/05/2026\t\nESC LUIZ GONZAGA CARDOSO\t29119189\tMonte Santo\tRodrigo Mota\t2\t22/05/2026\t\nESC MUNICIPAL JOSE ANDRADE\t29393469\tMonte Santo\tRodrigo Mota\t6\t05/06/2026\t\nESC NOSSA SENHORA DA CONCEICAO\t29119294\tMonte Santo\tRodrigo Mota\t4\t07/06/2026\t\nESC NOSSA SRA DO DESTERRO\t29119340\tMonte Santo\tRodrigo Mota\t2\t09/06/2026\t\nESC NOSSA SRA DO ROSARIO\t29119367\tMonte Santo\tRodrigo Mota\t7\t26/05/2026\t\nESC SAO JORGE\t29119600\tMonte Santo\tRodrigo Mota\t2\t01/06/2026\t\nESCOLA CAMINHO SUAVE\t29118913\tMonte Santo\tRodrigo Mota\t1\t10/06/2026\t\nESCOLA EDUCANDARIO HORIZONTE NOVO\t29120489\tMonte Santo\tRodrigo Mota\t7\t09/06/2026\t\nESCOLA LUIZ JOSE DANTAS\t29120535\tMonte Santo\tRodrigo Mota\t5\t28/05/2026\t\nESCOLA MIRINS COM ALEGRIA\t29120543\tMonte Santo\tRodrigo Mota\t3\t27/05/2026\t\nESCOLA MODELO ISABEL AZEVEDO PINTO\t29464838\tMonte Santo\tRodrigo Mota\t6\t07/06/2026\t\nESCOLA MUNICIPAL JOSE DE SOUZA\t29120500\tMonte Santo\tRodrigo Mota\t2\t09/06/2026\t\nESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA\t29476640\tMonte Santo\tRodrigo Mota\t5\t29/05/2026\t\nESCOLA SAO JOAO DOS CAMPOS\t29120640\tMonte Santo\tRodrigo Mota\t7\t02/06/2026\t\nESCOLA SENHOR DO BONFIM\t29381657\tMonte Santo\tRodrigo Mota\t6\t03/06/2026\t\n",
+  "stderr": "",
+  "execution_time_ms": 294
+}

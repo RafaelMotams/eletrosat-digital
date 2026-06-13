@@ -195,20 +195,39 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         dataRow.height = 20;
         vals.forEach((v, i) => {
           const cell = ws.getCell(rowIdx, i + 1);
-          cell.value = v;
-          const hAlign: ExcelJS.Alignment["horizontal"] =
-            i === 0 ? "center" :
-            i === 2 ? "center" :
-            i === 4 ? "center" :
-            i === 8 ? "left" :
-            i >= 5 ? "right" : "left";
-          aplicarEstiloCelula(cell, {
-            bg, fg: C.cinzaEscuro, size: 9,
-            hAlign,
-            wrap: i === 1 || i === 8,
-            numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
-            border: borda(),
-          });
+          // Coluna do nome da escola (índice 1): adicionar hyperlink se tiver foto
+          if (i === 1 && (os as any).fotoMapaCalorUrl) {
+            const fotoUrl = (os as any).fotoMapaCalorUrl as string;
+            // Montar URL absoluta se for relativa
+            const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
+            cell.value = {
+              text: os.escolaNome,
+              hyperlink: urlAbsoluta,
+              tooltip: `Ver mapa de calor: ${os.escolaNome}`,
+            };
+            aplicarEstiloCelula(cell, {
+              bg, fg: C.azulClaro, size: 9,
+              hAlign: "left",
+              wrap: true,
+              border: borda(),
+            });
+            cell.font = { ...cell.font, underline: true, color: { argb: C.azulClaro } };
+          } else {
+            cell.value = v;
+            const hAlign: ExcelJS.Alignment["horizontal"] =
+              i === 0 ? "center" :
+              i === 2 ? "center" :
+              i === 4 ? "center" :
+              i === 8 ? "left" :
+              i >= 5 ? "right" : "left";
+            aplicarEstiloCelula(cell, {
+              bg, fg: C.cinzaEscuro, size: 9,
+              hAlign,
+              wrap: i === 1 || i === 8,
+              numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
+              border: borda(),
+            });
+          }
         });
         rowIdx++;
       });

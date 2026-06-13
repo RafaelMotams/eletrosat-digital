@@ -1,0 +1,100 @@
+{
+  "query": "\nSELECT \n  DATE(dataConclusao) AS dia,\n  COUNT(*) AS total_os,\n  SUM(COALESCE(qtdApInstalado, 0)) AS total_aps,\n  COUNT(DISTINCT tecnicoId) AS tecnicos_ativos\nFROM ordens_servico\nWHERE status = 'concluida'\n  AND dataConclusao IS NOT NULL\nGROUP BY DATE(dataConclusao)\nORDER BY total_os DESC\nLIMIT 15;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  DATE(dataConclusao) AS dia,\n  COUNT(*) AS total_os,\n  SUM(COALESCE(qtdApInstalado, 0)) AS total_aps,\n  COUNT(DISTINCT tecnicoId) AS tecnicos_ativos\nFROM ordens_servico\nWHERE status = 'concluida'\n  AND dataConclusao IS NOT NULL\nGROUP BY DATE(dataConclusao)\nORDER BY total_os DESC\nLIMIT 15;\n",
+  "rows": [
+    {
+      "dia": "2026-06-01",
+      "total_os": "17",
+      "total_aps": "29",
+      "tecnicos_ativos": "8"
+    },
+    {
+      "dia": "2026-06-03",
+      "total_os": "17",
+      "total_aps": "74",
+      "tecnicos_ativos": "9"
+    },
+    {
+      "dia": "2026-05-29",
+      "total_os": "15",
+      "total_aps": "34",
+      "tecnicos_ativos": "6"
+    },
+    {
+      "dia": "2026-06-11",
+      "total_os": "15",
+      "total_aps": "39",
+      "tecnicos_ativos": "8"
+    },
+    {
+      "dia": "2026-06-10",
+      "total_os": "14",
+      "total_aps": "39",
+      "tecnicos_ativos": "7"
+    },
+    {
+      "dia": "2026-06-09",
+      "total_os": "14",
+      "total_aps": "40",
+      "tecnicos_ativos": "9"
+    },
+    {
+      "dia": "2026-05-30",
+      "total_os": "14",
+      "total_aps": "23",
+      "tecnicos_ativos": "5"
+    },
+    {
+      "dia": "2026-06-02",
+      "total_os": "14",
+      "total_aps": "31",
+      "tecnicos_ativos": "8"
+    },
+    {
+      "dia": "2026-06-06",
+      "total_os": "11",
+      "total_aps": "23",
+      "tecnicos_ativos": "4"
+    },
+    {
+      "dia": "2026-06-12",
+      "total_os": "7",
+      "total_aps": "22",
+      "tecnicos_ativos": "6"
+    },
+    {
+      "dia": "2026-06-05",
+      "total_os": "7",
+      "total_aps": "25",
+      "tecnicos_ativos": "5"
+    },
+    {
+      "dia": "2026-05-28",
+      "total_os": "6",
+      "total_aps": "11",
+      "tecnicos_ativos": "4"
+    },
+    {
+      "dia": "2026-06-04",
+      "total_os": "5",
+      "total_aps": "13",
+      "tecnicos_ativos": "3"
+    },
+    {
+      "dia": "2026-05-27",
+      "total_os": "5",
+      "total_aps": "7",
+      "tecnicos_ativos": "4"
+    },
+    {
+      "dia": "2026-06-07",
+      "total_os": "5",
+      "total_aps": "26",
+      "tecnicos_ativos": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "dia\ttotal_os\ttotal_aps\ttecnicos_ativos\n2026-06-01\t17\t29\t8\n2026-06-03\t17\t74\t9\n2026-05-29\t15\t34\t6\n2026-06-11\t15\t39\t8\n2026-06-10\t14\t39\t7\n2026-06-09\t14\t40\t9\n2026-05-30\t14\t23\t5\n2026-06-02\t14\t31\t8\n2026-06-06\t11\t23\t4\n2026-06-12\t7\t22\t6\n2026-06-05\t7\t25\t5\n2026-05-28\t6\t11\t4\n2026-06-04\t5\t13\t3\n2026-05-27\t5\t7\t4\n2026-06-07\t5\t26\t3\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}

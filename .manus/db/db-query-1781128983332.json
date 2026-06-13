@@ -1,0 +1,754 @@
+{
+  "query": "\nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.endereco,\n  COALESCE(t.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nORDER BY t.nome ASC, e.municipio ASC, e.nome ASC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.inep,\n  e.nome AS escola,\n  e.municipio,\n  e.endereco,\n  COALESCE(t.nome, 'Sem técnico') AS tecnico,\n  COALESCE(os.status, 'sem_os') AS status\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON t.id = os.tecnicoId\nWHERE e.inep IN (\n  '29018170','29076862','29076900','29077028','29077044','29077249','29077265','29077303','29077354','29077443',\n  '29077575','29077745','29077842','29077877','29077958','29112923','29112982','29112990','29113091','29113423',\n  '29113784','29117372','29117577','29117771','29117801','29117917','29118026','29118620','29118760','29118808',\n  '29118913','29118930','29119340','29119600','29120489','29120500','29120535','29120640','29122554','29122562',\n  '29122600','29122678','29122775','29122821','29122830','29123062','29123631','29123739','29124433','29124832',\n  '29124840','29124999','29125138','29134790','29134803','29135176','29135214','29135516','29148790','29152941',\n  '29153140','29153298','29153336','29153352','29153409','29153468','29153620','29153654','29153662','29153786',\n  '29153816','29337429','29363535','29378672','29381657','29393337','29393833','29399343','29401250','29401780',\n  '29420075','29420083','29420458','29420652','29422035','29423678','29436958','29438136','29449880','29464838',\n  '29476640','29482496','29483506','29606616'\n)\nORDER BY t.nome ASC, e.municipio ASC, e.nome ASC;\n",
+  "rows": [
+    {
+      "inep": "29436958",
+      "escola": "ESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS",
+      "municipio": "Araci",
+      "endereco": "RUA VENCESLAU QUINTINO, S/N GUARANI. 48760-000 Araci - BA.",
+      "tecnico": "Sem técnico",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29393337",
+      "escola": "CRECHE JOSE TURIBIO DOS SANTOS",
+      "municipio": "Tucano",
+      "endereco": "POVOADO CAJUEIRO, ZONA RURAL. 48790-000 Tucano - BA.",
+      "tecnico": "Sem técnico",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29123739",
+      "escola": "ESCOLA MUNICIPAL OLAVO BILAC",
+      "municipio": "Tucano",
+      "endereco": "POVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.",
+      "tecnico": "Sem técnico",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29124840",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "endereco": "FAZENDA LAGOA DA PEDRA, PREDIO. ZONA RURAL. 48950-000 Uauá - BA.",
+      "tecnico": "Sem técnico",
+      "status": "sem_os"
+    },
+    {
+      "inep": "29401780",
+      "escola": "CRECHE ESC TIBERIO GONCALVES",
+      "municipio": "Uauá",
+      "endereco": "POVOADO CALD DA SERRA, POVOADO. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29606616",
+      "escola": "CRECHE MUNICIPAL VO JERONIMO",
+      "municipio": "Uauá",
+      "endereco": "POVOADO SAO PAULO, SN CASA. RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29401250",
+      "escola": "ESC MUN NOSSA SENHORA DO PERPETUO SOCORRO",
+      "municipio": "Uauá",
+      "endereco": "POVOADO CALDEIRAO DA SERRA, S/N PREDIO ESCOLAR. POVOADO. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29378672",
+      "escola": "ESC MUNICIPAL IZAURA EDVIRGENS CARDOSO",
+      "municipio": "Uauá",
+      "endereco": "POVOADO SAO PAULO, SN CASA. RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124999",
+      "escola": "ESCOLA MUNICIPAL DE PEDRA GRANDE",
+      "municipio": "Uauá",
+      "endereco": "FAZENDA PEDRA GRANDE, S/N PREDIO ESCOLAR. ZONA RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29125138",
+      "escola": "ESCOLA MUNICIPAL MIGUEL AVELINO",
+      "municipio": "Uauá",
+      "endereco": "FAZ CURUNDUNDUM, CASA. RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29422035",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO",
+      "municipio": "Uauá",
+      "endereco": "FAZENDA SITIO DOS LOIOLAS, SN CASA. ZONA RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29363535",
+      "escola": "ESCOLA MUNICIPAL RECANTO DA CRIANCA",
+      "municipio": "Uauá",
+      "endereco": "AV JOAO BORGES DE SA, CASA. CENTRO. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124832",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE",
+      "municipio": "Uauá",
+      "endereco": "CALDEIRAO DOS LALAUS, SN PREDIO. ZONA RURAL. 48950-000 Uauá - BA.",
+      "tecnico": " Luizinho ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29076862",
+      "escola": "ESC MUL DE ACUDE",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA ACUDE, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29076900",
+      "escola": "ESC MUL DE BARREIRA",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA BARREIRA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077028",
+      "escola": "ESC MUL DE VARZEA DA MOLA",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA VARZEA DA MOLA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077044",
+      "escola": "ESC MUL DE VARZEA DA PEDRA - CAPIM",
+      "municipio": "Ponto Novo",
+      "endereco": "RURAL, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077249",
+      "escola": "ESCOLA MUL DE ALAGADICO DAS PANELAS",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA ALAGADICO DAS PANELAS, ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077265",
+      "escola": "ESCOLA MUL DE FORTUNA",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA FORTUNA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077303",
+      "escola": "ESCOLA MUL DE MARRECAS",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA MARRECAS, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077354",
+      "escola": "ESCOLA MUL DE VARGINHA",
+      "municipio": "Ponto Novo",
+      "endereco": "FAZENDA CAICARA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077443",
+      "escola": "ESCOLA MUNICIPAL DE CAICARA",
+      "municipio": "Ponto Novo",
+      "endereco": "POVOADO DE CAICARA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.",
+      "tecnico": "Alex",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077575",
+      "escola": "EMEF ANTONIO LUCIO DE SANTANA",
+      "municipio": "Quixabeira",
+      "endereco": "COMUNIDADE QUILOMBOLA DE ALTO DO CAPIM, COMUNIDADE. 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077958",
+      "escola": "EMEF CORINTO SANTOS",
+      "municipio": "Quixabeira",
+      "endereco": "POVOADO RAMAL, 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077745",
+      "escola": "EMEF JOAO OLIVEIRA DOS SANTOS",
+      "municipio": "Quixabeira",
+      "endereco": "POVOADO DE COVA DO ANJO, 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077842",
+      "escola": "EMEF MANOEL VILARONGA RIOS",
+      "municipio": "Quixabeira",
+      "endereco": "POVOADO CAMPO VERDE, 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29077877",
+      "escola": "EMEF POLICARPIO MANOEL ANCELMO",
+      "municipio": "Quixabeira",
+      "endereco": "FAZENDA VARZEA DANTAS, 44713-000 Quixabeira - BA.",
+      "tecnico": "José Felix ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29449880",
+      "escola": "CRECHE NOSSA SENHORA DE FATIMA",
+      "municipio": "Euclides da Cunha",
+      "endereco": "ALDEIA MASSACARA, CASA. RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29117801",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BALBINO",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO QUEIMADAS, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29117771",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE LAGOA DO COSTA, SN PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29117917",
+      "escola": "ESCOLA MUNICIPAL ANTONIO PEDRO DA COSTA",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO ROCA DE CIMA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "nao_instalada"
+    },
+    {
+      "inep": "29117372",
+      "escola": "ESCOLA MUNICIPAL JOSE BEZERRA NETO",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO CAMPO GRANDE, PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29117577",
+      "escola": "ESCOLA MUNICIPAL JOSE DE ANCHIETA",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE MURITI, RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "em_andamento"
+    },
+    {
+      "inep": "29118026",
+      "escola": "ESCOLA MUNICIPAL MAJOR ANTONINO",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO MARIA PRETA, S/N PREDIO ESCOLAR. ZONA RURA. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118760",
+      "escola": "ESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE RUILANDIA, S/N ESCOLA. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118808",
+      "escola": "ESCOLA MUNICIPAL SAO GABRIEL",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO JUNCO, PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29393833",
+      "escola": "ESCOLA MUNICIPAL SAO JOAQUIM",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO VILA CANAA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118620",
+      "escola": "ESCOLA MUNICIPAL SENHOR DOS PASSOS",
+      "municipio": "Euclides da Cunha",
+      "endereco": "POVOADO DE LAGOA FECHADA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.",
+      "tecnico": "Julielson ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153298",
+      "escola": "CENTRO EDUCACIONAL DE BAIXA GRANDE",
+      "municipio": "Inhambupe",
+      "endereco": "RUA MANOEL RAMOS MACHADO, SN BAIXA GRANDE. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29483506",
+      "escola": "CRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA",
+      "municipio": "Inhambupe",
+      "endereco": "AVENIDA MANOEL RAMOS MACHADO, SN BAIXA GRANDE. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153352",
+      "escola": "ESCOLA MUNICIPAL CANDIDO NERY",
+      "municipio": "Inhambupe",
+      "endereco": "FAZ FLECHAS, PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153336",
+      "escola": "ESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO",
+      "municipio": "Inhambupe",
+      "endereco": "CAMAMU, CAMAMU. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153409",
+      "escola": "ESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO CAI DURO, ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153468",
+      "escola": "ESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO DA LAGOA COMPRIDA, S/N CENTRO. POV LAGOA COMPRIDA. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153786",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA",
+      "municipio": "Inhambupe",
+      "endereco": "LIMOEIRO, LIMOEIRO. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153620",
+      "escola": "ESCOLA MUNICIPAL MARIA SOLEDADE CALDAS",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO PAU FERRO, SN CASA. CENTRO. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153654",
+      "escola": "ESCOLA MUNICIPAL NAIR MOREIRA DA SILVA",
+      "municipio": "Inhambupe",
+      "endereco": "FAZ SAGUIM, 0 PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153662",
+      "escola": "ESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO CAMPO GRANDE, ZONA RURAL. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153816",
+      "escola": "ESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA",
+      "municipio": "Inhambupe",
+      "endereco": "POVOADO DE GAMELEIRA, PREDIO. 48490-000 Inhambupe - BA.",
+      "tecnico": "Matheus",
+      "status": "concluida"
+    },
+    {
+      "inep": "29124433",
+      "escola": "ESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO",
+      "municipio": "Tucano",
+      "endereco": "BR 116 -ENTROCAMENTO, ENTROCAMENTO. 48790-000 Tucano - BA.",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29123631",
+      "escola": "ESCOLA MUNICIPAL MARIO MONTINO",
+      "municipio": "Tucano",
+      "endereco": "DISTRITO DE JORRINHO, SN ZONA RURAL. 48790-000 Tucano - BA.",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29399343",
+      "escola": "ESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS",
+      "municipio": "Tucano",
+      "endereco": "PRACA OSWALDO ASSUMPCAO, 171 PREDIO. ZONA URBANA. 48790-000 Tucano - BA.",
+      "tecnico": "Ricardo ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29482496",
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE",
+      "municipio": "Crisópolis",
+      "endereco": "RUA 03 DE MAIO, 312 CENTRO. 48480-000 Crisópolis - BA.",
+      "tecnico": "Roberto ",
+      "status": "em_andamento"
+    },
+    {
+      "inep": "29152941",
+      "escola": "ESC MUL LOURENCO JOSE DOS SANTOS",
+      "municipio": "Crisópolis",
+      "endereco": "FAZENDA COVAO, SN PREDIO ESCOLAR. FAZENDA COVAO. 48480-000 Crisópolis - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29153140",
+      "escola": "ESCOLA MUL CLODOALDO NARCISO REIS",
+      "municipio": "Crisópolis",
+      "endereco": "FAZENDA SAPE, PREDIO ESCOLAR. ZONA RURAL. 48480-000 Crisópolis - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29420652",
+      "escola": "CRECHE BONS MOMENTOS",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO MACETE, SN CASA. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29420075",
+      "escola": "CRECHE CASA FELIZ",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO TATU, SN PREDIO ESCOLAR. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29420458",
+      "escola": "CRECHE CRESCER JUNTOS",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO LAGOA DA BARRA, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29420083",
+      "escola": "CRECHE GRANDE LUTA",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO SITIO, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29438136",
+      "escola": "CRECHE PEQUENO PRINCIPE",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO LAGOA DO JUNCO, SN CASA. ZONARURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122554",
+      "escola": "ESCOLA MANOEL FIDELIS DA SILVA",
+      "municipio": "Quijingue",
+      "endereco": "RUA BEZERRA NETO, 262 PREDIO ESCOLAR. CENTRO. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122562",
+      "escola": "ESCOLA MUN ANDRE FERREIRA DE ANDRADE",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO POCO DANTAS, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122600",
+      "escola": "ESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS",
+      "municipio": "Quijingue",
+      "endereco": "FAZENDA LAGOINHA DOS CAGADOS, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122678",
+      "escola": "ESCOLA MUN DA FAZENDA JUREMA",
+      "municipio": "Quijingue",
+      "endereco": "FAZENDA, 00 PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29123062",
+      "escola": "ESCOLA MUNICIPAL DA FAZ TATU",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO TATU, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122821",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CASABU",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO CASABU, ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122830",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CRU",
+      "municipio": "Quijingue",
+      "endereco": "POVOADO CRU, S/N PREDIO ESCOLAR. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29122775",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO",
+      "municipio": "Quijingue",
+      "endereco": "FAZENDA SERROTE DO MEIO, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.",
+      "tecnico": "Roberto ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118930",
+      "escola": "ESC DAVID FERRERA DA SILVA",
+      "municipio": "Monte Santo",
+      "endereco": "FAZENDA PAU DARCO, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29119340",
+      "escola": "ESC NOSSA SRA DO DESTERRO",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO DESTERRO DO ALTO ALEGRE, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29119600",
+      "escola": "ESC SAO JORGE",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO FOVEIRO, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29118913",
+      "escola": "ESCOLA CAMINHO SUAVE",
+      "municipio": "Monte Santo",
+      "endereco": "TOCAS, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29120489",
+      "escola": "ESCOLA EDUCANDARIO HORIZONTE NOVO",
+      "municipio": "Monte Santo",
+      "endereco": "RUA DO CAMPO, SN PREDIO. POVOADO HORIZONTE NOVO. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29120535",
+      "escola": "ESCOLA LUIZ JOSE DANTAS",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO LAGOA DO SACO, S/N CASA. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29464838",
+      "escola": "ESCOLA MODELO ISABEL AZEVEDO PINTO",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO DE ALTO ALEGRE, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29120500",
+      "escola": "ESCOLA MUNICIPAL JOSE DE SOUZA",
+      "municipio": "Monte Santo",
+      "endereco": "FAZENDA PEDRA DO DOREA, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29476640",
+      "escola": "ESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO LAGOA DO SACO, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29120640",
+      "escola": "ESCOLA SAO JOAO DOS CAMPOS",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO DE ITAPIURU, SN PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29381657",
+      "escola": "ESCOLA SENHOR DO BONFIM",
+      "municipio": "Monte Santo",
+      "endereco": "POVOADO LAGE GRANDE, S/N PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.",
+      "tecnico": "Rodrigo Mota",
+      "status": "concluida"
+    },
+    {
+      "inep": "29423678",
+      "escola": "COLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO AGUA BRANCA, ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29112923",
+      "escola": "ESC MUL DEPUTADO MANOEL NOVAES",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO CANABRAVINHA DOS CANDIS, SN PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29112982",
+      "escola": "ESC MUL GUILHERME JOSE DE SANTANA",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO VIRACAO, ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29112990",
+      "escola": "ESC MUL IRMA DULCE",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO SERRA DO NOEL, ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113091",
+      "escola": "ESC MUL MANOEL DANTAS DE CARVALHO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO BRANCOS, SN PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113423",
+      "escola": "ESCOLA LUZIA EULINA SA",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO BREJO GRANDE, ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29337429",
+      "escola": "ESCOLA MUNICIPAL DE BAIXA DOS QUELES",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO BAIXA DOS QUELES, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29113784",
+      "escola": "ESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO",
+      "municipio": "Jeremoabo",
+      "endereco": "POVOADO MURITI, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.",
+      "tecnico": "Victor ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29134790",
+      "escola": "ESCOLA MUNICIPAL JARBAS PASSARINHO",
+      "municipio": "Araci",
+      "endereco": "POVOADO LAGOA DA LAGE, SN ZONA RURAL. 48760-000 Araci - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29134803",
+      "escola": "ESCOLA MUNICIPAL JESUS AMADO",
+      "municipio": "Araci",
+      "endereco": "POVOADO REJEITO, SN ZONA RURAL. 48760-000 Araci - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29135176",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES",
+      "municipio": "Araci",
+      "endereco": "FAZENDA PEDRA FURADA, SN ZONA RURAL. 48760-000 Araci - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29135214",
+      "escola": "ESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE",
+      "municipio": "Araci",
+      "endereco": "POVOADO TANQUE CAVADO, SN ZONA RURAL. 48760-000 Araci - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29135516",
+      "escola": "ESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS",
+      "municipio": "Araci",
+      "endereco": "FAZENDA MALHADA DA AREIA, S/N ZONA RURAL. 48760-000 Araci - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    },
+    {
+      "inep": "29148790",
+      "escola": "ESCOLA MUNICIPAL TOME DE SOUZA",
+      "municipio": "Teofilândia",
+      "endereco": "POVOADO SETOR, SN ZONA RURAL. 48770-000 Teofilândia - BA.",
+      "tecnico": "Zé Orlando ",
+      "status": "concluida"
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tescola\tmunicipio\tendereco\ttecnico\tstatus\n29436958\tESCOLA DE EDUCACAO INFANTIL ANTOZILDO TORRES MATOS\tAraci\tRUA VENCESLAU QUINTINO, S/N GUARANI. 48760-000 Araci - BA.\tSem técnico\tsem_os\n29393337\tCRECHE JOSE TURIBIO DOS SANTOS\tTucano\tPOVOADO CAJUEIRO, ZONA RURAL. 48790-000 Tucano - BA.\tSem técnico\tsem_os\n29123739\tESCOLA MUNICIPAL OLAVO BILAC\tTucano\tPOVOADO MANDACAIA, S/N PREDIO. ZONA RURAL. 48790-000 Tucano - BA.\tSem técnico\tsem_os\n29124840\tESCOLA MUNICIPAL SAO JOSE\tUauá\tFAZENDA LAGOA DA PEDRA, PREDIO. ZONA RURAL. 48950-000 Uauá - BA.\tSem técnico\tsem_os\n29401780\tCRECHE ESC TIBERIO GONCALVES\tUauá\tPOVOADO CALD DA SERRA, POVOADO. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29606616\tCRECHE MUNICIPAL VO JERONIMO\tUauá\tPOVOADO SAO PAULO, SN CASA. RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29401250\tESC MUN NOSSA SENHORA DO PERPETUO SOCORRO\tUauá\tPOVOADO CALDEIRAO DA SERRA, S/N PREDIO ESCOLAR. POVOADO. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29378672\tESC MUNICIPAL IZAURA EDVIRGENS CARDOSO\tUauá\tPOVOADO SAO PAULO, SN CASA. RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29124999\tESCOLA MUNICIPAL DE PEDRA GRANDE\tUauá\tFAZENDA PEDRA GRANDE, S/N PREDIO ESCOLAR. ZONA RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29125138\tESCOLA MUNICIPAL MIGUEL AVELINO\tUauá\tFAZ CURUNDUNDUM, CASA. RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29422035\tESCOLA MUNICIPAL NOSSA SENHORA DA CONCEICAO\tUauá\tFAZENDA SITIO DOS LOIOLAS, SN CASA. ZONA RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29363535\tESCOLA MUNICIPAL RECANTO DA CRIANCA\tUauá\tAV JOAO BORGES DE SA, CASA. CENTRO. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29124832\tESCOLA MUNICIPAL SAO JOSE\tUauá\tCALDEIRAO DOS LALAUS, SN PREDIO. ZONA RURAL. 48950-000 Uauá - BA.\t Luizinho \tconcluida\n29076862\tESC MUL DE ACUDE\tPonto Novo\tFAZENDA ACUDE, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29076900\tESC MUL DE BARREIRA\tPonto Novo\tFAZENDA BARREIRA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077028\tESC MUL DE VARZEA DA MOLA\tPonto Novo\tFAZENDA VARZEA DA MOLA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077044\tESC MUL DE VARZEA DA PEDRA - CAPIM\tPonto Novo\tRURAL, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077249\tESCOLA MUL DE ALAGADICO DAS PANELAS\tPonto Novo\tFAZENDA ALAGADICO DAS PANELAS, ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077265\tESCOLA MUL DE FORTUNA\tPonto Novo\tFAZENDA FORTUNA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077303\tESCOLA MUL DE MARRECAS\tPonto Novo\tFAZENDA MARRECAS, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077354\tESCOLA MUL DE VARGINHA\tPonto Novo\tFAZENDA CAICARA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077443\tESCOLA MUNICIPAL DE CAICARA\tPonto Novo\tPOVOADO DE CAICARA, S/N ZONA RURAL. 44755-000 Ponto Novo - BA.\tAlex\tconcluida\n29077575\tEMEF ANTONIO LUCIO DE SANTANA\tQuixabeira\tCOMUNIDADE QUILOMBOLA DE ALTO DO CAPIM, COMUNIDADE. 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29077958\tEMEF CORINTO SANTOS\tQuixabeira\tPOVOADO RAMAL, 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29077745\tEMEF JOAO OLIVEIRA DOS SANTOS\tQuixabeira\tPOVOADO DE COVA DO ANJO, 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29077842\tEMEF MANOEL VILARONGA RIOS\tQuixabeira\tPOVOADO CAMPO VERDE, 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29077877\tEMEF POLICARPIO MANOEL ANCELMO\tQuixabeira\tFAZENDA VARZEA DANTAS, 44713-000 Quixabeira - BA.\tJosé Felix \tconcluida\n29449880\tCRECHE NOSSA SENHORA DE FATIMA\tEuclides da Cunha\tALDEIA MASSACARA, CASA. RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29117801\tESCOLA MUNICIPAL ANTONIO BALBINO\tEuclides da Cunha\tPOVOADO QUEIMADAS, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29117771\tESCOLA MUNICIPAL ANTONIO BATISTA DE CARVALHO\tEuclides da Cunha\tPOVOADO DE LAGOA DO COSTA, SN PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29117917\tESCOLA MUNICIPAL ANTONIO PEDRO DA COSTA\tEuclides da Cunha\tPOVOADO ROCA DE CIMA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tnao_instalada\n29117372\tESCOLA MUNICIPAL JOSE BEZERRA NETO\tEuclides da Cunha\tPOVOADO CAMPO GRANDE, PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29117577\tESCOLA MUNICIPAL JOSE DE ANCHIETA\tEuclides da Cunha\tPOVOADO DE MURITI, RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tem_andamento\n29118026\tESCOLA MUNICIPAL MAJOR ANTONINO\tEuclides da Cunha\tPOVOADO MARIA PRETA, S/N PREDIO ESCOLAR. ZONA RURA. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29118760\tESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS\tEuclides da Cunha\tPOVOADO DE RUILANDIA, S/N ESCOLA. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29118808\tESCOLA MUNICIPAL SAO GABRIEL\tEuclides da Cunha\tPOVOADO JUNCO, PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29393833\tESCOLA MUNICIPAL SAO JOAQUIM\tEuclides da Cunha\tPOVOADO VILA CANAA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29118620\tESCOLA MUNICIPAL SENHOR DOS PASSOS\tEuclides da Cunha\tPOVOADO DE LAGOA FECHADA, S/N PREDIO ESCOLAR. ZONA RURAL. 48500-000 Euclides da Cunha - BA.\tJulielson \tconcluida\n29153298\tCENTRO EDUCACIONAL DE BAIXA GRANDE\tInhambupe\tRUA MANOEL RAMOS MACHADO, SN BAIXA GRANDE. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29483506\tCRECHE E PRE ESCOLA MUNICIPAL PROFESSORA FLORENCIA MOURA ROCHA\tInhambupe\tAVENIDA MANOEL RAMOS MACHADO, SN BAIXA GRANDE. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153352\tESCOLA MUNICIPAL CANDIDO NERY\tInhambupe\tFAZ FLECHAS, PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153336\tESCOLA MUNICIPAL DR BATISTA XAVIER RIBEIRO\tInhambupe\tCAMAMU, CAMAMU. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153409\tESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA\tInhambupe\tPOVOADO CAI DURO, ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153468\tESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS\tInhambupe\tPOVOADO DA LAGOA COMPRIDA, S/N CENTRO. POV LAGOA COMPRIDA. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153786\tESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA\tInhambupe\tLIMOEIRO, LIMOEIRO. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153620\tESCOLA MUNICIPAL MARIA SOLEDADE CALDAS\tInhambupe\tPOVOADO PAU FERRO, SN CASA. CENTRO. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153654\tESCOLA MUNICIPAL NAIR MOREIRA DA SILVA\tInhambupe\tFAZ SAGUIM, 0 PREDIO. ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153662\tESCOLA MUNICIPAL PEDRO ARISTIDES DE MELO\tInhambupe\tPOVOADO CAMPO GRANDE, ZONA RURAL. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29153816\tESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA\tInhambupe\tPOVOADO DE GAMELEIRA, PREDIO. 48490-000 Inhambupe - BA.\tMatheus\tconcluida\n29124433\tESCOLA MUNICIPAL MARIA AYDIL BORGES MARTINS PRADO\tTucano\tBR 116 -ENTROCAMENTO, ENTROCAMENTO. 48790-000 Tucano - BA.\tRicardo \tconcluida\n29123631\tESCOLA MUNICIPAL MARIO MONTINO\tTucano\tDISTRITO DE JORRINHO, SN ZONA RURAL. 48790-000 Tucano - BA.\tRicardo \tconcluida\n29399343\tESCOLA MUNICIPAL PROFESSORA RACKEL GONSALVES DOS SANTOS\tTucano\tPRACA OSWALDO ASSUMPCAO, 171 PREDIO. ZONA URBANA. 48790-000 Tucano - BA.\tRicardo \tconcluida\n29482496\tCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE\tCrisópolis\tRUA 03 DE MAIO, 312 CENTRO. 48480-000 Crisópolis - BA.\tRoberto \tem_andamento\n29152941\tESC MUL LOURENCO JOSE DOS SANTOS\tCrisópolis\tFAZENDA COVAO, SN PREDIO ESCOLAR. FAZENDA COVAO. 48480-000 Crisópolis - BA.\tRoberto \tconcluida\n29153140\tESCOLA MUL CLODOALDO NARCISO REIS\tCrisópolis\tFAZENDA SAPE, PREDIO ESCOLAR. ZONA RURAL. 48480-000 Crisópolis - BA.\tRoberto \tconcluida\n29420652\tCRECHE BONS MOMENTOS\tQuijingue\tPOVOADO MACETE, SN CASA. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29420075\tCRECHE CASA FELIZ\tQuijingue\tPOVOADO TATU, SN PREDIO ESCOLAR. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29420458\tCRECHE CRESCER JUNTOS\tQuijingue\tPOVOADO LAGOA DA BARRA, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29420083\tCRECHE GRANDE LUTA\tQuijingue\tPOVOADO SITIO, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29438136\tCRECHE PEQUENO PRINCIPE\tQuijingue\tPOVOADO LAGOA DO JUNCO, SN CASA. ZONARURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122554\tESCOLA MANOEL FIDELIS DA SILVA\tQuijingue\tRUA BEZERRA NETO, 262 PREDIO ESCOLAR. CENTRO. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122562\tESCOLA MUN ANDRE FERREIRA DE ANDRADE\tQuijingue\tPOVOADO POCO DANTAS, S/N PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122600\tESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS\tQuijingue\tFAZENDA LAGOINHA DOS CAGADOS, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122678\tESCOLA MUN DA FAZENDA JUREMA\tQuijingue\tFAZENDA, 00 PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29123062\tESCOLA MUNICIPAL DA FAZ TATU\tQuijingue\tPOVOADO TATU, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122821\tESCOLA MUNICIPAL DA FAZENDA CASABU\tQuijingue\tPOVOADO CASABU, ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122830\tESCOLA MUNICIPAL DA FAZENDA CRU\tQuijingue\tPOVOADO CRU, S/N PREDIO ESCOLAR. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29122775\tESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO\tQuijingue\tFAZENDA SERROTE DO MEIO, SN PREDIO. ZONA RURAL. 48830-000 Quijingue - BA.\tRoberto \tconcluida\n29118930\tESC DAVID FERRERA DA SILVA\tMonte Santo\tFAZENDA PAU DARCO, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29119340\tESC NOSSA SRA DO DESTERRO\tMonte Santo\tPOVOADO DESTERRO DO ALTO ALEGRE, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29119600\tESC SAO JORGE\tMonte Santo\tPOVOADO FOVEIRO, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29118913\tESCOLA CAMINHO SUAVE\tMonte Santo\tTOCAS, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29120489\tESCOLA EDUCANDARIO HORIZONTE NOVO\tMonte Santo\tRUA DO CAMPO, SN PREDIO. POVOADO HORIZONTE NOVO. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29120535\tESCOLA LUIZ JOSE DANTAS\tMonte Santo\tPOVOADO LAGOA DO SACO, S/N CASA. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29464838\tESCOLA MODELO ISABEL AZEVEDO PINTO\tMonte Santo\tPOVOADO DE ALTO ALEGRE, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29120500\tESCOLA MUNICIPAL JOSE DE SOUZA\tMonte Santo\tFAZENDA PEDRA DO DOREA, SN PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29476640\tESCOLA MUNICIPAL VEREADOR CELSO EVANGELISTA DE SOUZA\tMonte Santo\tPOVOADO LAGOA DO SACO, S/N PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29120640\tESCOLA SAO JOAO DOS CAMPOS\tMonte Santo\tPOVOADO DE ITAPIURU, SN PREDIO. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29381657\tESCOLA SENHOR DO BONFIM\tMonte Santo\tPOVOADO LAGE GRANDE, S/N PREDIO ESCOLAR. ZONA RURAL. 48800-000 Monte Santo - BA.\tRodrigo Mota\tconcluida\n29423678\tCOLEGIO MUNICIPAL JOSE ARAUJO DE SOUZA\tJeremoabo\tPOVOADO AGUA BRANCA, ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29112923\tESC MUL DEPUTADO MANOEL NOVAES\tJeremoabo\tPOVOADO CANABRAVINHA DOS CANDIS, SN PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29112982\tESC MUL GUILHERME JOSE DE SANTANA\tJeremoabo\tPOVOADO VIRACAO, ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29112990\tESC MUL IRMA DULCE\tJeremoabo\tPOVOADO SERRA DO NOEL, ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113091\tESC MUL MANOEL DANTAS DE CARVALHO\tJeremoabo\tPOVOADO BRANCOS, SN PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113423\tESCOLA LUZIA EULINA SA\tJeremoabo\tPOVOADO BREJO GRANDE, ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29337429\tESCOLA MUNICIPAL DE BAIXA DOS QUELES\tJeremoabo\tPOVOADO BAIXA DOS QUELES, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29113784\tESCOLA MUNICIPAL JOSE PESSOA DE CARVALHO\tJeremoabo\tPOVOADO MURITI, PREDIO. ZONA RURAL. 48540-000 Jeremoabo - BA.\tVictor \tconcluida\n29134790\tESCOLA MUNICIPAL JARBAS PASSARINHO\tAraci\tPOVOADO LAGOA DA LAGE, SN ZONA RURAL. 48760-000 Araci - BA.\tZé Orlando \tconcluida\n29134803\tESCOLA MUNICIPAL JESUS AMADO\tAraci\tPOVOADO REJEITO, SN ZONA RURAL. 48760-000 Araci - BA.\tZé Orlando \tconcluida\n29135176\tESCOLA MUNICIPAL NOSSA SENHORA DE LOURDES\tAraci\tFAZENDA PEDRA FURADA, SN ZONA RURAL. 48760-000 Araci - BA.\tZé Orlando \tconcluida\n29135214\tESCOLA MUNICIPAL OSVALDO CRUZ DE ANDRADE\tAraci\tPOVOADO TANQUE CAVADO, SN ZONA RURAL. 48760-000 Araci - BA.\tZé Orlando \tconcluida\n29135516\tESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS\tAraci\tFAZENDA MALHADA DA AREIA, S/N ZONA RURAL. 48760-000 Araci - BA.\tZé Orlando \tconcluida\n29148790\tESCOLA MUNICIPAL TOME DE SOUZA\tTeofilândia\tPOVOADO SETOR, SN ZONA RURAL. 48770-000 Teofilândia - BA.\tZé Orlando \tconcluida\n",
+  "stderr": "",
+  "execution_time_ms": 365
+}
