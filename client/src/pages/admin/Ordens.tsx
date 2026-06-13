@@ -412,7 +412,8 @@ export default function AdminOrdens() {
       list = list.filter(o =>
         getEscolaNome(o.escolaId).toLowerCase().includes(q) ||
         getTecnicoNome(o.tecnicoId).toLowerCase().includes(q) ||
-        String(o.id).includes(q)
+        String(o.id).includes(q) ||
+        (getEscolaInep(o.escolaId) ?? "").toLowerCase().includes(q)
       );
     }
     return list;
