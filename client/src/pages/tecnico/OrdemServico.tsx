@@ -1291,16 +1291,16 @@ export default function TecnicoOS() {
                 setUploadingAll(false);
               }
             }}
-            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos}
+            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()}
             className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97] mb-3"
             style={{
-              background: (!qtdAp || !todasCategoriasFotos)
+              background: (!qtdAp || !todasCategoriasFotos || !observacao.trim())
                 ? "rgba(16,185,129,0.15)"
                 : isOnline
                 ? "linear-gradient(135deg, #065f46, #059669, #10b981)"
                 : "linear-gradient(135deg, #d97706, #f59e0b)",
-              boxShadow: (!qtdAp || !todasCategoriasFotos) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
-              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos) ? 0.55 : 1,
+              boxShadow: (!qtdAp || !todasCategoriasFotos || !observacao.trim()) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
+              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()) ? 0.55 : 1,
               cursor: (concluirMut.isPending || uploadingAll) ? "not-allowed" : "pointer",
               border: "1px solid rgba(16,185,129,0.25)",
             }}>
@@ -1613,7 +1613,7 @@ export default function TecnicoOS() {
                       setUploadingAll(false);
                     }
                   }}
-                  disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos}
+                  disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()}
                   aria-disabled={concluirMut.isPending || uploadingAll}
                   className="flex-1 py-4 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-95"
                   style={{

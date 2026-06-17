@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  os.id as os_id,\n  e.inep,\n  e.nome as escola,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtd_aps,\n  os.observacao,\n  os.data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON os.escola_inep = e.inep\nLEFT JOIN tecnicos t ON os.tecnico_id = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY t.nome, os.data_conclusao\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  os.id as os_id,\n  e.inep,\n  e.nome as escola,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtd_aps,\n  os.observacao,\n  os.data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON os.escola_inep = e.inep\nLEFT JOIN tecnicos t ON os.tecnico_id = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY t.nome, os.data_conclusao\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'os.escola_inep' in 'on clause'"
+  ]
+}

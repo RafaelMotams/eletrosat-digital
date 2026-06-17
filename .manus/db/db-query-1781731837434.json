@@ -1,0 +1,1161 @@
+{
+  "query": "\nSELECT \n  os.id as os_id,\n  e.inep,\n  e.nome as escola,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtdApInstalado as qtd_aps,\n  os.observacao,\n  os.dataConclusao as data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON os.tecnicoId = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY t.nome, os.dataConclusao\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  os.id as os_id,\n  e.inep,\n  e.nome as escola,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtdApInstalado as qtd_aps,\n  os.observacao,\n  os.dataConclusao as data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON os.tecnicoId = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY t.nome, os.dataConclusao\n",
+  "rows": [
+    {
+      "os_id": "1320001",
+      "inep": "29606616",
+      "escola": "CRECHE MUNICIPAL VO JERONIMO",
+      "municipio": "Uauá",
+      "tecnico": " Luizinho ",
+      "qtd_aps": "1",
+      "observacao": "Falta teste de internet ",
+      "data_conclusao": "2026-06-02 18:47:17"
+    },
+    {
+      "os_id": "1890001",
+      "inep": "29077044",
+      "escola": "ESC MUL DE VARZEA DA PEDRA - CAPIM",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "4",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-29 13:16:44"
+    },
+    {
+      "os_id": "2040001",
+      "inep": "29076900",
+      "escola": "ESC MUL DE BARREIRA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-29 15:04:33"
+    },
+    {
+      "os_id": "2310001",
+      "inep": "29077443",
+      "escola": "ESCOLA MUNICIPAL DE CAICARA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-30 15:50:14"
+    },
+    {
+      "os_id": "2400001",
+      "inep": "29077354",
+      "escola": "ESCOLA MUL DE VARGINHA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-30 16:18:53"
+    },
+    {
+      "os_id": "2460001",
+      "inep": "29077265",
+      "escola": "ESCOLA MUL DE FORTUNA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-30 21:25:46"
+    },
+    {
+      "os_id": "2460002",
+      "inep": "29077028",
+      "escola": "ESC MUL DE VARZEA DA MOLA",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-30 21:27:37"
+    },
+    {
+      "os_id": "2460003",
+      "inep": "29076862",
+      "escola": "ESC MUL DE ACUDE",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-05-30 23:05:55"
+    },
+    {
+      "os_id": "2610001",
+      "inep": "29077303",
+      "escola": "ESCOLA MUL DE MARRECAS",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-06-01 02:19:29"
+    },
+    {
+      "os_id": "2610002",
+      "inep": "29077249",
+      "escola": "ESCOLA MUL DE ALAGADICO DAS PANELAS",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Aguardando só a RE ",
+      "data_conclusao": "2026-06-01 02:21:03"
+    },
+    {
+      "os_id": "2820001",
+      "inep": "29475759",
+      "escola": "CENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE",
+      "municipio": "Ponto Novo",
+      "tecnico": "Alex",
+      "qtd_aps": "6",
+      "observacao": "RE ok ",
+      "data_conclusao": "2026-06-01 17:10:54"
+    },
+    {
+      "os_id": "3390001",
+      "inep": "29055105",
+      "escola": "COLEGIO MUNICIPAL ANTONIO JOAQUIM DE MIRANDA",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "7",
+      "observacao": "RDO OK ",
+      "data_conclusao": "2026-06-02 19:08:32"
+    },
+    {
+      "os_id": "3390002",
+      "inep": "29055032",
+      "escola": "COLEGIO MUNICIPAL SERRA DE CARNAIBA",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "12",
+      "observacao": "Escola com RE ok",
+      "data_conclusao": "2026-06-03 22:56:26"
+    },
+    {
+      "os_id": "4230002",
+      "inep": "29336252",
+      "escola": "COLEGIO MUNICIPAL FAUSTINO DIAS LIMA",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "7",
+      "observacao": "Acesso ok ",
+      "data_conclusao": "2026-06-05 09:38:23"
+    },
+    {
+      "os_id": "4440001",
+      "inep": "29055237",
+      "escola": "ESCOLA MUNICIPAL AURELIO BRAZ DA SILVA",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "RDO OK ",
+      "data_conclusao": "2026-06-06 12:20:40"
+    },
+    {
+      "os_id": "4440002",
+      "inep": "29396271",
+      "escola": "CRECHE CARINHO DE LAGINHA",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "RDO OK",
+      "data_conclusao": "2026-06-06 12:22:41"
+    },
+    {
+      "os_id": "4230003",
+      "inep": "29859840",
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO PSICOPEDAGOGICO DE PINDOBACU",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "3",
+      "observacao": "RDO OK ",
+      "data_conclusao": "2026-06-06 12:24:26"
+    },
+    {
+      "os_id": "5010001",
+      "inep": "29396263",
+      "escola": "CRECHE CARINHO BETH SHALOM",
+      "municipio": "Pindobaçu",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "RDO OK ",
+      "data_conclusao": "2026-06-09 12:52:04"
+    },
+    {
+      "os_id": "5940001",
+      "inep": "29050570",
+      "escola": "ESCOLA PROFESSORA MARIA DO CARMO DE ARAUJO MAIA",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtd_aps": "8",
+      "observacao": "Escola com  RE ok",
+      "data_conclusao": "2026-06-12 01:34:49"
+    },
+    {
+      "os_id": "6120001",
+      "inep": "29048362",
+      "escola": "ESCOLA MUNCIPAL ROMULO GALVAO",
+      "municipio": "Antônio Gonçalves",
+      "tecnico": "Alex",
+      "qtd_aps": "2",
+      "observacao": "RDO  ok",
+      "data_conclusao": "2026-06-13 09:30:50"
+    },
+    {
+      "os_id": "6390001",
+      "inep": "29050391",
+      "escola": "ESCOLA SANTA ISABEL",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Faltando só a RE ",
+      "data_conclusao": "2026-06-14 22:13:13"
+    },
+    {
+      "os_id": "6660001",
+      "inep": "29049415",
+      "escola": "ESCOLA JOSE GABRIEL TORRES",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtd_aps": "1",
+      "observacao": "Falta RE e configurar os equipamentos escola não tem nenhum tipo de link ",
+      "data_conclusao": "2026-06-16 01:13:21"
+    },
+    {
+      "os_id": "6660002",
+      "inep": "29431549",
+      "escola": "COLEGIO MUNICIPAL JOAO MALTA CORREIA",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtd_aps": "5",
+      "observacao": "Escola ok",
+      "data_conclusao": "2026-06-16 01:14:58"
+    },
+    {
+      "os_id": "6870001",
+      "inep": "29397103",
+      "escola": "COLEGIO MUNICIPAL CINCO DE JULHO",
+      "municipio": "Antônio Gonçalves",
+      "tecnico": "Alex",
+      "qtd_aps": "15",
+      "observacao": "Escola ok",
+      "data_conclusao": "2026-06-17 02:14:35"
+    },
+    {
+      "os_id": "6120002",
+      "inep": "29048591",
+      "escola": "COLEGIO MUNICIPAL JOSE TELESPHORO FERREIRA DE ARAUJO",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "qtd_aps": "11",
+      "observacao": "RDO OK ",
+      "data_conclusao": "2026-06-17 17:24:46"
+    },
+    {
+      "os_id": "5100001",
+      "inep": "29151503",
+      "escola": "ESCOLA MUNICIPAL ALAIDE SANTANA SANTOS",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "2",
+      "observacao": "Ouve um upgrade para dois Ap",
+      "data_conclusao": "2026-06-09 15:08:01"
+    },
+    {
+      "os_id": "5190001",
+      "inep": "29151481",
+      "escola": "ESCOLA MUNICIPAL SANTA RITA",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "1",
+      "observacao": "Tudo ok.",
+      "data_conclusao": "2026-06-09 19:22:16"
+    },
+    {
+      "os_id": "5730001",
+      "inep": "29150655",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES SANTOS",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "5",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-11 13:39:42"
+    },
+    {
+      "os_id": "5820001",
+      "inep": "29150469",
+      "escola": "ESCOLA MUNICIPAL GENERAL OSORIO",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "2",
+      "observacao": "Tudo ok ",
+      "data_conclusao": "2026-06-11 19:37:09"
+    },
+    {
+      "os_id": "5910001",
+      "inep": "29151406",
+      "escola": "ESCOLA MUNICIPAL LIODORIO BORGES DOS SANTOS",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "1",
+      "observacao": "Tudo ok ",
+      "data_conclusao": "2026-06-12 00:21:11"
+    },
+    {
+      "os_id": "6030001",
+      "inep": "29151244",
+      "escola": "ESCOLA MUNICIPAL TIRADENTES",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "1",
+      "observacao": "Falta colocar a internet nesse escola ",
+      "data_conclusao": "2026-06-12 14:09:10"
+    },
+    {
+      "os_id": "6600001",
+      "inep": "29151511",
+      "escola": "ESCOLA MUNICIPAL AMANDO ALVES DE AZEVEDO",
+      "municipio": "Alagoinhas",
+      "tecnico": "Alexandre ",
+      "qtd_aps": "2",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-15 21:41:39"
+    },
+    {
+      "os_id": "6060001",
+      "inep": "29132827",
+      "escola": "PAULO VI",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "5",
+      "observacao": "Instalação concluída sem link de internet ",
+      "data_conclusao": "2026-06-12 18:51:58"
+    },
+    {
+      "os_id": "6180001",
+      "inep": "29132819",
+      "escola": "ESC MUL NOVA INFANCIA",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "1",
+      "observacao": "Instalacao concluída ",
+      "data_conclusao": "2026-06-13 15:13:37"
+    },
+    {
+      "os_id": "6210001",
+      "inep": "29407770",
+      "escola": "ESCOLA MUNICIPAL LUIZ VIANA",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "1",
+      "observacao": "Instalacao concluída ",
+      "data_conclusao": "2026-06-13 20:42:16"
+    },
+    {
+      "os_id": "6930001",
+      "inep": "29757622",
+      "escola": "CRECHE CONRADO JOSE DE AMORIM",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "1",
+      "observacao": "Infraestrutura  pronta, porém não tem link",
+      "data_conclusao": "2026-06-17 15:15:34"
+    },
+    {
+      "os_id": "6960002",
+      "inep": "29132967",
+      "escola": "ESCOLA MUN SAO FRANCISCO DE ASSIS",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "2",
+      "observacao": "Instalacao concluída ",
+      "data_conclusao": "2026-06-17 15:20:01"
+    },
+    {
+      "os_id": "6960003",
+      "inep": "29429900",
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA II",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "1",
+      "observacao": "Instalacao concluída ",
+      "data_conclusao": "2026-06-17 15:25:39"
+    },
+    {
+      "os_id": "7020002",
+      "inep": "29330300",
+      "escola": "ESCOLA MUNICIPAL SAO JOSE IV",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "1",
+      "observacao": "Infraestrutura pronta, porem sem link instalado ",
+      "data_conclusao": "2026-06-17 16:14:12"
+    },
+    {
+      "os_id": "5280001",
+      "inep": "29132754",
+      "escola": "ESC MUL JOAO CARLOS DE CERQUEIRA",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "qtd_aps": "6",
+      "observacao": "Infraestrutura  pronta, porém não foi ativado simet porque o link está sem acesso a net",
+      "data_conclusao": "2026-06-17 16:16:01"
+    },
+    {
+      "os_id": "3810001",
+      "inep": "29077877",
+      "escola": "EMEF POLICARPIO MANOEL ANCELMO",
+      "municipio": "Quixabeira",
+      "tecnico": "José Felix ",
+      "qtd_aps": "1",
+      "observacao": "Sem internet instalada",
+      "data_conclusao": "2026-06-03 18:52:22"
+    },
+    {
+      "os_id": "2070001",
+      "inep": "29393833",
+      "escola": "ESCOLA MUNICIPAL SAO JOAQUIM",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "1",
+      "observacao": "Falta rede externa",
+      "data_conclusao": "2026-05-29 17:28:31"
+    },
+    {
+      "os_id": "3060001",
+      "inep": "29118620",
+      "escola": "ESCOLA MUNICIPAL SENHOR DOS PASSOS",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "1",
+      "observacao": "Escola não possui  rede externa",
+      "data_conclusao": "2026-06-01 23:44:47"
+    },
+    {
+      "os_id": "3060002",
+      "inep": "29117372",
+      "escola": "ESCOLA MUNICIPAL JOSE BEZERRA NETO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "1",
+      "observacao": "Não tem Rede Externa ",
+      "data_conclusao": "2026-06-01 23:45:47"
+    },
+    {
+      "os_id": "3870001",
+      "inep": "29118026",
+      "escola": "ESCOLA MUNICIPAL MAJOR ANTONINO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "2",
+      "observacao": "Finalizado, Falta Rede  Externa",
+      "data_conclusao": "2026-06-03 21:27:41"
+    },
+    {
+      "os_id": "4290001",
+      "inep": "29118760",
+      "escola": "ESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "4",
+      "observacao": "Finalizado, configurado, falta rede externa",
+      "data_conclusao": "2026-06-05 22:25:07"
+    },
+    {
+      "os_id": "4860001",
+      "inep": "29117801",
+      "escola": "ESCOLA MUNICIPAL ANTONIO BALBINO",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "3",
+      "observacao": "Concluída, Falta Rede Externa ",
+      "data_conclusao": "2026-06-08 20:49:41"
+    },
+    {
+      "os_id": "4980001",
+      "inep": "29118808",
+      "escola": "ESCOLA MUNICIPAL SAO GABRIEL",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "2",
+      "observacao": "Escola finalizada, Falta Rede Externa!",
+      "data_conclusao": "2026-06-09 20:01:18"
+    },
+    {
+      "os_id": "5430001",
+      "inep": "29117577",
+      "escola": "ESCOLA MUNICIPAL JOSE DE ANCHIETA",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "3",
+      "observacao": "Instalação Concluída, Falta Rede Externa!",
+      "data_conclusao": "2026-06-11 17:10:28"
+    },
+    {
+      "os_id": "6690001",
+      "inep": "29117615",
+      "escola": "CENTRO EDUCACIONAL JUVINIANO GOMES DOS SANTOS",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "qtd_aps": "6",
+      "observacao": "Instalação Concluída ",
+      "data_conclusao": "2026-06-17 12:52:27"
+    },
+    {
+      "os_id": "3270001",
+      "inep": "29136180",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DAS GRACAS",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-02 16:13:22"
+    },
+    {
+      "os_id": "3360001",
+      "inep": "29136199",
+      "escola": "ESCOLA MUNICIPAL OSVALDO CRUZ",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-02 20:21:29"
+    },
+    {
+      "os_id": "3420001",
+      "inep": "29136156",
+      "escola": "ESCOLA MUNICIPAL CASTRO ALVES",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-02 23:53:49"
+    },
+    {
+      "os_id": "3660001",
+      "inep": "29379890",
+      "escola": "ESCOLA MUNICIPAL MARIA CARDOSO PEDREIRA",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-03 13:24:16"
+    },
+    {
+      "os_id": "3780001",
+      "inep": "29136474",
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA DA VITORIA",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-03 16:07:01"
+    },
+    {
+      "os_id": "3840001",
+      "inep": "29136202",
+      "escola": "ESCOLA MUNICIPAL RUI BARBOSA",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet falta fazer o RDO ",
+      "data_conclusao": "2026-06-03 22:07:18"
+    },
+    {
+      "os_id": "4740001",
+      "inep": "29136113",
+      "escola": "ESCOLA MUNICIPAL MANOEL PEDREIRA GOMES",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem fazer RDO provedor  instalou em local errado têm que fazer a mudança de lugar para onde ficou o rack ",
+      "data_conclusao": "2026-06-08 16:05:42"
+    },
+    {
+      "os_id": "4830001",
+      "inep": "29136164",
+      "escola": "ESCOLA MUNICIPAL RUBEM BRAGA",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "2",
+      "observacao": "Finalizando completo com RDO feito ",
+      "data_conclusao": "2026-06-09 13:31:02"
+    },
+    {
+      "os_id": "5040001",
+      "inep": "29136083",
+      "escola": "ESCOLA MUNICIPAL ANA NERI",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "5",
+      "observacao": "Finalizando completo com RDO ",
+      "data_conclusao": "2026-06-10 14:51:00"
+    },
+    {
+      "os_id": "5430002",
+      "inep": "29136121",
+      "escola": "ESCOLA MUNICIPAL MANOEL PEREIRA CARDOSO",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "2",
+      "observacao": "Finalizando sem internet não tem internet instalado na escola ",
+      "data_conclusao": "2026-06-10 21:28:56"
+    },
+    {
+      "os_id": "5610002",
+      "inep": "29136334",
+      "escola": "ESCOLA MUNICIPAL SANTO ANTONIO",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet não tem internet instalado aqui na escola ",
+      "data_conclusao": "2026-06-11 13:44:40"
+    },
+    {
+      "os_id": "5790001",
+      "inep": "29136288",
+      "escola": "ESCOLA MUNICIPAL SANTA CECILIA",
+      "municipio": "Biritinga",
+      "tecnico": "Marcos ",
+      "qtd_aps": "2",
+      "observacao": "Finalizando sem internet não tem internet aqui na escola ",
+      "data_conclusao": "2026-06-11 18:10:32"
+    },
+    {
+      "os_id": "6540001",
+      "inep": "29149037",
+      "escola": "ESCOLA MUNICIPAL DOM LUCAS NEVES",
+      "municipio": "Valente",
+      "tecnico": "Marcos ",
+      "qtd_aps": "2",
+      "observacao": "Finalizando sem internet não tem internet instalado aqui na escola ",
+      "data_conclusao": "2026-06-15 20:27:24"
+    },
+    {
+      "os_id": "6540002",
+      "inep": "29149347",
+      "escola": "ESCOLA MUNICIPAL ALBINO CARLOS GUIMARAES",
+      "municipio": "Valente",
+      "tecnico": "Marcos ",
+      "qtd_aps": "1",
+      "observacao": "Finalizando sem internet não tem internet instalado aqui na escola ",
+      "data_conclusao": "2026-06-15 20:28:15"
+    },
+    {
+      "os_id": "2790001",
+      "inep": "29153786",
+      "escola": "ESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "1",
+      "observacao": "INSTALAÇÃO CONCLUÍDA ",
+      "data_conclusao": "2026-06-01 16:18:55"
+    },
+    {
+      "os_id": "3240001",
+      "inep": "29153794",
+      "escola": "ESCOLA MUNICIPAL MIGUEL MENDES",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "1",
+      "observacao": "Problemas com o link de intert off ",
+      "data_conclusao": "2026-06-02 13:28:25"
+    },
+    {
+      "os_id": "4170001",
+      "inep": "29153409",
+      "escola": "ESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "O link de internet estava com a velocidade não compatível com a contratada ",
+      "data_conclusao": "2026-06-05 00:32:54"
+    },
+    {
+      "os_id": "5310001",
+      "inep": "29153816",
+      "escola": "ESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "Prescisou fazer UPGRADE",
+      "data_conclusao": "2026-06-09 23:38:22"
+    },
+    {
+      "os_id": "5310003",
+      "inep": "29153468",
+      "escola": "ESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "Precisou fazer UPGRADE ",
+      "data_conclusao": "2026-06-09 23:40:33"
+    },
+    {
+      "os_id": "5490001",
+      "inep": "29153239",
+      "escola": "ESCOLA MUNICIPAL HELENA BARBOSA DE FIGUEREDO",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "2 UPGRADE",
+      "data_conclusao": "2026-06-10 21:43:56"
+    },
+    {
+      "os_id": "5490002",
+      "inep": "29373301",
+      "escola": "ESCOLA MUNICIPAL FRANCISCO DE PAULA SANTOS",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "Precisou fazer UPGRADE",
+      "data_conclusao": "2026-06-10 21:44:43"
+    },
+    {
+      "os_id": "6270001",
+      "inep": "29153441",
+      "escola": "ESCOLA MUNICIPAL LOURIVAL RIBEIRO DA COSTA",
+      "municipio": "Inhambupe",
+      "tecnico": "Matheus",
+      "qtd_aps": "2",
+      "observacao": "Escola sem link de internet ",
+      "data_conclusao": "2026-06-14 00:25:12"
+    },
+    {
+      "os_id": "6300002",
+      "inep": "29123593",
+      "escola": "ESCOLA MUNICIPAL MADRE PAULINA",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "qtd_aps": "8",
+      "observacao": "Aumentou pra 8 aps devido nessecidade",
+      "data_conclusao": "2026-06-14 10:25:41"
+    },
+    {
+      "os_id": "1350001",
+      "inep": "29122821",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CASABU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluido ",
+      "data_conclusao": "2026-05-27 16:42:38"
+    },
+    {
+      "os_id": "1560001",
+      "inep": "29122830",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA CRU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-27 21:55:02"
+    },
+    {
+      "os_id": "1620001",
+      "inep": "29420652",
+      "escola": "CRECHE BONS MOMENTOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-28 02:21:28"
+    },
+    {
+      "os_id": "1920001",
+      "inep": "29123062",
+      "escola": "ESCOLA MUNICIPAL DA FAZ TATU",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "6",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-29 12:14:23"
+    },
+    {
+      "os_id": "1980001",
+      "inep": "29420075",
+      "escola": "CRECHE CASA FELIZ",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-29 14:01:24"
+    },
+    {
+      "os_id": "2160001",
+      "inep": "29438136",
+      "escola": "CRECHE PEQUENO PRINCIPE",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-29 19:45:12"
+    },
+    {
+      "os_id": "2130001",
+      "inep": "29122600",
+      "escola": "ESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-29 22:59:21"
+    },
+    {
+      "os_id": "2250001",
+      "inep": "29122775",
+      "escola": "ESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluido ",
+      "data_conclusao": "2026-05-30 11:52:27"
+    },
+    {
+      "os_id": "2340001",
+      "inep": "29122678",
+      "escola": "ESCOLA MUN DA FAZENDA JUREMA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "2",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-30 17:36:03"
+    },
+    {
+      "os_id": "2370001",
+      "inep": "29122562",
+      "escola": "ESCOLA MUN ANDRE FERREIRA DE ANDRADE",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-05-30 20:53:00"
+    },
+    {
+      "os_id": "2670001",
+      "inep": "29420458",
+      "escola": "CRECHE CRESCER JUNTOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-01 14:44:53"
+    },
+    {
+      "os_id": "2670002",
+      "inep": "29420083",
+      "escola": "CRECHE GRANDE LUTA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Mudar o fio da fibra pra diretoria,tava na sala de aluno",
+      "data_conclusao": "2026-06-01 21:38:03"
+    },
+    {
+      "os_id": "3450002",
+      "inep": "29122961",
+      "escola": "ESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "5",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-03 13:11:43"
+    },
+    {
+      "os_id": "2580001",
+      "inep": "29122554",
+      "escola": "ESCOLA MANOEL FIDELIS DA SILVA",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "9",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-03 21:08:03"
+    },
+    {
+      "os_id": "2940001",
+      "inep": "29122740",
+      "escola": "ESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS",
+      "municipio": "Quijingue",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-03 22:43:52"
+    },
+    {
+      "os_id": "4770001",
+      "inep": "29152844",
+      "escola": "ESC LADISLAU PEREIRA DE SOUZA",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "2",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-09 20:01:20"
+    },
+    {
+      "os_id": "5160002",
+      "inep": "29153140",
+      "escola": "ESCOLA MUL CLODOALDO NARCISO REIS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "2",
+      "observacao": "Falta rede externa, e fatar habilitar simit n tinha internet na escola ",
+      "data_conclusao": "2026-06-10 01:03:48"
+    },
+    {
+      "os_id": "4800001",
+      "inep": "29152941",
+      "escola": "ESC MUL LOURENCO JOSE DOS SANTOS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "3",
+      "observacao": "Não tinha rede externa, mais simit habilitado",
+      "data_conclusao": "2026-06-10 19:02:40"
+    },
+    {
+      "os_id": "5160001",
+      "inep": "29153042",
+      "escola": "ESC NAPOLEAO CALDAS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Não tinha rede externa, simit habilitado ",
+      "data_conclusao": "2026-06-10 20:15:42"
+    },
+    {
+      "os_id": "5460001",
+      "inep": "29153050",
+      "escola": "ESCOLA MUNICIPAL OLAVO DANTAS COELHO",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "2",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-11 01:44:38"
+    },
+    {
+      "os_id": "5670001",
+      "inep": "29153115",
+      "escola": "ESC MUL BOM JESUS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Não tem rede externa, simit habilitado ",
+      "data_conclusao": "2026-06-11 15:03:14"
+    },
+    {
+      "os_id": "5700001",
+      "inep": "29152887",
+      "escola": "ESCOLA MUNICIPAL DR CLERISTON ANDRADE",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "3",
+      "observacao": "Não tinha rede externa,simit habilitado ",
+      "data_conclusao": "2026-06-11 23:40:58"
+    },
+    {
+      "os_id": "5880001",
+      "inep": "29152950",
+      "escola": "ESC MUL MAJOR RODOLFO DANTAS COELHO",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "4",
+      "observacao": "Concluído, faltar só mudar a rede externa pra o rack",
+      "data_conclusao": "2026-06-12 18:54:23"
+    },
+    {
+      "os_id": "5880002",
+      "inep": "29363870",
+      "escola": "ESCOLA DOZE DE MARCO",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "3",
+      "observacao": "Concluído l,simit habilitado não tinha rede externa ",
+      "data_conclusao": "2026-06-13 21:18:07"
+    },
+    {
+      "os_id": "6330001",
+      "inep": "29392853",
+      "escola": "CENTRO MUNICIPAL DE EDUCACAO INFANTIL DR GERALDO VASCONCELOS DE SEIXAS PEREIRA",
+      "municipio": "Acajutiba",
+      "tecnico": "Roberto ",
+      "qtd_aps": "3",
+      "observacao": "Concluído,simit habilitado, mudar rede externa para o rack ",
+      "data_conclusao": "2026-06-14 22:41:24"
+    },
+    {
+      "os_id": "6480001",
+      "inep": "29460271",
+      "escola": "CRECHE MUNICIPAL JOSE DOS REIS",
+      "municipio": "Acajutiba",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído,mudar rede externa pra o rack,e tá sem internet ",
+      "data_conclusao": "2026-06-15 17:06:36"
+    },
+    {
+      "os_id": "6480004",
+      "inep": "29467136",
+      "escola": "CRECHE MUNICIPAL PROFESSORA MATILDES LOURENCO DOS SANTOS",
+      "municipio": "Acajutiba",
+      "tecnico": "Roberto ",
+      "qtd_aps": "1",
+      "observacao": "Concluído, mudar só rede externa",
+      "data_conclusao": "2026-06-15 20:24:03"
+    },
+    {
+      "os_id": "4800002",
+      "inep": "29363802",
+      "escola": "ESCOLA MUNICIPAL TANIA MARIA ALVES DANTAS",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "7",
+      "observacao": "Concluído ",
+      "data_conclusao": "2026-06-16 15:30:58"
+    },
+    {
+      "os_id": "5880003",
+      "inep": "29152933",
+      "escola": "ESCOLA JOAO BATISTA DE ALMEIDA FILHO",
+      "municipio": "Crisópolis",
+      "tecnico": "Roberto ",
+      "qtd_aps": "6",
+      "observacao": "Concluído, mudar rede externa pra o rack ",
+      "data_conclusao": "2026-06-17 17:20:27"
+    },
+    {
+      "os_id": "2880002",
+      "inep": "29112982",
+      "escola": "ESC MUL GUILHERME JOSE DE SANTANA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "1",
+      "observacao": "Remanejamento do link ",
+      "data_conclusao": "2026-06-01 19:43:24"
+    },
+    {
+      "os_id": "3090001",
+      "inep": "29112990",
+      "escola": "ESC MUL IRMA DULCE",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "1",
+      "observacao": "Falta o link ",
+      "data_conclusao": "2026-06-02 06:33:07"
+    },
+    {
+      "os_id": "5370001",
+      "inep": "29337429",
+      "escola": "ESCOLA MUNICIPAL DE BAIXA DOS QUELES",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "2",
+      "observacao": "Sem rede externa ",
+      "data_conclusao": "2026-06-10 14:45:30"
+    },
+    {
+      "os_id": "5580001",
+      "inep": "29389917",
+      "escola": "ESCOLA MUNICIPAL PRAXEDES BALDOINO DE SANTANA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "1",
+      "observacao": "Remanejamento do link ",
+      "data_conclusao": "2026-06-11 01:20:15"
+    },
+    {
+      "os_id": "6720001",
+      "inep": "29113083",
+      "escola": "ESC MUL MANOEL CARVALHO SANTANA",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "4",
+      "observacao": "Precisa remanejar",
+      "data_conclusao": "2026-06-16 14:21:22"
+    },
+    {
+      "os_id": "6720002",
+      "inep": "29112710",
+      "escola": "ESCOLA MUNICIPAL DR HAILTON JOSE DE BRITO",
+      "municipio": "Jeremoabo",
+      "tecnico": "Victor ",
+      "qtd_aps": "4",
+      "observacao": "Tudo ok",
+      "data_conclusao": "2026-06-16 14:21:53"
+    },
+    {
+      "os_id": "2850001",
+      "inep": "29135516",
+      "escola": "ESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "2",
+      "observacao": "Sem internet contratada ",
+      "data_conclusao": "2026-06-01 19:06:26"
+    },
+    {
+      "os_id": "3300002",
+      "inep": "29134803",
+      "escola": "ESCOLA MUNICIPAL JESUS AMADO",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "2",
+      "observacao": "Sem internet contratada ",
+      "data_conclusao": "2026-06-02 15:22:38"
+    },
+    {
+      "os_id": "3600001",
+      "inep": "29134790",
+      "escola": "ESCOLA MUNICIPAL JARBAS PASSARINHO",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "2",
+      "observacao": "Sem fibra instada ",
+      "data_conclusao": "2026-06-03 00:01:54"
+    },
+    {
+      "os_id": "5400001",
+      "inep": "29148790",
+      "escola": "ESCOLA MUNICIPAL TOME DE SOUZA",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "6",
+      "observacao": "Concluido",
+      "data_conclusao": "2026-06-10 15:52:33"
+    },
+    {
+      "os_id": "5520001",
+      "inep": "29134536",
+      "escola": "ESCOLA MUNICIPAL COMUNITARIA DA FUBA",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "2",
+      "observacao": "Concluido",
+      "data_conclusao": "2026-06-11 00:23:07"
+    },
+    {
+      "os_id": "5970001",
+      "inep": "29420229",
+      "escola": "CRECHE PRE-ESCOLA CRIANCA FELIZ V",
+      "municipio": "Teofilândia",
+      "tecnico": "Zé Orlando ",
+      "qtd_aps": "1",
+      "observacao": "Velocidade do visitante não compatível ",
+      "data_conclusao": "2026-06-12 08:56:42"
+    }
+  ],
+  "messages": [
+    "6360001\t29151449\tESCOLA MUNICIPAL QUILOMBOLA MAE ERNESTINA\tAlagoinhas\tAlexandre \t3\tOuve um upgrade para 3 Ap ",
+    "Sem link e sem internet\t2026-06-14 21:04:55",
+    "3570001\t29449880\tCRECHE NOSSA SENHORA DE FATIMA\tEuclides da Cunha\tJulielson \t1\tEscola concluída, controladora e Simet configurado.",
+    "Não foi possível fazer  os testes de velocidade pois não tem rede externa.\t2026-06-02 23:33:23",
+    "3690001\t29393876\tESCOLA MUNICIPAL ROSA MISTICA\tEuclides da Cunha\tJulielson \t2\tConcluido, Falta Rede Externa ",
+    "\t2026-06-03 16:45:19",
+    "2760001\t29136318\tESCOLA MUNICIPAL SANTA MARGARIDA\tBiritinga\tMarcos \t1\tInstalação  completo  sem internet  na  escola ",
+    "Falta fazer o RDO  \t2026-06-01 23:03:45",
+    "3120001\t29432073\tESCOLA MUNICIPAL TEREZA SIMOES\tBiritinga\tMarcos \t1\tFinalizando sem internet ",
+    "Falta fazer o RDO \t2026-06-02 13:26:01"
+  ],
+  "stdout": "os_id\tinep\tescola\tmunicipio\ttecnico\tqtd_aps\tobservacao\tdata_conclusao\n1320001\t29606616\tCRECHE MUNICIPAL VO JERONIMO\tUauá\t Luizinho \t1\tFalta teste de internet \t2026-06-02 18:47:17\n1890001\t29077044\tESC MUL DE VARZEA DA PEDRA - CAPIM\tPonto Novo\tAlex\t4\tAguardando só a RE \t2026-05-29 13:16:44\n2040001\t29076900\tESC MUL DE BARREIRA\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-29 15:04:33\n2310001\t29077443\tESCOLA MUNICIPAL DE CAICARA\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-30 15:50:14\n2400001\t29077354\tESCOLA MUL DE VARGINHA\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-30 16:18:53\n2460001\t29077265\tESCOLA MUL DE FORTUNA\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-30 21:25:46\n2460002\t29077028\tESC MUL DE VARZEA DA MOLA\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-30 21:27:37\n2460003\t29076862\tESC MUL DE ACUDE\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-05-30 23:05:55\n2610001\t29077303\tESCOLA MUL DE MARRECAS\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-06-01 02:19:29\n2610002\t29077249\tESCOLA MUL DE ALAGADICO DAS PANELAS\tPonto Novo\tAlex\t1\tAguardando só a RE \t2026-06-01 02:21:03\n2820001\t29475759\tCENTRO MUNICIPAL DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO - CAEE\tPonto Novo\tAlex\t6\tRE ok \t2026-06-01 17:10:54\n3390001\t29055105\tCOLEGIO MUNICIPAL ANTONIO JOAQUIM DE MIRANDA\tPindobaçu\tAlex\t7\tRDO OK \t2026-06-02 19:08:32\n3390002\t29055032\tCOLEGIO MUNICIPAL SERRA DE CARNAIBA\tPindobaçu\tAlex\t12\tEscola com RE ok\t2026-06-03 22:56:26\n4230002\t29336252\tCOLEGIO MUNICIPAL FAUSTINO DIAS LIMA\tPindobaçu\tAlex\t7\tAcesso ok \t2026-06-05 09:38:23\n4440001\t29055237\tESCOLA MUNICIPAL AURELIO BRAZ DA SILVA\tPindobaçu\tAlex\t1\tRDO OK \t2026-06-06 12:20:40\n4440002\t29396271\tCRECHE CARINHO DE LAGINHA\tPindobaçu\tAlex\t1\tRDO OK\t2026-06-06 12:22:41\n4230003\t29859840\tCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO PSICOPEDAGOGICO DE PINDOBACU\tPindobaçu\tAlex\t3\tRDO OK \t2026-06-06 12:24:26\n5010001\t29396263\tCRECHE CARINHO BETH SHALOM\tPindobaçu\tAlex\t1\tRDO OK \t2026-06-09 12:52:04\n5940001\t29050570\tESCOLA PROFESSORA MARIA DO CARMO DE ARAUJO MAIA\tCampo Formoso\tAlex\t8\tEscola com  RE ok\t2026-06-12 01:34:49\n6120001\t29048362\tESCOLA MUNCIPAL ROMULO GALVAO\tAntônio Gonçalves\tAlex\t2\tRDO  ok\t2026-06-13 09:30:50\n6390001\t29050391\tESCOLA SANTA ISABEL\tCampo Formoso\tAlex\t1\tFaltando só a RE \t2026-06-14 22:13:13\n6660001\t29049415\tESCOLA JOSE GABRIEL TORRES\tCampo Formoso\tAlex\t1\tFalta RE e configurar os equipamentos escola não tem nenhum tipo de link \t2026-06-16 01:13:21\n6660002\t29431549\tCOLEGIO MUNICIPAL JOAO MALTA CORREIA\tCampo Formoso\tAlex\t5\tEscola ok\t2026-06-16 01:14:58\n6870001\t29397103\tCOLEGIO MUNICIPAL CINCO DE JULHO\tAntônio Gonçalves\tAlex\t15\tEscola ok\t2026-06-17 02:14:35\n6120002\t29048591\tCOLEGIO MUNICIPAL JOSE TELESPHORO FERREIRA DE ARAUJO\tCampo Formoso\tAlex\t11\tRDO OK \t2026-06-17 17:24:46\n5100001\t29151503\tESCOLA MUNICIPAL ALAIDE SANTANA SANTOS\tAlagoinhas\tAlexandre \t2\tOuve um upgrade para dois Ap\t2026-06-09 15:08:01\n5190001\t29151481\tESCOLA MUNICIPAL SANTA RITA\tAlagoinhas\tAlexandre \t1\tTudo ok.\t2026-06-09 19:22:16\n5730001\t29150655\tESCOLA MUNICIPAL MARIA DE LOURDES SANTOS\tAlagoinhas\tAlexandre \t5\tConcluído \t2026-06-11 13:39:42\n5820001\t29150469\tESCOLA MUNICIPAL GENERAL OSORIO\tAlagoinhas\tAlexandre \t2\tTudo ok \t2026-06-11 19:37:09\n5910001\t29151406\tESCOLA MUNICIPAL LIODORIO BORGES DOS SANTOS\tAlagoinhas\tAlexandre \t1\tTudo ok \t2026-06-12 00:21:11\n6030001\t29151244\tESCOLA MUNICIPAL TIRADENTES\tAlagoinhas\tAlexandre \t1\tFalta colocar a internet nesse escola \t2026-06-12 14:09:10\n6360001\t29151449\tESCOLA MUNICIPAL QUILOMBOLA MAE ERNESTINA\tAlagoinhas\tAlexandre \t3\tOuve um upgrade para 3 Ap \nSem link e sem internet\t2026-06-14 21:04:55\n6600001\t29151511\tESCOLA MUNICIPAL AMANDO ALVES DE AZEVEDO\tAlagoinhas\tAlexandre \t2\tConcluído \t2026-06-15 21:41:39\n6060001\t29132827\tPAULO VI\tRibeira do Amparo\tEverson\t5\tInstalação concluída sem link de internet \t2026-06-12 18:51:58\n6180001\t29132819\tESC MUL NOVA INFANCIA\tRibeira do Amparo\tEverson\t1\tInstalacao concluída \t2026-06-13 15:13:37\n6210001\t29407770\tESCOLA MUNICIPAL LUIZ VIANA\tRibeira do Amparo\tEverson\t1\tInstalacao concluída \t2026-06-13 20:42:16\n6930001\t29757622\tCRECHE CONRADO JOSE DE AMORIM\tRibeira do Amparo\tEverson\t1\tInfraestrutura  pronta, porém não tem link\t2026-06-17 15:15:34\n6960002\t29132967\tESCOLA MUN SAO FRANCISCO DE ASSIS\tRibeira do Amparo\tEverson\t2\tInstalacao concluída \t2026-06-17 15:20:01\n6960003\t29429900\tESCOLA MUNICIPAL SANTA TEREZA II\tRibeira do Amparo\tEverson\t1\tInstalacao concluída \t2026-06-17 15:25:39\n7020002\t29330300\tESCOLA MUNICIPAL SAO JOSE IV\tRibeira do Amparo\tEverson\t1\tInfraestrutura pronta, porem sem link instalado \t2026-06-17 16:14:12\n5280001\t29132754\tESC MUL JOAO CARLOS DE CERQUEIRA\tRibeira do Amparo\tEverson\t6\tInfraestrutura  pronta, porém não foi ativado simet porque o link está sem acesso a net\t2026-06-17 16:16:01\n3810001\t29077877\tEMEF POLICARPIO MANOEL ANCELMO\tQuixabeira\tJosé Felix \t1\tSem internet instalada\t2026-06-03 18:52:22\n2070001\t29393833\tESCOLA MUNICIPAL SAO JOAQUIM\tEuclides da Cunha\tJulielson \t1\tFalta rede externa\t2026-05-29 17:28:31\n3060001\t29118620\tESCOLA MUNICIPAL SENHOR DOS PASSOS\tEuclides da Cunha\tJulielson \t1\tEscola não possui  rede externa\t2026-06-01 23:44:47\n3060002\t29117372\tESCOLA MUNICIPAL JOSE BEZERRA NETO\tEuclides da Cunha\tJulielson \t1\tNão tem Rede Externa \t2026-06-01 23:45:47\n3570001\t29449880\tCRECHE NOSSA SENHORA DE FATIMA\tEuclides da Cunha\tJulielson \t1\tEscola concluída, controladora e Simet configurado.\nNão foi possível fazer  os testes de velocidade pois não tem rede externa.\t2026-06-02 23:33:23\n3690001\t29393876\tESCOLA MUNICIPAL ROSA MISTICA\tEuclides da Cunha\tJulielson \t2\tConcluido, Falta Rede Externa \n\t2026-06-03 16:45:19\n3870001\t29118026\tESCOLA MUNICIPAL MAJOR ANTONINO\tEuclides da Cunha\tJulielson \t2\tFinalizado, Falta Rede  Externa\t2026-06-03 21:27:41\n4290001\t29118760\tESCOLA MUNICIPAL MARIA LUIZA DE LIMA DANTAS\tEuclides da Cunha\tJulielson \t4\tFinalizado, configurado, falta rede externa\t2026-06-05 22:25:07\n4860001\t29117801\tESCOLA MUNICIPAL ANTONIO BALBINO\tEuclides da Cunha\tJulielson \t3\tConcluída, Falta Rede Externa \t2026-06-08 20:49:41\n4980001\t29118808\tESCOLA MUNICIPAL SAO GABRIEL\tEuclides da Cunha\tJulielson \t2\tEscola finalizada, Falta Rede Externa!\t2026-06-09 20:01:18\n5430001\t29117577\tESCOLA MUNICIPAL JOSE DE ANCHIETA\tEuclides da Cunha\tJulielson \t3\tInstalação Concluída, Falta Rede Externa!\t2026-06-11 17:10:28\n6690001\t29117615\tCENTRO EDUCACIONAL JUVINIANO GOMES DOS SANTOS\tEuclides da Cunha\tJulielson \t6\tInstalação Concluída \t2026-06-17 12:52:27\n2760001\t29136318\tESCOLA MUNICIPAL SANTA MARGARIDA\tBiritinga\tMarcos \t1\tInstalação  completo  sem internet  na  escola \nFalta fazer o RDO  \t2026-06-01 23:03:45\n3120001\t29432073\tESCOLA MUNICIPAL TEREZA SIMOES\tBiritinga\tMarcos \t1\tFinalizando sem internet \nFalta fazer o RDO \t2026-06-02 13:26:01\n3270001\t29136180\tESCOLA MUNICIPAL NOSSA SENHORA DAS GRACAS\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-02 16:13:22\n3360001\t29136199\tESCOLA MUNICIPAL OSVALDO CRUZ\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-02 20:21:29\n3420001\t29136156\tESCOLA MUNICIPAL CASTRO ALVES\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-02 23:53:49\n3660001\t29379890\tESCOLA MUNICIPAL MARIA CARDOSO PEDREIRA\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-03 13:24:16\n3780001\t29136474\tESCOLA MUNICIPAL NOSSA SENHORA DA VITORIA\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-03 16:07:01\n3840001\t29136202\tESCOLA MUNICIPAL RUI BARBOSA\tBiritinga\tMarcos \t1\tFinalizando sem internet falta fazer o RDO \t2026-06-03 22:07:18\n4740001\t29136113\tESCOLA MUNICIPAL MANOEL PEDREIRA GOMES\tBiritinga\tMarcos \t1\tFinalizando sem fazer RDO provedor  instalou em local errado têm que fazer a mudança de lugar para onde ficou o rack \t2026-06-08 16:05:42\n4830001\t29136164\tESCOLA MUNICIPAL RUBEM BRAGA\tBiritinga\tMarcos \t2\tFinalizando completo com RDO feito \t2026-06-09 13:31:02\n5040001\t29136083\tESCOLA MUNICIPAL ANA NERI\tBiritinga\tMarcos \t5\tFinalizando completo com RDO \t2026-06-10 14:51:00\n5430002\t29136121\tESCOLA MUNICIPAL MANOEL PEREIRA CARDOSO\tBiritinga\tMarcos \t2\tFinalizando sem internet não tem internet instalado na escola \t2026-06-10 21:28:56\n5610002\t29136334\tESCOLA MUNICIPAL SANTO ANTONIO\tBiritinga\tMarcos \t1\tFinalizando sem internet não tem internet instalado aqui na escola \t2026-06-11 13:44:40\n5790001\t29136288\tESCOLA MUNICIPAL SANTA CECILIA\tBiritinga\tMarcos \t2\tFinalizando sem internet não tem internet aqui na escola \t2026-06-11 18:10:32\n6540001\t29149037\tESCOLA MUNICIPAL DOM LUCAS NEVES\tValente\tMarcos \t2\tFinalizando sem internet não tem internet instalado aqui na escola \t2026-06-15 20:27:24\n6540002\t29149347\tESCOLA MUNICIPAL ALBINO CARLOS GUIMARAES\tValente\tMarcos \t1\tFinalizando sem internet não tem internet instalado aqui na escola \t2026-06-15 20:28:15\n2790001\t29153786\tESCOLA MUNICIPAL MARIA DE LOURDES DIAS DE SOUZA\tInhambupe\tMatheus\t1\tINSTALAÇÃO CONCLUÍDA \t2026-06-01 16:18:55\n3240001\t29153794\tESCOLA MUNICIPAL MIGUEL MENDES\tInhambupe\tMatheus\t1\tProblemas com o link de intert off \t2026-06-02 13:28:25\n4170001\t29153409\tESCOLA MUNICIPAL LAURA MARIA DA CONCEICAO DA ROCHA\tInhambupe\tMatheus\t2\tO link de internet estava com a velocidade não compatível com a contratada \t2026-06-05 00:32:54\n5310001\t29153816\tESCOLA MUNICIPAL VALENTIM BISPO DE SOUZA\tInhambupe\tMatheus\t2\tPrescisou fazer UPGRADE\t2026-06-09 23:38:22\n5310003\t29153468\tESCOLA MUNICIPAL MARIA AMELIA MENEZES DOS SANTOS\tInhambupe\tMatheus\t2\tPrecisou fazer UPGRADE \t2026-06-09 23:40:33\n5490001\t29153239\tESCOLA MUNICIPAL HELENA BARBOSA DE FIGUEREDO\tInhambupe\tMatheus\t2\t2 UPGRADE\t2026-06-10 21:43:56\n5490002\t29373301\tESCOLA MUNICIPAL FRANCISCO DE PAULA SANTOS\tInhambupe\tMatheus\t2\tPrecisou fazer UPGRADE\t2026-06-10 21:44:43\n6270001\t29153441\tESCOLA MUNICIPAL LOURIVAL RIBEIRO DA COSTA\tInhambupe\tMatheus\t2\tEscola sem link de internet \t2026-06-14 00:25:12\n6300002\t29123593\tESCOLA MUNICIPAL MADRE PAULINA\tTucano\tRicardo \t8\tAumentou pra 8 aps devido nessecidade\t2026-06-14 10:25:41\n1350001\t29122821\tESCOLA MUNICIPAL DA FAZENDA CASABU\tQuijingue\tRoberto \t1\tConcluido \t2026-05-27 16:42:38\n1560001\t29122830\tESCOLA MUNICIPAL DA FAZENDA CRU\tQuijingue\tRoberto \t1\tConcluído \t2026-05-27 21:55:02\n1620001\t29420652\tCRECHE BONS MOMENTOS\tQuijingue\tRoberto \t1\tConcluído \t2026-05-28 02:21:28\n1920001\t29123062\tESCOLA MUNICIPAL DA FAZ TATU\tQuijingue\tRoberto \t6\tConcluído \t2026-05-29 12:14:23\n1980001\t29420075\tCRECHE CASA FELIZ\tQuijingue\tRoberto \t1\tConcluído \t2026-05-29 14:01:24\n2160001\t29438136\tCRECHE PEQUENO PRINCIPE\tQuijingue\tRoberto \t1\tConcluído \t2026-05-29 19:45:12\n2130001\t29122600\tESCOLA MUN DA FAZ LAGOINHA DOS CAGADOS\tQuijingue\tRoberto \t1\tConcluído \t2026-05-29 22:59:21\n2250001\t29122775\tESCOLA MUNICIPAL DA FAZENDA SERROTE DO MEIO\tQuijingue\tRoberto \t1\tConcluido \t2026-05-30 11:52:27\n2340001\t29122678\tESCOLA MUN DA FAZENDA JUREMA\tQuijingue\tRoberto \t2\tConcluído \t2026-05-30 17:36:03\n2370001\t29122562\tESCOLA MUN ANDRE FERREIRA DE ANDRADE\tQuijingue\tRoberto \t1\tConcluído \t2026-05-30 20:53:00\n2670001\t29420458\tCRECHE CRESCER JUNTOS\tQuijingue\tRoberto \t1\tConcluído \t2026-06-01 14:44:53\n2670002\t29420083\tCRECHE GRANDE LUTA\tQuijingue\tRoberto \t1\tMudar o fio da fibra pra diretoria,tava na sala de aluno\t2026-06-01 21:38:03\n3450002\t29122961\tESCOLA MUNICIPAL DO POVOADO MONTE CRUZEIRO\tQuijingue\tRoberto \t5\tConcluído \t2026-06-03 13:11:43\n2580001\t29122554\tESCOLA MANOEL FIDELIS DA SILVA\tQuijingue\tRoberto \t9\tConcluído \t2026-06-03 21:08:03\n2940001\t29122740\tESCOLA MUNICIPAL OLIMPIO FERREIRA DE MATOS\tQuijingue\tRoberto \t1\tConcluído \t2026-06-03 22:43:52\n4770001\t29152844\tESC LADISLAU PEREIRA DE SOUZA\tCrisópolis\tRoberto \t2\tConcluído \t2026-06-09 20:01:20\n5160002\t29153140\tESCOLA MUL CLODOALDO NARCISO REIS\tCrisópolis\tRoberto \t2\tFalta rede externa, e fatar habilitar simit n tinha internet na escola \t2026-06-10 01:03:48\n4800001\t29152941\tESC MUL LOURENCO JOSE DOS SANTOS\tCrisópolis\tRoberto \t3\tNão tinha rede externa, mais simit habilitado\t2026-06-10 19:02:40\n5160001\t29153042\tESC NAPOLEAO CALDAS\tCrisópolis\tRoberto \t1\tNão tinha rede externa, simit habilitado \t2026-06-10 20:15:42\n5460001\t29153050\tESCOLA MUNICIPAL OLAVO DANTAS COELHO\tCrisópolis\tRoberto \t2\tConcluído \t2026-06-11 01:44:38\n5670001\t29153115\tESC MUL BOM JESUS\tCrisópolis\tRoberto \t1\tNão tem rede externa, simit habilitado \t2026-06-11 15:03:14\n5700001\t29152887\tESCOLA MUNICIPAL DR CLERISTON ANDRADE\tCrisópolis\tRoberto \t3\tNão tinha rede externa,simit habilitado \t2026-06-11 23:40:58\n5880001\t29152950\tESC MUL MAJOR RODOLFO DANTAS COELHO\tCrisópolis\tRoberto \t4\tConcluído, faltar só mudar a rede externa pra o rack\t2026-06-12 18:54:23\n5880002\t29363870\tESCOLA DOZE DE MARCO\tCrisópolis\tRoberto \t3\tConcluído l,simit habilitado não tinha rede externa \t2026-06-13 21:18:07\n6330001\t29392853\tCENTRO MUNICIPAL DE EDUCACAO INFANTIL DR GERALDO VASCONCELOS DE SEIXAS PEREIRA\tAcajutiba\tRoberto \t3\tConcluído,simit habilitado, mudar rede externa para o rack \t2026-06-14 22:41:24\n6480001\t29460271\tCRECHE MUNICIPAL JOSE DOS REIS\tAcajutiba\tRoberto \t1\tConcluído,mudar rede externa pra o rack,e tá sem internet \t2026-06-15 17:06:36\n6480004\t29467136\tCRECHE MUNICIPAL PROFESSORA MATILDES LOURENCO DOS SANTOS\tAcajutiba\tRoberto \t1\tConcluído, mudar só rede externa\t2026-06-15 20:24:03\n4800002\t29363802\tESCOLA MUNICIPAL TANIA MARIA ALVES DANTAS\tCrisópolis\tRoberto \t7\tConcluído \t2026-06-16 15:30:58\n5880003\t29152933\tESCOLA JOAO BATISTA DE ALMEIDA FILHO\tCrisópolis\tRoberto \t6\tConcluído, mudar rede externa pra o rack \t2026-06-17 17:20:27\n2880002\t29112982\tESC MUL GUILHERME JOSE DE SANTANA\tJeremoabo\tVictor \t1\tRemanejamento do link \t2026-06-01 19:43:24\n3090001\t29112990\tESC MUL IRMA DULCE\tJeremoabo\tVictor \t1\tFalta o link \t2026-06-02 06:33:07\n5370001\t29337429\tESCOLA MUNICIPAL DE BAIXA DOS QUELES\tJeremoabo\tVictor \t2\tSem rede externa \t2026-06-10 14:45:30\n5580001\t29389917\tESCOLA MUNICIPAL PRAXEDES BALDOINO DE SANTANA\tJeremoabo\tVictor \t1\tRemanejamento do link \t2026-06-11 01:20:15\n6720001\t29113083\tESC MUL MANOEL CARVALHO SANTANA\tJeremoabo\tVictor \t4\tPrecisa remanejar\t2026-06-16 14:21:22\n6720002\t29112710\tESCOLA MUNICIPAL DR HAILTON JOSE DE BRITO\tJeremoabo\tVictor \t4\tTudo ok\t2026-06-16 14:21:53\n2850001\t29135516\tESCOLA MUNICIPAL SELVINA LEOPOLDINA DE JESUS\tAraci\tZé Orlando \t2\tSem internet contratada \t2026-06-01 19:06:26\n3300002\t29134803\tESCOLA MUNICIPAL JESUS AMADO\tAraci\tZé Orlando \t2\tSem internet contratada \t2026-06-02 15:22:38\n3600001\t29134790\tESCOLA MUNICIPAL JARBAS PASSARINHO\tAraci\tZé Orlando \t2\tSem fibra instada \t2026-06-03 00:01:54\n5400001\t29148790\tESCOLA MUNICIPAL TOME DE SOUZA\tTeofilândia\tZé Orlando \t6\tConcluido\t2026-06-10 15:52:33\n5520001\t29134536\tESCOLA MUNICIPAL COMUNITARIA DA FUBA\tAraci\tZé Orlando \t2\tConcluido\t2026-06-11 00:23:07\n5970001\t29420229\tCRECHE PRE-ESCOLA CRIANCA FELIZ V\tTeofilândia\tZé Orlando \t1\tVelocidade do visitante não compatível \t2026-06-12 08:56:42\n",
+  "stderr": "",
+  "execution_time_ms": 281
+}
