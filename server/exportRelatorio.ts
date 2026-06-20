@@ -71,10 +71,12 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     const valorPorAp = parseFloat(req.query.valorPorAp as string) || 0;
     const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
+    const dataInicioParam = req.query.dataInicio ? new Date(req.query.dataInicio as string) : null;
+    const dataFimParam = req.query.dataFim ? new Date(req.query.dataFim as string) : null;
 
     // Dados
-    const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam });
-    const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam });
+    const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
+    const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
 
     // Agrupar por técnico (ordenado por nome)
     const porTecnico: Record<string, typeof concluidas> = {};

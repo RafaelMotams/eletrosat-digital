@@ -281,6 +281,8 @@ export default function AdminOrdens() {
   const [valorPorAp, setValorPorAp] = useState("");
   const [exportando, setExportando] = useState(false);
   const [exportTecnicoId, setExportTecnicoId] = useState("todos");
+  const [exportDataInicio, setExportDataInicio] = useState("");
+  const [exportDataFim, setExportDataFim] = useState("");
 
   // Estados para modais de gestão de OS
   const [concluirModal, setConcluirModal] = useState<{ osId: number; escolaNome: string } | null>(null);
@@ -324,6 +326,14 @@ export default function AdminOrdens() {
       const params = new URLSearchParams({ valorPorAp: String(valor) });
       if (exportTecnicoId && exportTecnicoId !== "todos") {
         params.set("tecnicoId", exportTecnicoId);
+      }
+      if (exportDataInicio) {
+        // Inicio do dia selecionado (00:00:00)
+        params.set("dataInicio", new Date(exportDataInicio + "T00:00:00").toISOString());
+      }
+      if (exportDataFim) {
+        // Fim do dia selecionado (23:59:59)
+        params.set("dataFim", new Date(exportDataFim + "T23:59:59").toISOString());
       }
       const tecnicoNome = exportTecnicoId !== "todos"
         ? tecnicos?.find(t => String(t.id) === exportTecnicoId)?.nome ?? "tecnico"
@@ -524,7 +534,7 @@ export default function AdminOrdens() {
               <Plus className="w-4 h-4" /> Nova OS
             </Button>
             <Button variant="outline" size="sm"
-              onClick={() => { setExportOpen(true); setValorPorAp(""); setExportTecnicoId("todos"); }}
+              onClick={() => { setExportOpen(true); setValorPorAp(""); setExportTecnicoId("todos"); setExportDataInicio(""); setExportDataFim(""); }}
               className="rounded-xl gap-1.5 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-950">
               <FileSpreadsheet className="w-3.5 h-3.5" /> Exportar Planilha
             </Button>
@@ -1193,6 +1203,33 @@ export default function AdminOrdens() {
             <p className="text-sm text-muted-foreground">
               Informe o <strong>valor por AP instalado</strong> (R$). A planilha calculará automaticamente o total a pagar por técnico.
             </p>
+            {/* Filtro por período */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-foreground">Período (opcional)</label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">De</p>
+                  <input
+                    type="date"
+                    value={exportDataInicio}
+                    onChange={e => setExportDataInicio(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Até</p>
+                  <input
+                    type="date"
+                    value={exportDataFim}
+                    onChange={e => setExportDataFim(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                  />
+                </div>
+              </div>
+              {(!exportDataInicio && !exportDataFim) && (
+                <p className="text-xs text-muted-foreground">Sem filtro: exporta todas as OS concluídas</p>
+              )}
+            </div>
             {/* Filtro por técnico */}
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-foreground">Técnico</label>

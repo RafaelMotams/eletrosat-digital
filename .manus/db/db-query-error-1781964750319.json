@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT e.inep, e.nome, e.status AS escola_status, e.data_conclusao AS escola_data_conclusao,\n       os.id AS os_id, os.status AS os_status, os.data_conclusao AS os_data_conclusao,\n       os.qtd_ap_instalado, os.observacao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nWHERE e.inep IN ('29132967', '29757622')\nORDER BY e.inep, os.id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT e.inep, e.nome, e.status AS escola_status, e.data_conclusao AS escola_data_conclusao,\n       os.id AS os_id, os.status AS os_status, os.data_conclusao AS os_data_conclusao,\n       os.qtd_ap_instalado, os.observacao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nWHERE e.inep IN ('29132967', '29757622')\nORDER BY e.inep, os.id;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'e.data_conclusao' in 'field list'"
+  ]
+}
