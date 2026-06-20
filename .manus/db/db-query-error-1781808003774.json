@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.observacao AS rdo,\n  os.data_conclusao,\n  os.qt_ap_instalados\nFROM ordens_servico os\nJOIN escolas e ON os.escola_id = e.inep\nLEFT JOIN tecnicos t ON os.tecnico_id = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND os.observacao != ''\nORDER BY os.data_conclusao DESC;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.observacao AS rdo,\n  os.data_conclusao,\n  os.qt_ap_instalados\nFROM ordens_servico os\nJOIN escolas e ON os.escola_id = e.inep\nLEFT JOIN tecnicos t ON os.tecnico_id = t.id\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND os.observacao != ''\nORDER BY os.data_conclusao DESC;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'os.escola_id' in 'on clause'"
+  ]
+}

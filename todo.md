@@ -435,3 +435,8 @@
 - [x] Bug crítico: upload ao Google Drive era feito ANTES das fotos serem enviadas ao S3 — corrigido para agendar o Drive 30s após a conclusão da OS
 - [x] Melhoria: retry automático (3 tentativas com backoff 1s/2s) por foto no fluxo online
 - [x] Melhoria: toast de progresso mostra "Enviando fotos... X/Y" durante o upload
+
+## Edição de Data de Conclusão (Admin)
+- [x] Backend: endpoint ordens.editarDataConclusao — atualiza dataConclusao na OS e na escola
+- [x] Frontend: botão "Data" (azul) em OS concluídas na página de Ordens do painel admin
+- [x] Frontend: modal com input datetime-local para selecionar nova data/hora de conclusão

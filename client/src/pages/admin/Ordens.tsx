@@ -9,7 +9,7 @@ import {
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
   Search, Filter, RefreshCw,
   Wifi, TrendingUp, Trash2, Camera, X, Download, FileSpreadsheet,
-  ChevronDown, UploadCloud, Pencil
+  ChevronDown, UploadCloud, Pencil, CalendarDays
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -353,6 +353,18 @@ export default function AdminOrdens() {
   const [editApQtd, setEditApQtd] = useState("");
   const [editApObs, setEditApObs] = useState("");
 
+  const [editDataModal, setEditDataModal] = useState<{ osId: number; escolaNome: string; dataAtual: string } | null>(null);
+  const [editDataValue, setEditDataValue] = useState("");
+
+  const editarDataMut = trpc.ordens.editarDataConclusao.useMutation({
+    onSuccess: () => {
+      toast.success("Data de conclusão atualizada!");
+      utils.ordens.list.invalidate();
+      setEditDataModal(null);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const editarQtdApMut = trpc.ordens.editarQtdAp.useMutation({
     onSuccess: () => {
       toast.success("Quantidade de APs atualizada!");
@@ -684,6 +696,22 @@ export default function AdminOrdens() {
                       <Camera className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Fotos</span>
                     </button>
+                    {/* Editar Data (apenas OS concluídas) */}
+                    {os.status === "concluida" && (
+                      <button
+                        onClick={() => {
+                          const dataISO = os.dataConclusao
+                            ? new Date(os.dataConclusao).toISOString().slice(0, 16)
+                            : "";
+                          setEditDataModal({ osId: os.id, escolaNome: getEscolaNome(os.escolaId), dataAtual: dataISO });
+                          setEditDataValue(dataISO);
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
+                        style={{ background: "oklch(0.94 0.05 200)", color: "oklch(0.28 0.14 200)", border: "1px solid oklch(0.84 0.08 200)" }}>
+                        <CalendarDays className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Data</span>
+                      </button>
+                    )}
                     {/* Editar APs (apenas OS concluídas) */}
                     {os.status === "concluida" && (
                       <button
@@ -830,6 +858,53 @@ export default function AdminOrdens() {
                 <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Salvando...</>
               ) : (
                 <><Pencil className="w-4 h-4" />Salvar Alterações</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Editar Data de Conclusão */}
+      <Dialog open={!!editDataModal} onOpenChange={v => !v && setEditDataModal(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.94 0.05 200)" }}>
+                <CalendarDays className="w-4 h-4" style={{ color: "oklch(0.28 0.14 200)" }} />
+              </div>
+              Editar Data de Conclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Escola: <strong>{editDataModal?.escolaNome}</strong></p>
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Nova data e hora de conclusão</label>
+              <input
+                type="datetime-local"
+                value={editDataValue}
+                onChange={e => setEditDataValue(e.target.value)}
+                autoFocus
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Atenção: a data será atualizada tanto na OS quanto no registro da escola.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditDataModal(null)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!editDataValue) { toast.error("Informe uma data válida"); return; }
+                editarDataMut.mutate({ osId: editDataModal!.osId, dataConclusao: new Date(editDataValue).toISOString() });
+              }}
+              disabled={editarDataMut.isPending}
+              className="rounded-xl gap-2 text-white border-none"
+              style={{ background: "oklch(0.38 0.14 200)" }}>
+              {editarDataMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Salvando...</>
+              ) : (
+                <><CalendarDays className="w-4 h-4" />Salvar Data</>
               )}
             </Button>
           </DialogFooter>

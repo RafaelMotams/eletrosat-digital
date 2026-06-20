@@ -51,7 +51,7 @@ import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
-import { ordensServico } from "../drizzle/schema";
+import { ordensServico, escolas } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 // Middleware para verificar se é admin
@@ -527,6 +527,34 @@ const ordensRouter = router({
       if (tenantId !== undefined && os.tenantId !== tenantId)
         throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
       await registrarNaoInstalada(os.escolaId, os.tecnicoId, input.motivo, input.observacao);
+      return { success: true };
+    }),
+
+  // Admin: editar data de conclusão de uma OS já concluída
+  editarDataConclusao: tenantAdminProcedure
+    .input(z.object({
+      osId: z.number(),
+      dataConclusao: z.string(), // ISO string
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      const tenantId = (ctx as any).tenantId;
+      if (tenantId !== undefined && os.tenantId !== tenantId)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const novaData = new Date(input.dataConclusao);
+      if (isNaN(novaData.getTime())) throw new TRPCError({ code: "BAD_REQUEST", message: "Data inválida" });
+      await db
+        .update(ordensServico)
+        .set({ dataConclusao: novaData })
+        .where(eq(ordensServico.id, input.osId));
+      // Atualizar também a data de conclusão da escola
+      await db
+        .update(escolas)
+        .set({ dataConclusao: novaData })
+        .where(eq(escolas.id, os.escolaId));
       return { success: true };
     }),
 
