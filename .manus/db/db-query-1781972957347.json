@@ -1,0 +1,21 @@
+{
+  "query": "\nSELECT e.inep, e.nome, e.qtdAp AS ap_planejado, e.apAdicional,\n       os.id AS os_id, os.qtdApInstalado, os.status, os.dataConclusao, os.observacao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nWHERE e.inep = '29153670';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT e.inep, e.nome, e.qtdAp AS ap_planejado, e.apAdicional,\n       os.id AS os_id, os.qtdApInstalado, os.status, os.dataConclusao, os.observacao\nFROM escolas e\nLEFT JOIN ordens_servico os ON os.escolaId = e.id\nWHERE e.inep = '29153670';\n",
+  "rows": [
+    {
+      "inep": "29153670",
+      "nome": "ESCOLA MUNICIPAL CLEONICE MARIA DE PINHO",
+      "ap_planejado": "6",
+      "apAdicional": "NULL",
+      "os_id": "6420001",
+      "qtdApInstalado": "4",
+      "status": "concluida",
+      "dataConclusao": "2026-06-14 22:45:07",
+      "observacao": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "inep\tnome\tap_planejado\tapAdicional\tos_id\tqtdApInstalado\tstatus\tdataConclusao\tobservacao\n29153670\tESCOLA MUNICIPAL CLEONICE MARIA DE PINHO\t6\tNULL\t6420001\t4\tconcluida\t2026-06-14 22:45:07\t\n",
+  "stderr": "",
+  "execution_time_ms": 883
+}

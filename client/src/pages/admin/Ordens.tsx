@@ -1200,9 +1200,11 @@ export default function AdminOrdens() {
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Informe o <strong>valor por AP instalado</strong> (R$). A planilha calculará automaticamente o total a pagar por técnico.
-            </p>
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 p-3">
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                <strong>Valores automáticos:</strong> a planilha usará a tabela de valores cadastrada para cada técnico (conforme configurado em Técnicos → Valores por AP).
+              </p>
+            </div>
             {/* Filtro por período */}
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-foreground">Período (opcional)</label>
@@ -1245,7 +1247,7 @@ export default function AdminOrdens() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-foreground">Valor por AP (R$)</label>
+              <label className="text-sm font-semibold text-foreground">Valor por AP fallback (R$) <span className="text-muted-foreground font-normal">— opcional</span></label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold">R$</span>
                 <input
@@ -1258,7 +1260,7 @@ export default function AdminOrdens() {
                   onKeyDown={e => e.key === "Enter" && handleExportarExcel()}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Ex: 150,00 — será multiplicado pela quantidade de APs instalados em cada OS</p>
+              <p className="text-xs text-muted-foreground">Usado apenas para técnicos sem tabela de valores cadastrada</p>
             </div>
             <div className="rounded-xl bg-muted/50 border border-border p-3 space-y-1">
               <p className="text-xs font-semibold text-foreground">A planilha incluirá:</p>
@@ -1273,7 +1275,7 @@ export default function AdminOrdens() {
             <Button variant="outline" onClick={() => setExportOpen(false)} className="rounded-xl">Cancelar</Button>
             <Button
               onClick={handleExportarExcel}
-              disabled={exportando || !valorPorAp.trim()}
+              disabled={exportando}
               className="rounded-xl gap-1.5 bg-green-600 hover:bg-green-700 text-white border-none">
               {exportando ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Gerando...</>

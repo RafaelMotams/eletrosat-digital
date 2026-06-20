@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { Request, Response } from "express";
-import { getOsDetalhadas, getOsNaoInstaladas } from "./db";
+import { getOsDetalhadas, getOsNaoInstaladas, getValoresApAllTecnicos } from "./db";
 import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const session = token ? await verifyTenantToken(token) : null;
     const tenantId = session?.tenantId ?? undefined;
 
-    const valorPorAp = parseFloat(req.query.valorPorAp as string) || 0;
+    const valorPorApFallback = parseFloat(req.query.valorPorAp as string) || 0;
     const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
     const dataInicioParam = req.query.dataInicio ? new Date(req.query.dataInicio as string) : null;
     const dataFimParam = req.query.dataFim ? new Date(req.query.dataFim as string) : null;
@@ -77,6 +77,19 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // Dados
     const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
     const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
+
+    // Buscar valores por AP por técnico (tabela de preços cadastrada)
+    const valoresApMap = tenantId !== undefined ? await getValoresApAllTecnicos(tenantId) : {};
+
+    // Função para obter valor de uma OS: usa tabela do técnico, fallback para valorPorApFallback
+    const getValorOs = (os: typeof concluidas[0]): number => {
+      const tecValores = valoresApMap[os.tecnicoId ?? 0] ?? {};
+      const qtd = os.qtdApInstalado ?? 0;
+      return tecValores[qtd] ?? valorPorApFallback;
+    };
+
+    // Valor por AP para exibição no cabeçalho (usa fallback se não há tabela)
+    const valorPorAp = valorPorApFallback;
 
     // Agrupar por técnico (ordenado por nome)
     const porTecnico: Record<string, typeof concluidas> = {};
@@ -135,7 +148,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     ws.mergeCells(3, 1, 3, NCOLS);
     const h3 = ws.getCell("A3");
     const dataGer = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
-    h3.value = `Emitido em: ${dataGer}   ·   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}   ·   Total de OS: ${concluidas.length}`;
+    h3.value = `Emitido em: ${dataGer}   ·   Valores por AP: conforme tabela de cada técnico   ·   Total de OS: ${concluidas.length}`;
     aplicarEstiloCelula(h3, { bg: C.azulSuave, fg: C.azulMedio, italic: true, size: 9, hAlign: "center" });
     ws.getRow(3).height = 18;
 
@@ -180,7 +193,8 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         const dataStr = os.dataConclusao
           ? new Date(os.dataConclusao).toLocaleDateString("pt-BR")
           : "—";
-        const total = valorPorAp * (os.qtdApInstalado ?? 0);
+        const valorOsUnit = getValorOs(os);
+        const total = valorOsUnit;
 
         const vals = [
           idx + 1,
@@ -189,7 +203,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           os.municipio,
           dataStr,
           os.qtdApInstalado ?? 0,
-          valorPorAp,
+          valorOsUnit,
           total,
           os.observacao ?? "",
         ];
@@ -237,13 +251,13 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
       // Subtotal do técnico
       const totalAps = osDoTecnico.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
-      const totalTecnico = valorPorAp * totalAps;
+      const totalTecnico = osDoTecnico.reduce((s, r) => s + getValorOs(r), 0);
 
       const subRow = ws.getRow(rowIdx);
       subRow.height = 22;
       const subLabels: (string | number)[] = [
         "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
-        "", totalAps, valorPorAp, totalTecnico, "", "",
+        "", totalAps, "", totalTecnico, "", "",
       ];
       subLabels.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
@@ -264,7 +278,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     // ── Total Geral ──────────────────────────────────────────────────────────
     const totalApsGeral = concluidas.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
-    const totalGeralVal = valorPorAp * totalApsGeral;
+    const totalGeralVal = concluidas.reduce((s, r) => s + getValorOs(r), 0);
 
     ws.mergeCells(rowIdx, 1, rowIdx, 6);
     const tgLabel = ws.getCell(rowIdx, 1);
@@ -282,10 +296,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     });
 
     const tgValAp = ws.getCell(rowIdx, 8);
-    tgValAp.value = valorPorAp;
+    tgValAp.value = "";
     aplicarEstiloCelula(tgValAp, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
-      hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
+      hAlign: "right", border: bordaMedia(),
     });
 
     const tgTotal = ws.getCell(rowIdx, 9);
@@ -356,13 +370,13 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     tecnicosOrdenados.forEach((tecnico, idx) => {
       const os = porTecnico[tecnico];
       const totalAps = os.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
-      const total = valorPorAp * totalAps;
+      const total = os.reduce((s, r) => s + getValorOs(r), 0);
       const bg = idx % 2 === 0 ? C.branco : C.cinzaClaro;
 
       const row = ws2.getRow(6 + idx);
       row.height = 24;
 
-      [tecnico, os.length, totalAps, valorPorAp, total].forEach((v, i) => {
+      [tecnico, os.length, totalAps, "", total].forEach((v, i) => {
         const cell = ws2.getCell(6 + idx, i + 1);
         cell.value = v;
         aplicarEstiloCelula(cell, {
@@ -391,7 +405,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       "TOTAL GERAL",
       concluidas.length,
       totalApsGeral,
-      valorPorAp,
+      "",
       totalGeralVal,
     ].forEach((v, i) => {
       const cell = ws2.getCell(rowTG, i + 1);
