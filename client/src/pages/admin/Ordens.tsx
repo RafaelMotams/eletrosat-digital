@@ -252,7 +252,20 @@ function FotosOsModal({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function AdminOrdens() {
   const utils = trpc.useUtils();
-  const { data: ordens, isLoading, refetch } = trpc.ordens.list.useQuery({});
+
+  const [open, setOpen] = useState(false);
+  const [escolaSel, setEscolaSel] = useState("");
+  const [tecnicoSel, setTecnicoSel] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [tecnicoFilter, setTecnicoFilter] = useState("todos");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
+
+  const { data: ordens, isLoading, refetch } = trpc.ordens.list.useQuery({
+    dataInicio: filtroDataInicio || null,
+    dataFim: filtroDataFim || null,
+  });
   const { data: escolas } = trpc.escolas.list.useQuery({});
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
 
@@ -266,13 +279,6 @@ export default function AdminOrdens() {
     },
     onError: (e) => toast.error(e.message),
   });
-
-  const [open, setOpen] = useState(false);
-  const [escolaSel, setEscolaSel] = useState("");
-  const [tecnicoSel, setTecnicoSel] = useState("");
-  const [statusFilter, setStatusFilter] = useState("todos");
-  const [tecnicoFilter, setTecnicoFilter] = useState("todos");
-  const [searchQuery, setSearchQuery] = useState("");
   const [fotoModal, setFotoModal] = useState<string | null>(null);
   const [fotosOsModal, setFotosOsModal] = useState<{ osId: number; escolaId: number; escolaNome: string } | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
@@ -489,43 +495,72 @@ export default function AdminOrdens() {
 
       {/* Toolbar */}
       <div className="bg-card rounded-2xl border border-border p-4 mb-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <div className="flex flex-1 gap-2 min-w-0">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar por escola, técnico ou OS..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="flex flex-1 gap-2 min-w-0 flex-wrap">
+              <div className="relative flex-1 min-w-[180px] max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por escola, técnico ou OS..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 rounded-xl">
+                  <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas ({counts.todos})</SelectItem>
+                  <SelectItem value="aberta">Abertas ({counts.aberta})</SelectItem>
+                  <SelectItem value="em_andamento">Em andamento ({counts.em_andamento})</SelectItem>
+                  <SelectItem value="concluida">Concluídas ({counts.concluida})</SelectItem>
+                  <SelectItem value="nao_instalada">Não instaladas ({counts.nao_instalada})</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={tecnicoFilter} onValueChange={setTecnicoFilter}>
+                <SelectTrigger className="w-44 rounded-xl">
+                  <SelectValue placeholder="Todos os técnicos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os técnicos</SelectItem>
+                  {tecnicos?.slice().sort((a, b) => a.nome.localeCompare(b.nome)).map(t => (
+                    <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {/* Filtro por período */}
+              <div className="flex items-center gap-1.5">
+                <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input
+                  type="date"
+                  value={filtroDataInicio}
+                  onChange={e => setFiltroDataInicio(e.target.value)}
+                  className="px-2.5 py-2 rounded-xl text-sm border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  title="Data início"
+                />
+                <span className="text-muted-foreground text-xs">até</span>
+                <input
+                  type="date"
+                  value={filtroDataFim}
+                  onChange={e => setFiltroDataFim(e.target.value)}
+                  className="px-2.5 py-2 rounded-xl text-sm border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  title="Data fim"
+                />
+                {(filtroDataInicio || filtroDataFim) && (
+                  <button
+                    onClick={() => { setFiltroDataInicio(""); setFiltroDataFim(""); }}
+                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Limpar filtro de data"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40 rounded-xl">
-                <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas ({counts.todos})</SelectItem>
-                <SelectItem value="aberta">Abertas ({counts.aberta})</SelectItem>
-                <SelectItem value="em_andamento">Em andamento ({counts.em_andamento})</SelectItem>
-                <SelectItem value="concluida">Concluídas ({counts.concluida})</SelectItem>
-                <SelectItem value="nao_instalada">Não instaladas ({counts.nao_instalada})</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={tecnicoFilter} onValueChange={setTecnicoFilter}>
-              <SelectTrigger className="w-44 rounded-xl">
-                <SelectValue placeholder="Todos os técnicos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os técnicos</SelectItem>
-                {tecnicos?.slice().sort((a, b) => a.nome.localeCompare(b.nome)).map(t => (
-                  <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={() => refetch()} className="rounded-xl gap-1.5">
               <RefreshCw className="w-3.5 h-3.5" /> Atualizar
             </Button>
@@ -548,6 +583,7 @@ export default function AdminOrdens() {
               className="rounded-xl gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950">
               <Trash2 className="w-3.5 h-3.5" /> Excluir Todas
             </Button>
+          </div>
           </div>
         </div>
       </div>

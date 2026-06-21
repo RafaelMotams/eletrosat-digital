@@ -340,8 +340,8 @@ const ordensRouter = router({
         .object({
           tecnicoId: z.number().optional(),
           status: z.string().optional(),
-          dataInicio: z.date().optional(),
-          dataFim: z.date().optional(),
+          dataInicio: z.string().nullable().optional(),
+          dataFim: z.string().nullable().optional(),
         })
         .optional()
     )
@@ -354,7 +354,9 @@ const ordensRouter = router({
       }
       // Admin OAuth ou tenant admin via JWT - filtrar por tenantId
       const tenantId = (ctx as any).tenantId;
-      return listOrdensServico({ ...input, tenantId });
+      const dataInicio = input?.dataInicio ? new Date(input.dataInicio + "T00:00:00") : undefined;
+      const dataFim = input?.dataFim ? new Date(input.dataFim + "T23:59:59") : undefined;
+      return listOrdensServico({ ...input, dataInicio, dataFim, tenantId });
     }),
 
   getById: tenantAdminProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {

@@ -247,8 +247,16 @@ export async function listOrdensServico(filters?: {
   if (filters?.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
   if (filters?.tecnicoId) conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
   if (filters?.status) conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida" | "nao_instalada"));
-  if (filters?.dataInicio) conditions.push(gte(ordensServico.dataAbertura, filters.dataInicio));
-  if (filters?.dataFim) conditions.push(lte(ordensServico.dataAbertura, filters.dataFim));
+  if (filters?.dataInicio) {
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.dataAbertura}, ${ordensServico.createdAt}) >= ${filters.dataInicio}` as any
+    );
+  }
+  if (filters?.dataFim) {
+    conditions.push(
+      sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.dataAbertura}, ${ordensServico.createdAt}) <= ${filters.dataFim}` as any
+    );
+  }
 
   const query = db.select().from(ordensServico);
   if (conditions.length > 0) {
