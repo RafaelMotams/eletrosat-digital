@@ -434,7 +434,7 @@ export default function AdminOrdens() {
   function getTecnicoNome(id: number) { return tecnicos?.find(t => t.id === id)?.nome ?? `Técnico #${id}`; }
 
   const filtered = useMemo(() => {
-    let list = ordens ?? [];
+    let list = (ordens ?? []).filter(o => o.status !== "nao_instalada");
     if (statusFilter !== "todos") list = list.filter(o => o.status === statusFilter);
     if (tecnicoFilter !== "todos") list = list.filter(o => String(o.tecnicoId) === tecnicoFilter);
     if (searchQuery.trim()) {
