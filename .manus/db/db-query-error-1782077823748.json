@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  t.nome AS tecnico,\n  COUNT(DISTINCT os.escola_id) AS escolas_concluidas,\n  SUM(e.ap_planejado) AS total_ap_planejado,\n  SUM(os.qtd_ap_instalado) AS total_ap_instalado,\n  SUM(os.qtd_ap_instalado) - SUM(e.ap_planejado) AS diferenca,\n  ROUND((SUM(os.qtd_ap_instalado) / NULLIF(SUM(e.ap_planejado), 0)) * 100, 1) AS pct_instalado\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnico_id\nJOIN escolas e ON e.id = os.escola_id\nWHERE os.status = 'concluida'\nGROUP BY t.id, t.nome\nORDER BY t.nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  t.nome AS tecnico,\n  COUNT(DISTINCT os.escola_id) AS escolas_concluidas,\n  SUM(e.ap_planejado) AS total_ap_planejado,\n  SUM(os.qtd_ap_instalado) AS total_ap_instalado,\n  SUM(os.qtd_ap_instalado) - SUM(e.ap_planejado) AS diferenca,\n  ROUND((SUM(os.qtd_ap_instalado) / NULLIF(SUM(e.ap_planejado), 0)) * 100, 1) AS pct_instalado\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnico_id\nJOIN escolas e ON e.id = os.escola_id\nWHERE os.status = 'concluida'\nGROUP BY t.id, t.nome\nORDER BY t.nome;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'os.tecnico_id' in 'on clause'"
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "query": "\nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado AS aps_instalados,\n  os.observacao AS rdo,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y %H:%i') AS data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY os.dataConclusao DESC\nLIMIT 20;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.nome AS escola,\n  e.inep,\n  e.municipio,\n  t.nome AS tecnico,\n  os.qtdApInstalado AS aps_instalados,\n  os.observacao AS rdo,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y %H:%i') AS data_conclusao\nFROM ordens_servico os\nJOIN escolas e ON e.id = os.escolaId\nJOIN tecnicos t ON t.id = os.tecnicoId\nWHERE os.status = 'concluida'\n  AND os.observacao IS NOT NULL\n  AND TRIM(os.observacao) != ''\nORDER BY os.dataConclusao DESC\nLIMIT 20;\n",
+  "rows": [
+    {
+      "escola": "ESCOLA NOSSA SENHORA DE FATIMA",
+      "inep": "29049903",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "1",
+      "rdo": "EQUIPAMENTOS CONFIGURADO SO FALTA RE",
+      "data_conclusao": "21/06/2026 13:27"
+    },
+    {
+      "escola": "COLEGIO MUNICIPAL ROSALINA GOMES DE SOUZA",
+      "inep": "29391776",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "6",
+      "rdo": "EQUIPAMENTOS CONFIRMADO SO FALTA RE",
+      "data_conclusao": "21/06/2026 12:59"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA",
+      "inep": "29429960",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "aps_instalados": "5",
+      "rdo": "Instalação concluída, porém não tem link ativo ainda",
+      "data_conclusao": "21/06/2026 00:32"
+    },
+    {
+      "escola": "CENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO",
+      "inep": "29471893",
+      "municipio": "Acajutiba",
+      "tecnico": "Roberto ",
+      "aps_instalados": "6",
+      "rdo": "Concluído/provedor vim verificar a rede externa sem internet",
+      "data_conclusao": "20/06/2026 21:24"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA I",
+      "inep": "29133025",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "aps_instalados": "3",
+      "rdo": "Instalação concluída ",
+      "data_conclusao": "20/06/2026 19:46"
+    },
+    {
+      "escola": "ESC MUL TIRADENTES",
+      "inep": "29154502",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps_instalados": "4",
+      "rdo": "Sem rede externa, ouve upgrade para 4 Ap",
+      "data_conclusao": "20/06/2026 15:37"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA TEREZA III",
+      "inep": "29330238",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "aps_instalados": "2",
+      "rdo": "Instalação concluída com o link ativa (19/06/2026), pois não foi fechado no Aniel pois estou aguardando me repassar o mapa de calor para anexa",
+      "data_conclusao": "20/06/2026 11:39"
+    },
+    {
+      "escola": "COLEGIO ARMANDO TRAJANO MAIA",
+      "inep": "29391741",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "7",
+      "rdo": "Falta a RE",
+      "data_conclusao": "20/06/2026 08:21"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL JOSE PENEDO",
+      "inep": "29124255",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "aps_instalados": "8",
+      "rdo": "Finalizado ",
+      "data_conclusao": "20/06/2026 03:16"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL EM TEMPO INTEGRAL PROFESSORA MARIA DE LOURDES DE OLIVEIRA VASCONCELOS",
+      "inep": "29448476",
+      "municipio": "Acajutiba",
+      "tecnico": "Roberto ",
+      "aps_instalados": "7",
+      "rdo": "Concluído/ provedor conferir rede externa sem internet ",
+      "data_conclusao": "19/06/2026 21:22"
+    },
+    {
+      "escola": "EDUCANDARIO MUNICIPAL JAIRO AZI",
+      "inep": "29116660",
+      "municipio": "Canudos",
+      "tecnico": " Luizinho ",
+      "aps_instalados": "8",
+      "rdo": "Concluída ",
+      "data_conclusao": "19/06/2026 19:10"
+    },
+    {
+      "escola": "ESC EST 1 GRAU DR MURILO CAVALCANTE",
+      "inep": "29132789",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "aps_instalados": "6",
+      "rdo": "Infraestrutura concluída, fazer o teste na controladora ",
+      "data_conclusao": "19/06/2026 17:12"
+    },
+    {
+      "escola": "NUCLEO DE EDUCACAO ESPECIAL",
+      "inep": "29457530",
+      "municipio": "Araci",
+      "tecnico": "Zé Orlando ",
+      "aps_instalados": "6",
+      "rdo": "Sem Simet e configuração ",
+      "data_conclusao": "19/06/2026 13:42"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL CECILIA MEIRELES",
+      "inep": "29123291",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "aps_instalados": "4",
+      "rdo": "Finalizada ",
+      "data_conclusao": "19/06/2026 13:34"
+    },
+    {
+      "escola": "ESC MUL RUI BARBOSA",
+      "inep": "29154413",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps_instalados": "2",
+      "rdo": "Pendente por falta de rede externa, houve um upgrade para 2 AP",
+      "data_conclusao": "18/06/2026 18:53"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SANTA LUZIA",
+      "inep": "29133017",
+      "municipio": "Ribeira do Amparo",
+      "tecnico": "Everson",
+      "aps_instalados": "4",
+      "rdo": "Instalacao  concluída ",
+      "data_conclusao": "18/06/2026 16:52"
+    },
+    {
+      "escola": "ESCOLA MINERVINO GERONIMO DE SANTANA",
+      "inep": "29049687",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "1",
+      "rdo": "Falta configurar e RE ",
+      "data_conclusao": "18/06/2026 15:05"
+    },
+    {
+      "escola": "ESCOLA CORACAO DE JESUS",
+      "inep": "29049016",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "1",
+      "rdo": "Falta RE",
+      "data_conclusao": "18/06/2026 15:02"
+    },
+    {
+      "escola": "COLEGIO MUNICIPAL ROSALVO LUIZ CELESTINO",
+      "inep": "29048621",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "7",
+      "rdo": "Falta configurar e RE ",
+      "data_conclusao": "18/06/2026 14:59"
+    },
+    {
+      "escola": "ESCOLA SAO FRANCISCO",
+      "inep": "29050790",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps_instalados": "1",
+      "rdo": "Falta configurar e RE",
+      "data_conclusao": "18/06/2026 14:56"
+    }
+  ],
+  "messages": [],
+  "stdout": "escola\tinep\tmunicipio\ttecnico\taps_instalados\trdo\tdata_conclusao\nESCOLA NOSSA SENHORA DE FATIMA\t29049903\tCampo Formoso\tAlex\t1\tEQUIPAMENTOS CONFIGURADO SO FALTA RE\t21/06/2026 13:27\nCOLEGIO MUNICIPAL ROSALINA GOMES DE SOUZA\t29391776\tCampo Formoso\tAlex\t6\tEQUIPAMENTOS CONFIRMADO SO FALTA RE\t21/06/2026 12:59\nESCOLA MUNICIPAL CRISPIM DANTAS DE OLIVEIRA\t29429960\tRibeira do Amparo\tEverson\t5\tInstalação concluída, porém não tem link ativo ainda\t21/06/2026 00:32\nCENTRO DE ATENDIMENTO EDUCACIONAL ESPECIALIZADO\t29471893\tAcajutiba\tRoberto \t6\tConcluído/provedor vim verificar a rede externa sem internet\t20/06/2026 21:24\nESCOLA MUNICIPAL SANTA TEREZA I\t29133025\tRibeira do Amparo\tEverson\t3\tInstalação concluída \t20/06/2026 19:46\nESC MUL TIRADENTES\t29154502\tRio Real\tAdelbrando\t4\tSem rede externa, ouve upgrade para 4 Ap\t20/06/2026 15:37\nESCOLA MUNICIPAL SANTA TEREZA III\t29330238\tRibeira do Amparo\tEverson\t2\tInstalação concluída com o link ativa (19/06/2026), pois não foi fechado no Aniel pois estou aguardando me repassar o mapa de calor para anexa\t20/06/2026 11:39\nCOLEGIO ARMANDO TRAJANO MAIA\t29391741\tCampo Formoso\tAlex\t7\tFalta a RE\t20/06/2026 08:21\nESCOLA MUNICIPAL JOSE PENEDO\t29124255\tTucano\tRicardo \t8\tFinalizado \t20/06/2026 03:16\nESCOLA MUNICIPAL EM TEMPO INTEGRAL PROFESSORA MARIA DE LOURDES DE OLIVEIRA VASCONCELOS\t29448476\tAcajutiba\tRoberto \t7\tConcluído/ provedor conferir rede externa sem internet \t19/06/2026 21:22\nEDUCANDARIO MUNICIPAL JAIRO AZI\t29116660\tCanudos\t Luizinho \t8\tConcluída \t19/06/2026 19:10\nESC EST 1 GRAU DR MURILO CAVALCANTE\t29132789\tRibeira do Amparo\tEverson\t6\tInfraestrutura concluída, fazer o teste na controladora \t19/06/2026 17:12\nNUCLEO DE EDUCACAO ESPECIAL\t29457530\tAraci\tZé Orlando \t6\tSem Simet e configuração \t19/06/2026 13:42\nESCOLA MUNICIPAL CECILIA MEIRELES\t29123291\tTucano\tRicardo \t4\tFinalizada \t19/06/2026 13:34\nESC MUL RUI BARBOSA\t29154413\tRio Real\tAdelbrando\t2\tPendente por falta de rede externa, houve um upgrade para 2 AP\t18/06/2026 18:53\nESCOLA MUNICIPAL SANTA LUZIA\t29133017\tRibeira do Amparo\tEverson\t4\tInstalacao  concluída \t18/06/2026 16:52\nESCOLA MINERVINO GERONIMO DE SANTANA\t29049687\tCampo Formoso\tAlex\t1\tFalta configurar e RE \t18/06/2026 15:05\nESCOLA CORACAO DE JESUS\t29049016\tCampo Formoso\tAlex\t1\tFalta RE\t18/06/2026 15:02\nCOLEGIO MUNICIPAL ROSALVO LUIZ CELESTINO\t29048621\tCampo Formoso\tAlex\t7\tFalta configurar e RE \t18/06/2026 14:59\nESCOLA SAO FRANCISCO\t29050790\tCampo Formoso\tAlex\t1\tFalta configurar e RE\t18/06/2026 14:56\n",
+  "stderr": "",
+  "execution_time_ms": 302
+}

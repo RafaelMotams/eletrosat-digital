@@ -440,3 +440,10 @@
 - [x] Backend: endpoint ordens.editarDataConclusao — atualiza dataConclusao na OS e na escola
 - [x] Frontend: botão "Data" (azul) em OS concluídas na página de Ordens do painel admin
 - [x] Frontend: modal com input datetime-local para selecionar nova data/hora de conclusão
+
+## Login Admin com E-mail e Senha
+- [ ] Tabela adminUsers no banco (id, nome, email, senhaHash, role, createdAt)
+- [ ] Endpoints: loginAdmin, logoutAdmin, meAdmin, criarAdminUser, listarAdminUsers, removerAdminUser
+- [ ] Página /admin/login com formulário de e-mail e senha
+- [ ] Proteção das rotas do painel admin via sessão própria (cookie adminSession)
+- [ ] Tela de gerenciamento de usuários admin no painel (cadastrar, listar, remover)

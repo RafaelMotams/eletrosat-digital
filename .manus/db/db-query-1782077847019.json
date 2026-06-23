@@ -1,0 +1,122 @@
+{
+  "query": "\nSELECT \n  t.nome AS tecnico,\n  COUNT(DISTINCT os.escolaId) AS escolas_concluidas,\n  SUM(e.qtdAp) AS total_ap_planejado,\n  SUM(os.qtdApInstalado) AS total_ap_instalado,\n  SUM(os.qtdApInstalado) - SUM(e.qtdAp) AS diferenca,\n  ROUND((SUM(os.qtdApInstalado) / NULLIF(SUM(e.qtdAp), 0)) * 100, 1) AS pct_instalado\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnicoId\nJOIN escolas e ON e.id = os.escolaId\nWHERE os.status = 'concluida'\nGROUP BY t.id, t.nome\nORDER BY t.nome;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  t.nome AS tecnico,\n  COUNT(DISTINCT os.escolaId) AS escolas_concluidas,\n  SUM(e.qtdAp) AS total_ap_planejado,\n  SUM(os.qtdApInstalado) AS total_ap_instalado,\n  SUM(os.qtdApInstalado) - SUM(e.qtdAp) AS diferenca,\n  ROUND((SUM(os.qtdApInstalado) / NULLIF(SUM(e.qtdAp), 0)) * 100, 1) AS pct_instalado\nFROM ordens_servico os\nJOIN tecnicos t ON t.id = os.tecnicoId\nJOIN escolas e ON e.id = os.escolaId\nWHERE os.status = 'concluida'\nGROUP BY t.id, t.nome\nORDER BY t.nome;\n",
+  "rows": [
+    {
+      "tecnico": " Luizinho ",
+      "escolas_concluidas": "14",
+      "total_ap_planejado": "51",
+      "total_ap_instalado": "55",
+      "diferenca": "4",
+      "pct_instalado": "107.8"
+    },
+    {
+      "tecnico": "Adelbrando",
+      "escolas_concluidas": "2",
+      "total_ap_planejado": "4",
+      "total_ap_instalado": "6",
+      "diferenca": "2",
+      "pct_instalado": "150.0"
+    },
+    {
+      "tecnico": "Alex",
+      "escolas_concluidas": "32",
+      "total_ap_planejado": "115",
+      "total_ap_instalado": "118",
+      "diferenca": "3",
+      "pct_instalado": "102.6"
+    },
+    {
+      "tecnico": "Alexandre ",
+      "escolas_concluidas": "9",
+      "total_ap_planejado": "17",
+      "total_ap_instalado": "19",
+      "diferenca": "2",
+      "pct_instalado": "111.8"
+    },
+    {
+      "tecnico": "Everson",
+      "escolas_concluidas": "13",
+      "total_ap_planejado": "30",
+      "total_ap_instalado": "38",
+      "diferenca": "8",
+      "pct_instalado": "126.7"
+    },
+    {
+      "tecnico": "José Felix ",
+      "escolas_concluidas": "11",
+      "total_ap_planejado": "30",
+      "total_ap_instalado": "30",
+      "diferenca": "0",
+      "pct_instalado": "100.0"
+    },
+    {
+      "tecnico": "Julielson ",
+      "escolas_concluidas": "12",
+      "total_ap_planejado": "27",
+      "total_ap_instalado": "27",
+      "diferenca": "0",
+      "pct_instalado": "100.0"
+    },
+    {
+      "tecnico": "Marcos ",
+      "escolas_concluidas": "16",
+      "total_ap_planejado": "23",
+      "total_ap_instalado": "24",
+      "diferenca": "1",
+      "pct_instalado": "104.3"
+    },
+    {
+      "tecnico": "Matheus",
+      "escolas_concluidas": "24",
+      "total_ap_planejado": "57",
+      "total_ap_instalado": "61",
+      "diferenca": "4",
+      "pct_instalado": "107.0"
+    },
+    {
+      "tecnico": "Ricardo ",
+      "escolas_concluidas": "12",
+      "total_ap_planejado": "76",
+      "total_ap_instalado": "77",
+      "diferenca": "1",
+      "pct_instalado": "101.3"
+    },
+    {
+      "tecnico": "Roberto ",
+      "escolas_concluidas": "31",
+      "total_ap_planejado": "83",
+      "total_ap_instalado": "85",
+      "diferenca": "2",
+      "pct_instalado": "102.4"
+    },
+    {
+      "tecnico": "Rodrigo Mota",
+      "escolas_concluidas": "23",
+      "total_ap_planejado": "92",
+      "total_ap_instalado": "91",
+      "diferenca": "-1",
+      "pct_instalado": "98.9"
+    },
+    {
+      "tecnico": "Victor ",
+      "escolas_concluidas": "26",
+      "total_ap_planejado": "56",
+      "total_ap_instalado": "58",
+      "diferenca": "2",
+      "pct_instalado": "103.6"
+    },
+    {
+      "tecnico": "Zé Orlando ",
+      "escolas_concluidas": "15",
+      "total_ap_planejado": "56",
+      "total_ap_instalado": "40",
+      "diferenca": "-16",
+      "pct_instalado": "71.4"
+    }
+  ],
+  "messages": [],
+  "stdout": "tecnico\tescolas_concluidas\ttotal_ap_planejado\ttotal_ap_instalado\tdiferenca\tpct_instalado\n Luizinho \t14\t51\t55\t4\t107.8\nAdelbrando\t2\t4\t6\t2\t150.0\nAlex\t32\t115\t118\t3\t102.6\nAlexandre \t9\t17\t19\t2\t111.8\nEverson\t13\t30\t38\t8\t126.7\nJosé Felix \t11\t30\t30\t0\t100.0\nJulielson \t12\t27\t27\t0\t100.0\nMarcos \t16\t23\t24\t1\t104.3\nMatheus\t24\t57\t61\t4\t107.0\nRicardo \t12\t76\t77\t1\t101.3\nRoberto \t31\t83\t85\t2\t102.4\nRodrigo Mota\t23\t92\t91\t-1\t98.9\nVictor \t26\t56\t58\t2\t103.6\nZé Orlando \t15\t56\t40\t-16\t71.4\n",
+  "stderr": "",
+  "execution_time_ms": 283
+}

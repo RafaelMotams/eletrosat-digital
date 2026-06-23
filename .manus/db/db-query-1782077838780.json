@@ -1,0 +1,19 @@
+{
+  "query": "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%ap%' OR TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%Ap%' OR TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%AP%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%ap%' OR TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%Ap%' OR TABLE_NAME = 'escolas' AND COLUMN_NAME LIKE '%AP%';",
+  "rows": [
+    {
+      "COLUMN_NAME": "qtdAp"
+    },
+    {
+      "COLUMN_NAME": "apAdicional"
+    },
+    {
+      "COLUMN_NAME": "telefoneWhatsApp"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nqtdAp\napAdicional\ntelefoneWhatsApp\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql2 from "mysql2";
 import {
@@ -246,7 +246,12 @@ export async function listOrdensServico(filters?: {
   const conditions: any[] = [];
   if (filters?.tenantId !== undefined) conditions.push(eq(ordensServico.tenantId, filters.tenantId));
   if (filters?.tecnicoId) conditions.push(eq(ordensServico.tecnicoId, filters.tecnicoId));
-  if (filters?.status) conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida" | "nao_instalada"));
+  if (filters?.status) {
+    conditions.push(eq(ordensServico.status, filters.status as "aberta" | "em_andamento" | "concluida" | "nao_instalada"));
+  } else {
+    // Por padrão, excluir OS com status nao_instalada da listagem geral
+    conditions.push(ne(ordensServico.status, "nao_instalada" as any));
+  }
   if (filters?.dataInicio) {
     conditions.push(
       sql`COALESCE(${ordensServico.dataConclusao}, ${ordensServico.dataAbertura}, ${ordensServico.createdAt}) >= ${filters.dataInicio}` as any
