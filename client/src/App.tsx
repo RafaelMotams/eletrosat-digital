@@ -25,6 +25,7 @@ import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminConfiguracoes from "./pages/admin/Configuracoes";
+import AdminNotaFiscal from "./pages/admin/NotaFiscal";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 
 // Rotas do técnico que devem ser persistidas (exceto login)
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/admin/mapa" component={AdminMapa} />
       <Route path="/admin/planilha" component={AdminPlanilha} />
       <Route path="/admin/configuracoes" component={AdminConfiguracoes} />
+      <Route path="/admin/nota-fiscal" component={AdminNotaFiscal} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />

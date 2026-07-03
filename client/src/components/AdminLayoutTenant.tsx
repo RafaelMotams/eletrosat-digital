@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Bell, Search, Zap, Shield, Settings,
+  Bell, Search, Zap, Shield, Settings, Receipt,
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
@@ -31,6 +31,7 @@ const navGroups = [
       { path: "/admin/relatorios",  label: "Relatórios",        icon: BarChart3,       color: "#fb923c", desc: "Desempenho e metas" },
       { path: "/admin/mapa",        label: "Mapa Interativo",   icon: Map,             color: "#38bdf8", desc: "Visualização geográfica" },
       { path: "/admin/planilha",    label: "Importação",        icon: TableProperties, color: "#818cf8", desc: "Upload de planilhas" },
+      { path: "/admin/nota-fiscal",  label: "Nota Fiscal",       icon: Receipt,         color: "#4ade80", desc: "Faturamento e validação" },
     ],
   },
   {

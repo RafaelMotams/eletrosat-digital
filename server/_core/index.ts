@@ -8,6 +8,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { exportarRelatorioExcel } from "../exportRelatorio";
+import { exportarNotaFiscal, validarPlanilhaEmpresa, uploadMiddleware } from "../exportNotaFiscal";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -86,6 +87,10 @@ async function startServer() {
 
   // Exportação de relatório Excel
   app.get("/api/relatorio/excel", exportarRelatorioExcel);
+
+  // Nota Fiscal — faturamento da empresa
+  app.get("/api/nota-fiscal/excel", exportarNotaFiscal);
+  app.post("/api/nota-fiscal/validar", uploadMiddleware.single("planilha"), validarPlanilhaEmpresa);
 
   // ── tRPC API ─────────────────────────────────────────────────────────────────
   app.use(

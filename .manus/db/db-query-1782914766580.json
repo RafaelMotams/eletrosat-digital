@@ -1,0 +1,210 @@
+{
+  "query": "\nSELECT \n  e.nome as escola,\n  e.inep,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtdApInstalado as aps,\n  COALESCE(os.observacao, '') as observacao,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y %H:%i') as data_conclusao,\n  CASE WHEN os.observacao IS NOT NULL AND TRIM(os.observacao) != '' THEN 'SIM' ELSE 'NÃO' END as tem_obs\nFROM ordens_servico os\nJOIN escolas e ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON os.tecnicoId = t.id\nWHERE os.status = 'concluida'\nORDER BY os.dataConclusao DESC\nLIMIT 20 OFFSET 0\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute \nSELECT \n  e.nome as escola,\n  e.inep,\n  e.municipio,\n  t.nome as tecnico,\n  os.qtdApInstalado as aps,\n  COALESCE(os.observacao, '') as observacao,\n  DATE_FORMAT(os.dataConclusao, '%d/%m/%Y %H:%i') as data_conclusao,\n  CASE WHEN os.observacao IS NOT NULL AND TRIM(os.observacao) != '' THEN 'SIM' ELSE 'NÃO' END as tem_obs\nFROM ordens_servico os\nJOIN escolas e ON os.escolaId = e.id\nLEFT JOIN tecnicos t ON os.tecnicoId = t.id\nWHERE os.status = 'concluida'\nORDER BY os.dataConclusao DESC\nLIMIT 20 OFFSET 0\n",
+  "rows": [
+    {
+      "escola": "ESCOLA MUNICIPAL JOSEFA DOS SANTOS ALVES",
+      "inep": "29154227",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "8",
+      "observacao": "Rdo ok, com link, ouve um upgrade para 8 AP.",
+      "data_conclusao": "01/07/2026 00:05",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL MOISES NUNES DOS SANTOS",
+      "inep": "29023378",
+      "municipio": "Curaçá",
+      "tecnico": "Alex",
+      "aps": "1",
+      "observacao": "EQUIPAMENTOS CONFIGURADO SO FALTA RE ",
+      "data_conclusao": "29/06/2026 18:01",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL LIBERATO FELIX MARTINS",
+      "inep": "29361591",
+      "municipio": "Curaçá",
+      "tecnico": "Alex",
+      "aps": "8",
+      "observacao": "EQUIPAMENTOS CONFIGURADO SO FALTA RE ",
+      "data_conclusao": "29/06/2026 10:05",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL ANTERO HONORIO DOS REIS",
+      "inep": "29117143",
+      "municipio": "Canudos",
+      "tecnico": " Luizinho ",
+      "aps": "7",
+      "observacao": "Concluído ",
+      "data_conclusao": "28/06/2026 11:55",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL NOSSA SENHORA SANTANA",
+      "inep": "29154359",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "4",
+      "observacao": "Rede externa ok, RDO completo.",
+      "data_conclusao": "27/06/2026 16:39",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "CRECHE LAR MENINO JESUS",
+      "inep": "29391660",
+      "municipio": "Campo Formoso",
+      "tecnico": "Alex",
+      "aps": "1",
+      "observacao": "Equipamentos configurado só falta a RE ",
+      "data_conclusao": "26/06/2026 22:38",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESC MUL GETULIO VARGAS",
+      "inep": "29154197",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "2",
+      "observacao": "Tudo ok , RDO completo.",
+      "data_conclusao": "26/06/2026 19:08",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "CENTRO EDUCACIONAL DE MURITY",
+      "inep": "29412030",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "aps": "8",
+      "observacao": "Concluída, Upgrade de 2 APs, RDO baixada sem fotos da ONU.",
+      "data_conclusao": "26/06/2026 15:09",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "CENTRO EDUCACIONAL DE CARNAIBA",
+      "inep": "29117216",
+      "municipio": "Euclides da Cunha",
+      "tecnico": "Julielson ",
+      "aps": "6",
+      "observacao": "Instalação Concluída, Upgrade de 1 AP, fotos tiradas RDO baixada sem fotos da ONU.",
+      "data_conclusao": "26/06/2026 15:05",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL JOSE MARTINS BARBOSA",
+      "inep": "29154456",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "1",
+      "observacao": "Rede ok e instalação ok,.",
+      "data_conclusao": "26/06/2026 13:59",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESC MUL ANA MARIA DA CONCEICAO SOUZA",
+      "inep": "29154065",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "1",
+      "observacao": "Com rede tudo ok, rdo completo ",
+      "data_conclusao": "25/06/2026 18:44",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL PROFESSORA REGINA CARDOSO DE CARVALHO",
+      "inep": "29117046",
+      "municipio": "Canudos",
+      "tecnico": " Luizinho ",
+      "aps": "12",
+      "observacao": "Concluída ",
+      "data_conclusao": "25/06/2026 14:23",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESC MUL PRINCESA ISABEL",
+      "inep": "29154405",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "1",
+      "observacao": "Sem rede externa.",
+      "data_conclusao": "24/06/2026 19:24",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUL COSME E DAMIAO",
+      "inep": "29154537",
+      "municipio": "Rio Real",
+      "tecnico": "Adelbrando",
+      "aps": "1",
+      "observacao": "Sem rede externa ",
+      "data_conclusao": "24/06/2026 19:18",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA TOMAZ DE SOUZA",
+      "inep": "29131871",
+      "municipio": "Olindina",
+      "tecnico": "Roberto ",
+      "aps": "6",
+      "observacao": "Concluído, não tinha rede externa ",
+      "data_conclusao": "24/06/2026 18:12",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA JOAO BARRETO DE VASCONCELOS",
+      "inep": "29131928",
+      "municipio": "Olindina",
+      "tecnico": "Roberto ",
+      "aps": "2",
+      "observacao": "Concluído, falta habilitar simit e provedor ver rede externa sem internet ",
+      "data_conclusao": "24/06/2026 15:30",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA JOAQUIM PRIMO DA FONSECA",
+      "inep": "29131936",
+      "municipio": "Olindina",
+      "tecnico": "Roberto ",
+      "aps": "5",
+      "observacao": "Concluído, não tinha rede externa ",
+      "data_conclusao": "24/06/2026 11:42",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA CASTRO ALVES",
+      "inep": "29131626",
+      "municipio": "Olindina",
+      "tecnico": "Roberto ",
+      "aps": "2",
+      "observacao": "Concluído/mudar rede externa ",
+      "data_conclusao": "24/06/2026 11:41",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "CENTRO MUNICIPAL DE EDUCACAO INFANTIL VALDETE MARIA MARTINS GUEDES",
+      "inep": "29481082",
+      "municipio": "Canudos",
+      "tecnico": " Luizinho ",
+      "aps": "5",
+      "observacao": "Concluído ",
+      "data_conclusao": "23/06/2026 21:32",
+      "tem_obs": "SIM"
+    },
+    {
+      "escola": "ESCOLA MUNICIPAL SAO THIAGO",
+      "inep": "29124077",
+      "municipio": "Tucano",
+      "tecnico": "Ricardo ",
+      "aps": "2",
+      "observacao": "Concluído ",
+      "data_conclusao": "23/06/2026 20:47",
+      "tem_obs": "SIM"
+    }
+  ],
+  "messages": [],
+  "stdout": "escola\tinep\tmunicipio\ttecnico\taps\tobservacao\tdata_conclusao\ttem_obs\nESCOLA MUNICIPAL JOSEFA DOS SANTOS ALVES\t29154227\tRio Real\tAdelbrando\t8\tRdo ok, com link, ouve um upgrade para 8 AP.\t01/07/2026 00:05\tSIM\nESCOLA MUNICIPAL MOISES NUNES DOS SANTOS\t29023378\tCuraçá\tAlex\t1\tEQUIPAMENTOS CONFIGURADO SO FALTA RE \t29/06/2026 18:01\tSIM\nESCOLA MUNICIPAL LIBERATO FELIX MARTINS\t29361591\tCuraçá\tAlex\t8\tEQUIPAMENTOS CONFIGURADO SO FALTA RE \t29/06/2026 10:05\tSIM\nESCOLA MUNICIPAL ANTERO HONORIO DOS REIS\t29117143\tCanudos\t Luizinho \t7\tConcluído \t28/06/2026 11:55\tSIM\nESCOLA MUNICIPAL NOSSA SENHORA SANTANA\t29154359\tRio Real\tAdelbrando\t4\tRede externa ok, RDO completo.\t27/06/2026 16:39\tSIM\nCRECHE LAR MENINO JESUS\t29391660\tCampo Formoso\tAlex\t1\tEquipamentos configurado só falta a RE \t26/06/2026 22:38\tSIM\nESC MUL GETULIO VARGAS\t29154197\tRio Real\tAdelbrando\t2\tTudo ok , RDO completo.\t26/06/2026 19:08\tSIM\nCENTRO EDUCACIONAL DE MURITY\t29412030\tEuclides da Cunha\tJulielson \t8\tConcluída, Upgrade de 2 APs, RDO baixada sem fotos da ONU.\t26/06/2026 15:09\tSIM\nCENTRO EDUCACIONAL DE CARNAIBA\t29117216\tEuclides da Cunha\tJulielson \t6\tInstalação Concluída, Upgrade de 1 AP, fotos tiradas RDO baixada sem fotos da ONU.\t26/06/2026 15:05\tSIM\nESCOLA MUNICIPAL JOSE MARTINS BARBOSA\t29154456\tRio Real\tAdelbrando\t1\tRede ok e instalação ok,.\t26/06/2026 13:59\tSIM\nESC MUL ANA MARIA DA CONCEICAO SOUZA\t29154065\tRio Real\tAdelbrando\t1\tCom rede tudo ok, rdo completo \t25/06/2026 18:44\tSIM\nESCOLA MUNICIPAL PROFESSORA REGINA CARDOSO DE CARVALHO\t29117046\tCanudos\t Luizinho \t12\tConcluída \t25/06/2026 14:23\tSIM\nESC MUL PRINCESA ISABEL\t29154405\tRio Real\tAdelbrando\t1\tSem rede externa.\t24/06/2026 19:24\tSIM\nESCOLA MUL COSME E DAMIAO\t29154537\tRio Real\tAdelbrando\t1\tSem rede externa \t24/06/2026 19:18\tSIM\nESCOLA TOMAZ DE SOUZA\t29131871\tOlindina\tRoberto \t6\tConcluído, não tinha rede externa \t24/06/2026 18:12\tSIM\nESCOLA JOAO BARRETO DE VASCONCELOS\t29131928\tOlindina\tRoberto \t2\tConcluído, falta habilitar simit e provedor ver rede externa sem internet \t24/06/2026 15:30\tSIM\nESCOLA JOAQUIM PRIMO DA FONSECA\t29131936\tOlindina\tRoberto \t5\tConcluído, não tinha rede externa \t24/06/2026 11:42\tSIM\nESCOLA CASTRO ALVES\t29131626\tOlindina\tRoberto \t2\tConcluído/mudar rede externa \t24/06/2026 11:41\tSIM\nCENTRO MUNICIPAL DE EDUCACAO INFANTIL VALDETE MARIA MARTINS GUEDES\t29481082\tCanudos\t Luizinho \t5\tConcluído \t23/06/2026 21:32\tSIM\nESCOLA MUNICIPAL SAO THIAGO\t29124077\tTucano\tRicardo \t2\tConcluído \t23/06/2026 20:47\tSIM\n",
+  "stderr": "",
+  "execution_time_ms": 277
+}

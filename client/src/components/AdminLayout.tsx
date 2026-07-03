@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Activity, Settings,
+  Activity, Settings, Receipt,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { trpc } from "@/lib/trpc";
@@ -21,6 +21,7 @@ const navItems = [
   { path: "/admin/relatorios",    label: "Relatórios",        icon: BarChart3,       accent: "#ec4899" },
   { path: "/admin/mapa",          label: "Mapa",              icon: Map,             accent: "#14b8a6" },
   { path: "/admin/planilha",      label: "Planilha",          icon: TableProperties, accent: "#6366f1" },
+  { path: "/admin/nota-fiscal",   label: "Nota Fiscal",       icon: Receipt,         accent: "#22c55e" },
 ];
 
 interface AdminLayoutProps {
