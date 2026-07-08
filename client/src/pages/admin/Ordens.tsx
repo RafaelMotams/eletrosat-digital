@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   ClipboardList, Plus, Calendar, Image,
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
@@ -256,6 +256,11 @@ export default function AdminOrdens() {
   const [open, setOpen] = useState(false);
   const [escolaSel, setEscolaSel] = useState("");
   const [tecnicoSel, setTecnicoSel] = useState("");
+  const [inepBusca, setInepBusca] = useState("");
+  const [inepResultado, setInepResultado] = useState<{ id: number; nome: string; municipio: string; inep: string } | null>(null);
+  const [inepErro, setInepErro] = useState("");
+  const [inepBuscando, setInepBuscando] = useState(false);
+  const inepDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [statusFilter, setStatusFilter] = useState("todos");
   const [tecnicoFilter, setTecnicoFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
@@ -276,6 +281,7 @@ export default function AdminOrdens() {
       utils.escolas.list.invalidate();
       setOpen(false);
       setEscolaSel(""); setTecnicoSel("");
+      setInepBusca(""); setInepResultado(null); setInepErro("");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -1182,9 +1188,77 @@ export default function AdminOrdens() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Busca por INEP */}
+            <div>
+              <label className="text-sm font-semibold mb-2 block text-foreground">Buscar por INEP</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="Digite o INEP da escola..."
+                  value={inepBusca}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    setInepBusca(val);
+                    setInepErro("");
+                    setInepResultado(null);
+                    if (inepDebounceRef.current) clearTimeout(inepDebounceRef.current);
+                    if (val.length >= 7) {
+                      setInepBuscando(true);
+                      inepDebounceRef.current = setTimeout(async () => {
+                        try {
+                          const res = await fetch(`/api/trpc/escolas.getByInep?input=${encodeURIComponent(JSON.stringify({ json: { inep: val } }))}`, {
+                            headers: { "Content-Type": "application/json" }
+                          });
+                          const data = await res.json();
+                          const escola = data?.result?.data?.json;
+                          if (escola?.id) {
+                            setInepResultado(escola);
+                            setEscolaSel(String(escola.id));
+                            setInepErro("");
+                          } else {
+                            setInepResultado(null);
+                            setEscolaSel("");
+                            setInepErro("Escola não encontrada com este INEP");
+                          }
+                        } catch {
+                          setInepErro("Erro ao buscar escola");
+                        } finally {
+                          setInepBuscando(false);
+                        }
+                      }, 500);
+                    } else {
+                      setInepBuscando(false);
+                      setEscolaSel("");
+                    }
+                  }}
+                />
+                {inepBuscando && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
+                )}
+              </div>
+              {inepResultado && (
+                <div className="mt-2 p-2.5 rounded-xl border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-300">{inepResultado.nome}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{inepResultado.municipio} · INEP {inepResultado.inep}</p>
+                  </div>
+                </div>
+              )}
+              {inepErro && (
+                <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" />{inepErro}</p>
+              )}
+            </div>
+            <div className="relative flex items-center gap-2">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground">ou selecione na lista</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
             <div>
               <label className="text-sm font-semibold mb-2 block text-foreground">Escola</label>
-              <Select value={escolaSel} onValueChange={setEscolaSel}>
+              <Select value={escolaSel} onValueChange={v => { setEscolaSel(v); setInepResultado(null); setInepBusca(""); setInepErro(""); }}>
                 <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Selecione a escola" />
                 </SelectTrigger>
