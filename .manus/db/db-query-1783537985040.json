@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, nome, email, ativo FROM tecnicos WHERE nome LIKE '%Valdinei%' OR nome LIKE '%valdinei%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LpKkF6tPUMj9TDb.ce6539d0368b --database mgcPKMbXVe7rcPq6qpnUme --execute SELECT id, nome, email, ativo FROM tecnicos WHERE nome LIKE '%Valdinei%' OR nome LIKE '%valdinei%';",
+  "rows": [
+    {
+      "id": "1",
+      "nome": "Valdinei",
+      "email": "valdneysom@gmail.com",
+      "ativo": "0"
+    },
+    {
+      "id": "570001",
+      "nome": "Valdinei",
+      "email": "valdineinetvius@gmail.com",
+      "ativo": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tnome\temail\tativo\n1\tValdinei\tvaldneysom@gmail.com\t0\n570001\tValdinei\tvaldineinetvius@gmail.com\t1\n",
+  "stderr": "",
+  "execution_time_ms": 272
+}
