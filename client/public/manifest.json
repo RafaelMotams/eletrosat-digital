@@ -1,7 +1,7 @@
 {
-  "name": "Netvionis - Técnico",
-  "short_name": "Netvionis",
-  "description": "Área do Técnico de Campo - Netvionis",
+  "name": "Netvius - Técnico",
+  "short_name": "Netvius",
+  "description": "Área do Técnico de Campo - Netvius",
   "start_url": "/tecnico",
   "display": "standalone",
   "background_color": "#0d1a35",

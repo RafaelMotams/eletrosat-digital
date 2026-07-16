@@ -100,7 +100,7 @@ export default function AdminLogin() {
               <Wifi size={22} color="white" />
             </div>
             <div>
-              <p style={{ color: "white", fontWeight: 800, fontSize: 22, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
+              <p style={{ color: "white", fontWeight: 800, fontSize: 22, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
               <p style={{ color: "rgba(16,185,129,0.7)", fontSize: 11, fontWeight: 500, marginTop: 3 }}>Plataforma de Gestão</p>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function AdminLogin() {
 
         {/* Footer */}
         <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, position: "relative", zIndex: 10 }}>
-          © {new Date().getFullYear()} Netvionis · Todos os direitos reservados
+          © {new Date().getFullYear()} Netvius · Todos os direitos reservados
         </p>
       </div>
 
@@ -184,7 +184,7 @@ export default function AdminLogin() {
             }}>
               <Wifi size={20} color="white" />
             </div>
-            <p style={{ color: "white", fontWeight: 800, fontSize: 20, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
+            <p style={{ color: "white", fontWeight: 800, fontSize: 20, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
           </div>
 
           {/* Form card */}

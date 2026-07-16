@@ -65,7 +65,7 @@ export default function SuperAdminLogin() {
                   d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Netvionis</h1>
+            <h1 className="text-2xl font-bold text-white mb-1">Netvius</h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>
               Painel de Controle — Revenda
             </p>
@@ -139,7 +139,7 @@ export default function SuperAdminLogin() {
           </form>
 
           <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Netvionis © {new Date().getFullYear()} — Gestão inteligente para equipes externas
+            Netvius © {new Date().getFullYear()} — Gestão inteligente para equipes externas
           </p>
         </div>
       </div>

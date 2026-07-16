@@ -1,4 +1,4 @@
-// Service Worker — Eletrosat Digital / Netvionis
+// Service Worker — Eletrosat Digital / Netvius
 // v7 — localStorage com timestamp para rota de OS (persiste ao abrir câmera/WhatsApp no Android)
 // CORRIGIDO: ao fechar e reabrir o app, vai para o menu (Home) e não para a OS
 // sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
@@ -125,7 +125,7 @@ self.addEventListener('fetch', (event) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netvionis — Offline</title>
+  <title>Netvius — Offline</title>
   <style>
     body { font-family: sans-serif; display: flex; align-items: center; justify-content: center;
            height: 100vh; margin: 0; background: #0a0f1e; color: #e2e8f0;

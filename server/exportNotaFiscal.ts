@@ -6,7 +6,7 @@ export const uploadMiddleware = multer({ storage: multer.memoryStorage(), limits
 import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 import mysql from "mysql2/promise";
 
-// ─── Tabela de valores por AP (empresa → Netvionis) ──────────────────────────
+// ─── Tabela de valores por AP (empresa → Netvius) ──────────────────────────
 export const TABELA_VALORES_EMPRESA: Record<number, number> = {
   1:  1260.00,
   2:  1460.00,
@@ -133,7 +133,7 @@ export async function exportarNotaFiscal(req: Request, res: Response) {
     const concluidas = rows as Array<{ escola: string; inep: string; municipio: string; aps: number | null; dataConclusao: Date | null }>;
 
     const wb = new ExcelJS.Workbook();
-    wb.creator = "Netvionis";
+    wb.creator = "Netvius";
     wb.created = new Date();
 
     const ws = wb.addWorksheet("Nota Fiscal", { properties: { tabColor: { argb: C.verdeMedio } } });

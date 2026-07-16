@@ -54,7 +54,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
               style={{ background: "#10b981" }} />
           </div>
           <div className="flex flex-col items-center gap-2">
-            <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-display)" }}>Netvionis</p>
+            <p className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-display)" }}>Netvius</p>
             <div className="flex gap-1.5">
               {[0, 1, 2].map(i => (
                 <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse-dot"
@@ -139,7 +139,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             <Wifi size={18} color="white" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1.1, fontFamily: "var(--font-display)" }}>Netvionis</p>
+            <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1.1, fontFamily: "var(--font-display)" }}>Netvius</p>
             <p style={{ color: "rgba(16,185,129,0.6)", fontSize: 10, fontWeight: 500, marginTop: 2 }}>Gestão inteligente</p>
           </div>
           <button

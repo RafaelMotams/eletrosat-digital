@@ -1,5 +1,5 @@
 /**
- * useOfflineDB — IndexedDB para modo offline completo do app Netvionis
+ * useOfflineDB — IndexedDB para modo offline completo do app Netvius
  *
  * Stores:
  *  - "escolas"     : cache das escolas do técnico (lista + detalhes)

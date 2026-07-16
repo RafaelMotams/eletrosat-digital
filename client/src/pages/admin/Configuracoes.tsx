@@ -204,7 +204,7 @@ export default function AdminConfiguracoes() {
         <SectionCard title="Sobre o Sistema" icon={Wifi} color="oklch(0.40 0.18 162)">
           <div className="space-y-3">
             {[
-              { label: "Plataforma", value: "Netvionis — Gestão de Instalação Wi-Fi" },
+              { label: "Plataforma", value: "Netvius — Gestão de Instalação Wi-Fi" },
               { label: "Versão", value: "2.0.0 Enterprise" },
               { label: "Suporte", value: "suporte@netvionis.com.br" },
               { label: "Segurança", value: "Dados criptografados com JWT + bcrypt" },

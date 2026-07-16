@@ -100,7 +100,7 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
   if (!isAuthenticated) return null;
 
   const initials = admin?.nome?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() ?? 'A';
-  const tenantName = (admin as any)?.tenant?.nome ?? admin?.nome ?? "Netvionis";
+  const tenantName = (admin as any)?.tenant?.nome ?? admin?.nome ?? "Netvius";
   const planoBadge = (admin as any)?.tenant?.plano ?? "pro";
 
   const allNavItems = navGroups.flatMap(g => g.items);
@@ -119,7 +119,7 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm leading-tight truncate">Netvionis</p>
+              <p className="text-white font-bold text-sm leading-tight truncate">Netvius</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: "oklch(0.50 0.18 162)" }} />
                 <p className="text-xs truncate" style={{ color: "oklch(0.60 0.04 240)" }}>{tenantName}</p>

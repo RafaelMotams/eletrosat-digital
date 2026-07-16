@@ -93,12 +93,12 @@ function WelcomeModal({ nome, onClose }: { nome: string; onClose: () => void }) 
         style={{ background: "linear-gradient(160deg, #0d1a35, #0a1225)", border: "1px solid rgba(59,130,246,0.2)", boxShadow: "0 32px 80px rgba(0,0,0,0.6)" }}>
         <div className="w-16 h-16 rounded-2xl mx-auto mb-4 overflow-hidden"
           style={{ boxShadow: "0 8px 32px rgba(59,130,246,0.3)" }}>
-          <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
+          <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
         </div>
         <div className="text-2xl mb-2">👋</div>
         <h2 className="text-xl font-black text-white mb-2">Bem-vindo, {nome.split(" ")[0]}!</h2>
         <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-          Você está na <span className="text-blue-400 font-semibold">Área do Técnico Netvionis</span>. Aqui você gerencia suas ordens de serviço, registra instalações e acompanha seu progresso.
+          Você está na <span className="text-blue-400 font-semibold">Área do Técnico Netvius</span>. Aqui você gerencia suas ordens de serviço, registra instalações e acompanha seu progresso.
         </p>
         <button onClick={onClose}
           className="w-full py-3.5 rounded-2xl font-bold text-white text-sm transition-all active:scale-95"
@@ -329,7 +329,7 @@ export default function TecnicoHome() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
               style={{ boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}>
-              <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
+              <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>{saudacao}</p>

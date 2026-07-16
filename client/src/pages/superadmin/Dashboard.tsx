@@ -195,7 +195,7 @@ export default function SuperAdminDashboard() {
             <Shield size={18} color="white" />
           </div>
           <div>
-            <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
+            <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
             <p style={{ color: "rgba(102,126,234,0.8)", fontSize: 11, marginTop: 2 }}>Painel de Revenda</p>
           </div>
         </div>

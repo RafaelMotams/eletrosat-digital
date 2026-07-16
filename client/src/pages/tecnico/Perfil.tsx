@@ -243,7 +243,7 @@ export default function TecnicoPerfil() {
 
         {/* Version */}
         <p className="text-center text-xs mt-4 pb-2" style={{ color: "rgba(100,116,139,0.3)" }}>
-          Netvionis Técnico v5.0 · {new Date().getFullYear()}
+          Netvius Técnico v5.0 · {new Date().getFullYear()}
         </p>
       </div>
 

@@ -76,7 +76,7 @@ function LogoRings({ size = 96 }: { size?: number }) {
           width: size, height: size,
           boxShadow: "0 0 40px rgba(59,130,246,0.5), 0 0 80px rgba(99,102,241,0.2), 0 0 0 1px rgba(255,255,255,0.1)",
         }}>
-        <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvionis" className="w-full h-full object-cover" />
+        <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
       </div>
     </div>
   );
@@ -118,7 +118,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         {/* Brand name */}
         <div className="mt-6 text-center"
           style={{ opacity: phase >= 1 ? 1 : 0, transform: phase >= 1 ? "translateY(0)" : "translateY(16px)", transition: "all 0.5s ease 0.1s" }}>
-          <h1 className="text-3xl font-black text-white tracking-tight" style={{ letterSpacing: "-0.02em" }}>Netvionis</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight" style={{ letterSpacing: "-0.02em" }}>Netvius</h1>
           <div className="flex items-center justify-center gap-2 mt-2">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
             <p className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.7)" }}>Área do Técnico de Campo</p>
@@ -277,7 +277,7 @@ export default function TecnicoLogin() {
           style={{ animation: "fade-in-up 0.6s ease forwards" }}>
           <LogoRings size={72} />
           <div className="mt-5 text-center">
-            <h1 className="text-2xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Netvionis</h1>
+            <h1 className="text-2xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Netvius</h1>
             <div className="flex items-center justify-center gap-1.5 mt-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>Sistema Operacional</span>
@@ -377,7 +377,7 @@ export default function TecnicoLogin() {
         {/* Bottom: footer */}
         <div className="text-center" style={{ animation: "fade-in-up 0.7s ease 0.3s both" }}>
           <p className="text-xs" style={{ color: "rgba(148,163,184,0.25)" }}>
-            Netvionis Tecnologia © {new Date().getFullYear()} · v5.0
+            Netvius Tecnologia © {new Date().getFullYear()} · v5.0
           </p>
         </div>
       </div>

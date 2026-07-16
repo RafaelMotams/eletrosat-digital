@@ -142,7 +142,7 @@ export default function Home() {
               <Wifi size={20} color="white" />
             </div>
             <div>
-              <p style={{ color: "white", fontWeight: 800, fontSize: 18, lineHeight: 1.1, fontFamily: "'Outfit', sans-serif" }}>Netvionis</p>
+              <p style={{ color: "white", fontWeight: 800, fontSize: 18, lineHeight: 1.1, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
               <p style={{ color: "rgba(16,185,129,0.8)", fontSize: 10, fontWeight: 500 }}>Gestão inteligente</p>
             </div>
           </div>
@@ -560,7 +560,7 @@ export default function Home() {
             <Wifi size={14} color="white" />
           </div>
           <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 500 }}>
-            Netvionis © {new Date().getFullYear()}
+            Netvius © {new Date().getFullYear()}
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

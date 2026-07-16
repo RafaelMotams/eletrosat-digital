@@ -100,7 +100,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const tecnicosOrdenados = Object.keys(porTecnico).sort();
 
     const wb = new ExcelJS.Workbook();
-    wb.creator = "Netvionis";
+    wb.creator = "Netvius";
     wb.created = new Date();
 
     // ═══════════════════════════════════════════════════════════════════════════

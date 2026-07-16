@@ -91,7 +91,7 @@ async function getOrCreateFolder(name: string, parentId: string, token: string):
 
 /**
  * Faz upload de uma foto para o Google Drive usando multipart upload
- * Estrutura: Netvionis Fotos / Técnico Nome / Escola Nome - Data / foto.jpg
+ * Estrutura: Netvius Fotos / Técnico Nome / Escola Nome - Data / foto.jpg
  */
 export async function uploadFotoParaDrive(params: {
   tecnicoNome: string;
@@ -128,7 +128,7 @@ export async function uploadFotoParaDrive(params: {
   // Upload multipart
   const fileName = `foto_${String(fotoIndex).padStart(2, "0")}_${tecnicoNome.split(" ")[0]}.${ext}`;
   const metadata = JSON.stringify({ name: fileName, parents: [escolaFolderId] });
-  const boundary = "-------NetvionisUploadBoundary";
+  const boundary = "-------NetviusUploadBoundary";
 
   const metaPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`;
   const filePart = `--${boundary}\r\nContent-Type: ${contentType}\r\n\r\n`;
