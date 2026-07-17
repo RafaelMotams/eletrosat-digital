@@ -311,6 +311,80 @@ const escolasRouter = router({
       const total = await deleteAllEscolasByTenant(tenantId);
       return { success: true, total };
     }),
+
+  toggleAtivo: tenantAdminProcedure
+    .input(z.object({ id: z.number(), ativo: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const tenantId = (ctx as any).tenantId;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const escola = await getEscolaById(input.id);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      if (tenantId !== undefined && escola.tenantId !== tenantId) throw new TRPCError({ code: "FORBIDDEN" });
+      await db.update(escolas).set({ ativo: input.ativo }).where(eq(escolas.id, input.id));
+      return { success: true };
+    }),
+});
+
+// === PLANILHAS IMPORTADAS ROUTER ===
+const planilhasImportadasRouter = router({
+  listar: tenantAdminProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+    const { planilhasImportadas } = await import("../drizzle/schema");
+    const tenantId = (ctx as any).tenantId ?? 1;
+    return db.select().from(planilhasImportadas)
+      .where(eq(planilhasImportadas.tenantId, tenantId))
+      .orderBy(planilhasImportadas.createdAt);
+  }),
+
+  registrar: tenantAdminProcedure
+    .input(z.object({
+      nome: z.string(),
+      fileKey: z.string(),
+      fileUrl: z.string(),
+      totalEscolas: z.number().optional(),
+      descricao: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { planilhasImportadas } = await import("../drizzle/schema");
+      const tenantId = (ctx as any).tenantId ?? 1;
+      await db.insert(planilhasImportadas).values({
+        tenantId,
+        nome: input.nome,
+        fileKey: input.fileKey,
+        fileUrl: input.fileUrl,
+        totalEscolas: input.totalEscolas ?? 0,
+        ativa: true,
+        descricao: input.descricao,
+      });
+      return { success: true };
+    }),
+
+  toggleAtiva: tenantAdminProcedure
+    .input(z.object({ id: z.number(), ativa: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { planilhasImportadas } = await import("../drizzle/schema");
+      const tenantId = (ctx as any).tenantId ?? 1;
+      await db.update(planilhasImportadas)
+        .set({ ativa: input.ativa })
+        .where(eq(planilhasImportadas.id, input.id));
+      return { success: true };
+    }),
+
+  apagar: tenantAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
+      const { planilhasImportadas } = await import("../drizzle/schema");
+      await db.delete(planilhasImportadas).where(eq(planilhasImportadas.id, input.id));
+      return { success: true };
+    }),
 });
 
 // === ATRIBUIÇÕES ROUTER ===
@@ -1082,6 +1156,7 @@ export const appRouter = router({
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
   planilha: planilhaRouter,
+  planilhasImportadas: planilhasImportadasRouter,
   superadmin: superadminRouter,
   tenantAdmin: tenantAdminSelfRouter,
 });

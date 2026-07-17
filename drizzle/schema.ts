@@ -109,6 +109,7 @@ export const escolas = mysqlTable("escolas", {
   tecnicoId: int("tecnicoId"),
   dataAtribuicao: timestamp("dataAtribuicao"),
   dataConclusao: timestamp("dataConclusao"),
+  ativo: boolean("ativo").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -188,3 +189,19 @@ export const tecnicoValoresAp = mysqlTable("tecnico_valores_ap", {
 });
 export type TecnicoValorAp = typeof tecnicoValoresAp.$inferSelect;
 export type InsertTecnicoValorAp = typeof tecnicoValoresAp.$inferInsert;
+
+// Tabela de Planilhas Importadas (histórico de uploads de planilhas de escolas)
+export const planilhasImportadas = mysqlTable("planilhas_importadas", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().default(1),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  totalEscolas: int("totalEscolas").default(0),
+  ativa: boolean("ativa").default(true).notNull(),
+  descricao: text("descricao"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PlanilhaImportada = typeof planilhasImportadas.$inferSelect;
+export type InsertPlanilhaImportada = typeof planilhasImportadas.$inferInsert;

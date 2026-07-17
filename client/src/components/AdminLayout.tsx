@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Activity, Settings, Receipt,
+  Activity, Settings, Receipt, FolderOpen,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { trpc } from "@/lib/trpc";
@@ -15,7 +15,8 @@ import { toast } from "sonner";
 const navItems = [
   { path: "/admin",               label: "Dashboard",         icon: LayoutDashboard, accent: "#3b82f6" },
   { path: "/admin/tecnicos",      label: "Técnicos",          icon: Users,           accent: "#a855f7" },
-  { path: "/admin/escolas",       label: "Escolas",           icon: School,          accent: "#10b981" },
+  { path: "/admin/escolas",            label: "Escolas",              icon: School,          accent: "#10b981" },
+  { path: "/admin/gerenciar-escolas",  label: "Ger. Planilhas",       icon: FolderOpen,      accent: "#06b6d4" },
   { path: "/admin/atribuicoes",   label: "Atribuições",       icon: GitBranch,       accent: "#f59e0b" },
   { path: "/admin/ordens",        label: "Ordens de Serviço", icon: ClipboardList,   accent: "#06b6d4" },
   { path: "/admin/relatorios",    label: "Relatórios",        icon: BarChart3,       accent: "#ec4899" },
