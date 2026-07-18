@@ -28,6 +28,8 @@ import AdminConfiguracoes from "./pages/admin/Configuracoes";
 import AdminNotaFiscal from "./pages/admin/NotaFiscal";
 import AdminGerenciarEscolas from "./pages/admin/GerenciarEscolas";
 import AdminConfiguracaoIA from "./pages/admin/ConfiguracaoIA";
+import AdminManutencao from "./pages/admin/Manutencao";
+import TecnicoManutencao from "./pages/tecnico/Manutencao";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 
 // Rotas do técnico que devem ser persistidas (exceto login)
@@ -113,6 +115,7 @@ function Router() {
       <Route path="/admin/nota-fiscal" component={AdminNotaFiscal} />
       <Route path="/admin/gerenciar-escolas" component={AdminGerenciarEscolas} />
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
+      <Route path="/admin/manutencao" component={AdminManutencao} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />
@@ -125,6 +128,8 @@ function Router() {
       <Route path="/tecnico/perfil" component={TecnicoPerfil} />
       <Route path="/tecnico/historico" component={TecnicoHistorico} />
       <Route path="/tecnico/rota" component={TecnicoRotaDia} />
+      <Route path="/tecnico/manutencao" component={TecnicoManutencao} />
+      <Route path="/tecnico/manutencao/:id" component={TecnicoManutencao} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -1,12 +1,13 @@
 import { useLocation } from "wouter";
-import { Home, Map, ClipboardCheck, User, Route } from "lucide-react";
+import { Home, Map, ClipboardCheck, User, Route, Wrench } from "lucide-react";
 
 const tabs = [
   { path: "/tecnico",           icon: Home,           label: "Início",    color: "#3b82f6", glow: "rgba(59,130,246,0.35)",  grad: "linear-gradient(135deg,#1d4ed8,#3b82f6)" },
   { path: "/tecnico/mapa",      icon: Map,            label: "Mapa",      color: "#06b6d4", glow: "rgba(6,182,212,0.35)",   grad: "linear-gradient(135deg,#0e7490,#06b6d4)" },
   { path: "/tecnico/rota",      icon: Route,          label: "Rota",      color: "#8b5cf6", glow: "rgba(139,92,246,0.35)",  grad: "linear-gradient(135deg,#6d28d9,#8b5cf6)" },
-  { path: "/tecnico/historico", icon: ClipboardCheck, label: "Histórico", color: "#10b981", glow: "rgba(16,185,129,0.35)",  grad: "linear-gradient(135deg,#047857,#10b981)" },
-  { path: "/tecnico/perfil",    icon: User,           label: "Perfil",    color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  grad: "linear-gradient(135deg,#b45309,#f59e0b)" },
+  { path: "/tecnico/historico",   icon: ClipboardCheck, label: "Histórico",   color: "#10b981", glow: "rgba(16,185,129,0.35)",  grad: "linear-gradient(135deg,#047857,#10b981)" },
+  { path: "/tecnico/manutencao",   icon: Wrench,         label: "Manutenção",  color: "#f97316", glow: "rgba(249,115,22,0.35)",  grad: "linear-gradient(135deg,#c2410c,#f97316)" },
+  { path: "/tecnico/perfil",       icon: User,           label: "Perfil",      color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  grad: "linear-gradient(135deg,#b45309,#f59e0b)" },
 ];
 
 export default function TecnicoBottomNav() {

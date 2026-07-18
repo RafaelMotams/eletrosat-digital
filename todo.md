@@ -487,3 +487,15 @@
 - [x] Tela TrialExpirado.tsx com CTA para WhatsApp e botão de voltar ao login
 - [x] AdminLayoutTenant verifica status do tenant e exibe tela de bloqueio se expirado/suspenso/cancelado
 - [x] Novos clientes criados com status "trial" automaticamente
+
+## Módulo Manutenção + Separação Superadmin/Revenda (18/07/2026)
+- [x] Página /admin/manutencao no painel revenda: criar OS com escola/motivo/técnico
+- [x] Painel revenda: buscar escolas do tenant ao selecionar (traz todas as informações)
+- [x] Painel revenda: ao atribuir técnico, manutenção aparece no app do técnico imediatamente
+- [x] App técnico: tela /tecnico/manutencao com lista de manutenções atribuídas
+- [x] App técnico: detalhe da manutenção com escola, motivo, fotos antes/depois, concluir
+- [x] App técnico: ao concluir, OS sai automaticamente da lista
+- [x] Site inicial: link "Painel Admin" → /admin/login (revenda) — já estava correto
+- [x] Site inicial: link "Área Master" → /superadmin/login (superadmin) — já estava correto
+- [x] AdminLayoutTenant: item "Manutenção" adicionado ao menu lateral
+- [x] App técnico: aba "Manutenção" adicionada ao bottom nav (ícone Wrench laranja)
