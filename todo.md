@@ -442,8 +442,13 @@
 - [x] Frontend: modal com input datetime-local para selecionar nova data/hora de conclusão
 
 ## Login Admin com E-mail e Senha
-- [ ] Tabela adminUsers no banco (id, nome, email, senhaHash, role, createdAt)
-- [ ] Endpoints: loginAdmin, logoutAdmin, meAdmin, criarAdminUser, listarAdminUsers, removerAdminUser
-- [ ] Página /admin/login com formulário de e-mail e senha
-- [ ] Proteção das rotas do painel admin via sessão própria (cookie adminSession)
-- [ ] Tela de gerenciamento de usuários admin no painel (cadastrar, listar, remover)
+- [x] Tabela adminUsers no banco — usa tenant_admins com tenantId=0 para superadmin
+- [x] Endpoints: loginAdmin, logoutAdmin, meAdmin, criarAdminUser, listarAdminUsers, removerAdminUser — via superadmin router
+- [x] Página /admin/login com formulário de e-mail e senha (sem OAuth Manus)
+- [x] Proteção das rotas do painel admin via JWT token no localStorage
+- [x] Tela de gerenciamento de usuários admin no painel — via superadmin dashboard
+
+## Superadmin Rafael Mota (18/07/2026)
+- [x] Superadmin criado no banco: rafaelmotams0907@gmail.com / sat2020ms (tenantId=0)
+- [x] Login independente do Manus OAuth via /superadmin/login
+- [x] Painel Superadmin redesenhado: sidebar, dashboard, lista de clientes com filtros, criar cliente, gerenciar admins
