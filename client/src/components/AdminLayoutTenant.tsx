@@ -110,8 +110,15 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
   const initials = admin?.nome?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() ?? 'A';
   const tenantName = (admin as any)?.tenant?.nome ?? admin?.nome ?? "Netvius";
   const planoBadge = (admin as any)?.tenant?.plano ?? "pro";
+  const isViewer = admin?.role === 'viewer';
 
-  const allNavItems = navGroups.flatMap(g => g.items);
+  // Viewer não vê Nota Fiscal (contém valores financeiros)
+  const visibleNavGroups = navGroups.map(g => ({
+    ...g,
+    items: g.items.filter(item => !(isViewer && item.path === '/admin/nota-fiscal'))
+  })).filter(g => g.items.length > 0);
+
+  const allNavItems = visibleNavGroups.flatMap(g => g.items);
   const filteredItems = searchQuery
     ? allNavItems.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase()) || i.desc.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
@@ -158,7 +165,7 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
       )}
 
       <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
-        {navGroups.map(group => (
+        {visibleNavGroups.map(group => (
           <div key={group.label}>
             {!collapsed && (
               <p className="px-3 mb-1.5 text-xs font-semibold uppercase tracking-widest"
@@ -237,7 +244,12 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{admin?.nome ?? "Admin"}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-white truncate">{admin?.nome ?? "Admin"}</p>
+                  {isViewer && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: "oklch(0.30 0.12 280 / 0.5)", color: "#c4b5fd", fontSize: "10px" }}>Visualizador</span>
+                  )}
+                </div>
                 <p className="text-xs truncate" style={{ color: "oklch(0.50 0.04 240)" }}>{admin?.email ?? ""}</p>
               </div>
               <button onClick={logout}

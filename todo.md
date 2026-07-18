@@ -499,3 +499,12 @@
 - [x] Site inicial: link "Área Master" → /superadmin/login (superadmin) — já estava correto
 - [x] AdminLayoutTenant: item "Manutenção" adicionado ao menu lateral
 - [x] App técnico: aba "Manutenção" adicionada ao bottom nav (ícone Wrench laranja)
+
+## Usuário Visualizador Executivo (18/07/2026)
+- [x] Role "viewer" já existia no enum do schema tenant_admins
+- [x] Usuário bitnet@gmail.com / bitneteace criado com role viewer no tenant 1
+- [x] Frontend: isViewer detectado via useTenantAuth().admin.role
+- [x] Frontend: menu lateral oculta "Nota Fiscal" para viewers (sem valores financeiros)
+- [x] Frontend: badge "Visualizador" exibido no perfil do usuário na sidebar
+- [x] Frontend: banner executivo premium no Dashboard (Painel Executivo — Ao Vivo)
+- [x] Frontend: KPIs de Total de Unidades, Concluídas e % Progresso no banner executivo

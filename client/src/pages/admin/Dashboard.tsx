@@ -1,7 +1,8 @@
 import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff } from "lucide-react";
+import { useTenantAuth } from "@/hooks/useTenantAuth";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -56,6 +57,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function AdminDashboard() {
+  const { admin } = useTenantAuth();
+  const isViewer = admin?.role === 'viewer';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
@@ -105,6 +108,38 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayoutAuto title="Dashboard">
+      {/* ── Banner Executivo para Viewer ── */}
+      {isViewer && (
+        <div className="mb-6 rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.12 0.08 280), oklch(0.16 0.06 240))", border: "1px solid oklch(0.28 0.10 280)" }}>
+          <div className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, oklch(0.40 0.20 280), oklch(0.50 0.22 280))", boxShadow: "0 0 24px oklch(0.50 0.20 280 / 0.4)" }}>
+              <Eye className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>Painel Executivo — Visualização em Tempo Real</p>
+              <p className="text-sm mt-0.5" style={{ color: "oklch(0.65 0.06 280)" }}>Bem-vindo, <span className="font-semibold text-white">{admin?.nome}</span>. Você está acompanhando todas as instalações ao vivo.</p>
+            </div>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "oklch(0.50 0.20 162 / 0.2)", border: "1px solid oklch(0.50 0.18 162 / 0.4)" }}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "oklch(0.55 0.20 162)" }} />
+              <span className="text-xs font-semibold" style={{ color: "oklch(0.55 0.20 162)" }}>AO VIVO</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-white/10" style={{ borderTop: "1px solid oklch(0.22 0.08 280)" }}>
+            <div className="p-4 text-center">
+              <p className="text-2xl font-black text-white">{stats?.totalEscolas ?? 0}</p>
+              <p className="text-xs mt-0.5" style={{ color: "oklch(0.55 0.06 280)" }}>Total de Unidades</p>
+            </div>
+            <div className="p-4 text-center">
+              <p className="text-2xl font-black" style={{ color: "oklch(0.55 0.20 162)" }}>{stats?.concluidas ?? 0}</p>
+              <p className="text-xs mt-0.5" style={{ color: "oklch(0.55 0.06 280)" }}>Concluídas</p>
+            </div>
+            <div className="p-4 text-center">
+              <p className="text-2xl font-black" style={{ color: "oklch(0.60 0.16 75)" }}>{pct}%</p>
+              <p className="text-xs mt-0.5" style={{ color: "oklch(0.55 0.06 280)" }}>Progresso Geral</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── Barra de status sync ── */}
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
