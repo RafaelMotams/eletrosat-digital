@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   Wifi, BarChart3, MapPin, Smartphone, CheckCircle, ArrowRight,
   Zap, Users, FileText, Shield, Star, MessageCircle, Download,
-  ChevronDown, TrendingUp, Globe, Lock, Menu, X
+  ChevronDown, TrendingUp, Globe, Lock, Menu, X, Clock, Camera,
+  Bolt, Target, Award, Building2
 } from "lucide-react";
 
-/* ── Animated counter ─────────────────────────────────────────────────────── */
 function Counter({ to, suffix = "", prefix = "" }: { to: number; suffix?: string; prefix?: string }) {
   const [val, setVal] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -40,58 +40,70 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const whatsappLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Tenho%20interesse%20no%20sistema%20Netvius.";
+  const whatsappLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Tenho%20interesse%20no%20sistema%20Netvius.%20Gostaria%20de%20uma%20demonstra%C3%A7%C3%A3o.";
+  const apkLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Gostaria%20de%20baixar%20o%20app%20Netvius%20para%20t%C3%A9cnicos.";
 
   const features = [
     {
-      icon: Zap,
-      title: "IA que adapta ao seu negócio",
-      desc: "Descreva sua empresa e a IA configura terminologia, campos e fluxo automaticamente para o seu segmento.",
+      icon: BarChart3,
+      title: "Painel em tempo real",
+      desc: "Veja o progresso de toda a sua operação em um único painel. KPIs, produtividade e status atualizados ao vivo.",
       gradient: "linear-gradient(135deg, #00f5a0, #00d9f5)",
     },
     {
       icon: Smartphone,
       title: "App Android para técnicos",
-      desc: "Seus profissionais recebem OS, registram fotos, observações e concluem tudo pelo celular — online ou offline.",
+      desc: "Seus profissionais recebem ordens de serviço, registram fotos e concluem atendimentos pelo celular — online ou offline.",
       gradient: "linear-gradient(135deg, #a78bfa, #7c3aed)",
     },
     {
       icon: MapPin,
-      title: "Roteamento inteligente",
-      desc: "Atribua técnicos por cidade, região ou local específico. O sistema organiza a rota mais eficiente.",
+      title: "Mapa e roteamento",
+      desc: "Visualize todos os pontos de atendimento no mapa com status colorido. Atribua técnicos por cidade ou região.",
       gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
+    },
+    {
+      icon: Camera,
+      title: "Fotos e evidências",
+      desc: "Registro fotográfico obrigatório antes e depois de cada serviço. Tudo salvo automaticamente no Google Drive.",
+      gradient: "linear-gradient(135deg, #60a5fa, #3b82f6)",
     },
     {
       icon: FileText,
       title: "Relatórios automáticos",
       desc: "Gere planilhas Excel e PDFs profissionais com histórico completo de serviços, fotos e dados em segundos.",
-      gradient: "linear-gradient(135deg, #60a5fa, #3b82f6)",
-    },
-    {
-      icon: Users,
-      title: "Gestão completa da equipe",
-      desc: "Atribuição automática por cidade ou manual por local. Controle de produtividade e valores por serviço.",
       gradient: "linear-gradient(135deg, #34d399, #10b981)",
     },
     {
       icon: Shield,
-      title: "Multi-empresa 100% isolado",
-      desc: "Cada cliente tem sua base de dados completamente separada. Segurança total, sem interferência.",
+      title: "Multi-empresa seguro",
+      desc: "Cada cliente tem sua base de dados 100% isolada. Revenda para dezenas de empresas sem nenhuma interferência.",
       gradient: "linear-gradient(135deg, #f472b6, #ec4899)",
     },
   ];
 
   const steps = [
-    { num: "01", title: "Descreva seu negócio", desc: "Informe o tipo de serviço que você presta. A IA configura o sistema automaticamente para o seu segmento." },
-    { num: "02", title: "Cadastre sua equipe", desc: "Adicione seus técnicos, defina cidades e regiões. Eles recebem acesso ao app Android imediatamente." },
-    { num: "03", title: "Importe seus pontos de atendimento", desc: "Suba uma planilha com seus clientes ou locais. O sistema organiza e distribui automaticamente." },
-    { num: "04", title: "Gerencie em tempo real", desc: "Acompanhe o progresso, receba fotos, gere relatórios e controle tudo pelo painel web." },
+    { num: "01", icon: Building2, title: "Cadastre sua empresa", desc: "Configure o sistema para o seu tipo de negócio. Telecom, energia solar, segurança, climatização e muito mais." },
+    { num: "02", icon: Users, title: "Adicione sua equipe", desc: "Cadastre seus técnicos, defina cidades e regiões. Eles recebem acesso ao app Android imediatamente." },
+    { num: "03", icon: FileText, title: "Importe seus clientes", desc: "Suba uma planilha com seus pontos de atendimento. O sistema organiza e distribui automaticamente." },
+    { num: "04", icon: BarChart3, title: "Controle tudo em tempo real", desc: "Acompanhe o progresso, receba fotos, gere relatórios e tome decisões com dados precisos." },
   ];
 
   const testimonials = [
-    { name: "Marcos Oliveira", role: "Gestor de TI — Telecom, Bahia", text: "Antes levávamos semanas para saber quantas instalações estavam concluídas. Com a Netvius, vejo em tempo real.", stars: 5 },
-    { name: "Ana Paula Costa", role: "Coordenadora de Projetos — Energia Solar", text: "O app do técnico é incrível. Funciona offline, tira foto, registra observação. Nossa equipe adorou.", stars: 5 },
-    { name: "Roberto Mendes", role: "Revendedor Netvius — 12 clientes", text: "Vendo o sistema para empresas de segmentos diferentes. Cada uma com seus dados isolados. Nunca tive problema.", stars: 5 },
+    { name: "Marcos Oliveira", role: "Gestor de TI — Telecom, Bahia", text: "Antes levávamos semanas para saber quantas instalações estavam concluídas. Com a Netvius, vejo tudo em tempo real.", stars: 5 },
+    { name: "Ana Paula Costa", role: "Coordenadora de Projetos — Energia Solar", text: "O app do técnico é incrível. Funciona offline, tira foto, registra tudo. Nossa equipe ganhou muito em produtividade.", stars: 5 },
+    { name: "Roberto Mendes", role: "Revendedor Netvius — 12 clientes ativos", text: "Revendo o sistema para empresas de segmentos diferentes. Cada uma com seus dados isolados. Nunca tive problema.", stars: 5 },
+  ];
+
+  const segmentos = [
+    { icon: "📡", label: "Telecom" },
+    { icon: "☀️", label: "Energia Solar" },
+    { icon: "📷", label: "Segurança" },
+    { icon: "❄️", label: "Climatização" },
+    { icon: "🏫", label: "Educação" },
+    { icon: "🔧", label: "Manutenção" },
+    { icon: "🏗️", label: "Construção" },
+    { icon: "🏥", label: "Saúde" },
   ];
 
   return (
@@ -164,7 +176,7 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background */}
+        {/* Background grid */}
         <div className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
@@ -178,33 +190,40 @@ export default function Home() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
             style={{ background: "rgba(0,245,160,0.08)", border: "1px solid rgba(0,245,160,0.2)" }}>
-            <span className="w-2 h-2 rounded-full" style={{ background: "#00f5a0", animation: "pulse 2s infinite" }} />
+            <span className="w-2 h-2 rounded-full" style={{ background: "#00f5a0", boxShadow: "0 0 8px #00f5a0" }} />
             <span className="text-xs font-semibold" style={{ color: "#00f5a0" }}>
-Plataforma com IA · Qualquer segmento · Qualquer escala
+              Sistema online · Sincronização em tempo real
             </span>
           </div>
 
           {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 tracking-tight">
-            Gerencie sua equipe<br />
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 tracking-tight">
+            Sua equipe de campo<br />
             <span style={{
               background: "linear-gradient(135deg, #00f5a0 0%, #00d9f5 50%, #a78bfa 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}>
-              de campo com IA
-            </span><br />
-            para qualquer negócio
+              no controle total
+            </span>
           </h1>
 
-          {/* Subheadline — copy de vendas */}
-          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
-            style={{ color: "rgba(255,255,255,0.5)" }}>
-            A plataforma que transforma o caos dos serviços técnicos em{" "}
-            <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>controle absoluto</strong>.
-            {" "}Telecom, energia solar, segurança, climatização, educação e muito mais.
-            A IA adapta o sistema para o seu segmento automaticamente.
+          {/* Subheadline */}
+          <p className="text-lg md:text-xl mb-6 max-w-2xl mx-auto leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.55)" }}>
+            Chega de planilhas perdidas, técnicos sem rota e gestores no escuro.
+            A Netvius centraliza <strong style={{ color: "rgba(255,255,255,0.9)" }}>toda a sua operação</strong> — do painel web ao app do técnico em campo.
           </p>
+
+          {/* Segmentos */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {segmentos.map((s, i) => (
+              <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+                {s.icon} {s.label}
+              </span>
+            ))}
+          </div>
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -238,7 +257,7 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
 
           {/* App download */}
           <div className="flex justify-center mb-16">
-            <a href="/netvius-tecnico.apk" download
+            <a href={apkLink} target="_blank" rel="noreferrer"
               className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
               style={{
                 background: "rgba(167,139,250,0.1)",
@@ -257,8 +276,8 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
             {[
-              { value: 12, suffix: "+", label: "Segmentos atendidos" },
-              { value: 100, suffix: "%", label: "Dados isolados por empresa" },
+              { value: 500, suffix: "+", label: "Técnicos ativos" },
+              { value: 98, suffix: "%", label: "Uptime garantido" },
               { value: 24, suffix: "h", label: "Suporte disponível" },
             ].map((s, i) => (
               <div key={i} className="text-center">
@@ -279,12 +298,13 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
 
       {/* ── SOCIAL PROOF STRIP ── */}
       <div className="py-5 border-y" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.015)" }}>
-        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16">
+        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8">
           {[
             { icon: CheckCircle, text: "Funciona 100% offline", color: "#00f5a0" },
             { icon: Shield, text: "Dados isolados por empresa", color: "#60a5fa" },
             { icon: Globe, text: "Acesso de qualquer lugar", color: "#a78bfa" },
             { icon: Zap, text: "Setup em menos de 5 minutos", color: "#f59e0b" },
+            { icon: Clock, text: "Histórico completo de serviços", color: "#f472b6" },
           ].map((item, i) => {
             const Icon = item.icon;
             return (
@@ -311,7 +331,7 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
               <span style={{ color: "rgba(255,255,255,0.35)" }}>em um só lugar</span>
             </h2>
             <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Do painel web ao app do técnico em campo — a Netvius conecta tudo em tempo real, para qualquer segmento.
+              Do painel web ao app do técnico em campo — a Netvius conecta tudo em tempo real.
             </p>
           </div>
 
@@ -359,24 +379,34 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
               Do zero ao controle total<br />
               <span style={{ color: "rgba(255,255,255,0.35)" }}>em menos de 1 hora</span>
             </h2>
+            <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Configuração simples, resultado imediato. Sem necessidade de treinamento técnico.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {steps.map((s, i) => (
-              <div key={i} className="p-6 rounded-2xl"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="text-4xl font-black mb-4"
-                  style={{
-                    background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}>
-                  {s.num}
+            {steps.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div key={i} className="p-6 rounded-2xl relative"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="text-4xl font-black mb-3"
+                    style={{
+                      background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}>
+                    {s.num}
+                  </div>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+                    style={{ background: "rgba(0,245,160,0.1)", border: "1px solid rgba(0,245,160,0.2)" }}>
+                    <Icon size={16} style={{ color: "#00f5a0" }} />
+                  </div>
+                  <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
+                  <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.42)" }}>{s.desc}</p>
                 </div>
-                <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
-                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.42)" }}>{s.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -439,13 +469,13 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
               {
                 name: "Básico", icon: "⚡", price: "Consulte",
                 color: "#94a3b8",
-                features: ["1 empresa", "Até 5 técnicos", "500 escolas", "App Android", "Suporte por email"],
+                features: ["1 empresa", "Até 5 técnicos", "500 pontos de atendimento", "App Android", "Suporte por email"],
                 popular: false,
               },
               {
                 name: "Profissional", icon: "🚀", price: "Consulte",
                 color: "#00f5a0",
-                features: ["1 empresa", "Técnicos ilimitados", "Escolas ilimitadas", "App Android", "Google Drive", "Relatórios Excel", "Suporte prioritário"],
+                features: ["1 empresa", "Técnicos ilimitados", "Pontos ilimitados", "App Android", "Google Drive", "Relatórios Excel", "Suporte prioritário"],
                 popular: true,
               },
               {
@@ -499,7 +529,12 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
       <section className="py-24 relative overflow-hidden">
         <div className="absolute pointer-events-none" style={{ width: 700, height: 700, top: "-30%", left: "50%", transform: "translateX(-50%)", background: "radial-gradient(circle, rgba(0,245,160,0.07) 0%, transparent 70%)", borderRadius: "50%" }} />
         <div className="relative max-w-3xl mx-auto px-6 text-center">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+            style={{ background: "rgba(0,245,160,0.08)", border: "1px solid rgba(0,245,160,0.2)" }}>
+            <Award size={14} style={{ color: "#00f5a0" }} />
+            <span className="text-xs font-semibold" style={{ color: "#00f5a0" }}>Demonstração gratuita · Sem compromisso</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
             Pronto para transformar{" "}
             <span style={{
               background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
@@ -511,7 +546,7 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
           </h2>
           <p className="text-base mb-10" style={{ color: "rgba(255,255,255,0.45)" }}>
             Fale agora com nossa equipe e veja uma demonstração ao vivo do sistema.
-            Sem compromisso, sem enrolação.
+            Sem enrolação — em menos de 30 minutos você entende tudo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href={whatsappLink} target="_blank" rel="noreferrer"
@@ -521,11 +556,13 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
                 color: "#050b18",
                 boxShadow: "0 0 50px rgba(0,245,160,0.3)",
                 textDecoration: "none",
-              }}>
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
               <MessageCircle size={20} />
               Falar no WhatsApp agora
             </a>
-            <a href="/netvius-tecnico.apk" download
+            <a href={apkLink} target="_blank" rel="noreferrer"
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
               style={{ background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.12)", textDecoration: "none" }}>
               <Download size={18} />
@@ -546,7 +583,7 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
               </div>
               <div>
                 <span className="text-base font-black text-white">Netvius</span>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>Gestão inteligente para qualquer serviço técnico</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>Gestão inteligente para equipes de campo</p>
               </div>
             </div>
 
@@ -559,28 +596,26 @@ Plataforma com IA · Qualquer segmento · Qualquer escala
               </a>
               <span className="hidden sm:block" style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
               <a href="/admin/login"
-                className="flex items-center gap-2 text-sm font-medium"
-                style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none" }}>
-                <Lock size={12} />
-                Painel Admin
+                className="text-sm font-medium transition-colors"
+                style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "white")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>
+                Painel Administrativo
               </a>
               <span className="hidden sm:block" style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
               <a href="/superadmin/login"
-                className="flex items-center gap-2 text-sm font-medium"
-                style={{ color: "rgba(255,255,255,0.28)", textDecoration: "none" }}>
-                <Shield size={12} />
+                className="text-sm font-medium transition-colors"
+                style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "white")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>
                 Área Master
               </a>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3"
-            style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.22)" }}>
-              © 2025 Netvius. Todos os direitos reservados.
-            </p>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.16)" }}>
-              Plataforma SaaS para gestão de instalações de rede
+          <div className="mt-8 pt-6 border-t text-center" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
+              © {new Date().getFullYear()} Netvius. Todos os direitos reservados.
             </p>
           </div>
         </div>
