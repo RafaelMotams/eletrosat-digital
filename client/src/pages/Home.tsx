@@ -41,7 +41,7 @@ export default function Home() {
   }, []);
 
   const whatsappLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Tenho%20interesse%20no%20sistema%20Netvius.%20Gostaria%20de%20uma%20demonstra%C3%A7%C3%A3o.";
-  const apkLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Gostaria%20de%20baixar%20o%20app%20Netvius%20para%20t%C3%A9cnicos.";
+  const apkLink = "/manus-storage/netvionis-tecnico-v10_d62e678b.apk";
 
   const features = [
     {
@@ -259,6 +259,7 @@ export default function Home() {
           <div className="flex justify-center mb-16">
             <a href={apkLink} target="_blank" rel="noreferrer"
               className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+              download="netvius-tecnico-v10.apk"
               style={{
                 background: "rgba(167,139,250,0.1)",
                 color: "#a78bfa",
@@ -563,6 +564,7 @@ export default function Home() {
               Falar no WhatsApp agora
             </a>
             <a href={apkLink} target="_blank" rel="noreferrer"
+              download="netvius-tecnico-v10.apk"
               className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
               style={{ background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.12)", textDecoration: "none" }}>
               <Download size={18} />
