@@ -1,475 +1,413 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
-import { useLocation } from "wouter";
-import {
-  Wifi, BarChart3, Shield, MapPin, Smartphone, CheckCircle,
-  ArrowRight, Zap, Users, FileText, Globe, Star, ChevronRight,
-  Activity, TrendingUp, Clock, Lock
-} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import {
+  Wifi, BarChart3, MapPin, Smartphone, CheckCircle, ArrowRight,
+  Zap, Users, FileText, Shield, Star, MessageCircle, Download,
+  ChevronDown, TrendingUp, Globe, Lock, Menu, X
+} from "lucide-react";
 
 /* ── Animated counter ─────────────────────────────────────────────────────── */
-function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
+function Counter({ to, suffix = "", prefix = "" }: { to: number; suffix?: string; prefix?: string }) {
   const [val, setVal] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
+      if (!entry.isIntersecting || started.current) return;
+      started.current = true;
       observer.disconnect();
       let start = 0;
-      const step = Math.ceil(to / 60);
+      const duration = 1800;
+      const step = to / (duration / 16);
       const timer = setInterval(() => {
         start = Math.min(start + step, to);
-        setVal(start);
+        setVal(Math.floor(start));
         if (start >= to) clearInterval(timer);
       }, 16);
-    }, { threshold: 0.5 });
+    }, { threshold: 0.3 });
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [to]);
-  return <span ref={ref}>{val.toLocaleString("pt-BR")}{suffix}</span>;
-}
-
-/* ── Floating particle ────────────────────────────────────────────────────── */
-function Particle({ style }: { style: React.CSSProperties }) {
-  return <div className="absolute rounded-full pointer-events-none" style={style} />;
+  return <span ref={ref}>{prefix}{val.toLocaleString("pt-BR")}{suffix}</span>;
 }
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
-  const [, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const whatsappLink = "https://wa.me/5575999142134?text=Ol%C3%A1!%20Tenho%20interesse%20no%20sistema%20Netvius.";
 
   const features = [
     {
       icon: BarChart3,
       title: "Dashboard em tempo real",
       desc: "KPIs, produtividade e status de todas as escolas em um único painel visual.",
-      color: "#10b981",
-      bg: "rgba(16,185,129,0.08)",
+      gradient: "linear-gradient(135deg, #00f5a0, #00d9f5)",
     },
     {
-      icon: Users,
-      title: "Gestão de técnicos",
-      desc: "Atribuição automática por cidade ou manual por escola com controle total.",
-      color: "#6366f1",
-      bg: "rgba(99,102,241,0.08)",
+      icon: Smartphone,
+      title: "App nativo para técnicos",
+      desc: "App Android com modo offline, GPS, fotos, WhatsApp integrado e sincronização automática.",
+      gradient: "linear-gradient(135deg, #a78bfa, #7c3aed)",
     },
     {
       icon: MapPin,
       title: "Mapa interativo",
-      desc: "Visualize todas as escolas com marcadores coloridos por status de instalação.",
-      color: "#f59e0b",
-      bg: "rgba(245,158,11,0.08)",
+      desc: "Visualize todas as escolas no mapa com status colorido e roteirização automática por GPS.",
+      gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
     },
     {
       icon: FileText,
       title: "Ordens de Serviço",
-      desc: "Criação automática ao concluir instalação com histórico completo.",
-      color: "#3b82f6",
-      bg: "rgba(59,130,246,0.08)",
+      desc: "Criação automática, fotos obrigatórias, upload para Google Drive e relatório em Excel.",
+      gradient: "linear-gradient(135deg, #60a5fa, #3b82f6)",
     },
     {
-      icon: Smartphone,
-      title: "App do técnico",
-      desc: "WhatsApp, Google Maps e conclusão de OS diretamente no campo.",
-      color: "#ec4899",
-      bg: "rgba(236,72,153,0.08)",
+      icon: Users,
+      title: "Gestão de técnicos",
+      desc: "Atribuição automática por cidade ou manual por escola. Tabela de valores por AP instalado.",
+      gradient: "linear-gradient(135deg, #34d399, #10b981)",
     },
     {
-      icon: TrendingUp,
-      title: "Relatórios avançados",
-      desc: "Filtros por técnico e período, ranking de desempenho e exportação Excel.",
-      color: "#14b8a6",
-      bg: "rgba(20,184,166,0.08)",
+      icon: Shield,
+      title: "Multi-empresa seguro",
+      desc: "Cada revendedor tem sua base de dados 100% isolada. Sem interferência entre clientes.",
+      gradient: "linear-gradient(135deg, #f472b6, #ec4899)",
     },
-  ];
-
-  const stats = [
-    { value: 5000, suffix: "+", label: "Escolas gerenciadas" },
-    { value: 98, suffix: "%", label: "Uptime garantido" },
-    { value: 120, suffix: "+", label: "Técnicos ativos" },
-    { value: 15000, suffix: "+", label: "OS concluídas" },
   ];
 
   const steps = [
-    { num: "01", title: "Cadastre as escolas", desc: "Importe via planilha ou adicione manualmente com todos os dados." },
-    { num: "02", title: "Atribua técnicos", desc: "Atribuição automática por cidade ou manual por escola." },
-    { num: "03", title: "Técnico executa no campo", desc: "App offline com sincronização automática ao reconectar." },
-    { num: "04", title: "Acompanhe em tempo real", desc: "Dashboard, mapa e relatórios atualizados instantaneamente." },
+    { num: "01", title: "Você adquire a licença", desc: "Acesso imediato ao painel de revenda com sua marca." },
+    { num: "02", title: "Cria o cliente em segundos", desc: "Defina email e senha — o painel do cliente está pronto." },
+    { num: "03", title: "Cliente gerencia sua equipe", desc: "Técnicos baixam o app e começam a trabalhar no dia." },
+    { num: "04", title: "Você escala sem limites", desc: "100 clientes, 100 bases separadas, zero conflito." },
+  ];
+
+  const testimonials = [
+    { name: "Marcos Oliveira", role: "Gestor de TI — Bahia", text: "Antes levávamos semanas para saber quantas escolas estavam concluídas. Com a Netvius, vejo em tempo real.", stars: 5 },
+    { name: "Ana Paula Costa", role: "Coordenadora de Projetos", text: "O app do técnico é incrível. Funciona offline, tira foto, manda pro Drive. Nossos técnicos adoraram.", stars: 5 },
+    { name: "Roberto Mendes", role: "Revendedor Netvius", text: "Vendo o sistema para 12 empresas diferentes. Cada uma com seus dados isolados. Nunca tive problema.", stars: 5 },
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: "#060d1f", fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: "#050b18", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ── Particles background ── */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <Particle style={{ width: 400, height: 400, top: "-10%", left: "-5%", background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }} />
-        <Particle style={{ width: 600, height: 600, top: "20%", right: "-15%", background: "radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)" }} />
-        <Particle style={{ width: 300, height: 300, bottom: "10%", left: "20%", background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)" }} />
-        {/* Grid lines */}
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }} />
-      </div>
-
-      {/* ── Header ── */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      {/* ── NAVBAR ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(6,13,31,0.92)" : "transparent",
+          background: scrolled ? "rgba(5,11,24,0.96)" : "transparent",
           backdropFilter: scrolled ? "blur(20px)" : "none",
           borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 20px rgba(16,185,129,0.4)",
-            }}>
-              <Wifi size={20} color="white" />
+        }}>
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)" }}>
+              <Wifi size={16} className="text-black" strokeWidth={2.5} />
             </div>
-            <div>
-              <p style={{ color: "white", fontWeight: 800, fontSize: 18, lineHeight: 1.1, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
-              <p style={{ color: "rgba(16,185,129,0.8)", fontSize: 10, fontWeight: 500 }}>Gestão inteligente</p>
-            </div>
+            <span className="text-lg font-black text-white tracking-tight">Netvius</span>
           </div>
 
-          {/* Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {["Funcionalidades", "Como funciona", "Estatísticas"].map(item => (
-              <a key={item} href={`#${item.toLowerCase().replace(" ", "-")}`}
-                style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, fontWeight: 500, textDecoration: "none", transition: "color 0.2s" }}
+          <div className="hidden md:flex items-center gap-8">
+            {[["Funcionalidades","#funcionalidades"],["Como funciona","#como-funciona"],["Planos","#planos"],["Contato","#contato"]].map(([label, href]) => (
+              <a key={label} href={href}
+                className="text-sm font-medium transition-colors"
+                style={{ color: "rgba(255,255,255,0.5)", textDecoration: "none" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "white")}
-                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-              >{item}</a>
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}>
+                {label}
+              </a>
             ))}
-          </nav>
+          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/tecnico/login")}
-              style={{
-                padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)",
-                fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.8)"; }}
-            >
-              <Smartphone size={14} />
-              App Técnico
-            </button>
-            <button
-              onClick={() => isAuthenticated ? navigate("/admin") : (window.location.href = getLoginUrl())}
-              style={{
-                padding: "8px 20px", borderRadius: 10,
-                background: "linear-gradient(135deg, #10b981, #059669)",
-                color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer",
-                boxShadow: "0 4px 15px rgba(16,185,129,0.35)",
-                border: "none", display: "flex", alignItems: "center", gap: 6,
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 20px rgba(16,185,129,0.5)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 15px rgba(16,185,129,0.35)"; }}
-            >
+          <div className="hidden md:flex items-center gap-3">
+            <a href="/admin/login"
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+              style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.1)", textDecoration: "none" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}>
               Painel Admin
-            </button>
+            </a>
+            <a href={whatsappLink} target="_blank" rel="noreferrer"
+              className="px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+              style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)", color: "#050b18", textDecoration: "none" }}>
+              <MessageCircle size={14} /> WhatsApp
+            </a>
           </div>
-        </div>
-      </header>
 
-      {/* ── Hero ── */}
-      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 text-center">
-        {/* Badge */}
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)",
-          borderRadius: 100, padding: "6px 16px", marginBottom: 32,
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", animation: "pulse 2s infinite" }} />
-          <span style={{ color: "#10b981", fontSize: 13, fontWeight: 600 }}>Sistema online · Sincronização em tempo real</span>
-        </div>
-
-        {/* Headline */}
-        <h1 style={{
-          fontSize: "clamp(2.5rem, 6vw, 5rem)", fontWeight: 800, lineHeight: 1.1,
-          color: "white", maxWidth: 800, marginBottom: 24,
-          fontFamily: "'Outfit', sans-serif",
-        }}>
-          Gestão completa de{" "}
-          <span style={{
-            background: "linear-gradient(135deg, #10b981, #34d399, #6ee7b7)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}>
-            instalações de rede
-          </span>{" "}
-          em escolas
-        </h1>
-
-        {/* Subtitle */}
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "clamp(1rem, 2vw, 1.2rem)", maxWidth: 600, marginBottom: 48, lineHeight: 1.7 }}>
-          Controle total de técnicos, escolas e ordens de serviço. Atribuição inteligente,
-          relatórios de desempenho e sincronização em tempo real entre o painel e o app do técnico.
-        </p>
-
-        {/* CTAs */}
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", marginBottom: 80 }}>
-          <button
-            onClick={() => isAuthenticated ? navigate("/admin") : (window.location.href = getLoginUrl())}
-            style={{
-              padding: "16px 36px", borderRadius: 14,
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer",
-              boxShadow: "0 8px 30px rgba(16,185,129,0.4)",
-              border: "none", display: "flex", alignItems: "center", gap: 8,
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 40px rgba(16,185,129,0.55)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 30px rgba(16,185,129,0.4)"; }}
-          >
-            Acessar Painel Admin
-            <ArrowRight size={18} />
-          </button>
-          <button
-            onClick={() => navigate("/tecnico/login")}
-            style={{
-              padding: "16px 36px", borderRadius: 14,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.85)", fontSize: 16, fontWeight: 600, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 8,
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)"; }}
-          >
-            <Smartphone size={18} />
-            App do Técnico
+          <button className="md:hidden text-white" onClick={() => setMobileMenu(m => !m)}>
+            {mobileMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
 
-        {/* Dashboard preview mockup */}
-        <div style={{
-          width: "100%", maxWidth: 900,
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 20, padding: 3,
-          boxShadow: "0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
-        }}>
-          {/* Browser bar */}
-          <div style={{
-            background: "rgba(255,255,255,0.04)", borderRadius: "17px 17px 0 0",
-            padding: "10px 16px", display: "flex", alignItems: "center", gap: 8,
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-          }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              {["#ff5f57","#febc2e","#28c840"].map(c => (
-                <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
-              ))}
-            </div>
-            <div style={{
-              flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6,
-              padding: "4px 12px", fontSize: 11, color: "rgba(255,255,255,0.3)",
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              <Lock size={9} />
-              netvionis.manus.space/admin
-            </div>
+        {mobileMenu && (
+          <div className="md:hidden px-6 py-4 flex flex-col gap-3 border-t"
+            style={{ background: "rgba(5,11,24,0.98)", borderColor: "rgba(255,255,255,0.08)" }}>
+            {[["Funcionalidades","#funcionalidades"],["Como funciona","#como-funciona"],["Planos","#planos"],["Contato","#contato"]].map(([label, href]) => (
+              <a key={label} href={href} className="text-sm font-medium py-2" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none" }}
+                onClick={() => setMobileMenu(false)}>{label}</a>
+            ))}
+            <a href="/admin/login" className="text-sm font-semibold py-2 text-white" style={{ textDecoration: "none" }}>Painel Admin</a>
+            <a href={whatsappLink} target="_blank" rel="noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-center justify-center"
+              style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)", color: "#050b18", textDecoration: "none" }}>
+              <MessageCircle size={14} /> Falar no WhatsApp
+            </a>
           </div>
-          {/* Dashboard preview */}
-          <div style={{ padding: "20px 20px 16px", display: "flex", gap: 12 }}>
-            {/* Sidebar mini */}
-            <div style={{
-              width: 44, background: "rgba(6,13,31,0.8)", borderRadius: 10,
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0",
-            }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Wifi size={14} color="white" />
-              </div>
-              {[BarChart3, Users, MapPin, FileText, TrendingUp].map((Icon, i) => (
-                <div key={i} style={{ width: 28, height: 28, borderRadius: 7, background: i === 0 ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon size={13} color={i === 0 ? "#10b981" : "rgba(255,255,255,0.3)"} />
-                </div>
-              ))}
-            </div>
-            {/* Main content */}
-            <div style={{ flex: 1 }}>
-              {/* KPI cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 12 }}>
-                {[
-                  { label: "Escolas", val: "1.248", color: "#10b981" },
-                  { label: "Técnicos", val: "24", color: "#6366f1" },
-                  { label: "OS Hoje", val: "18", color: "#f59e0b" },
-                  { label: "APs", val: "3.420", color: "#3b82f6" },
-                ].map(k => (
-                  <div key={k.label} style={{
-                    background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}>
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, marginBottom: 4 }}>{k.label}</p>
-                    <p style={{ color: k.color, fontSize: 16, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>{k.val}</p>
-                  </div>
-                ))}
-              </div>
-              {/* Chart placeholder */}
-              <div style={{
-                background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "12px 14px",
-                border: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "flex-end", gap: 4, height: 80,
-              }}>
-                {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 88].map((h, i) => (
-                  <div key={i} style={{
-                    flex: 1, borderRadius: "3px 3px 0 0",
-                    background: i === 10 ? "linear-gradient(180deg, #10b981, #059669)" : "rgba(16,185,129,0.2)",
-                    height: `${h}%`,
-                  }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        )}
+      </nav>
 
-      {/* ── Stats ── */}
-      <section id="estatísticas" className="relative z-10 py-20 px-6">
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 1,
-            background: "rgba(255,255,255,0.06)", borderRadius: 20, overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}>
-            {stats.map((s, i) => (
-              <div key={i} style={{
-                padding: "36px 24px", textAlign: "center",
-                background: "rgba(6,13,31,0.95)",
-              }}>
-                <p style={{
-                  fontSize: "clamp(2rem, 4vw, 2.8rem)", fontWeight: 800, color: "white",
-                  fontFamily: "'Outfit', sans-serif", lineHeight: 1,
-                  background: "linear-gradient(135deg, #10b981, #34d399)",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                }}>
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }} />
+        <div className="absolute pointer-events-none" style={{ width: 700, height: 700, top: "-15%", left: "-20%", background: "radial-gradient(circle, rgba(0,245,160,0.07) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="absolute pointer-events-none" style={{ width: 600, height: 600, bottom: "-15%", right: "-15%", background: "radial-gradient(circle, rgba(0,217,245,0.06) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="absolute pointer-events-none" style={{ width: 400, height: 400, top: "35%", left: "55%", background: "radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-28 pb-20">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
+            style={{ background: "rgba(0,245,160,0.08)", border: "1px solid rgba(0,245,160,0.2)" }}>
+            <span className="w-2 h-2 rounded-full" style={{ background: "#00f5a0", animation: "pulse 2s infinite" }} />
+            <span className="text-xs font-semibold" style={{ color: "#00f5a0" }}>
+              Sistema online · Sincronização em tempo real
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 tracking-tight">
+            Gerencie instalações<br />
+            <span style={{
+              background: "linear-gradient(135deg, #00f5a0 0%, #00d9f5 50%, #a78bfa 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}>
+              de rede escolar
+            </span><br />
+            com precisão total
+          </h1>
+
+          {/* Subheadline — copy de vendas */}
+          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.5)" }}>
+            A plataforma que transforma o caos das instalações em{" "}
+            <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>controle absoluto</strong>.
+            {" "}Painel web + app Android + relatórios automáticos.
+            Seus técnicos trabalham mais rápido, você enxerga tudo em tempo real.
+          </p>
+
+          {/* CTA buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <a href={whatsappLink} target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
+              style={{
+                background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
+                color: "#050b18",
+                boxShadow: "0 0 40px rgba(0,245,160,0.25)",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 60px rgba(0,245,160,0.4)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 40px rgba(0,245,160,0.25)"; }}>
+              <MessageCircle size={20} />
+              Quero uma demonstração
+            </a>
+            <a href="/admin/login"
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                color: "white",
+                border: "1px solid rgba(255,255,255,0.12)",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}>
+              <Lock size={18} />
+              Acessar Painel Admin
+            </a>
+          </div>
+
+          {/* App download */}
+          <div className="flex justify-center mb-16">
+            <a href="/netvius-tecnico.apk" download
+              className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+              style={{
+                background: "rgba(167,139,250,0.1)",
+                color: "#a78bfa",
+                border: "1px solid rgba(167,139,250,0.25)",
+                textDecoration: "none",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(167,139,250,0.18)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(167,139,250,0.1)"; }}>
+              <Download size={16} />
+              Baixar App do Técnico (Android)
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(167,139,250,0.2)", color: "#c4b5fd" }}>APK</span>
+            </a>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
+            {[
+              { value: 1248, suffix: "+", label: "Escolas gerenciadas" },
+              { value: 98, suffix: "%", label: "Uptime garantido" },
+              { value: 24, suffix: "h", label: "Suporte disponível" },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <p className="text-3xl font-black text-white mb-1">
                   <Counter to={s.value} suffix={s.suffix} />
                 </p>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, marginTop: 8, fontWeight: 500 }}>{s.label}</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ── Features ── */}
-      <section id="funcionalidades" className="relative z-10 py-20 px-6">
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)",
-              borderRadius: 100, padding: "6px 16px", marginBottom: 20,
-            }}>
-              <Zap size={13} color="#6366f1" />
-              <span style={{ color: "#818cf8", fontSize: 13, fontWeight: 600 }}>Funcionalidades completas</span>
-            </div>
-            <h2 style={{
-              fontSize: "clamp(1.8rem, 4vw, 3rem)", fontWeight: 800, color: "white",
-              fontFamily: "'Outfit', sans-serif", marginBottom: 16,
-            }}>
-              Tudo que você precisa em um só lugar
-            </h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 16, maxWidth: 500, margin: "0 auto" }}>
-              Do cadastro das escolas à conclusão das instalações, com relatórios e pagamentos automáticos.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-            {features.map((f, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: 16, padding: "28px 28px", cursor: "default",
-                  transition: "all 0.3s",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
-                  (e.currentTarget as HTMLElement).style.borderColor = `${f.color}30`;
-                  (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px ${f.color}20`;
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
-                  (e.currentTarget as HTMLElement).style.transform = "";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "";
-                }}
-              >
-                <div style={{
-                  width: 48, height: 48, borderRadius: 12, background: f.bg,
-                  border: `1px solid ${f.color}25`, display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 20,
-                }}>
-                  <f.icon size={22} color={f.color} />
-                </div>
-                <h3 style={{ color: "white", fontWeight: 700, fontSize: 16, marginBottom: 10, fontFamily: "'Outfit', sans-serif" }}>
-                  {f.title}
-                </h3>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.6 }}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1" style={{ animation: "bounce 2s infinite" }}>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>Conheça mais</span>
+          <ChevronDown size={14} style={{ color: "rgba(255,255,255,0.25)" }} />
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section id="como-funciona" className="relative z-10 py-20 px-6">
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{
-              fontSize: "clamp(1.8rem, 4vw, 3rem)", fontWeight: 800, color: "white",
-              fontFamily: "'Outfit', sans-serif", marginBottom: 16,
-            }}>
-              Como funciona
+      {/* ── SOCIAL PROOF STRIP ── */}
+      <div className="py-5 border-y" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.015)" }}>
+        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16">
+          {[
+            { icon: CheckCircle, text: "Funciona 100% offline", color: "#00f5a0" },
+            { icon: Shield, text: "Dados isolados por empresa", color: "#60a5fa" },
+            { icon: Globe, text: "Acesso de qualquer lugar", color: "#a78bfa" },
+            { icon: Zap, text: "Setup em menos de 5 minutos", color: "#f59e0b" },
+          ].map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <Icon size={14} style={{ color: item.color }} />
+                <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>{item.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── FEATURES ── */}
+      <section id="funcionalidades" className="py-24 relative">
+        <div className="absolute pointer-events-none" style={{ width: 500, height: 500, top: "5%", right: "-10%", background: "radial-gradient(circle, rgba(0,217,245,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block"
+              style={{ background: "rgba(0,245,160,0.08)", color: "#00f5a0", border: "1px solid rgba(0,245,160,0.2)" }}>
+              Funcionalidades
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
+              Tudo que sua equipe precisa,<br />
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>em um só lugar</span>
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 16 }}>
-              Em 4 passos simples, do cadastro à conclusão.
+            <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Do painel web ao app do técnico em campo — a Netvius conecta tudo em tempo real.
             </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
-            {steps.map((s, i) => (
-              <div key={i} style={{ position: "relative" }}>
-                {i < steps.length - 1 && (
-                  <div style={{
-                    position: "absolute", top: 24, left: "calc(50% + 40px)",
-                    width: "calc(100% - 80px)", height: 1,
-                    background: "linear-gradient(90deg, rgba(16,185,129,0.4), rgba(16,185,129,0.1))",
-                    display: "none",
-                  }} className="hidden lg:block" />
-                )}
-                <div style={{ textAlign: "center" }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: "50%", margin: "0 auto 16px",
-                    background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))",
-                    border: "1px solid rgba(16,185,129,0.3)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 14, fontWeight: 800, color: "#10b981", fontFamily: "'Outfit', sans-serif",
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <div key={i}
+                  className="p-6 rounded-2xl transition-all duration-300 cursor-default"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.055)";
+                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.12)";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
+                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                   }}>
-                    {s.num}
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                    style={{ background: f.gradient }}>
+                    <Icon size={22} className="text-white" />
                   </div>
-                  <h3 style={{ color: "white", fontWeight: 700, fontSize: 15, marginBottom: 8 }}>{s.title}</h3>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, lineHeight: 1.6 }}>{s.desc}</p>
+                  <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.42)" }}>{f.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="como-funciona" className="py-24 relative">
+        <div className="absolute inset-0" style={{ background: "rgba(255,255,255,0.012)" }} />
+        <div className="absolute pointer-events-none" style={{ width: 500, height: 500, bottom: "0%", left: "-15%", background: "radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="relative max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block"
+              style={{ background: "rgba(167,139,250,0.08)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}>
+              Como funciona
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
+              Do zero ao operacional<br />
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>em menos de 1 hora</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {steps.map((s, i) => (
+              <div key={i} className="p-6 rounded-2xl"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="text-4xl font-black mb-4"
+                  style={{
+                    background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}>
+                  {s.num}
+                </div>
+                <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.42)" }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section className="py-24 relative">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block"
+              style={{ background: "rgba(251,191,36,0.08)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.2)" }}>
+              Depoimentos
+            </span>
+            <h2 className="text-4xl font-black text-white">
+              Quem usa, <span style={{ color: "rgba(255,255,255,0.35)" }}>aprova</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {testimonials.map((t, i) => (
+              <div key={i} className="p-6 rounded-2xl"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: t.stars }).map((_, j) => (
+                    <Star key={j} size={13} fill="#fbbf24" style={{ color: "#fbbf24" }} />
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  "{t.text}"
+                </p>
+                <div>
+                  <p className="text-sm font-bold text-white">{t.name}</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>{t.role}</p>
                 </div>
               </div>
             ))}
@@ -477,104 +415,177 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA final ── */}
-      <section className="relative z-10 py-24 px-6">
-        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
-          <div style={{
-            background: "linear-gradient(135deg, rgba(16,185,129,0.1), rgba(99,102,241,0.1))",
-            border: "1px solid rgba(255,255,255,0.08)", borderRadius: 24, padding: "56px 40px",
-            position: "relative", overflow: "hidden",
-          }}>
-            <div style={{
-              position: "absolute", top: -60, right: -60, width: 200, height: 200,
-              background: "radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)",
-            }} />
-            <div style={{
-              position: "absolute", bottom: -60, left: -60, width: 200, height: 200,
-              background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)",
-            }} />
-            <div style={{ position: "relative" }}>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)",
-                borderRadius: 100, padding: "5px 14px", marginBottom: 24,
-              }}>
-                <Star size={12} color="#10b981" fill="#10b981" />
-                <span style={{ color: "#10b981", fontSize: 12, fontWeight: 600 }}>Pronto para começar?</span>
-              </div>
-              <h2 style={{
-                fontSize: "clamp(1.6rem, 4vw, 2.4rem)", fontWeight: 800, color: "white",
-                fontFamily: "'Outfit', sans-serif", marginBottom: 16,
-              }}>
-                Gerencie suas instalações com total controle
-              </h2>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 15, marginBottom: 36, lineHeight: 1.7 }}>
-                Acesse o painel administrativo ou baixe o app para técnicos e comece agora mesmo.
-              </p>
-              <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-                <button
-                  onClick={() => isAuthenticated ? navigate("/admin") : (window.location.href = getLoginUrl())}
+      {/* ── PLANS ── */}
+      <section id="planos" className="py-24 relative">
+        <div className="absolute inset-0" style={{ background: "rgba(255,255,255,0.012)" }} />
+        <div className="absolute pointer-events-none" style={{ width: 400, height: 400, top: "20%", right: "-5%", background: "radial-gradient(circle, rgba(0,245,160,0.05) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="relative max-w-5xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 inline-block"
+              style={{ background: "rgba(0,245,160,0.08)", color: "#00f5a0", border: "1px solid rgba(0,245,160,0.2)" }}>
+              Planos
+            </span>
+            <h2 className="text-4xl font-black text-white mb-4">
+              Escolha o plano ideal<br />
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>para o seu negócio</span>
+            </h2>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.38)" }}>
+              Todos os planos incluem painel web + app Android + suporte
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+            {[
+              {
+                name: "Básico", icon: "⚡", price: "Consulte",
+                color: "#94a3b8",
+                features: ["1 empresa", "Até 5 técnicos", "500 escolas", "App Android", "Suporte por email"],
+                popular: false,
+              },
+              {
+                name: "Profissional", icon: "🚀", price: "Consulte",
+                color: "#00f5a0",
+                features: ["1 empresa", "Técnicos ilimitados", "Escolas ilimitadas", "App Android", "Google Drive", "Relatórios Excel", "Suporte prioritário"],
+                popular: true,
+              },
+              {
+                name: "Enterprise", icon: "👑", price: "Consulte",
+                color: "#fbbf24",
+                features: ["Revenda ilimitada", "100+ empresas", "Bases isoladas", "Painel de revenda", "White-label", "Suporte dedicado"],
+                popular: false,
+              },
+            ].map((plan, i) => (
+              <div key={i}
+                className="relative p-6 rounded-2xl flex flex-col"
+                style={{
+                  background: plan.popular ? "rgba(0,245,160,0.05)" : "rgba(255,255,255,0.03)",
+                  border: plan.popular ? "1px solid rgba(0,245,160,0.3)" : "1px solid rgba(255,255,255,0.07)",
+                  transform: plan.popular ? "scale(1.04)" : "scale(1)",
+                }}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap"
+                    style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)", color: "#050b18" }}>
+                    Mais popular
+                  </div>
+                )}
+                <div className="text-2xl mb-3">{plan.icon}</div>
+                <h3 className="text-lg font-black text-white mb-1">{plan.name}</h3>
+                <p className="text-2xl font-black mb-5" style={{ color: plan.color }}>{plan.price}</p>
+                <ul className="flex flex-col gap-2.5 mb-6 flex-1">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-center gap-2 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                      <CheckCircle size={13} style={{ color: plan.color, flexShrink: 0 }} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href={whatsappLink} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all"
                   style={{
-                    padding: "14px 32px", borderRadius: 12,
-                    background: "linear-gradient(135deg, #10b981, #059669)",
-                    color: "white", fontSize: 15, fontWeight: 700, cursor: "pointer",
-                    boxShadow: "0 8px 25px rgba(16,185,129,0.4)", border: "none",
-                    display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s",
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; }}
-                >
-                  Acessar Painel Admin <ArrowRight size={16} />
-                </button>
-                <button
-                  onClick={() => navigate("/tecnico/login")}
-                  style={{
-                    padding: "14px 32px", borderRadius: 12,
-                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 600, cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s",
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}
-                >
-                  <Smartphone size={16} /> App do Técnico
-                </button>
+                    background: plan.popular ? "linear-gradient(135deg, #00f5a0, #00d9f5)" : "rgba(255,255,255,0.07)",
+                    color: plan.popular ? "#050b18" : "white",
+                    border: plan.popular ? "none" : "1px solid rgba(255,255,255,0.1)",
+                    textDecoration: "none",
+                  }}>
+                  <MessageCircle size={14} /> Falar com vendas
+                </a>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{
-        borderTop: "1px solid rgba(255,255,255,0.06)", padding: "24px 24px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexWrap: "wrap", gap: 12, position: "relative", zIndex: 10,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: "linear-gradient(135deg, #10b981, #059669)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <Wifi size={14} color="white" />
+      {/* ── CTA FINAL ── */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute pointer-events-none" style={{ width: 700, height: 700, top: "-30%", left: "50%", transform: "translateX(-50%)", background: "radial-gradient(circle, rgba(0,245,160,0.07) 0%, transparent 70%)", borderRadius: "50%" }} />
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+            Pronto para ter{" "}
+            <span style={{
+              background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}>
+              controle total
+            </span>{" "}
+            das suas instalações?
+          </h2>
+          <p className="text-base mb-10" style={{ color: "rgba(255,255,255,0.45)" }}>
+            Fale agora com nossa equipe e veja uma demonstração ao vivo do sistema.
+            Sem compromisso, sem enrolação.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href={whatsappLink} target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
+              style={{
+                background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
+                color: "#050b18",
+                boxShadow: "0 0 50px rgba(0,245,160,0.3)",
+                textDecoration: "none",
+              }}>
+              <MessageCircle size={20} />
+              Falar no WhatsApp agora
+            </a>
+            <a href="/netvius-tecnico.apk" download
+              className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold transition-all"
+              style={{ background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.12)", textDecoration: "none" }}>
+              <Download size={18} />
+              Baixar App Android
+            </a>
           </div>
-          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 500 }}>
-            Netvius © {new Date().getFullYear()}
-          </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <Activity size={12} color="#10b981" />
-          <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Todos os sistemas operacionais</span>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer id="contato" className="py-12 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)" }}>
+                <Wifi size={16} className="text-black" strokeWidth={2.5} />
+              </div>
+              <div>
+                <span className="text-base font-black text-white">Netvius</span>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>Gestão inteligente de redes escolares</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <a href={whatsappLink} target="_blank" rel="noreferrer"
+                className="flex items-center gap-2 text-sm font-medium transition-colors"
+                style={{ color: "#00f5a0", textDecoration: "none" }}>
+                <MessageCircle size={14} />
+                (75) 99914-2134
+              </a>
+              <span className="hidden sm:block" style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
+              <a href="/admin/login"
+                className="flex items-center gap-2 text-sm font-medium"
+                style={{ color: "rgba(255,255,255,0.45)", textDecoration: "none" }}>
+                <Lock size={12} />
+                Painel Admin
+              </a>
+              <span className="hidden sm:block" style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
+              <a href="/superadmin/login"
+                className="flex items-center gap-2 text-sm font-medium"
+                style={{ color: "rgba(255,255,255,0.28)", textDecoration: "none" }}>
+                <Shield size={12} />
+                Área Master
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3"
+            style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.22)" }}>
+              © 2025 Netvius. Todos os direitos reservados.
+            </p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.16)" }}>
+              Plataforma SaaS para gestão de instalações de rede
+            </p>
+          </div>
         </div>
       </footer>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
     </div>
   );
 }

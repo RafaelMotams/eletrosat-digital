@@ -452,3 +452,19 @@
 - [x] Superadmin criado no banco: rafaelmotams0907@gmail.com / sat2020ms (tenantId=0)
 - [x] Login independente do Manus OAuth via /superadmin/login
 - [x] Painel Superadmin redesenhado: sidebar, dashboard, lista de clientes com filtros, criar cliente, gerenciar admins
+
+## Redesign Completo Site + Painel Superadmin (18/07/2026)
+- [x] Site inicial Home.tsx completamente redesenhado com design dark premium
+- [x] Copy de vendas profissional com nome correto Netvius
+- [x] WhatsApp de contato 75999142134 em todos os CTAs
+- [x] Botão de acesso ao Painel Admin no site inicial
+- [x] Botão de download do APK do técnico no site inicial
+- [x] Navbar responsiva com menu mobile
+- [x] Seção de funcionalidades com cards animados
+- [x] Seção Como Funciona com 4 passos
+- [x] Depoimentos de clientes
+- [x] Seção de planos (Básico, Profissional, Enterprise)
+- [x] Footer com links para painel admin e área master
+- [x] Painel Superadmin redesenhado: sidebar premium, dashboard com stats, cards de clientes elegantes
+- [x] Modal de admins, editar e excluir no Superadmin
+- [x] Copiar slug com feedback visual no card do cliente
