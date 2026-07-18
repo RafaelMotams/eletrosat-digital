@@ -44,54 +44,54 @@ export default function Home() {
 
   const features = [
     {
-      icon: BarChart3,
-      title: "Dashboard em tempo real",
-      desc: "KPIs, produtividade e status de todas as escolas em um único painel visual.",
+      icon: Zap,
+      title: "IA que adapta ao seu negócio",
+      desc: "Descreva sua empresa e a IA configura terminologia, campos e fluxo automaticamente para o seu segmento.",
       gradient: "linear-gradient(135deg, #00f5a0, #00d9f5)",
     },
     {
       icon: Smartphone,
-      title: "App nativo para técnicos",
-      desc: "App Android com modo offline, GPS, fotos, WhatsApp integrado e sincronização automática.",
+      title: "App Android para técnicos",
+      desc: "Seus profissionais recebem OS, registram fotos, observações e concluem tudo pelo celular — online ou offline.",
       gradient: "linear-gradient(135deg, #a78bfa, #7c3aed)",
     },
     {
       icon: MapPin,
-      title: "Mapa interativo",
-      desc: "Visualize todas as escolas no mapa com status colorido e roteirização automática por GPS.",
+      title: "Roteamento inteligente",
+      desc: "Atribua técnicos por cidade, região ou local específico. O sistema organiza a rota mais eficiente.",
       gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
     },
     {
       icon: FileText,
-      title: "Ordens de Serviço",
-      desc: "Criação automática, fotos obrigatórias, upload para Google Drive e relatório em Excel.",
+      title: "Relatórios automáticos",
+      desc: "Gere planilhas Excel e PDFs profissionais com histórico completo de serviços, fotos e dados em segundos.",
       gradient: "linear-gradient(135deg, #60a5fa, #3b82f6)",
     },
     {
       icon: Users,
-      title: "Gestão de técnicos",
-      desc: "Atribuição automática por cidade ou manual por escola. Tabela de valores por AP instalado.",
+      title: "Gestão completa da equipe",
+      desc: "Atribuição automática por cidade ou manual por local. Controle de produtividade e valores por serviço.",
       gradient: "linear-gradient(135deg, #34d399, #10b981)",
     },
     {
       icon: Shield,
-      title: "Multi-empresa seguro",
-      desc: "Cada revendedor tem sua base de dados 100% isolada. Sem interferência entre clientes.",
+      title: "Multi-empresa 100% isolado",
+      desc: "Cada cliente tem sua base de dados completamente separada. Segurança total, sem interferência.",
       gradient: "linear-gradient(135deg, #f472b6, #ec4899)",
     },
   ];
 
   const steps = [
-    { num: "01", title: "Você adquire a licença", desc: "Acesso imediato ao painel de revenda com sua marca." },
-    { num: "02", title: "Cria o cliente em segundos", desc: "Defina email e senha — o painel do cliente está pronto." },
-    { num: "03", title: "Cliente gerencia sua equipe", desc: "Técnicos baixam o app e começam a trabalhar no dia." },
-    { num: "04", title: "Você escala sem limites", desc: "100 clientes, 100 bases separadas, zero conflito." },
+    { num: "01", title: "Descreva seu negócio", desc: "Informe o tipo de serviço que você presta. A IA configura o sistema automaticamente para o seu segmento." },
+    { num: "02", title: "Cadastre sua equipe", desc: "Adicione seus técnicos, defina cidades e regiões. Eles recebem acesso ao app Android imediatamente." },
+    { num: "03", title: "Importe seus pontos de atendimento", desc: "Suba uma planilha com seus clientes ou locais. O sistema organiza e distribui automaticamente." },
+    { num: "04", title: "Gerencie em tempo real", desc: "Acompanhe o progresso, receba fotos, gere relatórios e controle tudo pelo painel web." },
   ];
 
   const testimonials = [
-    { name: "Marcos Oliveira", role: "Gestor de TI — Bahia", text: "Antes levávamos semanas para saber quantas escolas estavam concluídas. Com a Netvius, vejo em tempo real.", stars: 5 },
-    { name: "Ana Paula Costa", role: "Coordenadora de Projetos", text: "O app do técnico é incrível. Funciona offline, tira foto, manda pro Drive. Nossos técnicos adoraram.", stars: 5 },
-    { name: "Roberto Mendes", role: "Revendedor Netvius", text: "Vendo o sistema para 12 empresas diferentes. Cada uma com seus dados isolados. Nunca tive problema.", stars: 5 },
+    { name: "Marcos Oliveira", role: "Gestor de TI — Telecom, Bahia", text: "Antes levávamos semanas para saber quantas instalações estavam concluídas. Com a Netvius, vejo em tempo real.", stars: 5 },
+    { name: "Ana Paula Costa", role: "Coordenadora de Projetos — Energia Solar", text: "O app do técnico é incrível. Funciona offline, tira foto, registra observação. Nossa equipe adorou.", stars: 5 },
+    { name: "Roberto Mendes", role: "Revendedor Netvius — 12 clientes", text: "Vendo o sistema para empresas de segmentos diferentes. Cada uma com seus dados isolados. Nunca tive problema.", stars: 5 },
   ];
 
   return (
@@ -180,30 +180,30 @@ export default function Home() {
             style={{ background: "rgba(0,245,160,0.08)", border: "1px solid rgba(0,245,160,0.2)" }}>
             <span className="w-2 h-2 rounded-full" style={{ background: "#00f5a0", animation: "pulse 2s infinite" }} />
             <span className="text-xs font-semibold" style={{ color: "#00f5a0" }}>
-              Sistema online · Sincronização em tempo real
+Plataforma com IA · Qualquer segmento · Qualquer escala
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 tracking-tight">
-            Gerencie instalações<br />
+            <h1 className="text-5xl md:text-7xl font-black text-white leading-tight mb-6 tracking-tight">
+            Gerencie sua equipe<br />
             <span style={{
               background: "linear-gradient(135deg, #00f5a0 0%, #00d9f5 50%, #a78bfa 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}>
-              de rede escolar
+              de campo com IA
             </span><br />
-            com precisão total
+            para qualquer negócio
           </h1>
 
           {/* Subheadline — copy de vendas */}
           <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed"
             style={{ color: "rgba(255,255,255,0.5)" }}>
-            A plataforma que transforma o caos das instalações em{" "}
+            A plataforma que transforma o caos dos serviços técnicos em{" "}
             <strong style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>controle absoluto</strong>.
-            {" "}Painel web + app Android + relatórios automáticos.
-            Seus técnicos trabalham mais rápido, você enxerga tudo em tempo real.
+            {" "}Telecom, energia solar, segurança, climatização, educação e muito mais.
+            A IA adapta o sistema para o seu segmento automaticamente.
           </p>
 
           {/* CTA buttons */}
@@ -257,8 +257,8 @@ export default function Home() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
             {[
-              { value: 1248, suffix: "+", label: "Escolas gerenciadas" },
-              { value: 98, suffix: "%", label: "Uptime garantido" },
+              { value: 12, suffix: "+", label: "Segmentos atendidos" },
+              { value: 100, suffix: "%", label: "Dados isolados por empresa" },
               { value: 24, suffix: "h", label: "Suporte disponível" },
             ].map((s, i) => (
               <div key={i} className="text-center">
@@ -307,11 +307,11 @@ export default function Home() {
               Funcionalidades
             </span>
             <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-              Tudo que sua equipe precisa,<br />
+              Tudo que sua operação precisa,<br />
               <span style={{ color: "rgba(255,255,255,0.35)" }}>em um só lugar</span>
             </h2>
             <p className="text-base max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Do painel web ao app do técnico em campo — a Netvius conecta tudo em tempo real.
+              Do painel web ao app do técnico em campo — a Netvius conecta tudo em tempo real, para qualquer segmento.
             </p>
           </div>
 
@@ -356,7 +356,7 @@ export default function Home() {
               Como funciona
             </span>
             <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
-              Do zero ao operacional<br />
+              Do zero ao controle total<br />
               <span style={{ color: "rgba(255,255,255,0.35)" }}>em menos de 1 hora</span>
             </h2>
           </div>
@@ -499,16 +499,15 @@ export default function Home() {
       <section className="py-24 relative overflow-hidden">
         <div className="absolute pointer-events-none" style={{ width: 700, height: 700, top: "-30%", left: "50%", transform: "translateX(-50%)", background: "radial-gradient(circle, rgba(0,245,160,0.07) 0%, transparent 70%)", borderRadius: "50%" }} />
         <div className="relative max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
-            Pronto para ter{" "}
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+            Pronto para transformar{" "}
             <span style={{
               background: "linear-gradient(135deg, #00f5a0, #00d9f5)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}>
-              controle total
-            </span>{" "}
-            das suas instalações?
+              sua operação?
+            </span>
           </h2>
           <p className="text-base mb-10" style={{ color: "rgba(255,255,255,0.45)" }}>
             Fale agora com nossa equipe e veja uma demonstração ao vivo do sistema.
@@ -547,7 +546,7 @@ export default function Home() {
               </div>
               <div>
                 <span className="text-base font-black text-white">Netvius</span>
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>Gestão inteligente de redes escolares</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.32)" }}>Gestão inteligente para qualquer serviço técnico</p>
               </div>
             </div>
 

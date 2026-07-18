@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
 import { manutencaoRouter } from "./routers/manutencao";
+import { tenantConfigRouter } from "./routers/tenantConfig";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -1160,6 +1161,7 @@ export const appRouter = router({
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
   superadmin: superadminRouter,
+  tenantConfig: tenantConfigRouter,
   tenantAdmin: tenantAdminSelfRouter,
 });
 

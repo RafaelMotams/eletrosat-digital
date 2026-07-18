@@ -468,3 +468,12 @@
 - [x] Painel Superadmin redesenhado: sidebar premium, dashboard com stats, cards de clientes elegantes
 - [x] Modal de admins, editar e excluir no Superadmin
 - [x] Copiar slug com feedback visual no card do cliente
+
+## Plataforma Universal com IA (18/07/2026)
+- [x] Tabela tenant_config criada no banco (segmento, terminologia, camposExtras, configFluxo, corPrimaria)
+- [x] Endpoints tRPC: tenantConfig.obterConfig, tenantConfig.sugerirComIA, tenantConfig.salvarConfig
+- [x] IA adapta terminologia, campos extras e fluxo conforme segmento descrito pelo cliente
+- [x] Site inicial atualizado: copy universal para qualquer segmento (telecom, energia solar, segurança, etc.)
+- [x] Página /admin/configuracao-ia: onboarding em 4 etapas (segmento → descrever → revisar → concluído)
+- [x] 11 segmentos disponíveis: educação, telecom, energia solar, segurança, climatização, saúde, varejo, construção, logística, manutenção predial, geral
+- [x] Item "Config. com IA" adicionado ao menu do painel admin

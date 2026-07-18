@@ -249,3 +249,35 @@ export const manutencaoFotos = mysqlTable("manutencao_fotos", {
   clientIdIdx: uniqueIndex("manutencao_fotos_client_id_unique").on(table.clientId),
 }));
 export type ManutencaoFoto = typeof manutencaoFotos.$inferSelect;
+
+// ============================================================
+// CONFIGURAÇÃO UNIVERSAL POR TENANT (IA + Multi-segmento)
+// ============================================================
+// Configuração do tipo de negócio e terminologia por tenant
+export const tenantConfig = mysqlTable("tenant_config", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().unique(),
+  // Tipo de negócio (detectado/escolhido pelo usuário, sugerido pela IA)
+  // ex: "escola", "telecom", "energia_solar", "seguranca", "climatizacao", "saude", "varejo", "geral"
+  segmento: varchar("segmento", { length: 100 }).default("geral"),
+  descricaoNegocio: text("descricaoNegocio"), // descrição livre do negócio para a IA adaptar
+  // Terminologia personalizada (JSON)
+  // ex: { "local": "Escola", "locais": "Escolas", "tecnico": "Instalador", "os": "Ordem de Serviço", "campo1Label": "INEP" }
+  terminologia: text("terminologia"),
+  // Campos extras dinâmicos para o cadastro de locais (JSON array)
+  // ex: [{ "key": "inep", "label": "INEP", "type": "text", "required": true }]
+  camposExtras: text("camposExtras"),
+  // Cor primária do tema do painel do cliente
+  corPrimaria: varchar("corPrimaria", { length: 20 }).default("#00f5a0"),
+  // Logo URL do cliente
+  logoUrl: text("logoUrl"),
+  // Configurações de fluxo (JSON)
+  // ex: { "exigirFoto": true, "exigirObservacao": true, "usarMapa": true }
+  configFluxo: text("configFluxo"),
+  // Status da configuração inicial
+  configurado: boolean("configurado").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type TenantConfig = typeof tenantConfig.$inferSelect;
+export type InsertTenantConfig = typeof tenantConfig.$inferInsert;
