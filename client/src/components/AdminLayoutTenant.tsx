@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
+import TrialExpirado from "@/pages/admin/TrialExpirado";
 
 const navGroups = [
   {
@@ -98,6 +99,12 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
     );
   }
   if (!isAuthenticated) return null;
+
+  // Verificar se o trial expirou ou conta está bloqueada
+  const tenantStatus = (admin as any)?.tenant?.status;
+  if (tenantStatus === "expirado" || tenantStatus === "suspenso" || tenantStatus === "cancelado") {
+    return <TrialExpirado motivo={tenantStatus === "expirado" ? "trial_expirado" : tenantStatus} />;
+  }
 
   const initials = admin?.nome?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() ?? 'A';
   const tenantName = (admin as any)?.tenant?.nome ?? admin?.nome ?? "Netvius";

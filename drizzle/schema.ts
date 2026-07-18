@@ -35,11 +35,15 @@ export const tenants = mysqlTable("tenants", {
   nome: varchar("nome", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(), // identificador único ex: "eletrosat", "telecom-ba"
   plano: mysqlEnum("plano", ["basico", "profissional", "enterprise"]).default("basico").notNull(),
-  status: mysqlEnum("status", ["ativo", "suspenso", "cancelado"]).default("ativo").notNull(),
+  status: mysqlEnum("status", ["ativo", "trial", "expirado", "suspenso", "cancelado"]).default("trial").notNull(),
   contato: varchar("contato", { length: 255 }), // nome do responsável
   email: varchar("email", { length: 320 }),
   telefone: varchar("telefone", { length: 30 }),
   observacoes: text("observacoes"),
+  // Trial / demonstração
+  diasTrial: int("diasTrial").default(5).notNull(), // padrão 5 dias
+  trialInicio: timestamp("trialInicio").defaultNow().notNull(),
+  trialFim: timestamp("trialFim"), // calculado ao criar: trialInicio + diasTrial
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -477,3 +477,13 @@
 - [x] Página /admin/configuracao-ia: onboarding em 4 etapas (segmento → descrever → revisar → concluído)
 - [x] 11 segmentos disponíveis: educação, telecom, energia solar, segurança, climatização, saúde, varejo, construção, logística, manutenção predial, geral
 - [x] Item "Config. com IA" adicionado ao menu do painel admin
+
+## Sistema de Trial Automático (18/07/2026)
+- [x] Campos diasTrial, trialInicio, trialFim adicionados ao schema de tenants
+- [x] Status "trial" e "expirado" adicionados ao enum de status do tenant
+- [x] Middleware tenantAuth verifica expiração automática e bloqueia acesso
+- [x] Superadmin: campo "Dias de Demonstração" no formulário de novo cliente (padrão 5 dias)
+- [x] Superadmin: indicador de prazo restante nos cards de clientes (roxo/amarelo/vermelho)
+- [x] Tela TrialExpirado.tsx com CTA para WhatsApp e botão de voltar ao login
+- [x] AdminLayoutTenant verifica status do tenant e exibe tela de bloqueio se expirado/suspenso/cancelado
+- [x] Novos clientes criados com status "trial" automaticamente

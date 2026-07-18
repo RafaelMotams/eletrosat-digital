@@ -164,6 +164,7 @@ export const superadminRouter = router({
         adminNome: z.string().min(2),
         adminEmail: z.string().email(),
         adminSenha: z.string().min(6),
+        diasTrial: z.number().min(1).max(365).default(5),
       })
     )
     .mutation(async ({ input }) => {
@@ -201,7 +202,8 @@ export const superadminRouter = router({
         nome: z.string().min(2).optional(),
         slug: z.string().min(2).optional(),
         plano: z.enum(["basico", "profissional", "enterprise"]).optional(),
-        status: z.enum(["ativo", "suspenso", "cancelado"]).optional(),
+        status: z.enum(["ativo", "trial", "expirado", "suspenso", "cancelado"]).optional(),
+        diasTrial: z.number().min(1).max(365).optional(),
         contato: z.string().optional(),
         email: z.string().email().optional(),
         telefone: z.string().optional(),

@@ -11,8 +11,10 @@ import {
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Tenant = {
   id: number; nome: string; slug: string; plano: "basico" | "profissional" | "enterprise";
-  status: "ativo" | "suspenso" | "cancelado"; contato: string | null; email: string | null;
-  telefone: string | null; observacoes: string | null; createdAt: Date;
+  status: "ativo" | "trial" | "expirado" | "suspenso" | "cancelado"; contato: string | null; email: string | null;
+  telefone: string | null; observacoes: string | null;
+  diasTrial: number; trialInicio: Date; trialFim: Date | null;
+  createdAt: Date;
 };
 type Admin = {
   id: number; tenantId: number; nome: string; email: string;
@@ -26,9 +28,11 @@ const PLANO_CFG = {
   enterprise:   { label: "Enterprise",    color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.2)",  icon: Crown, grad: "linear-gradient(135deg, #92400e, #b45309)" },
 };
 const STATUS_CFG = {
-  ativo:     { label: "Ativo",     color: "#34d399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.2)",  dot: "#10b981" },
-  suspenso:  { label: "Suspenso",  color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.2)",  dot: "#f59e0b" },
-  cancelado: { label: "Cancelado", color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)", dot: "#ef4444" },
+  ativo:     { label: "Ativo",        color: "#34d399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.2)",  dot: "#10b981" },
+  trial:     { label: "Trial",        color: "#a78bfa", bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.2)", dot: "#8b5cf6" },
+  expirado:  { label: "Expirado",     color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)", dot: "#ef4444" },
+  suspenso:  { label: "Suspenso",     color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.2)",  dot: "#f59e0b" },
+  cancelado: { label: "Cancelado",    color: "#94a3b8", bg: "rgba(148,163,184,0.1)", border: "rgba(148,163,184,0.2)", dot: "#64748b" },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -188,9 +192,9 @@ export default function SuperadminDashboard() {
   });
 
   // ── Form: Novo Cliente ──
-  const [form, setForm] = useState({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "" });
+  const [form, setForm] = useState({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "", diasTrial: "5" });
   const setF = (k: string) => (v: string) => setForm(f => ({ ...f, [k]: v }));
-  const resetForm = () => setForm({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "" });
+  const resetForm = () => setForm({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "", diasTrial: "5" });
 
   // Auto-slug
   useEffect(() => {
@@ -533,7 +537,7 @@ export default function SuperadminDashboard() {
 
                 <form onSubmit={e => {
                   e.preventDefault();
-                  createTenantM.mutate({ token, nome: form.nome, slug: form.slug, plano: form.plano as any, contato: form.contato, email: form.email, telefone: form.telefone, observacoes: form.observacoes, adminNome: form.adminNome, adminEmail: form.adminEmail, adminSenha: form.adminSenha });
+                  createTenantM.mutate({ token, nome: form.nome, slug: form.slug, plano: form.plano as any, contato: form.contato, email: form.email, telefone: form.telefone, observacoes: form.observacoes, adminNome: form.adminNome, adminEmail: form.adminEmail, adminSenha: form.adminSenha, diasTrial: parseInt(form.diasTrial) || 5 });
                 }} className="space-y-5">
 
                   {/* Dados da empresa */}
@@ -550,6 +554,7 @@ export default function SuperadminDashboard() {
                         { value: "enterprise", label: "👑 Enterprise" },
                       ]} />
                       <Input label="Contato / Responsável" value={form.contato} onChange={setF("contato")} placeholder="Nome do responsável" />
+                      <Input label="⏱ Dias de Demonstração" type="number" value={form.diasTrial} onChange={setF("diasTrial")} placeholder="5" hint="Padrão: 5 dias. Máx: 365" required />
                       <Input label="Email da empresa" type="email" value={form.email} onChange={setF("email")} placeholder="empresa@email.com" />
                       <Input label="Telefone" value={form.telefone} onChange={setF("telefone")} placeholder="(75) 99999-9999" />
                     </div>
@@ -856,6 +861,23 @@ function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onImpersonate, o
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
           Criado em {new Date(tenant.createdAt).toLocaleDateString("pt-BR")}
         </p>
+        {/* Indicador de trial */}
+        {(tenant.status === "trial" || tenant.status === "expirado") && tenant.trialFim && (() => {
+          const fim = new Date(tenant.trialFim);
+          const agora = new Date();
+          const diffMs = fim.getTime() - agora.getTime();
+          const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          const expirado = diasRestantes <= 0;
+          return (
+            <p className="text-xs font-semibold" style={{ color: expirado ? "#f87171" : diasRestantes <= 1 ? "#fbbf24" : "#a78bfa" }}>
+              {expirado
+                ? "⛔ Trial expirado"
+                : diasRestantes === 1
+                ? "⚠️ Expira hoje!"
+                : `⏱ ${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""} restante${diasRestantes !== 1 ? "s" : ""} de trial`}
+            </p>
+          );
+        })()}
       </div>
 
       {/* Actions */}

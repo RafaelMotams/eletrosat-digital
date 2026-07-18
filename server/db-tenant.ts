@@ -36,10 +36,18 @@ export async function createTenant(data: {
   email?: string;
   telefone?: string;
   observacoes?: string;
+  diasTrial?: number;
 }) {
+  const dias = data.diasTrial ?? 5;
+  const agora = new Date();
+  const trialFim = new Date(agora.getTime() + dias * 24 * 60 * 60 * 1000);
+  const { diasTrial: _dt, ...rest } = data;
   const result = await db.insert(tenants).values({
-    ...data,
-    status: "ativo",
+    ...rest,
+    status: "trial",
+    diasTrial: dias,
+    trialInicio: agora,
+    trialFim,
   });
   return result;
 }
@@ -50,7 +58,7 @@ export async function updateTenant(
     nome: string;
     slug: string;
     plano: "basico" | "profissional" | "enterprise";
-    status: "ativo" | "suspenso" | "cancelado";
+    status: "ativo" | "trial" | "expirado" | "suspenso" | "cancelado";
     contato: string;
     email: string;
     telefone: string;
