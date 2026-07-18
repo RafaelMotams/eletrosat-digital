@@ -285,3 +285,33 @@ export const tenantConfig = mysqlTable("tenant_config", {
 });
 export type TenantConfig = typeof tenantConfig.$inferSelect;
 export type InsertTenantConfig = typeof tenantConfig.$inferInsert;
+
+// ============================================================
+// LOGS DE LOGIN (Segurança - Auditoria de Acessos)
+// ============================================================
+export const loginLogs = mysqlTable("login_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId"),
+  email: varchar("email", { length: 255 }).notNull(),
+  tipo: mysqlEnum("tipo", ["admin", "superadmin", "tecnico"]).notNull(),
+  sucesso: boolean("sucesso").notNull(),
+  ip: varchar("ip", { length: 64 }),
+  userAgent: varchar("userAgent", { length: 512 }),
+  motivoFalha: varchar("motivoFalha", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type LoginLog = typeof loginLogs.$inferSelect;
+export type InsertLoginLog = typeof loginLogs.$inferInsert;
+
+// ============================================================
+// BRUTE FORCE PROTECTION
+// ============================================================
+export const loginAttempts = mysqlTable("login_attempts", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  ip: varchar("ip", { length: 64 }),
+  tentativas: int("tentativas").default(0).notNull(),
+  bloqueadoAte: timestamp("bloqueadoAte"),
+  ultimaTentativa: timestamp("ultimaTentativa").defaultNow().notNull(),
+});
+export type LoginAttempt = typeof loginAttempts.$inferSelect;

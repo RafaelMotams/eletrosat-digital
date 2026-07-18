@@ -517,3 +517,29 @@
 - [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
 - [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
 - [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior
+
+## Melhorias Premium Fase 2 (18/07/2026)
+### Site Inicial Premium
+- [x] Mudar "Gestão inteligente para equipes externas" para copy premium de vendas
+- [x] Copy de vendas premium no hero ("Cada técnico em campo, cada centavo no lugar certo")
+- [x] CTA final redesenhado com copy urgente ("Pare de perder dinheiro com operação desorganizada")
+- [ ] Redesenhar site com visual de empresa grande (Stripe/Linear level)
+- [ ] Seção de segurança (100% seguro, dados na nuvem, proteção total)
+### App do Técnico - Melhorias
+- [x] Link do Google Maps com coordenadas na página de manutenção
+- [x] WhatsApp clicável com número da planilha na manutenção
+- [x] Velocidade ofertada visível na OS de manutenção
+- [x] Mapa interativo com todas as manutenções (pins no mapa)
+- [x] Distância entre cidades no mapa
+- [x] Botão "Iniciar Rota" abrindo Google Maps com navegação
+- [x] IA assistente para ajudar o técnico na instalação de infraestrutura (endpoint assistenteIA)
+- [ ] Visual do app completamente redesenhado (premium, elegante)
+### Superadmin Premium
+- [x] Aba "Logs de Acesso" adicionada ao painel Superadmin com tabela de auditoria
+- [x] Logs de login registrados no banco (IP, userAgent, sucesso/falha, tipo)
+- [ ] Redesenhar superadmin com visual premium e funcionalidades avançadas
+### Segurança Avançada
+- [x] Rate limiting no login (proteção contra brute force - 5 tentativas, bloqueio 15min)
+- [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
+- [x] Tabela login_attempts para controle de brute force
+- [ ] Headers de segurança (HSTS, CSP, X-Frame-Options)

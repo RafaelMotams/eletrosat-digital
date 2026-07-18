@@ -142,7 +142,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1.1, fontFamily: "var(--font-display)" }}>Netvius</p>
-            <p style={{ color: "rgba(16,185,129,0.6)", fontSize: 10, fontWeight: 500, marginTop: 2 }}>Gestão inteligente</p>
+            <p style={{ color: "rgba(16,185,129,0.6)", fontSize: 10, fontWeight: 500, marginTop: 2 }}>Controle total</p>
           </div>
           <button
             className="lg:hidden"
