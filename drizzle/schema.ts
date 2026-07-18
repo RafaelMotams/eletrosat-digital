@@ -205,3 +205,47 @@ export const planilhasImportadas = mysqlTable("planilhas_importadas", {
 });
 export type PlanilhaImportada = typeof planilhasImportadas.$inferSelect;
 export type InsertPlanilhaImportada = typeof planilhasImportadas.$inferInsert;
+
+// ============================================================
+// MÓDULO DE MANUTENÇÃO
+// ============================================================
+
+// Tabela de Ordens de Manutenção
+export const manutencoes = mysqlTable("manutencoes", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().default(1),
+  escolaId: int("escolaId").notNull(),
+  tecnicoId: int("tecnicoId"),
+  status: mysqlEnum("status", ["pendente", "em_andamento", "concluida"]).default("pendente").notNull(),
+  // Descrição do problema (obrigatório ao criar)
+  descricaoProblema: text("descricaoProblema").notNull(),
+  // Observação do técnico ao concluir (obrigatória)
+  observacaoConclusao: text("observacaoConclusao"),
+  // Fotos do defeito (antes) — URLs separadas por vírgula ou JSON
+  fotoDefeitoUrls: text("fotoDefeitoUrls"),
+  fotoDefeitoKeys: text("fotoDefeitoKeys"),
+  // Fotos após conclusão (depois)
+  fotoConclusaoUrls: text("fotoConclusaoUrls"),
+  fotoConclusaoKeys: text("fotoConclusaoKeys"),
+  // Datas
+  dataAtribuicao: timestamp("dataAtribuicao"),
+  dataConclusao: timestamp("dataConclusao"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Manutencao = typeof manutencoes.$inferSelect;
+export type InsertManutencao = typeof manutencoes.$inferInsert;
+
+// Fotos de manutenção (estrutura separada para múltiplas fotos)
+export const manutencaoFotos = mysqlTable("manutencao_fotos", {
+  id: int("id").autoincrement().primaryKey(),
+  manutencaoId: int("manutencaoId").notNull(),
+  tipo: mysqlEnum("tipo", ["defeito", "conclusao"]).notNull(),
+  url: text("url").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  clientId: varchar("clientId", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  clientIdIdx: uniqueIndex("manutencao_fotos_client_id_unique").on(table.clientId),
+}));
+export type ManutencaoFoto = typeof manutencaoFotos.$inferSelect;

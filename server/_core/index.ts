@@ -77,6 +77,18 @@ async function startServer() {
   app.use("/api/trpc/tecnicoAuth.uploadFotoMapaCalor", uploadLimiter);
   app.use("/api/trpc/tecnicoAuth.login", loginLimiter);
   app.use("/api/trpc/tenantAdmin.login", loginLimiter);
+  app.use("/api/trpc/superadmin.login", loginLimiter);
+
+  // ── Security headers ────────────────────────────────────────────────────────
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.removeHeader("X-Powered-By");
+    next();
+  });
 
   // ── Body parser: 15MB por request (foto base64 10MB ≈ 13.3MB) ───────────────
   app.use(express.json({ limit: "15mb" }));

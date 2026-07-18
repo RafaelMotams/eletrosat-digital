@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import {
-  Building2, Users, CheckCircle, PauseCircle, Star, Plus, LogOut,
-  ExternalLink, Trash2, UserPlus, ChevronDown, ChevronUp, Eye, EyeOff,
-  Wifi, Shield, Settings, X, AlertCircle,
+  Building2, Users, CheckCircle, PauseCircle, Plus, LogOut,
+  Trash2, UserPlus, Eye, EyeOff, Shield, X, AlertCircle,
+  Search, Crown, BarChart3, Edit3, ChevronRight, MoreVertical,
+  ExternalLink, Phone, Mail, Calendar, Lock, Unlock,
 } from "lucide-react";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 type Tenant = {
   id: number;
   nome: string;
@@ -19,7 +21,6 @@ type Tenant = {
   observacoes: string | null;
   createdAt: Date;
 };
-
 type Admin = {
   id: number;
   tenantId: number;
@@ -32,654 +33,819 @@ type Admin = {
 };
 
 const PLANO = {
-  basico:       { label: "Básico",        color: "#94a3b8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.25)" },
-  profissional: { label: "Profissional",  color: "#60a5fa", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.25)" },
-  enterprise:   { label: "Enterprise",    color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.25)" },
+  basico:       { label: "Básico",       color: "#94a3b8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.25)", icon: "⚡" },
+  profissional: { label: "Profissional", color: "#60a5fa", bg: "rgba(96,165,250,0.12)",  border: "rgba(96,165,250,0.25)",  icon: "🚀" },
+  enterprise:   { label: "Enterprise",   color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.25)",  icon: "👑" },
 };
-
 const STATUS = {
   ativo:     { label: "Ativo",     color: "#34d399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.25)",  dot: "#10b981" },
   suspenso:  { label: "Suspenso",  color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.25)",  dot: "#f59e0b" },
   cancelado: { label: "Cancelado", color: "#f87171", bg: "rgba(248,113,113,0.12)", border: "rgba(248,113,113,0.25)", dot: "#ef4444" },
 };
 
+function PlanoBadge({ plano }: { plano: keyof typeof PLANO }) {
+  const p = PLANO[plano];
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+      style={{ background: p.bg, color: p.color, border: `1px solid ${p.border}` }}>
+      {p.icon} {p.label}
+    </span>
+  );
+}
+function StatusBadge({ status }: { status: keyof typeof STATUS }) {
+  const s = STATUS[status];
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+      style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.dot }} />
+      {s.label}
+    </span>
+  );
+}
+
+function Toast({ msg, type, onClose }: { msg: string; type: "ok" | "err"; onClose: () => void }) {
+  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl"
+      style={{
+        background: type === "ok" ? "linear-gradient(135deg, #065f46, #064e3b)" : "linear-gradient(135deg, #7f1d1d, #991b1b)",
+        border: `1px solid ${type === "ok" ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+      }}>
+      {type === "ok" ? <CheckCircle size={16} style={{ color: "#34d399" }} /> : <AlertCircle size={16} style={{ color: "#f87171" }} />}
+      <span className="text-sm font-medium text-white">{msg}</span>
+    </div>
+  );
+}
+
+// ─── TenantCard ───────────────────────────────────────────────────────────────
+function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onImpersonate, onSuspender }: {
+  tenant: Tenant;
+  onVerAdmins: () => void;
+  onEditar: () => void;
+  onExcluir: () => void;
+  onImpersonate: () => void;
+  onSuspender: (status: "ativo" | "suspenso") => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <div className="rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="p-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base flex-shrink-0"
+              style={{
+                background: tenant.status === "ativo"
+                  ? "linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3))"
+                  : "rgba(255,255,255,0.06)",
+                color: tenant.status === "ativo" ? "#a78bfa" : "rgba(255,255,255,0.3)",
+              }}>
+              {tenant.nome.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-white text-sm truncate">{tenant.nome}</p>
+              <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.35)" }}>/{tenant.slug}</p>
+            </div>
+          </div>
+          <div className="relative">
+            <button onClick={() => setMenuOpen(m => !m)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: menuOpen ? "rgba(255,255,255,0.1)" : "transparent" }}>
+              <MoreVertical size={14} style={{ color: "rgba(255,255,255,0.5)" }} />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-8 w-44 rounded-xl overflow-hidden z-10 shadow-2xl"
+                style={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)" }}
+                onMouseLeave={() => setMenuOpen(false)}>
+                {[
+                  { icon: ExternalLink, label: "Acessar painel", action: onImpersonate, color: "#a78bfa" },
+                  { icon: Users, label: "Ver admins", action: onVerAdmins, color: "rgba(255,255,255,0.7)" },
+                  { icon: Edit3, label: "Editar", action: onEditar, color: "rgba(255,255,255,0.7)" },
+                  {
+                    icon: tenant.status === "ativo" ? Lock : Unlock,
+                    label: tenant.status === "ativo" ? "Suspender" : "Ativar",
+                    action: () => onSuspender(tenant.status === "ativo" ? "suspenso" : "ativo"),
+                    color: tenant.status === "ativo" ? "#fbbf24" : "#34d399",
+                  },
+                  { icon: Trash2, label: "Excluir", action: onExcluir, color: "#f87171" },
+                ].map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <button key={i} onClick={() => { item.action(); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium hover:bg-white/5 text-left"
+                      style={{ color: item.color, borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                      <Icon size={13} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="px-4 py-3 flex items-center gap-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <PlanoBadge plano={tenant.plano} />
+        <StatusBadge status={tenant.status} />
+      </div>
+      <div className="p-4 flex flex-col gap-2">
+        {tenant.email && (
+          <div className="flex items-center gap-2">
+            <Mail size={11} style={{ color: "rgba(255,255,255,0.3)" }} />
+            <span className="text-xs truncate" style={{ color: "rgba(255,255,255,0.5)" }}>{tenant.email}</span>
+          </div>
+        )}
+        {tenant.telefone && (
+          <div className="flex items-center gap-2">
+            <Phone size={11} style={{ color: "rgba(255,255,255,0.3)" }} />
+            <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{tenant.telefone}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <Calendar size={11} style={{ color: "rgba(255,255,255,0.3)" }} />
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Desde {new Date(tenant.createdAt).toLocaleDateString("pt-BR")}
+          </span>
+        </div>
+      </div>
+      <div className="px-4 pb-4 flex gap-2">
+        <button onClick={onImpersonate}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold"
+          style={{ background: "linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2))", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}>
+          <ExternalLink size={12} /> Acessar
+        </button>
+        <button onClick={onVerAdmins}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold"
+          style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <Users size={12} /> Admins
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function SuperAdminDashboard() {
   const [, navigate] = useLocation();
   const [token, setToken] = useState<string | null>(null);
   const [adminInfo, setAdminInfo] = useState<{ nome: string; email: string } | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-  const [expandedTenant, setExpandedTenant] = useState<number | null>(null);
-  const [showCreateAdmin, setShowCreateAdmin] = useState<number | null>(null);
-  const [showAdminSenha, setShowAdminSenha] = useState(false);
-  const [showFormSenha, setShowFormSenha] = useState(false);
-  const [impersonating, setImpersonating] = useState<number | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const showToast = (msg: string, type: "ok" | "err" = "ok") => setToast({ msg, type });
+
+  const [view, setView] = useState<"dashboard" | "clientes" | "criar">("dashboard");
+  const [busca, setBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativo" | "suspenso" | "cancelado">("todos");
+  const [filtroPlano, setFiltroPlano] = useState<"todos" | "basico" | "profissional" | "enterprise">("todos");
+
+  const [modalAdmins, setModalAdmins] = useState<Tenant | null>(null);
+  const [modalEditarTenant, setModalEditarTenant] = useState<Tenant | null>(null);
+  const [modalCriarAdmin, setModalCriarAdmin] = useState<Tenant | null>(null);
+  const [modalExcluir, setModalExcluir] = useState<{ tipo: "tenant" | "admin"; id: number; nome: string } | null>(null);
+  const [showSenha, setShowSenha] = useState(false);
+  const [showAdminSenha, setShowAdminSenha] = useState(false);
 
   const [form, setForm] = useState({
-    nome: "", slug: "", plano: "basico" as "basico" | "profissional" | "enterprise",
+    nome: "", slug: "", plano: "basico" as keyof typeof PLANO,
     contato: "", email: "", telefone: "", observacoes: "",
     adminNome: "", adminEmail: "", adminSenha: "",
   });
+  const [editForm, setEditForm] = useState<Partial<Tenant & { contato: string; email: string; telefone: string; observacoes: string }>>({});
   const [adminForm, setAdminForm] = useState({ nome: "", email: "", senha: "", role: "admin" as "admin" | "viewer" });
 
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
-
   useEffect(() => {
-    const t = localStorage.getItem("sa_token");
-    const a = localStorage.getItem("sa_admin");
+    // Suporta ambos os formatos de chave de token
+    const t = localStorage.getItem("sa_token") || localStorage.getItem("superadmin_token");
+    const a = localStorage.getItem("sa_admin") || localStorage.getItem("superadmin_info");
     if (!t) { navigate("/superadmin/login"); return; }
     setToken(t);
-    if (a) setAdminInfo(JSON.parse(a));
+    if (a) { try { setAdminInfo(JSON.parse(a)); } catch {} }
   }, [navigate]);
 
-  const tenantsQuery = trpc.superadmin.listTenants.useQuery(
-    { token: token! }, { enabled: !!token }
+  const tenantsQ = trpc.superadmin.listTenants.useQuery(
+    { token: token! }, { enabled: !!token, refetchInterval: 60000 }
   );
-  const adminsQuery = trpc.superadmin.listAdmins.useQuery(
-    { token: token!, tenantId: expandedTenant! },
-    { enabled: !!token && expandedTenant !== null }
+  const adminsQ = trpc.superadmin.listAdmins.useQuery(
+    { token: token!, tenantId: modalAdmins?.id ?? 0 },
+    { enabled: !!token && !!modalAdmins }
   );
 
   const createTenantMut = trpc.superadmin.createTenant.useMutation({
     onSuccess: () => {
       showToast("Cliente criado com sucesso!");
-      setShowCreate(false);
+      setView("clientes");
       setForm({ nome: "", slug: "", plano: "basico", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "" });
-      tenantsQuery.refetch();
+      tenantsQ.refetch();
     },
     onError: (e) => showToast(e.message, "err"),
   });
-
   const updateTenantMut = trpc.superadmin.updateTenant.useMutation({
-    onSuccess: () => { showToast("Status atualizado!"); tenantsQuery.refetch(); },
+    onSuccess: () => { showToast("Cliente atualizado!"); tenantsQ.refetch(); setModalEditarTenant(null); },
     onError: (e) => showToast(e.message, "err"),
   });
-
   const deleteTenantMut = trpc.superadmin.deleteTenant.useMutation({
-    onSuccess: () => { showToast("Cliente removido!"); tenantsQuery.refetch(); },
+    onSuccess: () => { showToast("Cliente excluído"); tenantsQ.refetch(); setModalExcluir(null); },
     onError: (e) => showToast(e.message, "err"),
   });
-
   const createAdminMut = trpc.superadmin.createAdmin.useMutation({
-    onSuccess: () => {
-      showToast("Usuário criado com sucesso!");
-      setShowCreateAdmin(null);
-      setAdminForm({ nome: "", email: "", senha: "", role: "admin" });
-      adminsQuery.refetch();
-    },
+    onSuccess: () => { showToast("Admin criado!"); adminsQ.refetch(); setModalCriarAdmin(null); setAdminForm({ nome: "", email: "", senha: "", role: "admin" }); },
     onError: (e) => showToast(e.message, "err"),
   });
-
+  const updateAdminMut = trpc.superadmin.updateAdmin.useMutation({
+    onSuccess: () => { showToast("Admin atualizado!"); adminsQ.refetch(); },
+    onError: (e) => showToast(e.message, "err"),
+  });
   const deleteAdminMut = trpc.superadmin.deleteAdmin.useMutation({
-    onSuccess: () => { showToast("Usuário removido!"); adminsQuery.refetch(); },
+    onSuccess: () => { showToast("Admin excluído"); adminsQ.refetch(); setModalExcluir(null); },
     onError: (e) => showToast(e.message, "err"),
   });
-
   const impersonateMut = trpc.superadmin.impersonateTenant.useMutation({
     onSuccess: (data) => {
       localStorage.setItem("tenant_admin_token", data.token);
       localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
-      setImpersonating(null);
-      navigate("/admin");
+      window.open("/admin", "_blank");
+      showToast("Acessando painel do cliente...");
     },
-    onError: (e) => { setImpersonating(null); showToast(e.message, "err"); },
+    onError: (e) => showToast(e.message, "err"),
   });
 
-  const logout = () => {
-    localStorage.removeItem("sa_token");
-    localStorage.removeItem("sa_admin");
+  const tenantsFiltrados = useMemo(() => {
+    if (!tenantsQ.data) return [];
+    return (tenantsQ.data as Tenant[]).filter(t => {
+      const matchBusca = !busca || t.nome.toLowerCase().includes(busca.toLowerCase()) ||
+        t.slug.includes(busca.toLowerCase()) || (t.email ?? "").toLowerCase().includes(busca.toLowerCase());
+      const matchStatus = filtroStatus === "todos" || t.status === filtroStatus;
+      const matchPlano = filtroPlano === "todos" || t.plano === filtroPlano;
+      return matchBusca && matchStatus && matchPlano;
+    });
+  }, [tenantsQ.data, busca, filtroStatus, filtroPlano]);
+
+  const globalStats = useMemo(() => {
+    const data = (tenantsQ.data ?? []) as Tenant[];
+    return {
+      total: data.length,
+      ativos: data.filter(t => t.status === "ativo").length,
+      suspensos: data.filter(t => t.status === "suspenso").length,
+      cancelados: data.filter(t => t.status === "cancelado").length,
+    };
+  }, [tenantsQ.data]);
+
+  function gerarSlug(nome: string) {
+    return nome.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-").replace(/-+/g, "-").trim();
+  }
+
+  function handleLogout() {
+    ["sa_token","sa_admin","superadmin_token","superadmin_info"].forEach(k => localStorage.removeItem(k));
     navigate("/superadmin/login");
-  };
-
-  const tenants = (tenantsQuery.data ?? []) as Tenant[];
-  const admins = (adminsQuery.data ?? []) as Admin[];
-
-  const stats = {
-    total: tenants.length,
-    ativos: tenants.filter(t => t.status === "ativo").length,
-    suspensos: tenants.filter(t => t.status === "suspenso").length,
-    enterprise: tenants.filter(t => t.plano === "enterprise").length,
-  };
+  }
 
   if (!token) return null;
 
-  const inputStyle = {
-    width: "100%", padding: "11px 14px", borderRadius: 10,
-    background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.12)",
-    color: "white", fontSize: 14, outline: "none",
-  };
+  const inputCls = "w-full px-4 py-3 rounded-xl text-sm outline-none transition-all";
+  const inputStyle = { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#060d1f", fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
-      {/* Ambient */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-10%", left: "-5%", width: 500, height: 500, background: "radial-gradient(circle, rgba(102,126,234,0.08) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", bottom: "-10%", right: "-5%", width: 400, height: 400, background: "radial-gradient(circle, rgba(118,75,162,0.08) 0%, transparent 70%)", borderRadius: "50%" }} />
-      </div>
+    <div className="min-h-screen flex" style={{ background: "linear-gradient(135deg, #0a0f1e 0%, #0d1529 50%, #0a1020 100%)" }}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: "fixed", top: 20, right: 20, zIndex: 9999,
-          padding: "12px 20px", borderRadius: 12,
-          background: toast.type === "ok" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-          border: `1px solid ${toast.type === "ok" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
-          color: toast.type === "ok" ? "#34d399" : "#f87171",
-          fontSize: 14, fontWeight: 500,
-          display: "flex", alignItems: "center", gap: 8,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-        }}>
-          {toast.type === "ok" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-          {toast.msg}
-        </div>
-      )}
-
-      {/* Header */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 50,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 32px", height: 64,
-        background: "rgba(6,13,31,0.85)", backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: "linear-gradient(135deg, #667eea, #764ba2)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 0 20px rgba(102,126,234,0.4)",
-          }}>
-            <Shield size={18} color="white" />
-          </div>
-          <div>
-            <p style={{ color: "white", fontWeight: 800, fontSize: 16, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>Netvius</p>
-            <p style={{ color: "rgba(102,126,234,0.8)", fontSize: 11, marginTop: 2 }}>Painel de Revenda</p>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #667eea, #764ba2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white" }}>
-              {adminInfo?.nome?.charAt(0).toUpperCase() ?? "S"}
+      {/* ── Sidebar ── */}
+      <aside className="fixed left-0 top-0 bottom-0 w-60 flex flex-col z-40"
+        style={{ background: "rgba(255,255,255,0.03)", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="p-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}>
+              <Crown size={16} className="text-white" />
             </div>
-            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}>{adminInfo?.nome}</span>
+            <div>
+              <p className="text-sm font-black text-white">Netvius</p>
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Painel Master</p>
+            </div>
           </div>
-          <button
-            onClick={logout}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "7px 14px", borderRadius: 8,
-              background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
-              color: "#f87171", fontSize: 13, fontWeight: 500, cursor: "pointer",
-            }}
-          >
-            <LogOut size={14} /> Sair
-          </button>
         </div>
-      </header>
-
-      {/* Content */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px", position: "relative", zIndex: 1 }}>
-
-        {/* Page title */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ color: "white", fontWeight: 800, fontSize: 26, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>
-            Gestão de Clientes
-          </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, marginTop: 6 }}>
-            Crie e gerencie os painéis dos seus clientes
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 }}>
+        <nav className="flex-1 p-3 flex flex-col gap-1">
           {[
-            { label: "Total de Clientes", value: stats.total, icon: Building2, color: "#667eea", glow: "rgba(102,126,234,0.2)" },
-            { label: "Clientes Ativos", value: stats.ativos, icon: CheckCircle, color: "#10b981", glow: "rgba(16,185,129,0.2)" },
-            { label: "Suspensos", value: stats.suspensos, icon: PauseCircle, color: "#f59e0b", glow: "rgba(245,158,11,0.2)" },
-            { label: "Enterprise", value: stats.enterprise, icon: Star, color: "#fbbf24", glow: "rgba(251,191,36,0.2)" },
-          ].map((s) => (
-            <div key={s.label} style={{
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 16, padding: "20px 20px 16px",
-            }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, marginBottom: 14,
-                background: s.glow, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <s.icon size={18} color={s.color} />
-              </div>
-              <p style={{ color: "white", fontWeight: 800, fontSize: 28, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{s.value}</p>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 6 }}>{s.label}</p>
+            { id: "dashboard", icon: BarChart3, label: "Dashboard" },
+            { id: "clientes", icon: Building2, label: "Clientes" },
+            { id: "criar", icon: Plus, label: "Novo Cliente" },
+          ].map(item => {
+            const Icon = item.icon;
+            const active = view === item.id;
+            return (
+              <button key={item.id} onClick={() => setView(item.id as any)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left"
+                style={{
+                  background: active ? "linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2))" : "transparent",
+                  color: active ? "#a78bfa" : "rgba(255,255,255,0.5)",
+                  border: active ? "1px solid rgba(167,139,250,0.2)" : "1px solid transparent",
+                }}>
+                <Icon size={15} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="p-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}>
+              <Shield size={12} className="text-white" />
             </div>
-          ))}
-        </div>
-
-        {/* Header da lista */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <h2 style={{ color: "white", fontWeight: 700, fontSize: 18, fontFamily: "'Outfit', sans-serif" }}>
-            Clientes Cadastrados
-            {tenants.length > 0 && (
-              <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.35)" }}>
-                ({tenants.length})
-              </span>
-            )}
-          </h2>
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 20px", borderRadius: 10,
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
-              color: "white", fontWeight: 600, fontSize: 14,
-              border: "none", cursor: "pointer",
-              boxShadow: "0 4px 16px rgba(102,126,234,0.4)",
-            }}
-          >
-            <Plus size={16} /> Novo Cliente
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-white truncate">{adminInfo?.nome ?? "Superadmin"}</p>
+              <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.35)" }}>{adminInfo?.email}</p>
+            </div>
+          </div>
+          <button onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium"
+            style={{ background: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}>
+            <LogOut size={12} /> Sair
           </button>
         </div>
+      </aside>
 
-        {/* Lista de clientes */}
-        {tenantsQuery.isLoading ? (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.3)" }}>Carregando clientes...</div>
-        ) : tenants.length === 0 ? (
-          <div style={{
-            textAlign: "center", padding: "60px 0",
-            background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 16,
-          }}>
-            <Building2 size={40} color="rgba(255,255,255,0.15)" style={{ margin: "0 auto 12px" }} />
-            <p style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Nenhum cliente cadastrado</p>
-            <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 13, marginTop: 4 }}>Clique em "Novo Cliente" para começar</p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {tenants.map((tenant) => (
-              <div key={tenant.id} style={{
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 16, overflow: "hidden",
-                transition: "border-color 0.15s",
-              }}>
-                {/* Card principal */}
-                <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                  {/* Avatar */}
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                    background: "linear-gradient(135deg, #667eea, #764ba2)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: 16, color: "white", fontFamily: "'Outfit', sans-serif",
-                  }}>
-                    {tenant.nome.charAt(0).toUpperCase()}
-                  </div>
+      {/* ── Content ── */}
+      <main className="ml-60 flex-1 min-h-screen">
 
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                      <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>{tenant.nome}</span>
-                      <span style={{
-                        padding: "2px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600,
-                        background: STATUS[tenant.status].bg, color: STATUS[tenant.status].color,
-                        border: `1px solid ${STATUS[tenant.status].border}`,
-                        display: "flex", alignItems: "center", gap: 5,
-                      }}>
-                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: STATUS[tenant.status].dot, display: "inline-block" }} />
-                        {STATUS[tenant.status].label}
-                      </span>
-                      <span style={{
-                        padding: "2px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600,
-                        background: PLANO[tenant.plano].bg, color: PLANO[tenant.plano].color,
-                        border: `1px solid ${PLANO[tenant.plano].border}`,
-                      }}>
-                        {PLANO[tenant.plano].label}
-                      </span>
+        {/* DASHBOARD */}
+        {view === "dashboard" && (
+          <div className="p-8">
+            <div className="mb-8">
+              <h1 className="text-2xl font-black text-white mb-1">Dashboard</h1>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Visão geral do sistema de revenda Netvius</p>
+            </div>
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              {[
+                { label: "Total Clientes", value: globalStats.total, color: "#a78bfa", icon: Building2 },
+                { label: "Ativos", value: globalStats.ativos, color: "#34d399", icon: CheckCircle },
+                { label: "Suspensos", value: globalStats.suspensos, color: "#fbbf24", icon: PauseCircle },
+                { label: "Cancelados", value: globalStats.cancelados, color: "#f87171", icon: AlertCircle },
+              ].map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <div key={i} className="rounded-2xl p-5"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+                      style={{ background: s.color + "20" }}>
+                      <Icon size={16} style={{ color: s.color }} />
                     </div>
-                    <div style={{ display: "flex", gap: 16, marginTop: 5, flexWrap: "wrap" }}>
-                      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>/{tenant.slug}</span>
-                      {tenant.contato && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{tenant.contato}</span>}
-                      {tenant.email && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{tenant.email}</span>}
-                      {tenant.telefone && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{tenant.telefone}</span>}
+                    <p className="text-3xl font-black text-white mb-1">{s.value}</p>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="rounded-2xl overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                <h2 className="text-sm font-bold text-white">Clientes Recentes</h2>
+                <button onClick={() => setView("clientes")}
+                  className="text-xs font-medium flex items-center gap-1" style={{ color: "#a78bfa" }}>
+                  Ver todos <ChevronRight size={12} />
+                </button>
+              </div>
+              {tenantsQ.isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : ((tenantsQ.data ?? []) as Tenant[]).slice(0, 5).map((t, idx) => (
+                <div key={t.id}
+                  className="flex items-center justify-between px-5 py-4 hover:bg-white/5 transition-colors"
+                  style={{ borderBottom: idx < 4 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
+                      style={{ background: "rgba(102,126,234,0.2)", color: "#a78bfa" }}>
+                      {t.nome.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{t.nome}</p>
+                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>/{t.slug}</p>
                     </div>
                   </div>
-
-                  {/* Ações */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
-                    {/* Acessar painel do cliente */}
-                    <button
-                      onClick={() => {
-                        setImpersonating(tenant.id);
-                        impersonateMut.mutate({ token: token!, tenantId: tenant.id });
-                      }}
-                      disabled={impersonating === tenant.id || tenant.status !== "ativo"}
-                      title={tenant.status !== "ativo" ? "Cliente suspenso ou cancelado" : "Entrar no painel do cliente"}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 14px", borderRadius: 8,
-                        background: tenant.status === "ativo" ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.05)",
-                        border: `1px solid ${tenant.status === "ativo" ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.1)"}`,
-                        color: tenant.status === "ativo" ? "#34d399" : "rgba(255,255,255,0.25)",
-                        fontSize: 13, fontWeight: 600, cursor: tenant.status === "ativo" ? "pointer" : "not-allowed",
-                      }}
-                    >
-                      {impersonating === tenant.id ? (
-                        <div style={{ width: 14, height: 14, border: "2px solid rgba(52,211,153,0.3)", borderTopColor: "#34d399", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                      ) : (
-                        <ExternalLink size={14} />
-                      )}
-                      Acessar Painel
-                    </button>
-
-                    {/* Usuários */}
-                    <button
-                      onClick={() => setExpandedTenant(expandedTenant === tenant.id ? null : tenant.id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "8px 14px", borderRadius: 8,
-                        background: expandedTenant === tenant.id ? "rgba(102,126,234,0.2)" : "rgba(102,126,234,0.1)",
-                        border: "1px solid rgba(102,126,234,0.25)",
-                        color: "#a5b4fc", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                      }}
-                    >
-                      <Users size={14} />
-                      Usuários
-                      {expandedTenant === tenant.id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                    </button>
-
-                    {/* Status */}
-                    <select
-                      value={tenant.status}
-                      onChange={(e) => updateTenantMut.mutate({ token: token!, id: tenant.id, status: e.target.value as "ativo" | "suspenso" | "cancelado" })}
-                      style={{
-                        padding: "8px 12px", borderRadius: 8,
-                        background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-                        color: "white", fontSize: 13, outline: "none", cursor: "pointer",
-                      }}
-                    >
-                      <option value="ativo">Ativo</option>
-                      <option value="suspenso">Suspenso</option>
-                      <option value="cancelado">Cancelado</option>
-                    </select>
-
-                    {/* Deletar */}
-                    <button
-                      onClick={() => {
-                        if (confirm(`Remover cliente "${tenant.nome}"? Esta ação não pode ser desfeita.`)) {
-                          deleteTenantMut.mutate({ token: token!, id: tenant.id });
-                        }
-                      }}
-                      style={{
-                        padding: "8px 10px", borderRadius: 8,
-                        background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
-                        color: "#f87171", cursor: "pointer", display: "flex", alignItems: "center",
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <PlanoBadge plano={t.plano} />
+                    <StatusBadge status={t.status} />
                   </div>
                 </div>
-
-                {/* Painel de usuários expandido */}
-                {expandedTenant === tenant.id && (
-                  <div style={{ padding: "16px 20px 20px", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.2)" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                      <p style={{ color: "rgba(255,255,255,0.6)", fontWeight: 600, fontSize: 13 }}>
-                        Usuários do Painel Admin
-                      </p>
-                      <button
-                        onClick={() => setShowCreateAdmin(showCreateAdmin === tenant.id ? null : tenant.id)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 6,
-                          padding: "6px 12px", borderRadius: 8,
-                          background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)",
-                          color: "#34d399", fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        }}
-                      >
-                        <UserPlus size={13} /> Novo Usuário
-                      </button>
-                    </div>
-
-                    {/* Form criar usuário */}
-                    {showCreateAdmin === tenant.id && (
-                      <div style={{
-                        marginBottom: 16, padding: "16px", borderRadius: 12,
-                        background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-                      }}>
-                        <p style={{ color: "white", fontWeight: 600, fontSize: 13, marginBottom: 12 }}>Criar Usuário Admin</p>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                          <input placeholder="Nome completo" value={adminForm.nome}
-                            onChange={(e) => setAdminForm(f => ({ ...f, nome: e.target.value }))}
-                            style={inputStyle} />
-                          <input placeholder="Email" type="email" value={adminForm.email}
-                            onChange={(e) => setAdminForm(f => ({ ...f, email: e.target.value }))}
-                            style={inputStyle} />
-                          <div style={{ position: "relative" }}>
-                            <input placeholder="Senha (mín. 6 caracteres)"
-                              type={showAdminSenha ? "text" : "password"}
-                              value={adminForm.senha}
-                              onChange={(e) => setAdminForm(f => ({ ...f, senha: e.target.value }))}
-                              style={{ ...inputStyle, paddingRight: 40 }} />
-                            <button type="button" onClick={() => setShowAdminSenha(v => !v)}
-                              style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)" }}>
-                              {showAdminSenha ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
-                          </div>
-                          <select value={adminForm.role}
-                            onChange={(e) => setAdminForm(f => ({ ...f, role: e.target.value as "admin" | "viewer" }))}
-                            style={{ ...inputStyle, cursor: "pointer" }}>
-                            <option value="admin">Admin (acesso total)</option>
-                            <option value="viewer">Viewer (somente leitura)</option>
-                          </select>
-                        </div>
-                        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                          <button
-                            onClick={() => createAdminMut.mutate({ token: token!, tenantId: tenant.id, ...adminForm })}
-                            disabled={createAdminMut.isPending}
-                            style={{
-                              padding: "8px 18px", borderRadius: 8,
-                              background: "linear-gradient(135deg, #10b981, #059669)",
-                              color: "white", fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer",
-                            }}
-                          >
-                            {createAdminMut.isPending ? "Criando..." : "Criar Usuário"}
-                          </button>
-                          <button onClick={() => setShowCreateAdmin(null)}
-                            style={{ padding: "8px 14px", borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer" }}>
-                            Cancelar
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Lista de usuários */}
-                    {adminsQuery.isLoading ? (
-                      <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Carregando...</p>
-                    ) : admins.length === 0 ? (
-                      <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Nenhum usuário cadastrado</p>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {admins.map((admin) => (
-                          <div key={admin.id} style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "10px 14px", borderRadius: 10,
-                            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                          }}>
-                            <div>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ color: "white", fontWeight: 600, fontSize: 13 }}>{admin.nome}</span>
-                                <span style={{
-                                  padding: "1px 8px", borderRadius: 100, fontSize: 11,
-                                  background: admin.role === "admin" ? "rgba(102,126,234,0.15)" : "rgba(107,114,128,0.15)",
-                                  color: admin.role === "admin" ? "#a5b4fc" : "#9ca3af",
-                                }}>{admin.role}</span>
-                                {!admin.ativo && (
-                                  <span style={{ padding: "1px 8px", borderRadius: 100, fontSize: 11, background: "rgba(239,68,68,0.12)", color: "#f87171" }}>Inativo</span>
-                                )}
-                              </div>
-                              <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginTop: 2 }}>
-                                {admin.email}
-                                {admin.ultimoLogin && ` · Último login: ${new Date(admin.ultimoLogin).toLocaleDateString("pt-BR")}`}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => { if (confirm(`Remover usuário "${admin.nome}"?`)) deleteAdminMut.mutate({ token: token!, id: admin.id }); }}
-                              style={{ padding: "6px 12px", borderRadius: 8, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", fontSize: 12, cursor: "pointer" }}
-                            >
-                              Remover
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Modal criar cliente */}
-      {showCreate && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 100,
-          display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
-          background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
-        }}>
-          <div style={{
-            width: "100%", maxWidth: 520, borderRadius: 20, padding: "28px 28px 24px",
-            maxHeight: "90vh", overflowY: "auto",
-            background: "linear-gradient(160deg, #0f172a 0%, #1e1b4b 100%)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 32px 64px rgba(0,0,0,0.5)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        {/* CLIENTES */}
+        {view === "clientes" && (
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 style={{ color: "white", fontWeight: 800, fontSize: 20, fontFamily: "'Outfit', sans-serif" }}>Novo Cliente</h3>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 2 }}>Preencha os dados do cliente e as credenciais do painel</p>
+                <h1 className="text-2xl font-black text-white mb-1">Clientes</h1>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  {tenantsFiltrados.length} de {tenantsQ.data?.length ?? 0} clientes
+                </p>
               </div>
-              <button onClick={() => setShowCreate(false)}
-                style={{ padding: 8, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}>
-                <X size={16} />
+              <button onClick={() => setView("criar")}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", color: "white", boxShadow: "0 4px 16px rgba(102,126,234,0.3)" }}>
+                <Plus size={15} /> Novo Cliente
               </button>
             </div>
+            <div className="flex gap-3 mb-5">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "rgba(255,255,255,0.3)" }} />
+                <input className={`${inputCls} pl-9`} style={inputStyle}
+                  placeholder="Buscar por nome, slug ou email..."
+                  value={busca} onChange={e => setBusca(e.target.value)} />
+              </div>
+              <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value as any)}
+                className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={inputStyle}>
+                <option value="todos" style={{ background: "#1a1a2e" }}>Todos os status</option>
+                <option value="ativo" style={{ background: "#1a1a2e" }}>Ativos</option>
+                <option value="suspenso" style={{ background: "#1a1a2e" }}>Suspensos</option>
+                <option value="cancelado" style={{ background: "#1a1a2e" }}>Cancelados</option>
+              </select>
+              <select value={filtroPlano} onChange={e => setFiltroPlano(e.target.value as any)}
+                className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={inputStyle}>
+                <option value="todos" style={{ background: "#1a1a2e" }}>Todos os planos</option>
+                <option value="basico" style={{ background: "#1a1a2e" }}>Básico</option>
+                <option value="profissional" style={{ background: "#1a1a2e" }}>Profissional</option>
+                <option value="enterprise" style={{ background: "#1a1a2e" }}>Enterprise</option>
+              </select>
+            </div>
+            {tenantsQ.isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : tenantsFiltrados.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Building2 size={40} style={{ color: "rgba(255,255,255,0.15)" }} />
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Nenhum cliente encontrado</p>
+                <button onClick={() => setView("criar")}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                  style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", color: "white" }}>
+                  <Plus size={14} /> Criar primeiro cliente
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                {tenantsFiltrados.map(t => (
+                  <TenantCard key={t.id} tenant={t}
+                    onVerAdmins={() => setModalAdmins(t)}
+                    onEditar={() => { setModalEditarTenant(t); setEditForm({ nome: t.nome, slug: t.slug, plano: t.plano, status: t.status, contato: t.contato ?? "", email: t.email ?? "", telefone: t.telefone ?? "", observacoes: t.observacoes ?? "" }); }}
+                    onExcluir={() => setModalExcluir({ tipo: "tenant", id: t.id, nome: t.nome })}
+                    onImpersonate={() => impersonateMut.mutate({ token: token!, tenantId: t.id })}
+                    onSuspender={(status) => updateTenantMut.mutate({ token: token!, id: t.id, status })}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {/* Empresa */}
-              <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Dados da Empresa</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Nome da Empresa *</label>
-                    <input placeholder="Ex: Telecom Bahia" value={form.nome}
-                      onChange={(e) => {
-                        const nome = e.target.value;
-                        const slug = nome.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-                        setForm(f => ({ ...f, nome, slug }));
-                      }}
-                      style={inputStyle} />
+        {/* CRIAR */}
+        {view === "criar" && (
+          <div className="p-8 max-w-2xl">
+            <div className="flex items-center gap-3 mb-8">
+              <button onClick={() => setView("clientes")}
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <X size={16} className="text-white" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-white">Novo Cliente</h1>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Criar um novo revendedor no sistema</p>
+              </div>
+            </div>
+            <div className="rounded-2xl p-6 flex flex-col gap-5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>Dados da Empresa</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Nome da Empresa *</label>
+                    <input className={inputCls} style={inputStyle} placeholder="Ex: Telecom Bahia"
+                      value={form.nome}
+                      onChange={e => { const nome = e.target.value; setForm(f => ({ ...f, nome, slug: gerarSlug(nome) })); }} />
                   </div>
                   <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Slug (identificador único) *</label>
-                    <input placeholder="telecom-bahia" value={form.slug}
-                      onChange={(e) => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))}
-                      style={inputStyle} />
-                    <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 11, marginTop: 4 }}>Apenas letras minúsculas, números e hífens</p>
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Slug (URL) *</label>
+                    <input className={inputCls} style={inputStyle} placeholder="telecom-bahia"
+                      value={form.slug}
+                      onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }))} />
+                    <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.3)" }}>netvius.org/{form.slug || "..."}</p>
                   </div>
                   <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Plano *</label>
-                    <select value={form.plano} onChange={(e) => setForm(f => ({ ...f, plano: e.target.value as "basico" | "profissional" | "enterprise" }))}
-                      style={{ ...inputStyle, cursor: "pointer" }}>
-                      <option value="basico">Básico</option>
-                      <option value="profissional">Profissional</option>
-                      <option value="enterprise">Enterprise</option>
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Plano</label>
+                    <select className={inputCls} style={inputStyle} value={form.plano}
+                      onChange={e => setForm(f => ({ ...f, plano: e.target.value as any }))}>
+                      <option value="basico" style={{ background: "#1a1a2e" }}>⚡ Básico</option>
+                      <option value="profissional" style={{ background: "#1a1a2e" }}>🚀 Profissional</option>
+                      <option value="enterprise" style={{ background: "#1a1a2e" }}>👑 Enterprise</option>
                     </select>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <div>
-                      <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Responsável</label>
-                      <input placeholder="Nome do responsável" value={form.contato}
-                        onChange={(e) => setForm(f => ({ ...f, contato: e.target.value }))} style={inputStyle} />
-                    </div>
-                    <div>
-                      <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Telefone</label>
-                      <input placeholder="(75) 99999-9999" value={form.telefone}
-                        onChange={(e) => setForm(f => ({ ...f, telefone: e.target.value }))} style={inputStyle} />
-                    </div>
+                  <div>
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Email</label>
+                    <input className={inputCls} style={inputStyle} placeholder="empresa@email.com"
+                      value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                   </div>
                   <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Email de contato</label>
-                    <input placeholder="contato@empresa.com" type="email" value={form.email}
-                      onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Telefone</label>
+                    <input className={inputCls} style={inputStyle} placeholder="(00) 00000-0000"
+                      value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Responsável</label>
+                    <input className={inputCls} style={inputStyle} placeholder="Nome do responsável"
+                      value={form.contato} onChange={e => setForm(f => ({ ...f, contato: e.target.value }))} />
                   </div>
                 </div>
               </div>
-
-              {/* Admin do painel */}
-              <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(102,126,234,0.05)", border: "1px solid rgba(102,126,234,0.15)" }}>
-                <p style={{ color: "rgba(165,180,252,0.7)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-                  Credenciais do Painel Admin
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  Acesso do Cliente (Painel Admin)
                 </p>
-                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, marginBottom: 12 }}>
-                  O cliente usará essas credenciais para acessar o painel em /admin/login
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Nome do Admin *</label>
-                    <input placeholder="Nome completo" value={form.adminNome}
-                      onChange={(e) => setForm(f => ({ ...f, adminNome: e.target.value }))} style={inputStyle} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Nome do Admin *</label>
+                    <input className={inputCls} style={inputStyle} placeholder="Nome completo"
+                      value={form.adminNome} onChange={e => setForm(f => ({ ...f, adminNome: e.target.value }))} />
                   </div>
                   <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Email do Admin *</label>
-                    <input placeholder="admin@empresa.com" type="email" value={form.adminEmail}
-                      onChange={(e) => setForm(f => ({ ...f, adminEmail: e.target.value }))} style={inputStyle} />
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Email de Login *</label>
+                    <input type="email" className={inputCls} style={inputStyle} placeholder="admin@empresa.com"
+                      value={form.adminEmail} onChange={e => setForm(f => ({ ...f, adminEmail: e.target.value }))} />
                   </div>
                   <div>
-                    <label style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Senha do Admin *</label>
-                    <div style={{ position: "relative" }}>
-                      <input placeholder="Mínimo 6 caracteres"
-                        type={showFormSenha ? "text" : "password"}
-                        value={form.adminSenha}
-                        onChange={(e) => setForm(f => ({ ...f, adminSenha: e.target.value }))}
-                        style={{ ...inputStyle, paddingRight: 40 }} />
-                      <button type="button" onClick={() => setShowFormSenha(v => !v)}
-                        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)" }}>
-                        {showFormSenha ? <EyeOff size={14} /> : <Eye size={14} />}
+                    <label className="text-xs font-semibold text-white/70 mb-1.5 block">Senha *</label>
+                    <div className="relative">
+                      <input type={showSenha ? "text" : "password"} className={`${inputCls} pr-10`} style={inputStyle}
+                        placeholder="Mínimo 6 caracteres"
+                        value={form.adminSenha} onChange={e => setForm(f => ({ ...f, adminSenha: e.target.value }))} />
+                      <button type="button" onClick={() => setShowSenha(s => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {showSenha ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <button
-                onClick={() => createTenantMut.mutate({ token: token!, ...form })}
-                disabled={createTenantMut.isPending || !form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha}
-                style={{
-                  flex: 1, padding: "12px", borderRadius: 10,
-                  background: (!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha)
-                    ? "rgba(102,126,234,0.3)" : "linear-gradient(135deg, #667eea, #764ba2)",
-                  color: "white", fontWeight: 700, fontSize: 14, border: "none",
-                  cursor: (!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha) ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 16px rgba(102,126,234,0.3)",
+                onClick={() => {
+                  if (!form.nome || !form.slug || !form.adminNome || !form.adminEmail || !form.adminSenha) {
+                    showToast("Preencha todos os campos obrigatórios", "err"); return;
+                  }
+                  if (form.adminSenha.length < 6) { showToast("Senha deve ter pelo menos 6 caracteres", "err"); return; }
+                  createTenantMut.mutate({ token: token!, ...form });
                 }}
-              >
-                {createTenantMut.isPending ? "Criando..." : "Criar Cliente"}
+                disabled={createTenantMut.isPending}
+                className="w-full py-4 rounded-xl text-sm font-bold"
+                style={{
+                  background: createTenantMut.isPending ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #667eea, #764ba2)",
+                  color: "white",
+                  boxShadow: createTenantMut.isPending ? "none" : "0 8px 24px rgba(102,126,234,0.3)",
+                }}>
+                {createTenantMut.isPending ? "Criando cliente..." : "✓ Criar Cliente"}
               </button>
-              <button onClick={() => setShowCreate(false)}
-                style={{ padding: "12px 20px", borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
-                Cancelar
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* MODAL: ADMINS */}
+      {modalAdmins && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-lg rounded-2xl overflow-hidden"
+            style={{ background: "#0d1529", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+              <div>
+                <h3 className="font-bold text-white">Admins — {modalAdmins.nome}</h3>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>Usuários com acesso ao painel</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setModalCriarAdmin(modalAdmins)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                  style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", color: "white" }}>
+                  <UserPlus size={12} /> Adicionar
+                </button>
+                <button onClick={() => setModalAdmins(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <X size={14} className="text-white" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4 max-h-96 overflow-y-auto">
+              {adminsQ.isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : !adminsQ.data || adminsQ.data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 gap-2">
+                  <Users size={28} style={{ color: "rgba(255,255,255,0.15)" }} />
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Nenhum admin cadastrado</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {(adminsQ.data as Admin[]).map(a => (
+                    <div key={a.id} className="flex items-center justify-between p-3 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs"
+                          style={{ background: "rgba(102,126,234,0.2)", color: "#a78bfa" }}>
+                          {a.nome.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">{a.nome}</p>
+                          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{a.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ background: a.ativo ? "rgba(52,211,153,0.15)" : "rgba(239,68,68,0.15)", color: a.ativo ? "#34d399" : "#f87171" }}>
+                          {a.ativo ? "Ativo" : "Inativo"}
+                        </span>
+                        <button onClick={() => updateAdminMut.mutate({ token: token!, id: a.id, ativo: !a.ativo })}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ background: "rgba(255,255,255,0.06)" }}
+                          title={a.ativo ? "Desativar" : "Ativar"}>
+                          {a.ativo ? <Lock size={12} style={{ color: "#fbbf24" }} /> : <Unlock size={12} style={{ color: "#34d399" }} />}
+                        </button>
+                        <button onClick={() => setModalExcluir({ tipo: "admin", id: a.id, nome: a.nome })}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ background: "rgba(239,68,68,0.1)" }}>
+                          <Trash2 size={12} style={{ color: "#f87171" }} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CRIAR ADMIN */}
+      {modalCriarAdmin && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6"
+            style={{ background: "#0d1529", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-white">Novo Admin — {modalCriarAdmin.nome}</h3>
+              <button onClick={() => setModalCriarAdmin(null)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.06)" }}>
+                <X size={13} className="text-white" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {[{ label: "Nome", key: "nome", type: "text", ph: "Nome completo" }, { label: "Email", key: "email", type: "email", ph: "admin@empresa.com" }].map(f => (
+                <div key={f.key}>
+                  <label className="text-xs font-semibold text-white/70 mb-1.5 block">{f.label}</label>
+                  <input type={f.type} className={inputCls} style={inputStyle} placeholder={f.ph}
+                    value={(adminForm as any)[f.key]}
+                    onChange={e => setAdminForm(a => ({ ...a, [f.key]: e.target.value }))} />
+                </div>
+              ))}
+              <div>
+                <label className="text-xs font-semibold text-white/70 mb-1.5 block">Senha</label>
+                <div className="relative">
+                  <input type={showAdminSenha ? "text" : "password"} className={`${inputCls} pr-9`} style={inputStyle}
+                    placeholder="Mínimo 6 caracteres"
+                    value={adminForm.senha} onChange={e => setAdminForm(a => ({ ...a, senha: e.target.value }))} />
+                  <button type="button" onClick={() => setShowAdminSenha(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    {showAdminSenha ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/70 mb-1.5 block">Função</label>
+                <select className={inputCls} style={inputStyle} value={adminForm.role}
+                  onChange={e => setAdminForm(a => ({ ...a, role: e.target.value as any }))}>
+                  <option value="admin" style={{ background: "#1a1a2e" }}>Admin (acesso total)</option>
+                  <option value="viewer" style={{ background: "#1a1a2e" }}>Viewer (somente leitura)</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  if (!adminForm.nome || !adminForm.email || !adminForm.senha) { showToast("Preencha todos os campos", "err"); return; }
+                  createAdminMut.mutate({ token: token!, tenantId: modalCriarAdmin.id, ...adminForm });
+                }}
+                disabled={createAdminMut.isPending}
+                className="w-full py-3 rounded-xl text-sm font-bold mt-1"
+                style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", color: "white" }}>
+                {createAdminMut.isPending ? "Criando..." : "Criar Admin"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        select option { background: #1e1b4b; color: white; }
-      `}</style>
+      {/* MODAL: EDITAR TENANT */}
+      {modalEditarTenant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: "#0d1529", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-white">Editar — {modalEditarTenant.nome}</h3>
+              <button onClick={() => setModalEditarTenant(null)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(255,255,255,0.06)" }}>
+                <X size={13} className="text-white" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Nome", key: "nome", col: 2 },
+                { label: "Responsável", key: "contato", col: 1 },
+                { label: "Email", key: "email", col: 1 },
+                { label: "Telefone", key: "telefone", col: 1 },
+              ].map(f => (
+                <div key={f.key} style={{ gridColumn: `span ${f.col}` }}>
+                  <label className="text-xs font-semibold text-white/70 mb-1.5 block">{f.label}</label>
+                  <input className={inputCls} style={inputStyle}
+                    value={(editForm as any)[f.key] ?? ""}
+                    onChange={e => setEditForm(ef => ({ ...ef, [f.key]: e.target.value }))} />
+                </div>
+              ))}
+              <div>
+                <label className="text-xs font-semibold text-white/70 mb-1.5 block">Plano</label>
+                <select className={inputCls} style={inputStyle} value={editForm.plano ?? "basico"}
+                  onChange={e => setEditForm(ef => ({ ...ef, plano: e.target.value as any }))}>
+                  <option value="basico" style={{ background: "#1a1a2e" }}>Básico</option>
+                  <option value="profissional" style={{ background: "#1a1a2e" }}>Profissional</option>
+                  <option value="enterprise" style={{ background: "#1a1a2e" }}>Enterprise</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-white/70 mb-1.5 block">Status</label>
+                <select className={inputCls} style={inputStyle} value={editForm.status ?? "ativo"}
+                  onChange={e => setEditForm(ef => ({ ...ef, status: e.target.value as any }))}>
+                  <option value="ativo" style={{ background: "#1a1a2e" }}>Ativo</option>
+                  <option value="suspenso" style={{ background: "#1a1a2e" }}>Suspenso</option>
+                  <option value="cancelado" style={{ background: "#1a1a2e" }}>Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <button
+              onClick={() => updateTenantMut.mutate({ token: token!, id: modalEditarTenant.id, ...editForm })}
+              disabled={updateTenantMut.isPending}
+              className="w-full py-3 rounded-xl text-sm font-bold mt-4"
+              style={{ background: "linear-gradient(135deg, #667eea, #764ba2)", color: "white" }}>
+              {updateTenantMut.isPending ? "Salvando..." : "Salvar Alterações"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CONFIRMAR EXCLUSÃO */}
+      {modalExcluir && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-sm rounded-2xl p-6"
+            style={{ background: "#0d1529", border: "1px solid rgba(239,68,68,0.3)" }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(239,68,68,0.15)" }}>
+                <AlertCircle size={18} style={{ color: "#f87171" }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-white">Confirmar Exclusão</h3>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Esta ação é irreversível</p>
+              </div>
+            </div>
+            <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Excluir <strong className="text-white">{modalExcluir.nome}</strong>?
+              {modalExcluir.tipo === "tenant" && " Todos os dados do cliente serão removidos."}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setModalExcluir(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: "rgba(255,255,255,0.06)", color: "white" }}>
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (modalExcluir.tipo === "tenant") deleteTenantMut.mutate({ token: token!, id: modalExcluir.id });
+                  else deleteAdminMut.mutate({ token: token!, id: modalExcluir.id });
+                }}
+                disabled={deleteTenantMut.isPending || deleteAdminMut.isPending}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                style={{ background: "linear-gradient(135deg, #dc2626, #b91c1c)", color: "white" }}>
+                {deleteTenantMut.isPending || deleteAdminMut.isPending ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

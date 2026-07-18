@@ -4,6 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
+import { manutencaoRouter } from "./routers/manutencao";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -1157,6 +1158,7 @@ export const appRouter = router({
   tecnicoAuth: tecnicoAuthRouter,
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
+  manutencao: manutencaoRouter,
   superadmin: superadminRouter,
   tenantAdmin: tenantAdminSelfRouter,
 });
