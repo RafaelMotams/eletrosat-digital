@@ -9,6 +9,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { exportarRelatorioExcel } from "../exportRelatorio";
 import { exportarNotaFiscal, validarPlanilhaEmpresa, uploadMiddleware } from "../exportNotaFiscal";
+import { relatoriodiarioHandler } from "../scheduled/relatorio-diario";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -99,6 +100,9 @@ async function startServer() {
 
   // Exportação de relatório Excel
   app.get("/api/relatorio/excel", exportarRelatorioExcel);
+
+  // Job agendado: relatório diário de progresso (08:00 BRT = 11:00 UTC)
+  app.post("/api/scheduled/relatorio-diario", relatoriodiarioHandler);
 
   // Nota Fiscal — faturamento da empresa
   app.get("/api/nota-fiscal/excel", exportarNotaFiscal);

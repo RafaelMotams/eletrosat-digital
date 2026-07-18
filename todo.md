@@ -508,3 +508,12 @@
 - [x] Frontend: badge "Visualizador" exibido no perfil do usuário na sidebar
 - [x] Frontend: banner executivo premium no Dashboard (Painel Executivo — Ao Vivo)
 - [x] Frontend: KPIs de Total de Unidades, Concluídas e % Progresso no banner executivo
+
+## Melhorias Premium (18/07/2026)
+- [ ] Ocultar valores (R$) na página de Relatórios para role viewer
+- [ ] Redesenhar site inicial: premium, elegante, copy de vendas profissional
+- [ ] Mostrar todos os diferenciais e funcionalidades no site
+- [ ] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
+- [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
+- [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
+- [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior

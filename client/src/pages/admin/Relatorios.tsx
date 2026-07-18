@@ -1,11 +1,12 @@
 import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
+import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Trophy, BarChart3, TrendingUp, Calendar, Download,
-  Users, CheckCircle, X, ChevronDown, FileSpreadsheet, ClipboardList, AlertTriangle,
+  Users, CheckCircle, X, ChevronDown, FileSpreadsheet, ClipboardList, AlertTriangle, EyeOff,
 } from "lucide-react";
 import { useState, useMemo, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -451,6 +452,8 @@ function exportarExcel(
 
 /* ─── Componente principal ─────────────────────────────────────────────────── */
 export default function AdminRelatorios() {
+  const { admin } = useTenantAuth();
+  const isViewer = admin?.role === 'viewer';
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
   const { data: ranking }  = trpc.relatorios.ranking.useQuery();
 
@@ -720,7 +723,7 @@ export default function AdminRelatorios() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","Valor (R$)","Técnico","Data","Observação"].map(h => (
+                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.",...(isViewer ? [] : ["Valor (R$)"]),"Técnico","Data","Observação"].map(h => (
                       <th key={h} className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -742,6 +745,7 @@ export default function AdminRelatorios() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{os.qtdApPlanejado}</td>
+                      {!isViewer && (
                       <td className="px-4 py-3 text-center">
                         {os.valorCalculado != null ? (
                           <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
@@ -751,6 +755,7 @@ export default function AdminRelatorios() {
                           <span className="text-muted-foreground text-xs">—</span>
                         )}
                       </td>
+                      )}
                       <td className="px-4 py-3">
                         <span className="inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                           {os.tecnicoNome}
@@ -775,6 +780,7 @@ export default function AdminRelatorios() {
                         {totalApsTabela}
                       </span>
                     </td>
+                    {!isViewer && (
                     <td className="px-4 py-3 text-center">
                       {(() => {
                         const totalValor = (osDetalhadas ?? []).reduce((acc: number, os: any) => acc + (os.valorCalculado != null ? Number(os.valorCalculado) : 0), 0);
@@ -785,6 +791,7 @@ export default function AdminRelatorios() {
                         ) : <span className="text-muted-foreground text-xs">—</span>;
                       })()}
                     </td>
+                    )}
                     <td colSpan={4} />
                   </tr>
                 </tfoot>
