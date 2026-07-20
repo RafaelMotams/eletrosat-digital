@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { toast } from "sonner";
 import {
   Wrench, Search, X, ChevronRight, MapPin, Hash,
   Camera, CheckCircle, Clock, AlertCircle, RefreshCw,
-  Building2, ArrowLeft, Upload, Loader2, Eye, Image as ImageIcon,
+  Building2, ArrowLeft, Loader2, Phone, Zap, Navigation,
+  MessageCircle, Bot, Send, ChevronDown, ChevronUp,
 } from "lucide-react";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -27,8 +27,7 @@ function compressImage(file: File): Promise<string> {
           if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
           else { width = Math.round((width * MAX) / height); height = MAX; }
         }
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = width; canvas.height = height;
         canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", 0.82).split(",")[1]);
       };
@@ -45,6 +44,140 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string; i
   em_andamento: { label: "Em Andamento", color: "#3b82f6", bg: "rgba(59,130,246,0.12)",  icon: RefreshCw },
   concluida:    { label: "Concluída",    color: "#10b981", bg: "rgba(16,185,129,0.12)",  icon: CheckCircle },
 };
+
+// ── Componente Assistente IA ──────────────────────────────────────────────────
+function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
+  const [aberto, setAberto] = useState(false);
+  const [pergunta, setPergunta] = useState("");
+  const [historico, setHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
+    onSuccess: (data) => {
+      setHistorico(prev => [...prev, { role: "ai", text: data.resposta }]);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  async function handleEnviar() {
+    if (!pergunta.trim()) return;
+    const p = pergunta.trim();
+    setHistorico(prev => [...prev, { role: "user", text: p }]);
+    setPergunta("");
+    assistenteMut.mutate({ manutencaoId, pergunta: p });
+  }
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)" }}>
+      {/* Header clicável */}
+      <button
+        onClick={() => setAberto(v => !v)}
+        className="w-full flex items-center gap-3 p-4"
+      >
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}>
+          <Bot className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-sm font-bold text-white">Assistente Técnico</p>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Dúvidas sobre a instalação? Pergunte aqui</p>
+        </div>
+        {aberto ? (
+          <ChevronUp className="w-4 h-4" style={{ color: "rgba(139,92,246,0.7)" }} />
+        ) : (
+          <ChevronDown className="w-4 h-4" style={{ color: "rgba(139,92,246,0.7)" }} />
+        )}
+      </button>
+
+      {/* Conteúdo */}
+      {aberto && (
+        <div className="px-4 pb-4">
+          {/* Histórico */}
+          {historico.length > 0 && (
+            <div className="space-y-3 mb-3 max-h-64 overflow-y-auto">
+              {historico.map((h, i) => (
+                <div key={i} className={`flex ${h.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className="max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
+                    style={{
+                      background: h.role === "user"
+                        ? "linear-gradient(135deg, #7c3aed, #a855f7)"
+                        : "rgba(255,255,255,0.07)",
+                      color: "white",
+                    }}
+                  >
+                    {h.role === "ai" && (
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Bot className="w-3 h-3" style={{ color: "#a855f7" }} />
+                        <span className="text-xs font-bold" style={{ color: "#a855f7" }}>Assistente</span>
+                      </div>
+                    )}
+                    <p style={{ whiteSpace: "pre-wrap" }}>{h.text}</p>
+                  </div>
+                </div>
+              ))}
+              {assistenteMut.isPending && (
+                <div className="flex justify-start">
+                  <div className="rounded-2xl px-3 py-2" style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#a855f7" }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sugestões rápidas */}
+          {historico.length === 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[
+                "Como configurar o AP?",
+                "Problema de sinal fraco",
+                "Switch não liga",
+                "Nobreak com defeito",
+              ].map(s => (
+                <button
+                  key={s}
+                  onClick={() => { setPergunta(s); }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-medium"
+                  style={{ background: "rgba(139,92,246,0.15)", color: "#c4b5fd", border: "1px solid rgba(139,92,246,0.25)" }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="flex gap-2">
+            <input
+              value={pergunta}
+              onChange={e => setPergunta(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEnviar(); } }}
+              placeholder="Descreva o problema técnico..."
+              className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(139,92,246,0.25)",
+                color: "white",
+              }}
+            />
+            <button
+              onClick={handleEnviar}
+              disabled={!pergunta.trim() || assistenteMut.isPending}
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: pergunta.trim() ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "rgba(255,255,255,0.07)",
+              }}
+            >
+              {assistenteMut.isPending
+                ? <Loader2 className="w-4 h-4 animate-spin text-white" />
+                : <Send className="w-4 h-4 text-white" />
+              }
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Tela de detalhe / conclusão ───────────────────────────────────────────────
 function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId: number; onVoltar: () => void }) {
@@ -111,6 +244,20 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
   const st = STATUS_STYLE[m.status] ?? STATUS_STYLE.pendente;
   const Icon = st.icon;
   const isConcluida = m.status === "concluida";
+  const escola = (m as any).escola;
+
+  // Google Maps URL
+  const mapsUrl = escola?.latitude && escola?.longitude
+    ? `https://www.google.com/maps?q=${escola.latitude},${escola.longitude}`
+    : escola?.endereco
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(escola.endereco + ', ' + (escola.municipio ?? ''))}`
+    : null;
+
+  // WhatsApp URL
+  const whatsappNumero = escola?.telefoneWhatsApp || escola?.telefone;
+  const whatsappUrl = whatsappNumero
+    ? `https://wa.me/55${whatsappNumero.replace(/\D/g, "")}`
+    : null;
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#040a16", color: "white" }}>
@@ -131,7 +278,7 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-32">
-        {/* Escola */}
+        {/* Escola + Localização */}
         <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)" }}>
@@ -139,19 +286,81 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
             </div>
             <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>Local</p>
           </div>
-          <p className="font-bold text-white text-base leading-tight">{(m as any).escola?.nome}</p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <Hash className="w-3 h-3" style={{ color: "rgba(255,255,255,0.35)" }} />
-            <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.5)" }}>{(m as any).escola?.inep}</span>
-          </div>
-          {(m as any).escola?.municipio && (
-            <div className="flex items-center gap-1.5 mt-1">
-              <MapPin className="w-3 h-3" style={{ color: "rgba(255,255,255,0.35)" }} />
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{(m as any).escola?.municipio}</span>
+          <p className="font-bold text-white text-base leading-tight">{escola?.nome}</p>
+          {escola?.inep && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <Hash className="w-3 h-3" style={{ color: "rgba(255,255,255,0.35)" }} />
+              <span className="text-xs font-mono" style={{ color: "rgba(255,255,255,0.5)" }}>INEP {escola.inep}</span>
             </div>
           )}
-          {(m as any).escola?.endereco && (
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{(m as any).escola?.endereco}</p>
+          {escola?.municipio && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <MapPin className="w-3 h-3" style={{ color: "rgba(255,255,255,0.35)" }} />
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{escola.municipio}</span>
+            </div>
+          )}
+          {escola?.endereco && (
+            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{escola.endereco}</p>
+          )}
+
+          {/* Velocidade ofertada */}
+          {escola?.velocidadeOfertada && (
+            <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <Zap className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
+              <span className="text-xs font-bold" style={{ color: "#10b981" }}>Velocidade ofertada: {escola.velocidadeOfertada}</span>
+            </div>
+          )}
+
+          {/* Botões de ação rápida */}
+          <div className="flex gap-2 mt-3">
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold"
+                style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.25)" }}
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                Ver no Maps
+              </a>
+            )}
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold"
+                style={{ background: "rgba(37,211,102,0.12)", color: "#25d366", border: "1px solid rgba(37,211,102,0.25)" }}
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                WhatsApp
+              </a>
+            )}
+            {!whatsappUrl && escola?.telefone && (
+              <a
+                href={`tel:${escola.telefone}`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold"
+                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                <Phone className="w-3.5 h-3.5" />
+                Ligar
+              </a>
+            )}
+          </div>
+
+          {/* Botão Iniciar Rota separado */}
+          {mapsUrl && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${escola?.latitude && escola?.longitude ? `${escola.latitude},${escola.longitude}` : encodeURIComponent((escola?.endereco ?? '') + ', ' + (escola?.municipio ?? ''))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
+              style={{ background: "linear-gradient(135deg, #1d4ed8, #3b82f6)", color: "white", boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}
+            >
+              <Navigation className="w-4 h-4" />
+              Iniciar Rota
+            </a>
           )}
         </div>
 
@@ -160,6 +369,9 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
           <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Descrição do Problema</p>
           <p className="text-sm text-white leading-relaxed">{m.descricaoProblema}</p>
         </div>
+
+        {/* Assistente IA */}
+        <AssistenteIA manutencaoId={id} />
 
         {/* Fotos existentes */}
         {(m as any).fotos && (m as any).fotos.length > 0 && (
@@ -259,11 +471,7 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
                 placeholder="Descreva o que foi feito, peças trocadas, resultado..."
                 rows={4}
                 className="w-full rounded-xl px-3 py-2.5 text-sm resize-none outline-none"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "white",
-                }}
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
               />
               <p className="text-xs mt-1" style={{ color: obs.length < 5 ? "#ef4444" : "rgba(255,255,255,0.3)" }}>
                 {obs.length} caracteres (mínimo 5)
@@ -281,11 +489,10 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
                 boxShadow: obs.trim().length >= 5 ? "0 8px 32px rgba(16,185,129,0.35)" : "none",
               }}
             >
-              {(uploading || concluirMut.isPending) ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Concluindo...</>
-              ) : (
-                <><CheckCircle className="w-5 h-5" /> Concluir Manutenção</>
-              )}
+              {(uploading || concluirMut.isPending)
+                ? <><Loader2 className="w-5 h-5 animate-spin" /> Concluindo...</>
+                : <><CheckCircle className="w-5 h-5" /> Concluir Manutenção</>
+              }
             </button>
           </>
         )}
@@ -360,8 +567,7 @@ export default function TecnicoManutencao() {
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-28 space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: "rgba(249,115,22,0.15)" }}>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)" }}>
               <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#f97316" }} />
             </div>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Carregando manutenções...</p>
@@ -388,12 +594,9 @@ export default function TecnicoManutencao() {
                 className="w-full text-left rounded-2xl p-4 transition-all active:scale-98"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <div className="flex items-start gap-3">
-                  {/* Ícone */}
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: st.bg }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: st.bg }}>
                     <Icon className="w-5 h-5" style={{ color: st.color }} />
                   </div>
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <p className="font-bold text-white text-sm truncate">{(m as any).escola?.nome ?? "Escola"}</p>
@@ -413,8 +616,7 @@ export default function TecnicoManutencao() {
                     <p className="text-xs leading-relaxed mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
                       {m.descricaoProblema.slice(0, 80)}{m.descricaoProblema.length > 80 ? "..." : ""}
                     </p>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg w-fit"
-                      style={{ background: st.bg }}>
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg w-fit" style={{ background: st.bg }}>
                       <Icon className="w-3 h-3" style={{ color: st.color }} />
                       <span className="text-xs font-bold" style={{ color: st.color }}>{st.label}</span>
                     </div>

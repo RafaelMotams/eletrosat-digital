@@ -5,6 +5,7 @@ import { router, tenantAdminProcedure, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
+import { invokeLLM } from "../_core/llm";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -14,7 +15,7 @@ async function getManutencaoComDados(id: number) {
   const rows = await db
     .select({
       m: manutencoes,
-      escola: { id: escolas.id, nome: escolas.nome, inep: escolas.inep, municipio: escolas.municipio, endereco: escolas.endereco, telefone: escolas.telefone },
+      escola: { id: escolas.id, nome: escolas.nome, inep: escolas.inep, municipio: escolas.municipio, endereco: escolas.endereco, telefone: escolas.telefone, telefoneWhatsApp: escolas.telefoneWhatsApp, latitude: escolas.latitude, longitude: escolas.longitude, velocidadeOfertada: escolas.velocidadeOfertada },
       tecnico: { id: tecnicos.id, nome: tecnicos.nome, email: tecnicos.email, telefone: tecnicos.telefone },
     })
     .from(manutencoes)
@@ -265,6 +266,28 @@ export const manutencaoRouter = router({
         })
         .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
       return { success: true };
+    }),
+
+  // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
+  assistenteIA: publicProcedure
+    .input(z.object({
+      manutencaoId: z.number(),
+      pergunta: z.string().min(3),
+      contexto: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const m = await getManutencaoComDados(input.manutencaoId);
+      const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
+      const systemPrompt = `Você é um assistente técnico especializado em infraestrutura de redes, telecom, instalação de equipamentos Wi-Fi, switches, controladoras, nobreaks e cabeamento estruturado. Responda de forma direta, prática e objetiva para técnicos em campo. Contexto da manutenção: ${contextoEscola}. ${input.contexto ?? ''}`;
+      const response = await invokeLLM({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: input.pergunta },
+        ],
+      });
+      const raw = response.choices?.[0]?.message?.content;
+      const content = typeof raw === 'string' ? raw : (Array.isArray(raw) ? raw.map((c: any) => c.text ?? '').join('') : 'Não foi possível obter resposta.');
+      return { resposta: content };
     }),
 
   // ── ADMIN: Buscar fotos de uma manutenção ──────────────────────────────────

@@ -16,6 +16,7 @@ import {
   Wrench, Plus, Search, UserCheck, Trash2, Eye, X, Download,
   CheckCircle, Clock, AlertTriangle, Building2, User, Calendar,
   FileSpreadsheet, Image as ImageIcon, Filter, RefreshCw,
+  Navigation, MessageCircle, Phone, Zap, Bot, Send, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -45,6 +46,22 @@ export default function AdminManutencao() {
   const [atribuirOpen, setAtribuirOpen] = useState<number | null>(null);
   const [detalheOpen, setDetalheOpen] = useState<number | null>(null);
   const [excluirId, setExcluirId] = useState<number | null>(null);
+
+  // ── IA Assistente no modal de detalhe ─────────────────────────────────────
+  const [iaAberta, setIaAberta] = useState(false);
+  const [iaPergunta, setIaPergunta] = useState("");
+  const [iaHistorico, setIaHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
+    onSuccess: (data) => setIaHistorico(prev => [...prev, { role: "ai", text: data.resposta }]),
+    onError: (e) => toast.error(e.message),
+  });
+  function handleIaEnviar() {
+    if (!iaPergunta.trim() || !detalheOpen) return;
+    const p = iaPergunta.trim();
+    setIaHistorico(prev => [...prev, { role: "user", text: p }]);
+    setIaPergunta("");
+    assistenteMut.mutate({ manutencaoId: detalheOpen, pergunta: p });
+  }
 
   // ── Form criar ─────────────────────────────────────────────────────────────
   const [novaEscolaId, setNovaEscolaId] = useState("");
@@ -534,6 +551,49 @@ export default function AdminManutencao() {
                   {detalhe.escola?.endereco && (
                     <p className="text-sm text-muted-foreground">{detalhe.escola.endereco}</p>
                   )}
+                  {(detalhe.escola as any)?.velocidadeOfertada && (
+                    <div className="flex items-center gap-1.5 mt-2 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 w-fit">
+                      <Zap size={12} className="text-emerald-600" />
+                      <span className="text-xs font-semibold text-emerald-700">Velocidade: {(detalhe.escola as any).velocidadeOfertada}</span>
+                    </div>
+                  )}
+                  {/* Botões de ação */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {((detalhe.escola as any)?.latitude && (detalhe.escola as any)?.longitude) ? (
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${(detalhe.escola as any).latitude},${(detalhe.escola as any).longitude}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                      >
+                        <Navigation size={12} /> Ver no Maps
+                      </a>
+                    ) : (detalhe.escola as any)?.endereco ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((detalhe.escola as any).endereco + ', ' + ((detalhe.escola as any).municipio ?? ''))}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                      >
+                        <Navigation size={12} /> Ver no Maps
+                      </a>
+                    ) : null}
+                    {(detalhe.escola as any)?.telefoneWhatsApp && (
+                      <a
+                        href={`https://wa.me/55${((detalhe.escola as any).telefoneWhatsApp as string).replace(/\D/g, '')}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+                      >
+                        <MessageCircle size={12} /> WhatsApp
+                      </a>
+                    )}
+                    {!(detalhe.escola as any)?.telefoneWhatsApp && (detalhe.escola as any)?.telefone && (
+                      <a
+                        href={`tel:${(detalhe.escola as any).telefone}`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
+                      >
+                        <Phone size={12} /> Ligar
+                      </a>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -568,6 +628,84 @@ export default function AdminManutencao() {
                   </div>
                 </div>
               )}
+
+              {/* Assistente IA */}
+              <div className="rounded-xl border" style={{ borderColor: "rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
+                <button
+                  onClick={() => setIaAberta(v => !v)}
+                  className="w-full flex items-center gap-3 p-4"
+                >
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}>
+                    <Bot size={16} className="text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-bold text-foreground">Assistente Técnico</p>
+                    <p className="text-xs text-muted-foreground">Consulte a IA sobre este problema</p>
+                  </div>
+                  {iaAberta ? <ChevronUp size={16} className="text-purple-500" /> : <ChevronDown size={16} className="text-purple-500" />}
+                </button>
+                {iaAberta && (
+                  <div className="px-4 pb-4">
+                    {iaHistorico.length > 0 && (
+                      <div className="space-y-3 mb-3 max-h-48 overflow-y-auto">
+                        {iaHistorico.map((h, i) => (
+                          <div key={i} className={`flex ${h.role === "user" ? "justify-end" : "justify-start"}`}>
+                            <div
+                              className="max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
+                              style={{
+                                background: h.role === "user" ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "rgba(0,0,0,0.05)",
+                                color: h.role === "user" ? "white" : "inherit",
+                              }}
+                            >
+                              {h.role === "ai" && (
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Bot size={11} className="text-purple-600" />
+                                  <span className="text-xs font-bold text-purple-600">Assistente</span>
+                                </div>
+                              )}
+                              <p style={{ whiteSpace: "pre-wrap" }}>{h.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                        {assistenteMut.isPending && (
+                          <div className="flex justify-start">
+                            <div className="rounded-2xl px-3 py-2 bg-muted">
+                              <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {iaHistorico.length === 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {["Como resolver este problema?", "Quais peças podem ser necessárias?", "Procedimento de diagnóstico"].map(s => (
+                          <button key={s} onClick={() => setIaPergunta(s)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                            style={{ background: "rgba(139,92,246,0.1)", color: "#7c3aed", border: "1px solid rgba(139,92,246,0.2)" }}
+                          >{s}</button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        value={iaPergunta}
+                        onChange={e => setIaPergunta(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") handleIaEnviar(); }}
+                        placeholder="Pergunte sobre o problema técnico..."
+                        className="flex-1 text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleIaEnviar}
+                        disabled={!iaPergunta.trim() || assistenteMut.isPending}
+                        style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)", color: "white" }}
+                      >
+                        <Send size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Fotos */}
               {detalhe.fotos && detalhe.fotos.length > 0 && (
