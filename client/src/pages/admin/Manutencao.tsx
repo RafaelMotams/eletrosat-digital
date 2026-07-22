@@ -17,6 +17,7 @@ import {
   CheckCircle, Clock, AlertTriangle, Building2, User, Calendar,
   FileSpreadsheet, Image as ImageIcon, Filter, RefreshCw,
   Navigation, MessageCircle, Phone, Zap, Bot, Send, ChevronDown, ChevronUp,
+  FileText, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -46,6 +47,24 @@ export default function AdminManutencao() {
   const [atribuirOpen, setAtribuirOpen] = useState<number | null>(null);
   const [detalheOpen, setDetalheOpen] = useState<number | null>(null);
   const [excluirId, setExcluirId] = useState<number | null>(null);
+
+  // ── Laudo PDF ──────────────────────────────────────────────────────────────────────────
+  const [laudoOpen, setLaudoOpen] = useState(false);
+  const [laudoObs, setLaudoObs] = useState("");
+  const gerarLaudoMut = trpc.manutencao.gerarLaudo.useMutation({
+    onSuccess: (data) => {
+      // Abrir o HTML em nova janela e disparar print
+      const win = window.open("", "_blank");
+      if (!win) { toast.error("Permita pop-ups para gerar o PDF"); return; }
+      win.document.write(data.html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 800);
+      setLaudoOpen(false);
+      setLaudoObs("");
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   // ── IA Assistente no modal de detalhe ─────────────────────────────────────
   const [iaAberta, setIaAberta] = useState(false);
@@ -513,10 +532,21 @@ export default function AdminManutencao() {
       <Dialog open={detalheOpen !== null} onOpenChange={o => !o && setDetalheOpen(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wrench size={18} className="text-amber-500" />
-              Detalhes da Manutenção #{detalheOpen}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <Wrench size={18} className="text-amber-500" />
+                Detalhes da Manutenção #{detalheOpen}
+              </DialogTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-1.5 text-sky-600 border-sky-200 hover:bg-sky-50"
+                onClick={() => setLaudoOpen(true)}
+              >
+                <FileText size={14} />
+                Emitir Laudo
+              </Button>
+            </div>
           </DialogHeader>
           {detalhe ? (
             <div className="flex flex-col gap-5 py-2">
@@ -743,6 +773,57 @@ export default function AdminManutencao() {
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal Emitir Laudo PDF ── */}
+      <Dialog open={laudoOpen} onOpenChange={setLaudoOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sky-600">
+              <FileText size={18} />
+              Emitir Laudo de Manutenção
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+            <div className="rounded-xl border border-sky-100 bg-sky-50 p-4">
+              <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide mb-1">O laudo incluirá:</p>
+              <ul className="text-sm text-sky-800 space-y-0.5 mt-2">
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Logo Netvius + número do laudo</li>
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Nome da escola, INEP, município</li>
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Técnico responsável + datas</li>
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Descrição do problema</li>
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Fotos do defeito e após reparo</li>
+                <li className="flex items-center gap-2"><CheckCircle size={12} className="text-emerald-500" /> Assinaturas (técnico + responsável)</li>
+              </ul>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">
+                Observação do Responsável (opcional)
+              </label>
+              <Textarea
+                value={laudoObs}
+                onChange={e => setLaudoObs(e.target.value)}
+                placeholder="Adicione uma observação do responsável ou da empresa..."
+                rows={3}
+                className="text-sm resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setLaudoOpen(false)}>Cancelar</Button>
+            <Button
+              className="flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white"
+              onClick={() => detalheOpen && gerarLaudoMut.mutate({ id: detalheOpen, observacaoAdmin: laudoObs || undefined })}
+              disabled={gerarLaudoMut.isPending}
+            >
+              {gerarLaudoMut.isPending ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Gerando...</>
+              ) : (
+                <><Printer size={15} /> Gerar PDF</>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

@@ -543,3 +543,9 @@
 - [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
 - [x] Tabela login_attempts para controle de brute force
 - [ ] Headers de segurança (HSTS, CSP, X-Frame-Options)
+
+## Laudo de Manutenção em PDF (22/07/2026)
+- [x] Endpoint tRPC manutencao.gerarLaudo — retorna HTML do laudo como string
+- [x] Modal de emissão de laudo no painel admin com campo de observação extra do admin
+- [x] PDF com: logo Netvius, nome escola, INEP, município, data, técnico, descrição do problema, observação do técnico, observação do admin, fotos do defeito, fotos de conclusão
+- [x] Botão "Emitir Laudo" no modal de detalhes da manutenção
