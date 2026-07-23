@@ -330,16 +330,20 @@ export const manutencaoRouter = router({
         concluida: "#10b981",
       };
 
+      // Limitar fotos para caber na página: máx 3 defeito + 3 conclusao
+      const fotoDefeitoLtd = fotoDefeito.slice(0, 3);
+      const fotoConclusaoLtd = fotoConclusao.slice(0, 3);
+      const totalFotos = fotoDefeitoLtd.length + fotoConclusaoLtd.length;
+
       const fotoHtml = (fotos: typeof m.fotos, titulo: string, cor: string) => {
         if (fotos.length === 0) return "";
+        // Altura das fotos varia com quantidade total para caber na página
+        const h = totalFotos <= 3 ? 110 : totalFotos <= 4 ? 95 : 80;
         return `
-          <div class="section">
-            <div class="section-title" style="color:${cor}">
-              <span class="dot" style="background:${cor}"></span>
-              ${titulo}
-            </div>
+          <div class="foto-section">
+            <div class="foto-label" style="color:${cor}"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cor};margin-right:5px;vertical-align:middle"></span>${titulo}</div>
             <div class="fotos-grid">
-              ${fotos.map(f => `<div class="foto-item"><img src="${f.url}" alt="${f.tipo}" /></div>`).join("")}
+              ${fotos.map(f => `<div class="foto-item"><img src="${f.url}" alt="${f.tipo}" style="height:${h}px" /></div>`).join("")}
             </div>
           </div>`;
       };
@@ -348,159 +352,158 @@ export const manutencaoRouter = router({
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laudo de Manutenção #${m.id}</title>
+<title>Laudo #${String(m.id).padStart(4,"0")}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: #fff; color: #1e293b; font-size: 13px; }
-  .page { max-width: 800px; margin: 0 auto; padding: 40px 48px; }
-  /* Header */
-  .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; border-bottom: 3px solid #0ea5e9; margin-bottom: 28px; }
-  .logo-area { display: flex; align-items: center; gap: 12px; }
-  .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #0ea5e9, #6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-  .logo-icon svg { width: 26px; height: 26px; fill: white; }
-  .logo-text { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
-  .logo-sub { font-size: 11px; color: #64748b; font-weight: 400; }
-  .doc-info { text-align: right; }
-  .doc-num { font-size: 18px; font-weight: 700; color: #0ea5e9; }
-  .doc-date { font-size: 11px; color: #64748b; margin-top: 2px; }
-  /* Status badge */
-  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; }
-  /* Info grid */
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-  .info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
-  .info-card.full { grid-column: 1 / -1; }
-  .info-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 5px; }
-  .info-value { font-size: 14px; font-weight: 600; color: #1e293b; }
-  .info-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
-  /* Sections */
-  .section { margin-bottom: 20px; }
-  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .text-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.6; color: #334155; }
-  .text-box.obs { background: #fefce8; border-color: #fde047; }
-  .text-box.admin-obs { background: #eff6ff; border-color: #bfdbfe; }
-  /* Fotos */
-  .fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .foto-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; }
-  /* Divider */
-  .divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
-  /* Footer */
-  .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-  .footer-left { font-size: 10px; color: #94a3b8; }
-  .footer-right { font-size: 10px; color: #94a3b8; text-align: right; }
-  .signature-area { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-  .signature-box { text-align: center; }
-  .signature-line { border-top: 1px solid #94a3b8; padding-top: 8px; margin-top: 40px; }
-  .signature-name { font-size: 12px; font-weight: 600; color: #1e293b; }
-  .signature-role { font-size: 10px; color: #64748b; }
-  @media print {
-    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    .page { padding: 20px 24px; }
-    .fotos-grid { grid-template-columns: repeat(3, 1fr); }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:210mm;height:297mm;overflow:hidden}
+  body{font-family:'Inter',sans-serif;background:#fff;color:#1e293b;font-size:10.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{width:210mm;height:297mm;padding:14mm 16mm 10mm 16mm;display:flex;flex-direction:column;gap:0}
+  /* ── HEADER ── */
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:2.5px solid #0ea5e9;margin-bottom:8px}
+  .logo{display:flex;align-items:center;gap:8px}
+  .logo-box{width:32px;height:32px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .logo-box svg{width:18px;height:18px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .logo-name{font-size:16px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;line-height:1}
+  .logo-sub{font-size:9px;color:#64748b}
+  .doc-right{text-align:right}
+  .doc-num{font-size:14px;font-weight:700;color:#0ea5e9}
+  .doc-date{font-size:9px;color:#64748b;margin-top:1px}
+  /* ── STATUS ── */
+  .status-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .sbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:9.5px;font-weight:600}
+  .sdot{width:6px;height:6px;border-radius:50%}
+  /* ── INFO ROW ── */
+  .info-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px}
+  .ic{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px}
+  .il{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:#94a3b8;margin-bottom:3px}
+  .iv{font-size:11px;font-weight:700;color:#1e293b;line-height:1.2}
+  .is{font-size:8.5px;color:#64748b;margin-top:1px}
+  /* ── DIVIDER ── */
+  .div{border:none;border-top:1px solid #e2e8f0;margin:5px 0}
+  /* ── TEXT SECTIONS ── */
+  .txt-row{display:grid;grid-template-columns:1fr${m.observacaoConclusao || input.observacaoAdmin ? " 1fr" : ""};gap:6px;margin-bottom:7px}
+  .txt-block{}
+  .txt-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;margin-bottom:4px}
+  .txt-lbl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .txt-box{border-radius:6px;padding:7px 9px;font-size:10px;line-height:1.5;color:#334155;border:1px solid #e2e8f0;background:#f8fafc;min-height:36px}
+  .txt-box.obs{background:#fefce8;border-color:#fde047}
+  .txt-box.adm{background:#eff6ff;border-color:#bfdbfe}
+  /* ── FOTOS ── */
+  .fotos-wrap{display:grid;grid-template-columns:${fotoDefeitoLtd.length>0 && fotoConclusaoLtd.length>0 ? "1fr 1fr" : "1fr"};gap:8px;margin-bottom:7px}
+  .foto-section{}
+  .foto-label{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+  .fotos-grid{display:grid;grid-template-columns:repeat(${Math.min(Math.max(fotoDefeitoLtd.length,fotoConclusaoLtd.length,1),3)},1fr);gap:5px}
+  .foto-item img{width:100%;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block}
+  /* ── ASSINATURAS ── */
+  .sig{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:auto;padding-top:6px}
+  .sig-box{text-align:center}
+  .sig-line{border-top:1px solid #94a3b8;padding-top:5px;margin-top:28px}
+  .sig-name{font-size:9.5px;font-weight:600;color:#1e293b}
+  .sig-role{font-size:8.5px;color:#64748b}
+  /* ── FOOTER ── */
+  .ftr{display:flex;justify-content:space-between;padding-top:5px;border-top:1px solid #e2e8f0;margin-top:5px}
+  .ftr-t{font-size:8px;color:#94a3b8}
+  @media print{
+    html,body{width:210mm;height:297mm}
+    .page{page-break-after:avoid;page-break-inside:avoid}
   }
 </style>
 </head>
 <body>
 <div class="page">
-  <!-- Header -->
-  <div class="header">
-    <div class="logo-area">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M1 6l11 6 11-6M1 12l11 6 11-6"/></svg>
-      </div>
-      <div>
-        <div class="logo-text">Netvius</div>
-        <div class="logo-sub">Sistema de Gestão de Manutenção</div>
-      </div>
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-box"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div><div class="logo-name">Netvius</div><div class="logo-sub">Sistema de Gestão de Manutenção</div></div>
     </div>
-    <div class="doc-info">
-      <div class="doc-num">LAUDO #${String(m.id).padStart(4, "0")}</div>
+    <div class="doc-right">
+      <div class="doc-num">LAUDO #${String(m.id).padStart(4,"0")}</div>
       <div class="doc-date">Emitido em ${fmtDate(new Date())}</div>
     </div>
   </div>
 
-  <!-- Status -->
-  <div class="status-badge" style="background:${statusColor[m.status] ?? "#64748b"}22; color:${statusColor[m.status] ?? "#64748b"}">
-    <span class="status-dot" style="background:${statusColor[m.status] ?? "#64748b"}"></span>
-    ${statusLabel[m.status] ?? m.status}
+  <!-- STATUS -->
+  <div class="status-row">
+    <span class="sbadge" style="background:${statusColor[m.status]??"#64748b"}22;color:${statusColor[m.status]??"#64748b"}">
+      <span class="sdot" style="background:${statusColor[m.status]??"#64748b"}"></span>
+      ${statusLabel[m.status]??m.status}
+    </span>
   </div>
 
-  <!-- Info Grid -->
-  <div class="info-grid">
-    <div class="info-card">
-      <div class="info-label">Escola</div>
-      <div class="info-value">${m.escola?.nome ?? "—"}</div>
-      <div class="info-sub">INEP: ${m.escola?.inep ?? "—"}</div>
+  <!-- INFO GRID -->
+  <div class="info-row">
+    <div class="ic">
+      <div class="il">Escola</div>
+      <div class="iv">${m.escola?.nome??"—"}</div>
+      <div class="is">INEP: ${m.escola?.inep??"—"}</div>
     </div>
-    <div class="info-card">
-      <div class="info-label">Município</div>
-      <div class="info-value">${m.escola?.municipio ?? "—"}</div>
-      ${m.escola?.endereco ? `<div class="info-sub">${m.escola.endereco}</div>` : ""}
+    <div class="ic">
+      <div class="il">Município</div>
+      <div class="iv">${m.escola?.municipio??"—"}</div>
+      ${m.escola?.endereco?`<div class="is">${m.escola.endereco}</div>`:""}
     </div>
-    <div class="info-card">
-      <div class="info-label">Técnico Responsável</div>
-      <div class="info-value">${m.tecnico?.nome ?? "Não atribuído"}</div>
-      ${m.tecnico?.email ? `<div class="info-sub">${m.tecnico.email}</div>` : ""}
+    <div class="ic">
+      <div class="il">Técnico</div>
+      <div class="iv">${m.tecnico?.nome??"Não atribuído"}</div>
+      ${m.tecnico?.email?`<div class="is">${m.tecnico.email}</div>`:""}
     </div>
-    <div class="info-card">
-      <div class="info-label">Datas</div>
-      <div class="info-value" style="font-size:12px">Abertura: ${fmtDate(m.createdAt)}</div>
-      ${m.dataConclusao ? `<div class="info-sub">Conclusão: ${fmtDate(m.dataConclusao)}</div>` : ""}
-    </div>
-    ${(m.escola as any)?.velocidadeOfertada ? `
-    <div class="info-card">
-      <div class="info-label">Velocidade Ofertada</div>
-      <div class="info-value">${(m.escola as any).velocidadeOfertada}</div>
-    </div>` : ""}
-  </div>
-
-  <hr class="divider" />
-
-  <!-- Descrição do Problema -->
-  <div class="section">
-    <div class="section-title" style="color:#ef4444"><span class="dot" style="background:#ef4444"></span>Descrição do Problema</div>
-    <div class="text-box">${m.descricaoProblema}</div>
-  </div>
-
-  ${m.observacaoConclusao ? `
-  <div class="section">
-    <div class="section-title" style="color:#10b981"><span class="dot" style="background:#10b981"></span>Observação do Técnico (Conclusão)</div>
-    <div class="text-box obs">${m.observacaoConclusao}</div>
-  </div>` : ""}
-
-  ${input.observacaoAdmin ? `
-  <div class="section">
-    <div class="section-title" style="color:#3b82f6"><span class="dot" style="background:#3b82f6"></span>Observação do Responsável</div>
-    <div class="text-box admin-obs">${input.observacaoAdmin}</div>
-  </div>` : ""}
-
-  ${fotoHtml(fotoDefeito, "Fotos do Defeito", "#ef4444")}
-  ${fotoHtml(fotoConclusao, "Fotos Após Reparo", "#10b981")}
-
-  <!-- Assinaturas -->
-  <div class="signature-area">
-    <div class="signature-box">
-      <div class="signature-line">
-        <div class="signature-name">${m.tecnico?.nome ?? "Técnico"}</div>
-        <div class="signature-role">Técnico Responsável</div>
-      </div>
-    </div>
-    <div class="signature-box">
-      <div class="signature-line">
-        <div class="signature-name">Responsável pela Unidade</div>
-        <div class="signature-role">Escola / Cliente</div>
-      </div>
+    <div class="ic">
+      <div class="il">Datas</div>
+      <div class="iv" style="font-size:9.5px">Abertura: ${fmtDate(m.createdAt)}</div>
+      ${m.dataConclusao?`<div class="is">Conclusão: ${fmtDate(m.dataConclusao)}</div>`:""}
+      ${(m.escola as any)?.velocidadeOfertada?`<div class="is">Vel.: ${(m.escola as any).velocidadeOfertada}</div>`:""}
     </div>
   </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-left">Netvius — Sistema de Gestão de Manutenção<br>Documento gerado automaticamente</div>
-    <div class="footer-right">Laudo #${String(m.id).padStart(4, "0")}<br>${fmtDate(new Date())}</div>
+  <hr class="div" />
+
+  <!-- TEXTOS -->
+  <div class="txt-row">
+    <div class="txt-block">
+      <div class="txt-lbl" style="color:#ef4444"><span class="txt-lbl-dot" style="background:#ef4444"></span>Descrição do Problema</div>
+      <div class="txt-box">${m.descricaoProblema}</div>
+    </div>
+    ${m.observacaoConclusao?`
+    <div class="txt-block">
+      <div class="txt-lbl" style="color:#10b981"><span class="txt-lbl-dot" style="background:#10b981"></span>Observação do Técnico</div>
+      <div class="txt-box obs">${m.observacaoConclusao}</div>
+    </div>`:""}
+    ${!m.observacaoConclusao && input.observacaoAdmin?`
+    <div class="txt-block">
+      <div class="txt-lbl" style="color:#3b82f6"><span class="txt-lbl-dot" style="background:#3b82f6"></span>Observação do Responsável</div>
+      <div class="txt-box adm">${input.observacaoAdmin}</div>
+    </div>`:""}
   </div>
+  ${m.observacaoConclusao && input.observacaoAdmin?`
+  <div class="txt-row" style="grid-template-columns:1fr;margin-bottom:7px">
+    <div class="txt-block">
+      <div class="txt-lbl" style="color:#3b82f6"><span class="txt-lbl-dot" style="background:#3b82f6"></span>Observação do Responsável</div>
+      <div class="txt-box adm">${input.observacaoAdmin}</div>
+    </div>
+  </div>`:""}
+
+  <!-- FOTOS -->
+  ${(fotoDefeitoLtd.length>0||fotoConclusaoLtd.length>0)?`
+  <div class="fotos-wrap">
+    ${fotoHtml(fotoDefeitoLtd,"Fotos do Defeito","#ef4444")}
+    ${fotoHtml(fotoConclusaoLtd,"Fotos Após Reparo","#10b981")}
+  </div>`:""}
+
+  <!-- ASSINATURAS -->
+  <div class="sig">
+    <div class="sig-box"><div class="sig-line"><div class="sig-name">${m.tecnico?.nome??"Técnico"}</div><div class="sig-role">Técnico Responsável</div></div></div>
+    <div class="sig-box"><div class="sig-line"><div class="sig-name">Responsável pela Unidade</div><div class="sig-role">Escola / Cliente</div></div></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ftr">
+    <span class="ftr-t">Netvius — Sistema de Gestão de Manutenção — Documento gerado automaticamente</span>
+    <span class="ftr-t">Laudo #${String(m.id).padStart(4,"0")} — ${fmtDate(new Date())}</span>
+  </div>
+
 </div>
 </body>
 </html>`;
