@@ -86,7 +86,9 @@ export default function RotaDia() {
         if (parsed.data === new Date().toDateString()) {
           setSelecionadas(parsed.ids ?? []);
         }
-      } catch {}
+      } catch (err) {
+        console.warn("[RotaDia] Falha ao restaurar seleção salva:", err);
+      }
     }
   }, []);
 

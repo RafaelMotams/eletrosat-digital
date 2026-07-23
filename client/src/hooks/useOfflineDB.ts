@@ -123,7 +123,8 @@ export async function dbGetCachedEscolas(
     // Cache válido por 7 dias (técnico pode ficar sem internet por dias)
     if (Date.now() - entry.ts > 7 * 24 * 60 * 60 * 1000) return null;
     return entry.data;
-  } catch {
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao ler cache de escolas:", err);
     return null;
   }
 }
@@ -151,7 +152,8 @@ export async function dbGetPendingOS(): Promise<PendingOS[]> {
       tx(db, "pendingOS", "readonly").getAll()
     );
     return all.filter((o) => o.status === "pending" || o.status === "error");
-  } catch {
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao ler OS pendentes:", err);
     return [];
   }
 }
@@ -160,7 +162,8 @@ export async function dbGetAllPendingOS(): Promise<PendingOS[]> {
   try {
     const db = await openDB();
     return await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
-  } catch {
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao ler todas as OS pendentes:", err);
     return [];
   }
 }
@@ -192,7 +195,9 @@ export async function dbRemoveDoneOS(): Promise<void> {
     for (const o of all) {
       if (o.status === "done") store.delete(o.id);
     }
-  } catch {}
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao remover OS concluídas:", err);
+  }
 }
 
 /** Conta quantas OS estão pendentes de sincronização */
@@ -215,7 +220,9 @@ export async function dbSaveFotoRascunho(rascunho: FotoRascunho): Promise<void> 
   try {
     const db = await openDB();
     await wrap(tx(db, "fotoRascunho", "readwrite").put(rascunho));
-  } catch {}
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao salvar rascunho de fotos:", err);
+  }
 }
 
 export async function dbGetFotoRascunho(escolaId: number): Promise<FotoRascunho | null> {
@@ -231,7 +238,8 @@ export async function dbGetFotoRascunho(escolaId: number): Promise<FotoRascunho 
       return null;
     }
     return entry;
-  } catch {
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao ler rascunho de fotos:", err);
     return null;
   }
 }
@@ -240,5 +248,7 @@ export async function dbClearFotoRascunho(escolaId: number): Promise<void> {
   try {
     const db = await openDB();
     await wrap(tx(db, "fotoRascunho", "readwrite").delete(escolaId));
-  } catch {}
+  } catch (err) {
+    console.warn("[offlineDB] Falha ao limpar rascunho de fotos:", err);
+  }
 }

@@ -365,6 +365,7 @@ export default function AdminOrdens() {
       toast.success("Planilha exportada com sucesso!");
       setExportOpen(false);
     } catch (err) {
+      console.error("[Ordens] Erro ao exportar planilha:", err);
       toast.error("Erro ao exportar planilha");
     } finally {
       setExportando(false);

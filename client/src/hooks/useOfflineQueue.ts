@@ -20,7 +20,8 @@ const ESCOLAS_CACHE_KEY = "netvionis_escolas_cache";
 export function getOfflineQueue(): OfflineAction[] {
   try {
     return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-  } catch {
+  } catch (err) {
+    console.warn("[offlineQueue] Falha ao ler fila offline:", err);
     return [];
   }
 }
@@ -56,7 +57,9 @@ export function cacheEscolas(tecnicoId: number, escolas: unknown[]) {
       `${ESCOLAS_CACHE_KEY}_${tecnicoId}`,
       JSON.stringify({ data: escolas, ts: Date.now() })
     );
-  } catch {}
+  } catch (err) {
+    console.warn("[offlineQueue] Falha ao gravar cache de escolas:", err);
+  }
 }
 
 /** Lê cache de escolas do localStorage */
@@ -68,7 +71,8 @@ export function getCachedEscolas(tecnicoId: number): unknown[] | null {
     // Cache válido por 24h
     if (Date.now() - parsed.ts > 24 * 60 * 60 * 1000) return null;
     return parsed.data;
-  } catch {
+  } catch (err) {
+    console.warn("[offlineQueue] Falha ao ler cache de escolas:", err);
     return null;
   }
 }
@@ -89,8 +93,9 @@ export function useOfflineSyncQueue(
       try {
         const ok = await syncFn(action);
         if (ok) removeFromQueue(action.id);
-      } catch {
+      } catch (err) {
         // Mantém na fila para tentar novamente
+        console.warn(`[offlineQueue] Falha ao sincronizar ação ${action.id}:`, err);
       }
     }
     syncingRef.current = false;

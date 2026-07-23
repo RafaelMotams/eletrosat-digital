@@ -321,7 +321,11 @@ Adapte os campos para fazer sentido para o negócio descrito. Seja específico e
     if (config.length === 0 || !config[0].terminologia) return TERMINOLOGIA_PADRAO["geral"];
     try {
       return JSON.parse(config[0].terminologia);
-    } catch {
+    } catch (err) {
+      console.error(
+        `[tenantConfig] Terminologia inválida para tenant ${ctx.tenantSession!.tenantId}, usando padrão:`,
+        err
+      );
       return TERMINOLOGIA_PADRAO["geral"];
     }
   }),
