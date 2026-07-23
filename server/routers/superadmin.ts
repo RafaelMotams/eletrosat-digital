@@ -15,9 +15,7 @@ import {
 } from "../db-tenant";
 import { getDashboardStats, listTecnicos, listOrdensServico } from "../db";
 import { SignJWT, jwtVerify } from "jose";
-
-const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
-const secretKey = new TextEncoder().encode(JWT_SECRET);
+import { secretKey } from "../_core/jwtSecret";
 
 // Criar token JWT
 async function signToken(payload: Record<string, unknown>): Promise<string> {
@@ -76,11 +74,11 @@ export const superadminRouter = router({
       const isSuperAdmin = admin.tenantId === 0;
 
       const token = await signToken({
-          adminId: admin.id,
-          tenantId: admin.tenantId,
-          role: admin.role,
-          isSuperAdmin,
-        });
+        adminId: admin.id,
+        tenantId: admin.tenantId,
+        role: admin.role,
+        isSuperAdmin,
+      });
 
       return {
         token,
@@ -110,7 +108,10 @@ export const superadminRouter = router({
     .query(async ({ input }) => {
       const session = await verifyToken(input.token);
       if (!session) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão inválida" });
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Sessão inválida",
+        });
       }
 
       let tenant = null;
@@ -154,7 +155,13 @@ export const superadminRouter = router({
       z.object({
         token: z.string(),
         nome: z.string().min(2),
-        slug: z.string().min(2).regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+        slug: z
+          .string()
+          .min(2)
+          .regex(
+            /^[a-z0-9-]+$/,
+            "Slug deve conter apenas letras minúsculas, números e hífens"
+          ),
         plano: z.enum(["basico", "profissional", "enterprise"]),
         contato: z.string().optional(),
         email: z.string().email().optional(),
@@ -173,7 +180,13 @@ export const superadminRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
       }
 
-      const { token: _t, adminNome, adminEmail, adminSenha, ...tenantData } = input;
+      const {
+        token: _t,
+        adminNome,
+        adminEmail,
+        adminSenha,
+        ...tenantData
+      } = input;
 
       await createTenant(tenantData);
 
@@ -202,7 +215,9 @@ export const superadminRouter = router({
         nome: z.string().min(2).optional(),
         slug: z.string().min(2).optional(),
         plano: z.enum(["basico", "profissional", "enterprise"]).optional(),
-        status: z.enum(["ativo", "trial", "expirado", "suspenso", "cancelado"]).optional(),
+        status: z
+          .enum(["ativo", "trial", "expirado", "suspenso", "cancelado"])
+          .optional(),
         diasTrial: z.number().min(1).max(365).optional(),
         contato: z.string().optional(),
         email: z.string().email().optional(),
@@ -331,11 +346,19 @@ export const superadminRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
       }
       const tenant = await getTenantById(input.tenantId);
-      if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Cliente não encontrado" });
+      if (!tenant)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Cliente não encontrado",
+        });
 
       // Buscar o primeiro admin do tenant
       const admins = await listTenantAdmins(input.tenantId);
-      if (!admins.length) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum admin encontrado para este cliente" });
+      if (!admins.length)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Nenhum admin encontrado para este cliente",
+        });
       const admin = admins[0];
 
       const impersonToken = await signToken({

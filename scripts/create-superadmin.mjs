@@ -12,10 +12,19 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
-// Credenciais do superadmin
-const SUPERADMIN_EMAIL = "rafaelmotams0907@gmail.com";
-const SUPERADMIN_SENHA = "sat2020ms";
-const SUPERADMIN_NOME  = "Rafael Mota";
+// Credenciais do superadmin — lidas do ambiente para não expor senhas no código
+const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL;
+const SUPERADMIN_SENHA = process.env.SUPERADMIN_SENHA;
+const SUPERADMIN_NOME  = process.env.SUPERADMIN_NOME || "Super Admin";
+
+if (!SUPERADMIN_EMAIL || !SUPERADMIN_SENHA) {
+  console.error("❌ Defina SUPERADMIN_EMAIL e SUPERADMIN_SENHA no ambiente antes de executar.");
+  process.exit(1);
+}
+if (SUPERADMIN_SENHA.length < 8) {
+  console.error("❌ SUPERADMIN_SENHA deve ter no mínimo 8 caracteres.");
+  process.exit(1);
+}
 
 async function main() {
   // Parsear a URL de conexão
@@ -58,7 +67,7 @@ async function main() {
 
   console.log("🔐 Login disponível em: /admin/login ou /superadmin/login");
   console.log(`   Email: ${SUPERADMIN_EMAIL}`);
-  console.log(`   Senha: ${SUPERADMIN_SENHA}`);
+  console.log("   Senha: (definida via SUPERADMIN_SENHA)");
 
   await conn.end();
 }
