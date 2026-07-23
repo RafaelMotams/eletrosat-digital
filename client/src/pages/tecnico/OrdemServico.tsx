@@ -12,6 +12,7 @@ import {
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { dbEnqueueOS, dbGetCachedEscolas } from "@/hooks/useOfflineDB";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
+import { formatWhatsApp } from "@/lib/format";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const statusConfig: Record<string, {
@@ -94,19 +95,6 @@ const CATEGORIAS_FOTOS: {
 
 // Tipo para cada foto pendente
 type FotoPendente = { base64: string; mime: string; preview: string };
-
-function formatWhatsApp(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  // Remove tudo que não é dígito
-  const digits = raw.replace(/\D/g, "");
-  if (!digits || digits.length < 8) return null;
-  // Se já começa com 55 (código do Brasil), usa direto
-  if (digits.startsWith("55") && digits.length >= 12) return digits;
-  // Se tem DDD (10 ou 11 dígitos), adiciona código do Brasil
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  // Se tem apenas o número sem DDD (8 ou 9 dígitos), retorna como está para wa.me
-  return digits;
-}
 
 function formatTelDisplay(raw: string | null | undefined): string {
   if (!raw) return "";
