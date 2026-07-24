@@ -425,7 +425,9 @@ export default function TecnicoOS() {
     try {
       const stored = localStorage.getItem("tecnico");
       if (stored) return Number(JSON.parse(stored).id) || 0;
-    } catch { /* noop */ }
+    } catch (err) {
+      console.warn("[OS] Falha ao ler técnico do localStorage:", err);
+    }
     return 0;
   });
 
@@ -1273,7 +1275,9 @@ export default function TecnicoOS() {
                       localStorage.setItem(rotaKey, JSON.stringify(rotaData));
                     }
                   }
-                } catch { /* noop */ }
+                } catch (err) {
+                  console.warn("[OS] Falha ao atualizar rota do dia:", err);
+                }
                 setShowSucesso(true);
                 setFotosPorCategoria({ mapa_calor: [] });
                 utils.tecnicoAuth.minhasEscolas.invalidate();
@@ -1583,7 +1587,9 @@ export default function TecnicoOS() {
                             localStorage.setItem(rotaKey, JSON.stringify(rotaData));
                           }
                         }
-                      } catch { /* noop */ }
+                      } catch (err) {
+                        console.warn("[OS] Falha ao atualizar rota do dia:", err);
+                      }
                       // ── Finalizar ──
                       setShowSucesso(true);
                       setFotosPorCategoria({

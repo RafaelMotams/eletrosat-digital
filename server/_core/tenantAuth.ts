@@ -77,7 +77,15 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
     }
 
     return session;
-  } catch {
+  } catch (err) {
+    // Tokens inválidos/expirados (erros do jose) são esperados e não são logados.
+    // Qualquer outro erro (ex.: falha no banco durante as verificações) é logado
+    // para não ser silenciosamente engolido.
+    const code = (err as { code?: unknown } | null)?.code;
+    const isJwtError = typeof code === "string" && code.startsWith("ERR_J");
+    if (!isJwtError) {
+      console.error("[tenantAuth] Erro inesperado ao verificar token do tenant:", err);
+    }
     return null;
   }
 }
@@ -101,8 +109,11 @@ export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolea
       return { ok: false, motivo: "cancelado" };
     }
     return { ok: true };
-  } catch {
-    return { ok: true }; // fallback em caso de erro
+  } catch (err) {
+    // Fail-open para não bloquear técnicos por instabilidade transitória,
+    // mas registra o erro para que a falha não passe despercebida.
+    console.error("[tenantAuth] Erro ao verificar status do tenant:", err);
+    return { ok: true };
   }
 }
 
