@@ -86,6 +86,7 @@ export default function AdminManutencao() {
   const [novaEscolaId, setNovaEscolaId] = useState("");
   const [novaTecnicoId, setNovaTecnicoId] = useState("");
   const [novaDescricao, setNovaDescricao] = useState("");
+  const [novaKm, setNovaKm] = useState("");
   const [buscaEscola, setBuscaEscola] = useState("");
 
   // ── Form atribuir ──────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ export default function AdminManutencao() {
       toast.success("Manutenção criada com sucesso!");
       utils.manutencao.listar.invalidate();
       setCriarOpen(false);
-      setNovaEscolaId(""); setNovaTecnicoId(""); setNovaDescricao(""); setBuscaEscola("");
+      setNovaEscolaId(""); setNovaTecnicoId(""); setNovaDescricao(""); setNovaKm(""); setBuscaEscola("");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -156,20 +157,26 @@ export default function AdminManutencao() {
       toast.error("Nenhum dado para exportar");
       return;
     }
+    const totalGeral = relatorioData.reduce((s, r) => s + (r.valorTotal ?? 0), 0);
     const ws = XLSX.utils.json_to_sheet(relatorioData.map(r => ({
       "ID": r.id,
       "Status": r.status === "concluida" ? "Concluída" : r.status === "em_andamento" ? "Em Andamento" : "Pendente",
       "Escola": r.escola,
       "INEP": r.inep,
       "Município": r.municipio,
-      "Endereço": r.endereco,
       "Técnico": r.tecnico,
+      "Km": r.quilometragem ?? 0,
+      "Valor Base (R$)": r.valorBase ?? 200,
+      "Valor Km (R$)": r.valorKm ?? 0,
+      "Total OS (R$)": r.valorTotal ?? 200,
       "Descrição do Problema": r.descricaoProblema,
-      "Observação de Conclusão": r.observacaoConclusao ?? "",
-      "Data Atribuição": r.dataAtribuicao,
+      "Observação": r.observacaoConclusao ?? "",
       "Data Conclusão": r.dataConclusao,
       "Data Criação": r.createdAt,
     })));
+    // Adicionar linha de total geral
+    const totalRow = relatorioData.length + 1;
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "TOTAL GERAL:", "", "", "", totalGeral.toFixed(2), "", "", "", ""]], { origin: totalRow });
 
     // Estilo de cabeçalho
     const range = XLSX.utils.decode_range(ws["!ref"] ?? "A1");
@@ -183,9 +190,9 @@ export default function AdminManutencao() {
       };
     }
     ws["!cols"] = [
-      { wch: 6 }, { wch: 14 }, { wch: 40 }, { wch: 14 }, { wch: 20 },
-      { wch: 35 }, { wch: 25 }, { wch: 45 }, { wch: 45 }, { wch: 16 },
-      { wch: 16 }, { wch: 16 },
+      { wch: 6 }, { wch: 12 }, { wch: 38 }, { wch: 14 }, { wch: 18 },
+      { wch: 22 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+      { wch: 40 }, { wch: 35 }, { wch: 14 }, { wch: 14 },
     ];
 
     const wb = XLSX.utils.book_new();
@@ -462,6 +469,22 @@ export default function AdminManutencao() {
               />
               <p className="text-xs text-muted-foreground mt-1">{novaDescricao.length} caracteres (mínimo 5)</p>
             </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Quilometragem (km)</label>
+              <Input
+                type="number"
+                placeholder="Ex: 50"
+                value={novaKm}
+                onChange={e => setNovaKm(e.target.value)}
+                min={0}
+                step={0.1}
+              />
+              {novaKm && parseFloat(novaKm) > 0 && (
+                <p className="text-xs text-emerald-600 mt-1 font-medium">
+                  Valor: R$ 200,00 + ({novaKm} km × R$ 2,50) = R$ {(200 + parseFloat(novaKm) * 2.5).toFixed(2).replace('.', ',')}
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setCriarOpen(false)}>Cancelar</Button>
@@ -475,7 +498,8 @@ export default function AdminManutencao() {
                   escolaId: parseInt(novaEscolaId),
                   tecnicoId: novaTecnicoId && novaTecnicoId !== "none" ? parseInt(novaTecnicoId) : undefined,
                   descricaoProblema: novaDescricao,
-                });
+                  quilometragem: novaKm ? parseFloat(novaKm) : undefined,
+                } as any);
               }}
               disabled={criarMut.isPending}
               style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}

@@ -81,6 +81,7 @@ export const manutencaoRouter = router({
       escolaId: z.number(),
       tecnicoId: z.number().optional(),
       descricaoProblema: z.string().min(5, "Descrição obrigatória"),
+      quilometragem: z.number().min(0).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -91,6 +92,7 @@ export const manutencaoRouter = router({
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId ?? null,
         descricaoProblema: input.descricaoProblema,
+        quilometragem: input.quilometragem ? String(input.quilometragem) : "0",
         status: "pendente",
         dataAtribuicao: input.tecnicoId ? new Date() : undefined,
       });
@@ -136,20 +138,30 @@ export const manutencaoRouter = router({
       .leftJoin(tecnicos, eq(manutencoes.tecnicoId, tecnicos.id))
       .where(eq(manutencoes.tenantId, tenantId))
       .orderBy(desc(manutencoes.createdAt));
-    return rows.map(r => ({
-      id: r.m.id,
-      status: r.m.status,
-      descricaoProblema: r.m.descricaoProblema,
-      observacaoConclusao: r.m.observacaoConclusao,
-      escola: r.escola?.nome ?? "",
-      inep: r.escola?.inep ?? "",
-      municipio: r.escola?.municipio ?? "",
-      endereco: r.escola?.endereco ?? "",
-      tecnico: r.tecnico?.nome ?? "Não atribuído",
-      dataAtribuicao: r.m.dataAtribuicao ? new Date(r.m.dataAtribuicao).toLocaleDateString("pt-BR") : "",
-      dataConclusao: r.m.dataConclusao ? new Date(r.m.dataConclusao).toLocaleDateString("pt-BR") : "",
-      createdAt: new Date(r.m.createdAt).toLocaleDateString("pt-BR"),
-    }));
+    return rows.map(r => {
+      const km = parseFloat(String(r.m.quilometragem ?? "0"));
+      const valorBase = 200;
+      const valorKm = km * 2.50;
+      const valorTotal = valorBase + valorKm;
+      return {
+        id: r.m.id,
+        status: r.m.status,
+        descricaoProblema: r.m.descricaoProblema,
+        observacaoConclusao: r.m.observacaoConclusao,
+        escola: r.escola?.nome ?? (r.m as any).escolaNaoCadastradaNome ?? "",
+        inep: r.escola?.inep ?? (r.m as any).escolaNaoCadastradaInep ?? "",
+        municipio: r.escola?.municipio ?? (r.m as any).escolaNaoCadastradaMunicipio ?? "",
+        endereco: r.escola?.endereco ?? (r.m as any).escolaNaoCadastradaEndereco ?? "",
+        tecnico: r.tecnico?.nome ?? "Não atribuído",
+        dataAtribuicao: r.m.dataAtribuicao ? new Date(r.m.dataAtribuicao).toLocaleDateString("pt-BR") : "",
+        dataConclusao: r.m.dataConclusao ? new Date(r.m.dataConclusao).toLocaleDateString("pt-BR") : "",
+        createdAt: new Date(r.m.createdAt).toLocaleDateString("pt-BR"),
+        quilometragem: km,
+        valorBase,
+        valorKm,
+        valorTotal,
+      };
+    });
   }),
 
   // ── TÉCNICO: Listar manutenções atribuídas (public para funcionar no app) ───
@@ -278,7 +290,24 @@ export const manutencaoRouter = router({
     .mutation(async ({ input }) => {
       const m = await getManutencaoComDados(input.manutencaoId);
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
-      const systemPrompt = `Você é um assistente técnico especializado em infraestrutura de redes, telecom, instalação de equipamentos Wi-Fi, switches, controladoras, nobreaks e cabeamento estruturado. Responda de forma direta, prática e objetiva para técnicos em campo. Contexto da manutenção: ${contextoEscola}. ${input.contexto ?? ''}`;
+      const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
+
+• INFRAESTRUTURA DE REDE: Cabeamento estruturado (Cat5e/Cat6/Cat6A), fibra óptica (FTTH, FTTx), patch panels, racks 19", organizadores, DIO, caixas de emenda
+• EQUIPAMENTOS: Controladoras Intelbras (WiseFi), TP-Link Omada, Ubiquiti UniFi, Huawei, MikroTik. APs indoor/outdoor, switches gerenciáveis L2/L3, roteadores, OLTs, ONUs
+• CONFIGURAÇÃO: VLANs, DHCP, DNS, QoS, balanceamento de carga, failover, PPPoE, CGNAT, NAT, firewall, ACLs, SNMP, Zabbix, Grafana
+• INSTALAÇÃO FÍSICA: Montagem de rack (padrão EIA/TIA-568), passagem de cabos, certificação, teste de enlace, fusão de fibra, OTDR, power meter
+• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
+• PROJETOS ESCOLARES: Programa Escolas Conectadas, PBLE, Wi-Fi Brasil — regras de cobertura, quantidade de APs por m², posicionamento ideal
+
+Seu estilo:
+- Responde como um PROFESSOR paciente mas direto ao ponto
+- Dá PASSO A PASSO numérico quando é procedimento
+- Indica MODELO EXATO do equipamento quando relevante
+- Alerta sobre ERROS COMUNS que técnicos iniciantes cometem
+- Usa linguagem técnica mas acessível
+- Quando não sabe algo específico, indica onde buscar (manual, suporte fabricante)
+
+Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const response = await invokeLLM({
         messages: [
           { role: 'system', content: systemPrompt },
