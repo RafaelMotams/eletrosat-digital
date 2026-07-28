@@ -398,6 +398,19 @@ export default function AdminOrdens() {
   });
 
   const [deleteOsModal, setDeleteOsModal] = useState<{ osId: number; escolaNome: string } | null>(null);
+  const [escolaNaoCadastradaModal, setEscolaNaoCadastradaModal] = useState(false);
+  const [escolaNaoCadastradaForm, setEscolaNaoCadastradaForm] = useState({
+    nome: "", inep: "", municipio: "", endereco: "", latitude: "", longitude: "", whatsapp: "", tecnicoId: "", descricao: "", quilometragem: ""
+  });
+  const criarComEscolaNaoCadastradaMut = trpc.manutencao.criarComEscolaNaoCadastrada.useMutation({
+    onSuccess: () => {
+      toast.success("OS criada com sucesso!");
+      setEscolaNaoCadastradaModal(false);
+      setEscolaNaoCadastradaForm({ nome: "", inep: "", municipio: "", endereco: "", latitude: "", longitude: "", whatsapp: "", tecnicoId: "", descricao: "", quilometragem: "" });
+      refetch();
+    },
+    onError: (err: any) => toast.error(err.message || "Erro ao criar OS"),
+  });
   const [driveReenvioOpen, setDriveReenvioOpen] = useState(false);
   const [driveResult, setDriveResult] = useState<{ total: number; sucesso: number; falhas: number; erros: string[] } | null>(null);
 
@@ -573,6 +586,10 @@ export default function AdminOrdens() {
             <Button size="sm" onClick={() => setOpen(true)} className="rounded-xl gap-1.5"
               style={{ background: "linear-gradient(135deg, oklch(0.28 0.10 240), oklch(0.36 0.14 240))", color: "white", border: "none" }}>
               <Plus className="w-4 h-4" /> Nova OS
+            </Button>
+            <Button size="sm" onClick={() => setEscolaNaoCadastradaModal(true)} className="rounded-xl gap-1.5"
+              style={{ background: "linear-gradient(135deg, oklch(0.35 0.12 260), oklch(0.42 0.16 260))", color: "white", border: "none" }}>
+              <Plus className="w-4 h-4" /> Escola Não Cadastrada
             </Button>
             <Button variant="outline" size="sm"
               onClick={() => { setExportOpen(true); setValorPorAp(""); setExportTecnicoId("todos"); setExportDataInicio(""); setExportDataFim(""); }}
@@ -1391,6 +1408,163 @@ export default function AdminOrdens() {
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Gerando...</>
               ) : (
                 <><Download className="w-4 h-4" /> Baixar Planilha</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Criar com Escola Não Cadastrada */}
+      <Dialog open={escolaNaoCadastradaModal} onOpenChange={setEscolaNaoCadastradaModal}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.94 0.05 260)" }}>
+                <Plus className="w-4 h-4" style={{ color: "oklch(0.35 0.12 260)" }} />
+              </div>
+              Criar OS - Escola Não Cadastrada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Nome da Escola *</label>
+              <input
+                type="text"
+                value={escolaNaoCadastradaForm.nome}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, nome: e.target.value })}
+                placeholder="Ex: E.M. São João"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">INEP *</label>
+              <input
+                type="text"
+                value={escolaNaoCadastradaForm.inep}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, inep: e.target.value.replace(/\D/g, "") })}
+                placeholder="Ex: 12345678"
+                maxLength={8}
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Município *</label>
+              <input
+                type="text"
+                value={escolaNaoCadastradaForm.municipio}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, municipio: e.target.value })}
+                placeholder="Ex: São Paulo"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Endereço</label>
+              <input
+                type="text"
+                value={escolaNaoCadastradaForm.endereco}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, endereco: e.target.value })}
+                placeholder="Ex: Rua das Flores, 123"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-sm font-semibold mb-1.5 block text-foreground">Latitude</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={escolaNaoCadastradaForm.latitude}
+                  onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, latitude: e.target.value })}
+                  placeholder="Ex: -23.5505"
+                  className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold mb-1.5 block text-foreground">Longitude</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={escolaNaoCadastradaForm.longitude}
+                  onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, longitude: e.target.value })}
+                  placeholder="Ex: -46.6333"
+                  className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">WhatsApp</label>
+              <input
+                type="tel"
+                value={escolaNaoCadastradaForm.whatsapp}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, whatsapp: e.target.value })}
+                placeholder="Ex: (11) 98765-4321"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Técnico Responsável *</label>
+              <Select value={escolaNaoCadastradaForm.tecnicoId} onValueChange={v => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, tecnicoId: v })}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Selecione o técnico" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tecnicos?.filter(t => t.ativo).map(t => (
+                    <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Descrição do Problema *</label>
+              <textarea
+                value={escolaNaoCadastradaForm.descricao}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, descricao: e.target.value })}
+                placeholder="Ex: Instalação de Wi-Fi"
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold mb-1.5 block text-foreground">Quilometragem (km)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={escolaNaoCadastradaForm.quilometragem}
+                onChange={e => setEscolaNaoCadastradaForm({ ...escolaNaoCadastradaForm, quilometragem: e.target.value })}
+                placeholder="Ex: 50"
+                className="w-full px-3 py-2 rounded-xl text-sm border border-border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Valor: R$ 200 + (km × R$ 2,50)</p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEscolaNaoCadastradaModal(false)} className="rounded-xl">Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!escolaNaoCadastradaForm.nome || !escolaNaoCadastradaForm.inep || !escolaNaoCadastradaForm.municipio || !escolaNaoCadastradaForm.tecnicoId || !escolaNaoCadastradaForm.descricao) {
+                  toast.error("Preencha todos os campos obrigatórios");
+                  return;
+                }
+                criarComEscolaNaoCadastradaMut.mutate({
+                  escolaNome: escolaNaoCadastradaForm.nome,
+                  escolaInep: escolaNaoCadastradaForm.inep,
+                  escolaMunicipio: escolaNaoCadastradaForm.municipio,
+                  escolaEndereco: escolaNaoCadastradaForm.endereco || undefined,
+                  escolaLatitude: escolaNaoCadastradaForm.latitude ? parseFloat(escolaNaoCadastradaForm.latitude) : undefined,
+                  escolaLongitude: escolaNaoCadastradaForm.longitude ? parseFloat(escolaNaoCadastradaForm.longitude) : undefined,
+                  escolaWhatsapp: escolaNaoCadastradaForm.whatsapp || undefined,
+                  tecnicoId: parseInt(escolaNaoCadastradaForm.tecnicoId),
+                  descricaoProblema: escolaNaoCadastradaForm.descricao,
+                  quilometragem: escolaNaoCadastradaForm.quilometragem ? parseFloat(escolaNaoCadastradaForm.quilometragem) : undefined,
+                });
+              }}
+              disabled={criarComEscolaNaoCadastradaMut.isPending}
+              className="rounded-xl gap-2 text-white border-none"
+              style={{ background: "linear-gradient(135deg, oklch(0.35 0.12 260), oklch(0.42 0.16 260))" }}>
+              {criarComEscolaNaoCadastradaMut.isPending ? (
+                <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Criando...</>
+              ) : (
+                <><Plus className="w-4 h-4" />Criar OS</>
               )}
             </Button>
           </DialogFooter>
