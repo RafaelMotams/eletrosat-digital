@@ -25,7 +25,7 @@ import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminConfiguracoes from "./pages/admin/Configuracoes";
-import AdminNotaFiscal from "./pages/admin/NotaFiscal";
+
 import AdminGerenciarEscolas from "./pages/admin/GerenciarEscolas";
 import AdminConfiguracaoIA from "./pages/admin/ConfiguracaoIA";
 import AdminManutencao from "./pages/admin/Manutencao";
@@ -112,7 +112,7 @@ function Router() {
       <Route path="/admin/mapa" component={AdminMapa} />
       <Route path="/admin/planilha" component={AdminPlanilha} />
       <Route path="/admin/configuracoes" component={AdminConfiguracoes} />
-      <Route path="/admin/nota-fiscal" component={AdminNotaFiscal} />
+
       <Route path="/admin/gerenciar-escolas" component={AdminGerenciarEscolas} />
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
       <Route path="/admin/manutencao" component={AdminManutencao} />

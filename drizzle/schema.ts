@@ -218,13 +218,23 @@ export type InsertPlanilhaImportada = typeof planilhasImportadas.$inferInsert;
 export const manutencoes = mysqlTable("manutencoes", {
   id: int("id").autoincrement().primaryKey(),
   tenantId: int("tenantId").notNull().default(1),
-  escolaId: int("escolaId").notNull(),
+  escolaId: int("escolaId"), // opcional se usar escolaNaoCadastrada
+  // Escola não cadastrada (quando criar OS para escola nova)
+  escolaNaoCadastradaNome: varchar("escolaNaoCadastradaNome", { length: 255 }),
+  escolaNaoCadastradaInep: varchar("escolaNaoCadastradaInep", { length: 20 }),
+  escolaNaoCadastradaMunicipio: varchar("escolaNaoCadastradaMunicipio", { length: 255 }),
+  escolaNaoCadastradaEndereco: text("escolaNaoCadastradaEndereco"),
+  escolaNaoCadastradaLatitude: decimal("escolaNaoCadastradaLatitude", { precision: 10, scale: 8 }),
+  escolaNaoCadastradaLongitude: decimal("escolaNaoCadastradaLongitude", { precision: 11, scale: 8 }),
+  escolaNaoCadastradaWhatsapp: varchar("escolaNaoCadastradaWhatsapp", { length: 20 }),
   tecnicoId: int("tecnicoId"),
   status: mysqlEnum("status", ["pendente", "em_andamento", "concluida"]).default("pendente").notNull(),
   // Descrição do problema (obrigatório ao criar)
   descricaoProblema: text("descricaoProblema").notNull(),
   // Observação do técnico ao concluir (obrigatória)
   observacaoConclusao: text("observacaoConclusao"),
+  // Quilometragem em km - será multiplicada por 2,50 para cálculo de valor
+  quilometragem: decimal("quilometragem", { precision: 8, scale: 2 }).default('0'),
   // Fotos do defeito (antes) — URLs separadas por vírgula ou JSON
   fotoDefeitoUrls: text("fotoDefeitoUrls"),
   fotoDefeitoKeys: text("fotoDefeitoKeys"),

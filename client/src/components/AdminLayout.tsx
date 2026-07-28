@@ -22,7 +22,6 @@ const navItems = [
   { path: "/admin/relatorios",    label: "Relatórios",        icon: BarChart3,       accent: "#ec4899" },
   { path: "/admin/mapa",          label: "Mapa",              icon: Map,             accent: "#14b8a6" },
   { path: "/admin/planilha",      label: "Planilha",          icon: TableProperties, accent: "#6366f1" },
-  { path: "/admin/nota-fiscal",   label: "Nota Fiscal",       icon: Receipt,         accent: "#22c55e" },
   { path: "/admin/configuracao-ia", label: "Config. com IA",   icon: Sparkles,        accent: "#f59e0b" },
 ];
 

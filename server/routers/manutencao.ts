@@ -510,4 +510,41 @@ export const manutencaoRouter = router({
 
       return { html };
     }),
+
+  // ── ADMIN: Criar manutenção com escola não cadastrada ──────────────────────
+  criarComEscolaNaoCadastrada: tenantAdminProcedure
+    .input(z.object({
+      escolaNome: z.string().min(3, "Nome da escola obrigatório"),
+      escolaInep: z.string().min(8, "INEP obrigatório"),
+      escolaMunicipio: z.string().min(3, "Município obrigatório"),
+      escolaEndereco: z.string().optional(),
+      escolaLatitude: z.number().optional(),
+      escolaLongitude: z.number().optional(),
+      escolaWhatsapp: z.string().optional(),
+      tecnicoId: z.number().optional(),
+      descricaoProblema: z.string().min(5, "Descrição obrigatória"),
+      quilometragem: z.number().min(0, "Quilometragem deve ser >= 0").optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const tenantId = (ctx as any).tenantId ?? 1;
+      const res = await db.insert(manutencoes).values({
+        tenantId,
+        escolaId: null,
+        escolaNaoCadastradaNome: input.escolaNome,
+        escolaNaoCadastradaInep: input.escolaInep,
+        escolaNaoCadastradaMunicipio: input.escolaMunicipio,
+        escolaNaoCadastradaEndereco: input.escolaEndereco ?? null,
+        escolaNaoCadastradaLatitude: input.escolaLatitude ? String(input.escolaLatitude) : null,
+        escolaNaoCadastradaLongitude: input.escolaLongitude ? String(input.escolaLongitude) : null,
+        escolaNaoCadastradaWhatsapp: input.escolaWhatsapp ?? null,
+        tecnicoId: input.tecnicoId ?? null,
+        descricaoProblema: input.descricaoProblema,
+        quilometragem: input.quilometragem ? String(input.quilometragem) : "0",
+        status: "pendente",
+        dataAtribuicao: input.tecnicoId ? new Date() : undefined,
+      });
+      return { success: true, id: Number(res[0].insertId) };
+    }),
 });
