@@ -2,19 +2,17 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
-import { ArrowRight, CheckCircle, Zap, Shield, TrendingUp, MapPin, Smartphone, BarChart3, Headphones } from "lucide-react";
+import { 
+  ArrowRight, CheckCircle, Zap, Shield, TrendingUp, MapPin, 
+  Smartphone, BarChart3, Wifi, Camera, Clock, Users, 
+  Globe, Lock, FileText, Route, MessageCircle, ChevronRight,
+  Star, Play, Menu, X
+} from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -22,112 +20,228 @@ export default function Home() {
     }
   }, [user, setLocation]);
 
-  const loginUrl = getLoginUrl();
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
+    <div className="min-h-screen bg-white text-slate-900 overflow-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-lg">N</div>
-            <span className="text-xl font-bold">Netvius</span>
+      <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <Wifi className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-slate-900">Netvius</span>
           </div>
+          
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-slate-400 hover:text-white transition">Funcionalidades</a>
-            <a href="#how" className="text-sm text-slate-400 hover:text-white transition">Como Funciona</a>
-            <a href="#pricing" className="text-sm text-slate-400 hover:text-white transition">Planos</a>
+            <a href="#funcionalidades" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Funcionalidades</a>
+            <a href="#como-funciona" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Como Funciona</a>
+            <a href="#seguranca" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Segurança</a>
+            <a href="#planos" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Planos</a>
           </div>
-                <a href={loginUrl} className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition font-semibold text-sm">
-                  Entrar
-                </a>
+
+          <div className="hidden md:flex items-center gap-3">
+            <a href="/admin/login" className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition">
+              Entrar
+            </a>
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition shadow-sm">
+              Falar com Vendas
+            </a>
+          </div>
+
+          {/* Mobile menu button */}
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2">
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-slate-100 px-4 py-4 space-y-3">
+            <a href="#funcionalidades" className="block text-sm font-medium text-slate-600 py-2">Funcionalidades</a>
+            <a href="#como-funciona" className="block text-sm font-medium text-slate-600 py-2">Como Funciona</a>
+            <a href="#seguranca" className="block text-sm font-medium text-slate-600 py-2">Segurança</a>
+            <a href="#planos" className="block text-sm font-medium text-slate-600 py-2">Planos</a>
+            <hr className="border-slate-100" />
+            <a href="/admin/login" className="block text-sm font-semibold text-emerald-600 py-2">Entrar no Painel</a>
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="block text-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold">
+              Falar com Vendas
+            </a>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
             <div className="space-y-8">
-              <div className="inline-block px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30">
-                <span className="text-sm font-semibold text-cyan-400">🚀 Plataforma online • Sincronização em tempo real</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-sm font-medium text-emerald-700">Plataforma 100% online • Funciona offline</span>
               </div>
 
-              <h1 className="text-5xl lg:text-6xl font-black leading-tight">
-                Cada técnico em campo,<br />
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent">cada centavo no lugar certo</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-slate-900">
+                Gestão completa de{" "}
+                <span className="text-emerald-600">equipes técnicas</span>{" "}
+                em campo
               </h1>
 
-              <p className="text-lg text-slate-300 leading-relaxed">
-                Netvius sincroniza sua equipe em tempo real. Técnicos em campo com GPS, fotos, WhatsApp. Você no painel vendo tudo acontecer. Sem retrabalho. Sem surpresas. Só lucro.
+              <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
+                Controle ordens de serviço, rotas, fotos e relatórios em tempo real. 
+                Seus técnicos usam o app no celular. Você gerencia tudo pelo painel. 
+                Simples assim.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href={loginUrl} className="px-8 py-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition font-bold text-lg flex items-center justify-center gap-2 group">
-                  Começar Agora <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                <a href="https://wa.me/5575999142134?text=Olá! Quero testar o Netvius gratuitamente" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition shadow-lg shadow-emerald-600/20 group">
+                  Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
                 </a>
-                <button className="px-8 py-4 rounded-lg border border-slate-600 hover:border-slate-400 hover:bg-slate-800/50 transition font-semibold">
-                  Ver Demo
-                </button>
+                <a href="/admin/login" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 font-semibold text-base transition">
+                  <Lock className="w-4 h-4" /> Acessar Painel
+                </a>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 pt-4">
-                <div className="space-y-1">
-                  <p className="text-2xl font-bold text-cyan-400">500+</p>
-                  <p className="text-sm text-slate-400">Técnicos ativos</p>
+              <div className="flex items-center gap-6 pt-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"].map((c, i) => (
+                      <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}>
+                        {["R", "M", "J", "A"][i]}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-slate-500">Empresas já usando</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-2xl font-bold text-cyan-400">50k+</p>
-                  <p className="text-sm text-slate-400">Ordens/mês</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-2xl font-bold text-cyan-400">98%</p>
-                  <p className="text-sm text-slate-400">Satisfação</p>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                  <span className="text-sm text-slate-500 ml-1">5.0</span>
                 </div>
               </div>
             </div>
 
-            {/* Right - 3D Image */}
-            <div className="relative h-96 lg:h-full flex items-center justify-center">
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-              <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310419663030733594/mgcPKMbXVe7rcPq6qpnUme/netvius-desktop-3d-ABemCkwinitgEEw6b28oFN.webp"
-                alt="Netvius Dashboard"
-                className="w-full h-auto object-contain drop-shadow-2xl"
-                style={{ transform: `translateY(${scrollY * 0.05}px)` }}
-              />
+            {/* Right - Dashboard Preview */}
+            <div className="relative">
+              <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
+                {/* Mock Dashboard Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span className="text-sm font-semibold text-slate-700">Dashboard — Painel Admin</span>
+                  </div>
+                  <span className="text-xs text-slate-400">Atualizado agora</span>
+                </div>
+                
+                {/* Mock KPI Cards */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
+                    <p className="text-xs text-blue-600 font-medium">Escolas</p>
+                    <p className="text-xl font-bold text-blue-900">147</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 border border-emerald-200">
+                    <p className="text-xs text-emerald-600 font-medium">Concluídas</p>
+                    <p className="text-xl font-bold text-emerald-900">89</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 border border-amber-200">
+                    <p className="text-xs text-amber-600 font-medium">Pendentes</p>
+                    <p className="text-xl font-bold text-amber-900">58</p>
+                  </div>
+                </div>
+
+                {/* Mock Table */}
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 mb-3">ÚLTIMAS ORDENS DE SERVIÇO</p>
+                  {[
+                    { escola: "Escola Municipal São José", tecnico: "Rodrigo", status: "Concluída", color: "emerald" },
+                    { escola: "Colégio Estadual Centro", tecnico: "Carlos", status: "Em andamento", color: "blue" },
+                    { escola: "Escola Rural Boa Vista", tecnico: "João", status: "Pendente", color: "amber" },
+                  ].map((row, i) => (
+                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">{row.escola}</p>
+                        <p className="text-xs text-slate-400">{row.tecnico}</p>
+                      </div>
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${row.color}-100 text-${row.color}-700`}>
+                        {row.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mock Progress */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-slate-100 rounded-full h-2.5">
+                    <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: "61%" }}></div>
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700">61%</span>
+                </div>
+              </div>
+
+              {/* Floating Mobile App Card */}
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl border border-slate-200 p-3 w-48">
+                <div className="flex items-center gap-2 mb-2">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-semibold text-slate-700">App do Técnico</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <span className="text-xs text-slate-500">3 OS concluídas hoje</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span className="text-xs text-slate-500">2 em andamento</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Social Proof Bar */}
+      <section className="py-8 px-4 border-y border-slate-100 bg-slate-50">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-8 text-slate-400">
+          <p className="text-sm font-medium">Usado por empresas de:</p>
+          <div className="flex flex-wrap items-center gap-6">
+            {["Telecom", "Energia Solar", "Segurança", "Climatização", "Infraestrutura"].map((seg, i) => (
+              <span key={i} className="text-sm font-semibold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200">{seg}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50 border-t border-slate-800">
+      <section id="funcionalidades" className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black mb-4">Tudo que você precisa para vencer</h2>
-            <p className="text-lg text-slate-400">Sincronização, rastreamento, relatórios e segurança em uma plataforma</p>
+          <div className="text-center mb-16 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+              Tudo que sua operação precisa em um só lugar
+            </h2>
+            <p className="text-lg text-slate-500">
+              Do planejamento à execução. Do técnico em campo ao relatório final. 
+              Controle total sem complicação.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: MapPin, title: "GPS em Tempo Real", desc: "Veja exatamente onde cada técnico está, sempre" },
-              { icon: Smartphone, title: "App Offline", desc: "Funciona sem internet. Sincroniza automaticamente" },
-              { icon: Zap, title: "Sem Retrabalho", desc: "Fotos, observações e status sincronizados ao vivo" },
-              { icon: BarChart3, title: "Relatórios Automáticos", desc: "Tudo documentado. Pronto para faturar" },
-              { icon: Shield, title: "100% Seguro", desc: "Dados criptografados, backup na nuvem" },
-              { icon: Headphones, title: "Suporte 24/7", desc: "Equipe sempre pronta para ajudar" },
+              { icon: Route, title: "Roteirização Inteligente", desc: "Organiza a rota do técnico por proximidade GPS. Menos km rodados, mais produtividade.", color: "blue" },
+              { icon: Camera, title: "Fotos Obrigatórias", desc: "Técnico registra antes e depois. Mapa de calor, APs, etiquetas. Tudo documentado.", color: "purple" },
+              { icon: Globe, title: "Funciona Offline", desc: "App funciona sem internet. Fotos, conclusões e dados sincronizam automaticamente ao reconectar.", color: "emerald" },
+              { icon: BarChart3, title: "Relatórios e Planilhas", desc: "Exporta Excel com todas as OS, valores calculados, quilometragem e produtividade por técnico.", color: "amber" },
+              { icon: MessageCircle, title: "WhatsApp Integrado", desc: "Botão direto para ligar ou enviar mensagem para a escola. Número já cadastrado no sistema.", color: "green" },
+              { icon: MapPin, title: "Mapa em Tempo Real", desc: "Veja todas as escolas no mapa com status colorido. Clique para ver detalhes e abrir rota.", color: "red" },
+              { icon: Users, title: "Multi-Tenant", desc: "Cada cliente tem seu painel isolado. Dados separados, login próprio, gestão independente.", color: "indigo" },
+              { icon: FileText, title: "Laudo em PDF", desc: "Gera laudo profissional com fotos, dados da escola, técnico e observações. Pronto para imprimir.", color: "slate" },
+              { icon: Zap, title: "IA Assistente", desc: "Assistente técnico com IA para tirar dúvidas sobre instalação, configuração e infraestrutura.", color: "cyan" },
             ].map((feature, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-800 transition group">
-                <feature.icon className="w-12 h-12 text-cyan-400 mb-4 group-hover:scale-110 transition" />
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-slate-400">{feature.desc}</p>
+              <div key={i} className="group p-6 rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 bg-white">
+                <div className={`w-12 h-12 rounded-xl bg-${feature.color}-100 flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-600`} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -135,67 +249,167 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="how" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="como-funciona" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-black text-center mb-16">Como Funciona</h2>
+          <div className="text-center mb-16 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+              Simples de usar. Poderoso de verdade.
+            </h2>
+            <p className="text-lg text-slate-500">
+              Em 4 passos sua equipe está operando com controle total.
+            </p>
+          </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              {[
-                { num: "01", title: "Técnico recebe OS", desc: "Atribuição automática com GPS e WhatsApp" },
-                { num: "02", title: "Trabalha offline", desc: "App funciona sem internet, tira fotos, anota tudo" },
-                { num: "03", title: "Sincroniza", desc: "Quando conecta, tudo vai pro seu painel em segundos" },
-                { num: "04", title: "Você fatura", desc: "Relatório pronto, sem erros, sem atraso" },
-              ].map((step, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="text-3xl font-black text-cyan-400 min-w-fit">{step.num}</div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{step.title}</h3>
-                    <p className="text-slate-400">{step.desc}</p>
-                  </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { num: "01", title: "Cadastre escolas", desc: "Importe sua planilha Excel com escolas, INEP, coordenadas e técnicos. O sistema organiza tudo.", icon: FileText },
+              { num: "02", title: "Atribua técnicos", desc: "Atribuição automática por cidade ou manual por escola. Técnico recebe no app instantaneamente.", icon: Users },
+              { num: "03", title: "Técnico executa", desc: "App offline com GPS, fotos obrigatórias, WhatsApp da escola e rota otimizada.", icon: Smartphone },
+              { num: "04", title: "Você controla", desc: "Dashboard em tempo real, relatórios, laudos PDF e exportação Excel. Pronto para faturar.", icon: BarChart3 },
+            ].map((step, i) => (
+              <div key={i} className="relative text-center">
+                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-emerald-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <step.icon className="w-7 h-7 text-emerald-600" />
                 </div>
-              ))}
+                <div className="text-xs font-bold text-emerald-600 mb-2">PASSO {step.num}</div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+                <p className="text-sm text-slate-500">{step.desc}</p>
+                {i < 3 && <ChevronRight className="hidden lg:block absolute top-8 -right-4 w-6 h-6 text-slate-300" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Security Section */}
+      <section id="seguranca" className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                100% seguro.{" "}
+                <span className="text-emerald-600">Seus dados protegidos.</span>
+              </h2>
+              <p className="text-lg text-slate-500 leading-relaxed">
+                Cada login é registrado com IP e dispositivo. Dados isolados por cliente. 
+                Backup automático na nuvem. Proteção contra acesso não autorizado.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { title: "Isolamento Multi-Tenant", desc: "Cada empresa vê apenas seus próprios dados. Separação total no banco de dados." },
+                  { title: "Logs de Auditoria", desc: "Cada login é salvo com IP, dispositivo e horário. Histórico completo de acessos." },
+                  { title: "Proteção Brute Force", desc: "Bloqueio automático após 5 tentativas erradas. Conta protegida contra invasão." },
+                  { title: "Backup na Nuvem", desc: "Dados salvos em servidores seguros com redundância. Nunca perca informações." },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Shield className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900">{item.title}</h4>
+                      <p className="text-sm text-slate-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="relative h-96 lg:h-full flex items-center justify-center">
-              <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310419663030733594/mgcPKMbXVe7rcPq6qpnUme/netvius-mobile-3d-DSVaSYoFjVFV4YqyGmM84A.webp"
-                alt="Netvius Mobile App"
-                className="w-full h-auto object-contain drop-shadow-2xl"
-              />
+            <div className="bg-slate-900 rounded-2xl p-8 text-white space-y-6">
+              <div className="flex items-center gap-3">
+                <Lock className="w-8 h-8 text-emerald-400" />
+                <h3 className="text-xl font-bold">Painel de Segurança</h3>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Criptografia", value: "AES-256", status: "active" },
+                  { label: "Backup", value: "Automático diário", status: "active" },
+                  { label: "Rate Limiting", value: "5 tentativas/15min", status: "active" },
+                  { label: "Isolamento", value: "Por tenant", status: "active" },
+                  { label: "Logs de acesso", value: "IP + dispositivo", status: "active" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
+                    <span className="text-sm text-slate-300">{item.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">{item.value}</span>
+                      <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <span className="text-sm text-emerald-300">Todos os sistemas operacionais</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50 border-t border-slate-800">
+      <section id="planos" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black mb-4">Planos Simples e Diretos</h2>
-            <p className="text-lg text-slate-400">Sem surpresas. Sem taxas escondidas.</p>
+          <div className="text-center mb-16 max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+              Planos que cabem na sua operação
+            </h2>
+            <p className="text-lg text-slate-500">
+              Comece com 5 dias grátis. Sem cartão de crédito. Cancele quando quiser.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { name: "Startup", price: "R$ 299", desc: "Até 10 técnicos", features: ["App offline", "GPS em tempo real", "Relatórios básicos", "Suporte por email"] },
-              { name: "Profissional", price: "R$ 899", desc: "Até 50 técnicos", features: ["Tudo do Startup", "Relatórios avançados", "Integração WhatsApp", "Suporte prioritário"], highlight: true },
-              { name: "Empresa", price: "Customizado", desc: "Ilimitado", features: ["Tudo do Profissional", "API customizada", "Suporte 24/7", "Onboarding dedicado"] },
+              { 
+                name: "Básico", 
+                price: "R$ 199", 
+                desc: "Para operações pequenas", 
+                features: ["Até 5 técnicos", "App offline completo", "GPS e roteirização", "Relatórios básicos", "Suporte por WhatsApp"],
+                cta: "Começar Grátis"
+              },
+              { 
+                name: "Profissional", 
+                price: "R$ 499", 
+                desc: "Para empresas em crescimento", 
+                features: ["Até 20 técnicos", "Tudo do Básico", "Fotos obrigatórias", "Laudo em PDF", "Relatórios avançados", "IA Assistente", "Suporte prioritário"],
+                highlight: true,
+                cta: "Mais Popular"
+              },
+              { 
+                name: "Enterprise", 
+                price: "Sob consulta", 
+                desc: "Para grandes operações", 
+                features: ["Técnicos ilimitados", "Tudo do Profissional", "API personalizada", "Multi-tenant", "Onboarding dedicado", "SLA garantido"],
+                cta: "Falar com Vendas"
+              },
             ].map((plan, i) => (
-              <div key={i} className={`p-8 rounded-2xl border transition ${plan.highlight ? "bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 lg:scale-105" : "bg-slate-800/50 border-slate-700 hover:border-slate-600"}`}>
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-slate-400 mb-4">{plan.desc}</p>
-                <p className="text-4xl font-black mb-6 text-cyan-400">{plan.price}<span className="text-lg text-slate-400">/mês</span></p>
+              <div key={i} className={`relative p-8 rounded-2xl transition-all duration-300 ${plan.highlight ? "bg-white border-2 border-emerald-500 shadow-xl shadow-emerald-100 scale-[1.02]" : "bg-white border border-slate-200 hover:shadow-lg"}`}>
+                {plan.highlight && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold">
+                    RECOMENDADO
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-slate-900 mb-1">{plan.name}</h3>
+                <p className="text-sm text-slate-500 mb-4">{plan.desc}</p>
+                <p className="text-4xl font-extrabold text-slate-900 mb-6">
+                  {plan.price}
+                  {plan.price !== "Sob consulta" && <span className="text-base font-normal text-slate-400">/mês</span>}
+                </p>
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-2 text-slate-300">
-                      <CheckCircle className="w-5 h-5 text-cyan-400" /> {f}
+                    <li key={j} className="flex items-center gap-2 text-sm text-slate-600">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" /> {f}
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition font-bold">
-                  Começar Agora
-                </Button>
+                <a 
+                  href="https://wa.me/5575999142134?text=Olá! Quero conhecer o plano Netvius" 
+                  target="_blank" 
+                  rel="noopener"
+                  className={`block w-full text-center py-3 rounded-xl font-semibold transition ${plan.highlight ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+                >
+                  {plan.cta}
+                </a>
               </div>
             ))}
           </div>
@@ -203,68 +417,69 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 mix-blend-multiply filter blur-3xl"></div>
-        </div>
-
-        <div className="max-w-4xl mx-auto relative z-10 text-center space-y-8">
-          <h2 className="text-4xl lg:text-5xl font-black leading-tight">
-            Pare de perder dinheiro com operação desorganizada
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            Sua equipe em campo merece uma gestão profissional
           </h2>
-          <p className="text-xl text-slate-300">
-            Centenas de empresas já aumentaram sua eficiência em 40%. Você está esperando o quê?
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            Chega de planilhas, grupos de WhatsApp e ligações para saber o status. 
+            Com o Netvius, você controla tudo em tempo real.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href={loginUrl} className="px-8 py-4 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition font-bold text-lg">
-              Começar Teste Grátis
+            <a href="https://wa.me/5575999142134?text=Olá! Quero testar o Netvius gratuitamente por 5 dias" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg transition group">
+              Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
             </a>
-            <button className="px-8 py-4 rounded-lg border border-slate-600 hover:border-slate-400 hover:bg-slate-800/50 transition font-semibold">
-              Falar com Vendas
-            </button>
+            <a href="/admin/login" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-slate-600 hover:border-slate-400 text-white font-semibold transition">
+              <Lock className="w-4 h-4" /> Já tenho conta
+            </a>
           </div>
+          <p className="text-sm text-slate-400">
+            Sem cartão de crédito • Suporte por WhatsApp • Cancele quando quiser
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-slate-200 bg-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <p className="font-bold mb-4">Netvius</p>
-              <p className="text-sm text-slate-400">Gestão inteligente para equipes em campo</p>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <Wifi className="w-4 h-4 text-white" />
+                </div>
+                <span className="font-bold text-slate-900">Netvius</span>
+              </div>
+              <p className="text-sm text-slate-500">Gestão completa de equipes técnicas em campo. Controle, produtividade e resultados.</p>
             </div>
             <div>
-              <p className="font-bold mb-4">Produto</p>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition">Preços</a></li>
-                <li><a href="#" className="hover:text-white transition">Segurança</a></li>
+              <p className="font-semibold text-slate-900 mb-4">Produto</p>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="#funcionalidades" className="hover:text-slate-900 transition">Funcionalidades</a></li>
+                <li><a href="#planos" className="hover:text-slate-900 transition">Planos</a></li>
+                <li><a href="#seguranca" className="hover:text-slate-900 transition">Segurança</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-bold mb-4">Empresa</p>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition">Sobre</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Contato</a></li>
+              <p className="font-semibold text-slate-900 mb-4">Acesso</p>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="/admin/login" className="hover:text-slate-900 transition">Painel Admin</a></li>
+                <li><a href="/tecnico/login" className="hover:text-slate-900 transition">App do Técnico</a></li>
+                <li><a href="/superadmin/login" className="hover:text-slate-900 transition">Área Master</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-bold mb-4">Legal</p>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition">Privacidade</a></li>
-                <li><a href="#" className="hover:text-white transition">Termos</a></li>
+              <p className="font-semibold text-slate-900 mb-4">Contato</p>
+              <ul className="space-y-2 text-sm text-slate-500">
+                <li><a href="https://wa.me/5575999142134" target="_blank" rel="noopener" className="hover:text-slate-900 transition flex items-center gap-1"><MessageCircle className="w-3 h-3" /> (75) 99914-2134</a></li>
+                <li><a href="mailto:contato@netvius.org" className="hover:text-slate-900 transition">contato@netvius.org</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-400">
+          <div className="border-t border-slate-100 pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-400">
             <p>&copy; 2026 Netvius. Todos os direitos reservados.</p>
-            <div className="flex gap-4 mt-4 sm:mt-0">
-              <a href="#" className="hover:text-white transition">Twitter</a>
-              <a href="#" className="hover:text-white transition">LinkedIn</a>
-              <a href="#" className="hover:text-white transition">GitHub</a>
-            </div>
+            <p className="mt-2 sm:mt-0">Feito com dedicação para equipes que fazem acontecer.</p>
           </div>
         </div>
       </footer>

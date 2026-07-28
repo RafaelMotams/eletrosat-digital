@@ -549,3 +549,10 @@
 - [x] Modal de emissão de laudo no painel admin com campo de observação extra do admin
 - [x] PDF com: logo Netvius, nome escola, INEP, município, data, técnico, descrição do problema, observação do técnico, observação do admin, fotos do defeito, fotos de conclusão
 - [x] Botão "Emitir Laudo" no modal de detalhes da manutenção
+
+## Redesign Landing Page Profissional (28/07/2026)
+- [x] Landing page profissional sem imagens 3D inventadas
+- [x] Copy de vendas e marketing real com dados verdadeiros
+- [x] Design elegante com ícones, gradientes e tipografia premium
+- [x] Botão de login com email/senha fornecida pelo painel revenda (/admin/login)
+- [x] Seções: Hero, Funcionalidades, Como Funciona, Segurança, Planos, CTA, Footer
