@@ -524,7 +524,7 @@
 - [x] Copy de vendas premium no hero ("Cada técnico em campo, cada centavo no lugar certo")
 - [x] CTA final redesenhado com copy urgente ("Pare de perder dinheiro com operação desorganizada")
 - [ ] Redesenhar site com visual de empresa grande (Stripe/Linear level)
-- [ ] Seção de segurança (100% seguro, dados na nuvem, proteção total)
+- [x] Seção de segurança (100% seguro, dados na nuvem, proteção total)
 ### App do Técnico - Melhorias
 - [x] Link do Google Maps com coordenadas na página de manutenção
 - [x] WhatsApp clicável com número da planilha na manutenção
@@ -542,7 +542,7 @@
 - [x] Rate limiting no login (proteção contra brute force - 5 tentativas, bloqueio 15min)
 - [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
 - [x] Tabela login_attempts para controle de brute force
-- [ ] Headers de segurança (HSTS, CSP, X-Frame-Options)
+- [x] Headers de segurança (HSTS, CSP, X-Frame-Options)
 
 ## Laudo de Manutenção em PDF (22/07/2026)
 - [x] Endpoint tRPC manutencao.gerarLaudo — retorna HTML do laudo como string
