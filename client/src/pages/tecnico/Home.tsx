@@ -286,8 +286,7 @@ export default function TecnicoHome() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col pb-28"
-      style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 60%, #050d1f 100%)" }}>
+    <div className="min-h-screen flex flex-col pb-28 field-app-shell">
 
       {/* Welcome modal */}
       {/* WelcomeModal removido conforme solicitado */}
@@ -355,8 +354,8 @@ export default function TecnicoHome() {
         </div>
 
         {/* Progress card */}
-        <div className="rounded-2xl p-4 mb-4"
-          style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(79,70,229,0.1))", border: "1px solid rgba(59,130,246,0.15)" }}>
+        <div className="rounded-2xl p-5 mb-4 field-card"
+          style={{ borderColor: "rgba(6,182,212,0.20)" }}>
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs font-medium text-slate-400 mb-0.5">Progresso do dia</p>
@@ -370,7 +369,7 @@ export default function TecnicoHome() {
           {/* Progress bar */}
           <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
             <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #2563eb, #4f46e5)" }} />
+              style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #06b6d4, #10b981)", boxShadow: "0 0 14px rgba(6,182,212,0.35)" }} />
           </div>
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-slate-500">{concluidas} concluídas</span>
@@ -498,8 +497,8 @@ export default function TecnicoHome() {
 
             return (
               <div key={escola.id}
-                className="rounded-2xl overflow-hidden transition-all duration-200"
-                style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${sc.border}` }}>
+                className="rounded-2xl overflow-hidden transition-all duration-200 field-card"
+                style={{ borderColor: sc.border }}>
 
                 {/* Card body */}
                 <button onClick={() => navigate(`/tecnico/os/${escola.id}`)}
