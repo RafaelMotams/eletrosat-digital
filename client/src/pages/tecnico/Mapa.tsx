@@ -7,6 +7,7 @@ import {
   ExternalLink, ArrowLeft, Phone, X, Building2
 } from "lucide-react";
 import { MapView } from "@/components/Map";
+import { formatWhatsApp } from "@/lib/format";
 
 type Escola = {
   id: number;
@@ -33,19 +34,6 @@ function getStatusLabel(status: string) {
   if (status === "concluido") return "Concluído";
   if (status === "em_andamento") return "Em andamento";
   return "Pendente";
-}
-
-/** Formata número para WhatsApp: sempre 5575 + 8 ou 9 dígitos locais */
-function formatWhatsApp(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const digits = raw.replace(/\D/g, "");
-  if (!digits || digits.length < 8) return null;
-  // Se já começa com 55 (código do Brasil), usa direto
-  if (digits.startsWith("55") && digits.length >= 12) return digits;
-  // Se tem DDD (10 ou 11 dígitos), adiciona código do Brasil
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  // Se tem apenas o número sem DDD (8 ou 9 dígitos), retorna como está
-  return digits;
 }
 
 export default function TecnicoMapa() {

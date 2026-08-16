@@ -11,6 +11,8 @@ import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { dbCacheEscolas, dbGetCachedEscolas, dbGetAllPendingOS } from "@/hooks/useOfflineDB";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
+import { haversine, sortByRoute } from "@/lib/geo";
+import { formatWhatsApp } from "@/lib/format";
 
 type Escola = {
   id: number;
@@ -27,53 +29,6 @@ type Escola = {
   longitude?: string | null;
   [key: string]: unknown;
 };
-
-function formatWhatsApp(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const digits = raw.replace(/\D/g, "");
-  if (!digits || digits.length < 8) return null;
-  // Se já começa com 55 (código do Brasil), usa direto
-  if (digits.startsWith("55") && digits.length >= 12) return digits;
-  // Se tem DDD (10 ou 11 dígitos), adiciona código do Brasil
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  // Se tem apenas o número sem DDD (8 ou 9 dígitos), retorna como está
-  return digits;
-}
-
-function haversine(a: Escola, b: Escola): number {
-  const R = 6371;
-  const lat1 = parseFloat(a.latitude ?? "0");
-  const lat2 = parseFloat(b.latitude ?? "0");
-  const lng1 = parseFloat(a.longitude ?? "0");
-  const lng2 = parseFloat(b.longitude ?? "0");
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const aa = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
-}
-
-function sortByRoute(list: Escola[]): Escola[] {
-  if (!list || list.length === 0) return [];
-  const withCoords = list.filter(e => e.latitude && e.longitude);
-  const withoutCoords = list.filter(e => !e.latitude || !e.longitude);
-  if (withCoords.length === 0) return list;
-  const sorted: Escola[] = [];
-  const remaining = [...withCoords];
-  let current = remaining.splice(0, 1)[0];
-  sorted.push(current);
-  while (remaining.length > 0) {
-    let ni = 0, nd = haversine(current, remaining[0]);
-    for (let i = 1; i < remaining.length; i++) {
-      const d = haversine(current, remaining[i]);
-      if (d < nd) { nd = d; ni = i; }
-    }
-    current = remaining.splice(ni, 1)[0];
-    sorted.push(current);
-  }
-  return [...sorted, ...withoutCoords];
-}
-
-
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: typeof CheckCircle }> = {
   pendente:     { label: "Pendente",     color: "#f59e0b", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.2)",  icon: AlertCircle },
