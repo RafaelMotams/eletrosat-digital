@@ -1,27 +1,34 @@
 import ExcelJS from "exceljs";
 import { Request, Response } from "express";
-import { getOsDetalhadas, getOsNaoInstaladas, getValoresApAllTecnicos } from "./db";
+import {
+  getOsDetalhadas,
+  getOsNaoInstaladas,
+  getValoresApAllTecnicos,
+} from "./db";
 import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
 const C = {
-  azulEscuro:   "FF0D2137",
-  azulMedio:    "FF1A3A5C",
-  azulClaro:    "FF2563A8",
-  azulSuave:    "FFD6E4F7",
-  verdeEscuro:  "FF0A4D2E",
-  verdeMedio:   "FF166534",
-  verdeClaro:   "FFD1FAE5",
-  cinzaEscuro:  "FF374151",
-  cinzaMedio:   "FF6B7280",
-  cinzaClaro:   "FFF3F4F6",
-  cinzaBorda:   "FFD1D5DB",
-  branco:       "FFFFFFFF",
-  amarelo:      "FFFEF3C7",
-  amareloEscuro:"FFD97706",
+  azulEscuro: "FF0D2137",
+  azulMedio: "FF1A3A5C",
+  azulClaro: "FF2563A8",
+  azulSuave: "FFD6E4F7",
+  verdeEscuro: "FF0A4D2E",
+  verdeMedio: "FF166534",
+  verdeClaro: "FFD1FAE5",
+  cinzaEscuro: "FF374151",
+  cinzaMedio: "FF6B7280",
+  cinzaClaro: "FFF3F4F6",
+  cinzaBorda: "FFD1D5DB",
+  branco: "FFFFFFFF",
+  amarelo: "FFFEF3C7",
+  amareloEscuro: "FFD97706",
 };
 
-function borda(cor = C.cinzaBorda, estilo: ExcelJS.BorderStyle = "thin"): Partial<ExcelJS.Borders> {
+function borda(
+  cor = C.cinzaBorda,
+  estilo: ExcelJS.BorderStyle = "thin"
+): Partial<ExcelJS.Borders> {
   const s: Partial<ExcelJS.Border> = { style: estilo, color: { argb: cor } };
   return { top: s, left: s, bottom: s, right: s };
 }
@@ -45,7 +52,12 @@ function aplicarEstiloCelula(
     italic?: boolean;
   }
 ) {
-  if (opts.bg) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: opts.bg } };
+  if (opts.bg)
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: opts.bg },
+    };
   cell.font = {
     name: "Calibri",
     bold: opts.bold ?? false,
@@ -64,25 +76,44 @@ function aplicarEstiloCelula(
 
 export async function exportarRelatorioExcel(req: Request, res: Response) {
   try {
-    // Auth
+    // Auth — exige token válido para evitar vazamento de dados entre tenants
     const token = extractBearerToken(req.headers.authorization);
-    const session = token ? await verifyTenantToken(token) : null;
-    const tenantId = session?.tenantId ?? undefined;
+    if (!token) return res.status(401).json({ error: "Não autenticado" });
+    const session = await verifyTenantToken(token);
+    if (!session) return res.status(401).json({ error: "Token inválido" });
+    const tenantId = session.tenantId;
 
     const valorPorApFallback = parseFloat(req.query.valorPorAp as string) || 0;
-    const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
-    const dataInicioParam = req.query.dataInicio ? new Date(req.query.dataInicio as string) : null;
-    const dataFimParam = req.query.dataFim ? new Date(req.query.dataFim as string) : null;
+    const tecnicoIdParam = req.query.tecnicoId
+      ? parseInt(req.query.tecnicoId as string)
+      : undefined;
+    const dataInicioParam = req.query.dataInicio
+      ? new Date(req.query.dataInicio as string)
+      : null;
+    const dataFimParam = req.query.dataFim
+      ? new Date(req.query.dataFim as string)
+      : null;
 
     // Dados
-    const concluidas = await getOsDetalhadas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
-    const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
+    const concluidas = await getOsDetalhadas({
+      tenantId,
+      tecnicoId: tecnicoIdParam,
+      dataInicio: dataInicioParam,
+      dataFim: dataFimParam,
+    });
+    const naoInstaladas = await getOsNaoInstaladas({
+      tenantId,
+      tecnicoId: tecnicoIdParam,
+      dataInicio: dataInicioParam,
+      dataFim: dataFimParam,
+    });
 
     // Buscar valores por AP por técnico (tabela de preços cadastrada)
-    const valoresApMap = tenantId !== undefined ? await getValoresApAllTecnicos(tenantId) : {};
+    const valoresApMap =
+      tenantId !== undefined ? await getValoresApAllTecnicos(tenantId) : {};
 
     // Função para obter valor de uma OS: usa tabela do técnico, fallback para valorPorApFallback
-    const getValorOs = (os: typeof concluidas[0]): number => {
+    const getValorOs = (os: (typeof concluidas)[0]): number => {
       const tecValores = valoresApMap[os.tecnicoId ?? 0] ?? {};
       const qtd = os.qtdApInstalado ?? 0;
       return tecValores[qtd] ?? valorPorApFallback;
@@ -111,23 +142,30 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         orientation: "landscape",
         fitToPage: true,
         fitToWidth: 1,
-        margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 },
+        margins: {
+          left: 0.5,
+          right: 0.5,
+          top: 0.75,
+          bottom: 0.75,
+          header: 0.3,
+          footer: 0.3,
+        },
       },
       properties: { tabColor: { argb: C.azulClaro } },
     });
 
     // Larguras
     ws.columns = [
-      { key: "seq",        width: 5  },
-      { key: "escola",     width: 38 },
-      { key: "inep",       width: 13 },
-      { key: "municipio",  width: 20 },
-      { key: "data",       width: 13 },
-      { key: "aps",        width: 10 },
-      { key: "valorAp",    width: 16 },
-      { key: "total",      width: 18 },
+      { key: "seq", width: 5 },
+      { key: "escola", width: 38 },
+      { key: "inep", width: 13 },
+      { key: "municipio", width: 20 },
+      { key: "data", width: 13 },
+      { key: "aps", width: 10 },
+      { key: "valorAp", width: 16 },
+      { key: "total", width: 18 },
       { key: "observacao", width: 35 },
-      { key: "foto",       width: 14 },
+      { key: "foto", width: 14 },
     ];
 
     const NCOLS = 10;
@@ -136,20 +174,42 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     ws.mergeCells(1, 1, 1, NCOLS);
     const h1 = ws.getCell("A1");
     h1.value = "NETVIONIS TECNOLOGIA";
-    aplicarEstiloCelula(h1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
+    aplicarEstiloCelula(h1, {
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 16,
+      hAlign: "center",
+    });
     ws.getRow(1).height = 38;
 
     ws.mergeCells(2, 1, 2, NCOLS);
     const h2 = ws.getCell("A2");
     h2.value = "RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS";
-    aplicarEstiloCelula(h2, { bg: C.azulMedio, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    aplicarEstiloCelula(h2, {
+      bg: C.azulMedio,
+      fg: C.branco,
+      bold: true,
+      size: 12,
+      hAlign: "center",
+    });
     ws.getRow(2).height = 26;
 
     ws.mergeCells(3, 1, 3, NCOLS);
     const h3 = ws.getCell("A3");
-    const dataGer = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    const dataGer = new Date().toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
     h3.value = `Emitido em: ${dataGer}   ·   Valores por AP: conforme tabela de cada técnico   ·   Total de OS: ${concluidas.length}`;
-    aplicarEstiloCelula(h3, { bg: C.azulSuave, fg: C.azulMedio, italic: true, size: 9, hAlign: "center" });
+    aplicarEstiloCelula(h3, {
+      bg: C.azulSuave,
+      fg: C.azulMedio,
+      italic: true,
+      size: 9,
+      hAlign: "center",
+    });
     ws.getRow(3).height = 18;
 
     ws.addRow([]); // linha vazia
@@ -166,21 +226,38 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       const tHeader = ws.getCell(rowIdx, 1);
       tHeader.value = `  👷  TÉCNICO: ${tecnico.toUpperCase()}`;
       aplicarEstiloCelula(tHeader, {
-        bg: C.azulClaro, fg: C.branco, bold: true, size: 11,
+        bg: C.azulClaro,
+        fg: C.branco,
+        bold: true,
+        size: 11,
         border: bordaMedia(),
       });
       ws.getRow(rowIdx).height = 24;
       rowIdx++;
 
       // Cabeçalho das colunas
-      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)", "Observação", "📷 Ver Foto"];
+      const colHeaders = [
+        "#",
+        "Nome da Escola",
+        "INEP",
+        "Município",
+        "Data Conclusão",
+        "APs",
+        "Valor/AP (R$)",
+        "Total (R$)",
+        "Observação",
+        "📷 Ver Foto",
+      ];
       const colRow = ws.getRow(rowIdx);
       colRow.height = 22;
       colHeaders.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
         cell.value = v;
         aplicarEstiloCelula(cell, {
-          bg: C.cinzaEscuro, fg: C.branco, bold: true, size: 9,
+          bg: C.cinzaEscuro,
+          fg: C.branco,
+          bold: true,
+          size: 9,
           hAlign: i === 0 ? "center" : i >= 4 ? "center" : "left",
           border: borda(C.cinzaEscuro),
         });
@@ -217,13 +294,21 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           } else {
             cell.value = v;
             const hAlign: ExcelJS.Alignment["horizontal"] =
-              i === 0 ? "center" :
-              i === 2 ? "center" :
-              i === 4 ? "center" :
-              i === 8 ? "left" :
-              i >= 5 ? "right" : "left";
+              i === 0
+                ? "center"
+                : i === 2
+                  ? "center"
+                  : i === 4
+                    ? "center"
+                    : i === 8
+                      ? "left"
+                      : i >= 5
+                        ? "right"
+                        : "left";
             aplicarEstiloCelula(cell, {
-              bg, fg: C.cinzaEscuro, size: 9,
+              bg,
+              fg: C.cinzaEscuro,
+              size: 9,
               hAlign,
               wrap: i === 1 || i === 8,
               numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
@@ -236,34 +321,71 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         const fotoCell = ws.getCell(rowIdx, 10);
         const fotoUrl = (os as any).fotoMapaCalorUrl as string | null;
         if (fotoUrl) {
-          const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
+          const urlAbsoluta = fotoUrl.startsWith("http")
+            ? fotoUrl
+            : `https://netvionis.manus.space${fotoUrl}`;
           // ExcelJS: definir valor como {text, hyperlink} via cast any
-          (fotoCell as any).value = { text: "Ver Foto", hyperlink: urlAbsoluta };
-          aplicarEstiloCelula(fotoCell, { bg, fg: C.azulClaro, size: 9, hAlign: "center", border: borda() });
-          fotoCell.font = { name: "Calibri", size: 9, underline: true, color: { argb: "FF0563C1" }, bold: true };
+          (fotoCell as any).value = {
+            text: "Ver Foto",
+            hyperlink: urlAbsoluta,
+          };
+          aplicarEstiloCelula(fotoCell, {
+            bg,
+            fg: C.azulClaro,
+            size: 9,
+            hAlign: "center",
+            border: borda(),
+          });
+          fotoCell.font = {
+            name: "Calibri",
+            size: 9,
+            underline: true,
+            color: { argb: "FF0563C1" },
+            bold: true,
+          };
         } else {
           fotoCell.value = "Sem foto";
-          aplicarEstiloCelula(fotoCell, { bg, fg: C.cinzaMedio, size: 9, hAlign: "center", border: borda() });
+          aplicarEstiloCelula(fotoCell, {
+            bg,
+            fg: C.cinzaMedio,
+            size: 9,
+            hAlign: "center",
+            border: borda(),
+          });
         }
 
         rowIdx++;
       });
 
       // Subtotal do técnico
-      const totalAps = osDoTecnico.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
+      const totalAps = osDoTecnico.reduce(
+        (s, r) => s + (r.qtdApInstalado ?? 0),
+        0
+      );
       const totalTecnico = osDoTecnico.reduce((s, r) => s + getValorOs(r), 0);
 
       const subRow = ws.getRow(rowIdx);
       subRow.height = 22;
       const subLabels: (string | number)[] = [
-        "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
-        "", totalAps, "", totalTecnico, "", "",
+        "",
+        `Subtotal — ${osDoTecnico.length} OS`,
+        "",
+        "",
+        "",
+        totalAps,
+        "",
+        totalTecnico,
+        "",
+        "",
       ];
       subLabels.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
         cell.value = v;
         aplicarEstiloCelula(cell, {
-          bg: C.verdeClaro, fg: C.verdeMedio, bold: true, size: 9,
+          bg: C.verdeClaro,
+          fg: C.verdeMedio,
+          bold: true,
+          size: 9,
           hAlign: i === 1 ? "left" : i >= 5 ? "right" : "center",
           numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
           border: borda(C.verdeMedio, "thin"),
@@ -277,42 +399,68 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     }
 
     // ── Total Geral ──────────────────────────────────────────────────────────
-    const totalApsGeral = concluidas.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
+    const totalApsGeral = concluidas.reduce(
+      (s, r) => s + (r.qtdApInstalado ?? 0),
+      0
+    );
     const totalGeralVal = concluidas.reduce((s, r) => s + getValorOs(r), 0);
 
     ws.mergeCells(rowIdx, 1, rowIdx, 6);
     const tgLabel = ws.getCell(rowIdx, 1);
     tgLabel.value = `TOTAL GERAL — ${concluidas.length} OS Concluídas`;
     aplicarEstiloCelula(tgLabel, {
-      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
-      hAlign: "right", border: bordaMedia(),
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 11,
+      hAlign: "right",
+      border: bordaMedia(),
     });
 
     const tgAps = ws.getCell(rowIdx, 7);
     tgAps.value = totalApsGeral;
     aplicarEstiloCelula(tgAps, {
-      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
-      hAlign: "right", border: bordaMedia(),
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 11,
+      hAlign: "right",
+      border: bordaMedia(),
     });
 
     const tgValAp = ws.getCell(rowIdx, 8);
     tgValAp.value = "";
     aplicarEstiloCelula(tgValAp, {
-      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
-      hAlign: "right", border: bordaMedia(),
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 11,
+      hAlign: "right",
+      border: bordaMedia(),
     });
 
     const tgTotal = ws.getCell(rowIdx, 9);
     tgTotal.value = totalGeralVal;
     aplicarEstiloCelula(tgTotal, {
-      bg: C.azulEscuro, fg: C.branco, bold: true, size: 13,
-      hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 13,
+      hAlign: "right",
+      numFmt: '"R$" #,##0.00',
+      border: bordaMedia(),
     });
 
     // Coluna 10 do total geral (foto) — vazia
     const tgFoto = ws.getCell(rowIdx, 10);
     tgFoto.value = "";
-    aplicarEstiloCelula(tgFoto, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 9, border: bordaMedia() });
+    aplicarEstiloCelula(tgFoto, {
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 9,
+      border: bordaMedia(),
+    });
 
     ws.getRow(rowIdx).height = 28;
 
@@ -324,10 +472,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     });
 
     ws2.columns = [
-      { key: "tecnico",    width: 32 },
-      { key: "qtdOs",      width: 12 },
-      { key: "totalAps",   width: 14 },
-      { key: "valorAp",    width: 18 },
+      { key: "tecnico", width: 32 },
+      { key: "qtdOs", width: 12 },
+      { key: "totalAps", width: 14 },
+      { key: "valorAp", width: 18 },
       { key: "totalPagar", width: 22 },
     ];
 
@@ -335,19 +483,37 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     ws2.mergeCells("A1:E1");
     const t1 = ws2.getCell("A1");
     t1.value = "NETVIONIS TECNOLOGIA";
-    aplicarEstiloCelula(t1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 15, hAlign: "center" });
+    aplicarEstiloCelula(t1, {
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 15,
+      hAlign: "center",
+    });
     ws2.getRow(1).height = 36;
 
     ws2.mergeCells("A2:E2");
     const t2 = ws2.getCell("A2");
     t2.value = "RESUMO DE PAGAMENTO POR TÉCNICO";
-    aplicarEstiloCelula(t2, { bg: C.verdeMedio, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    aplicarEstiloCelula(t2, {
+      bg: C.verdeMedio,
+      fg: C.branco,
+      bold: true,
+      size: 12,
+      hAlign: "center",
+    });
     ws2.getRow(2).height = 26;
 
     ws2.mergeCells("A3:E3");
     const t3 = ws2.getCell("A3");
     t3.value = `Emitido em: ${dataGer}   ·   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}`;
-    aplicarEstiloCelula(t3, { bg: C.verdeClaro, fg: C.verdeMedio, italic: true, size: 9, hAlign: "center" });
+    aplicarEstiloCelula(t3, {
+      bg: C.verdeClaro,
+      fg: C.verdeMedio,
+      italic: true,
+      size: 9,
+      hAlign: "center",
+    });
     ws2.getRow(3).height = 18;
 
     ws2.addRow([]);
@@ -356,11 +522,20 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // Cabeçalho
     const ch2 = ws2.getRow(5);
     ch2.height = 24;
-    ["Técnico", "Qtd. OS", "Total APs", "Valor por AP (R$)", "Total a Receber (R$)"].forEach((v, i) => {
+    [
+      "Técnico",
+      "Qtd. OS",
+      "Total APs",
+      "Valor por AP (R$)",
+      "Total a Receber (R$)",
+    ].forEach((v, i) => {
       const cell = ws2.getCell(5, i + 1);
       cell.value = v;
       aplicarEstiloCelula(cell, {
-        bg: C.cinzaEscuro, fg: C.branco, bold: true, size: 10,
+        bg: C.cinzaEscuro,
+        fg: C.branco,
+        bold: true,
+        size: 10,
         hAlign: i === 0 ? "left" : "center",
         border: borda(C.cinzaEscuro),
       });
@@ -380,7 +555,9 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         const cell = ws2.getCell(6 + idx, i + 1);
         cell.value = v;
         aplicarEstiloCelula(cell, {
-          bg, fg: C.cinzaEscuro, size: 11,
+          bg,
+          fg: C.cinzaEscuro,
+          size: 11,
           bold: i === 4,
           hAlign: i === 0 ? "left" : i === 4 ? "right" : "center",
           numFmt: i === 3 || i === 4 ? '"R$" #,##0.00' : undefined,
@@ -388,8 +565,17 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         });
         // Destaque no total a receber
         if (i === 4) {
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: C.verdeClaro } };
-          cell.font = { ...cell.font, color: { argb: C.verdeMedio }, bold: true, size: 12 };
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: C.verdeClaro },
+          };
+          cell.font = {
+            ...cell.font,
+            color: { argb: C.verdeMedio },
+            bold: true,
+            size: 12,
+          };
         }
       });
     });
@@ -411,7 +597,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       const cell = ws2.getCell(rowTG, i + 1);
       cell.value = v;
       aplicarEstiloCelula(cell, {
-        bg: C.azulEscuro, fg: C.branco, bold: true, size: 12,
+        bg: C.azulEscuro,
+        fg: C.branco,
+        bold: true,
+        size: 12,
         hAlign: i === 0 ? "left" : i === 4 ? "right" : "center",
         numFmt: i === 3 || i === 4 ? '"R$" #,##0.00' : undefined,
         border: bordaMedia(),
@@ -421,11 +610,11 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // ═══════════════════════════════════════════════════════════════════════════
     // ABA 3 — NÃO INSTALADAS
     // ═══════════════════════════════════════════════════════════════════════════
-    const vermelho     = "FFDC2626";
-    const vermelhoEsc  = "FF7F1D1D";
+    const vermelho = "FFDC2626";
+    const vermelhoEsc = "FF7F1D1D";
     const vermelhoClar = "FFFEE2E2";
-    const laranja      = "FFEA580C";
-    const laranjaClar  = "FFFFF7ED";
+    const laranja = "FFEA580C";
+    const laranjaClar = "FFFFF7ED";
 
     const ws3 = wb.addWorksheet("Não Instaladas", {
       properties: { tabColor: { argb: vermelho } },
@@ -433,13 +622,13 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     const NCOLS3 = 8;
     ws3.columns = [
-      { key: "seq",        width: 5  },
-      { key: "escola",     width: 40 },
-      { key: "inep",       width: 13 },
-      { key: "municipio",  width: 20 },
-      { key: "tecnico",    width: 24 },
-      { key: "motivo",     width: 24 },
-      { key: "data",       width: 14 },
+      { key: "seq", width: 5 },
+      { key: "escola", width: 40 },
+      { key: "inep", width: 13 },
+      { key: "municipio", width: 20 },
+      { key: "tecnico", width: 24 },
+      { key: "motivo", width: 24 },
+      { key: "data", width: 14 },
       { key: "observacao", width: 35 },
     ];
 
@@ -447,33 +636,63 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     ws3.mergeCells(1, 1, 1, NCOLS3);
     const ni1 = ws3.getCell("A1");
     ni1.value = "NETVIONIS TECNOLOGIA";
-    aplicarEstiloCelula(ni1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
+    aplicarEstiloCelula(ni1, {
+      bg: C.azulEscuro,
+      fg: C.branco,
+      bold: true,
+      size: 16,
+      hAlign: "center",
+    });
     ws3.getRow(1).height = 38;
 
     ws3.mergeCells(2, 1, 2, NCOLS3);
     const ni2 = ws3.getCell("A2");
     ni2.value = "RELATÓRIO DE ESCOLAS NÃO INSTALADAS";
-    aplicarEstiloCelula(ni2, { bg: vermelho, fg: C.branco, bold: true, size: 12, hAlign: "center" });
+    aplicarEstiloCelula(ni2, {
+      bg: vermelho,
+      fg: C.branco,
+      bold: true,
+      size: 12,
+      hAlign: "center",
+    });
     ws3.getRow(2).height = 26;
 
     ws3.mergeCells(3, 1, 3, NCOLS3);
     const ni3 = ws3.getCell("A3");
     ni3.value = `Emitido em: ${dataGer}   ·   Total de escolas não instaladas: ${naoInstaladas.length}`;
-    aplicarEstiloCelula(ni3, { bg: vermelhoClar, fg: vermelho, italic: true, size: 9, hAlign: "center" });
+    aplicarEstiloCelula(ni3, {
+      bg: vermelhoClar,
+      fg: vermelho,
+      italic: true,
+      size: 9,
+      hAlign: "center",
+    });
     ws3.getRow(3).height = 18;
 
     ws3.addRow([]);
     ws3.getRow(4).height = 6;
 
     // Cabeçalho das colunas
-    const niColHeaders = ["#", "Nome da Escola", "INEP", "Município", "Técnico", "Motivo", "Data", "Observação"];
+    const niColHeaders = [
+      "#",
+      "Nome da Escola",
+      "INEP",
+      "Município",
+      "Técnico",
+      "Motivo",
+      "Data",
+      "Observação",
+    ];
     const niHeaderRow = ws3.getRow(5);
     niHeaderRow.height = 22;
     niColHeaders.forEach((v, i) => {
       const cell = ws3.getCell(5, i + 1);
       cell.value = v;
       aplicarEstiloCelula(cell, {
-        bg: vermelhoEsc, fg: C.branco, bold: true, size: 9,
+        bg: vermelhoEsc,
+        fg: C.branco,
+        bold: true,
+        size: 9,
         hAlign: i === 0 ? "center" : i >= 5 ? "center" : "left",
         border: borda(vermelhoEsc),
       });
@@ -484,7 +703,13 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       ws3.mergeCells(6, 1, 6, NCOLS3);
       const emptyCell = ws3.getCell(6, 1);
       emptyCell.value = "Nenhuma escola não instalada no período.";
-      aplicarEstiloCelula(emptyCell, { bg: vermelhoClar, fg: vermelho, italic: true, size: 10, hAlign: "center" });
+      aplicarEstiloCelula(emptyCell, {
+        bg: vermelhoClar,
+        fg: vermelho,
+        italic: true,
+        size: 10,
+        hAlign: "center",
+      });
       ws3.getRow(6).height = 28;
     } else {
       naoInstaladas.forEach((ni, idx) => {
@@ -510,19 +735,31 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           const cell = ws3.getCell(6 + idx, i + 1);
           cell.value = v;
           const hAlign: ExcelJS.Alignment["horizontal"] =
-            i === 0 ? "center" :
-            i === 2 ? "center" :
-            i === 5 ? "center" :
-            i === 6 ? "center" : "left";
+            i === 0
+              ? "center"
+              : i === 2
+                ? "center"
+                : i === 5
+                  ? "center"
+                  : i === 6
+                    ? "center"
+                    : "left";
           aplicarEstiloCelula(cell, {
-            bg, fg: C.cinzaEscuro, size: 9,
+            bg,
+            fg: C.cinzaEscuro,
+            size: 9,
             hAlign,
             wrap: i === 1 || i === 7,
             border: borda(),
           });
           // Destaque na coluna de motivo
           if (i === 5 && v) {
-            cell.font = { name: "Calibri", size: 9, bold: true, color: { argb: vermelho } };
+            cell.font = {
+              name: "Calibri",
+              size: 9,
+              bold: true,
+              color: { argb: vermelho },
+            };
           }
         });
       });
@@ -535,16 +772,26 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       const totalCell3 = ws3.getCell(totalRow3, 1);
       totalCell3.value = `TOTAL: ${naoInstaladas.length} escola(s) não instalada(s)`;
       aplicarEstiloCelula(totalCell3, {
-        bg: vermelho, fg: C.branco, bold: true, size: 11,
-        hAlign: "center", border: borda(vermelho, "medium"),
+        bg: vermelho,
+        fg: C.branco,
+        bold: true,
+        size: 11,
+        hAlign: "center",
+        border: borda(vermelho, "medium"),
       });
       ws3.getRow(totalRow3).height = 28;
     }
 
     // ── Enviar arquivo ─────────────────────────────────────────────────────────────────────────────
     const nomeArquivo = `relatorio-os-${new Date().toISOString().slice(0, 10)}.xlsx`;
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename="${nomeArquivo}"`);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${nomeArquivo}"`
+    );
     await wb.xlsx.write(res);
     res.end();
   } catch (err) {

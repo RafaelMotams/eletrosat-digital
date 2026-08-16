@@ -2,9 +2,7 @@ import { jwtVerify } from "jose";
 import { getDb } from "../db";
 import { tenants, tenantAdmins } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
-
-const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
-const secretKey = new TextEncoder().encode(JWT_SECRET);
+import { secretKey } from "./jwtSecret";
 
 export interface TenantSession {
   adminId: number;
@@ -14,7 +12,10 @@ export interface TenantSession {
 }
 
 /** Verifica e atualiza automaticamente o status do trial se expirado */
-async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenantId: number) {
+async function checkAndExpireTrial(
+  db: Awaited<ReturnType<typeof getDb>>,
+  tenantId: number
+) {
   if (!db) return null;
 
   const [tenant] = await db
@@ -29,7 +30,8 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
   if (!tenant) return null;
 
   // Se já está em status final, retorna direto
-  if (tenant.status === "suspenso" || tenant.status === "cancelado") return null;
+  if (tenant.status === "suspenso" || tenant.status === "cancelado")
+    return null;
   if (tenant.status === "expirado") return "expirado";
 
   // Verificar se o trial expirou
@@ -49,7 +51,9 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
   return tenant.status; // "ativo" ou "trial" (ainda válido)
 }
 
-export async function verifyTenantToken(token: string): Promise<TenantSession | null> {
+export async function verifyTenantToken(
+  token: string
+): Promise<TenantSession | null> {
   try {
     const { payload } = await jwtVerify(token, secretKey);
     const session = payload as unknown as TenantSession;
@@ -83,7 +87,9 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
 }
 
 /** Verifica o status do tenant para o técnico (app) */
-export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolean; motivo?: string }> {
+export async function verifyTenantActive(
+  tenantId: number
+): Promise<{ ok: boolean; motivo?: string }> {
   try {
     const db = await getDb();
     if (!db) return { ok: true }; // fallback
@@ -106,7 +112,9 @@ export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolea
   }
 }
 
-export function extractBearerToken(authHeader: string | undefined): string | null {
+export function extractBearerToken(
+  authHeader: string | undefined
+): string | null {
   if (!authHeader) return null;
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   return match ? match[1] : null;

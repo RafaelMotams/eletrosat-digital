@@ -4,7 +4,17 @@ import bcrypt from "bcryptjs";
 
 const conn = await mysql.createConnection(process.env.DATABASE_URL);
 
-const novaSenha = "sat2020ms";
+const novaSenha = process.env.ADMIN_SENHA;
+if (!novaSenha) {
+  console.error("❌ Defina ADMIN_SENHA no ambiente antes de executar.");
+  await conn.end();
+  process.exit(1);
+}
+if (novaSenha.length < 8) {
+  console.error("❌ ADMIN_SENHA deve ter no mínimo 8 caracteres.");
+  await conn.end();
+  process.exit(1);
+}
 const hash = await bcrypt.hash(novaSenha, 10);
 
 // Redefinir senha do admin do tenant 1 (manter email original)
@@ -28,6 +38,6 @@ console.table(tenants);
 console.log(`\n✅ Acesso configurado!`);
 console.log(`URL: https://netvius.org/admin/login`);
 console.log(`Email: rafaelmotams0907@gmail.com`);
-console.log(`Senha: ${novaSenha}`);
+console.log("Senha: (definida via ADMIN_SENHA)");
 
 await conn.end();
