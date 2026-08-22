@@ -743,3 +743,20 @@
 - [x] Revisar recursos e visual dos painéis administrativo e master sem cruzar informações entre tenants
 - [x] Refinar landing com copy honesta, visuais 3D próprios e demonstrações claramente identificadas
 - [x] Validar segurança de upload, escopo de tenant, visual mobile/desktop, testes, build e publicação
+
+## Incidente de disponibilização da versão pública
+- [x] Comparar netvius.org com a versão publicada mais recente sem alterar dados
+- [ ] Identificar e corrigir eventual cache, domínio ou disponibilização divergente
+- [ ] Validar no domínio público a presença das melhorias e comunicar o resultado
+
+## Modernização operacional — especificação do usuário
+- [x] Padronizar as novas superfícies como produto Netvius e eliminar referências visíveis legadas de Netvionis sem apagar histórico necessário
+- [x] Simplificar o login técnico e retirar partículas, brilho exagerado e textos abaixo de 12 px
+- [x] Reestruturar a navegação técnica para Início, Ordens, Missão, Mapa e Mais, sem rolagem horizontal
+- [x] Corrigir o componente de mapa: carregamento único, centro por escolas do tenant, erro, timeout e nova tentativa
+- [x] Consolidar a missão e conclusão da OS com AP planejado/instalado, observação condicional e uma única foto de mapa de calor
+- [x] Preservar fotos e registros históricos, removendo apenas categorias extras do novo fluxo técnico
+- [ ] Avaliar impedimentos, sincronização, rota e diagnósticos que podem ser implementados de forma verificável no navegador
+- [x] Evoluir relatórios e exportações com planejado versus instalado, dados por tenant e somente informações reais
+- [x] Documentar limites: banco compartilhado com isolamento lógico por tenant; integrações de WhatsApp/Google Drive continuam desativadas
+- [x] Validar com testes, build, telas mobile/desktop e publicação

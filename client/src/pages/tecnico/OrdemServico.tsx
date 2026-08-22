@@ -1122,9 +1122,13 @@ export default function TecnicoOS() {
             <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(52,211,153,0.9)" }}>
               <Wifi className="w-3.5 h-3.5" /> Quantidade de APs Instalados *
             </label>
+            <div className="mb-2 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs">
+              <span className="font-semibold text-slate-300">APs planejados</span>
+              <span className="font-black text-white">{escola.qtdAp ?? 0}</span>
+            </div>
             <div className="relative">
               <input
-                type="number" min="1" max="99"
+                type="number" min="0" max="99"
                 value={qtdAp}
                 onChange={e => setQtdAp(e.target.value)}
                 placeholder={`Previsto: ${escola.qtdAp ?? 1} AP${(escola.qtdAp ?? 1) > 1 ? "s" : ""}`}
@@ -1141,10 +1145,10 @@ export default function TecnicoOS() {
             </div>
           </div>
 
-          {/* Observações */}
+          {/* Observação — obrigatória somente quando a execução divergir do planejado */}
           <div className="mb-5">
             <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-              <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+              <FileText className="w-3.5 h-3.5" /> Observação {qtdAp && Number(qtdAp) !== Number(escola.qtdAp ?? 0) ? "(obrigatória por diferença de APs)" : "(opcional)"}
             </label>
             <textarea
               rows={2}
@@ -1155,6 +1159,12 @@ export default function TecnicoOS() {
               style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
             />
           </div>
+
+          {qtdAp && Number(qtdAp) !== Number(escola.qtdAp ?? 0) && (
+            <div className="mb-4 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2.5 text-xs text-amber-100">
+              Planejado: <strong>{escola.qtdAp ?? 0}</strong> APs · Instalado: <strong>{Number(qtdAp)}</strong> APs · Diferença: <strong>{Number(qtdAp) - Number(escola.qtdAp ?? 0)}</strong>. Informe a observação para concluir.
+            </div>
+          )}
 
           {/* Avisos */}
           {!qtdAp && (
@@ -1181,7 +1191,8 @@ export default function TecnicoOS() {
           <button
             onClick={async () => {
               const n = parseInt(qtdAp);
-              if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
+              if (!qtdAp || isNaN(n) || n < 0) { toast.error("Informe uma quantidade válida de APs instalados"); return; }
+              if (n !== Number(escola.qtdAp ?? 0) && !observacao.trim()) { toast.error("Explique a diferença entre os APs planejados e instalados"); return; }
 
               // Modo offline
               if (!isOnline) {
@@ -1291,16 +1302,16 @@ export default function TecnicoOS() {
                 setUploadingAll(false);
               }
             }}
-            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()}
+            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || (Number(qtdAp) !== Number(escola.qtdAp ?? 0) && !observacao.trim())}
             className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97] mb-3"
             style={{
-              background: (!qtdAp || !todasCategoriasFotos || !observacao.trim())
+              background: (!qtdAp || !todasCategoriasFotos || (Number(qtdAp) !== Number(escola.qtdAp ?? 0) && !observacao.trim()))
                 ? "rgba(16,185,129,0.15)"
                 : isOnline
                 ? "linear-gradient(135deg, #065f46, #059669, #10b981)"
                 : "linear-gradient(135deg, #d97706, #f59e0b)",
               boxShadow: (!qtdAp || !todasCategoriasFotos || !observacao.trim()) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
-              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()) ? 0.55 : 1,
+              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || (Number(qtdAp) !== Number(escola.qtdAp ?? 0) && !observacao.trim())) ? 0.55 : 1,
               cursor: (concluirMut.isPending || uploadingAll) ? "not-allowed" : "pointer",
               border: "1px solid rgba(16,185,129,0.25)",
             }}>

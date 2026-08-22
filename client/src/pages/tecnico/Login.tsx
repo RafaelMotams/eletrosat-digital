@@ -62,21 +62,12 @@ function ParticleCanvas() {
 function LogoRings({ size = 96 }: { size?: number }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: size * 2, height: size * 2 }}>
-      {[1.9, 1.5, 1.2].map((scale, i) => (
-        <div key={i} className="absolute rounded-full border"
-          style={{
-            width: size * scale, height: size * scale,
-            borderColor: `rgba(45,212,191,${0.08 + i * 0.04})`,
-            animation: `ping-slow ${2 + i * 0.5}s ease-in-out infinite`,
-            animationDelay: `${i * 0.3}s`,
-          }} />
-      ))}
-      <div className="relative rounded-2xl overflow-hidden shadow-2xl"
+      <div className="relative flex items-center justify-center rounded-2xl bg-emerald-700 text-xl font-black text-white shadow-2xl"
         style={{
           width: size, height: size,
-          boxShadow: "0 0 40px rgba(16,185,129,0.45), 0 0 80px rgba(6,182,212,0.18), 0 0 0 1px rgba(255,255,255,0.1)",
+          boxShadow: "0 8px 24px rgba(15,31,51,0.18)",
         }}>
-        <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
+        N
       </div>
     </div>
   );
@@ -178,7 +169,7 @@ function FloatInput({
     <div className="relative">
       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
         <Icon className="w-4 h-4 transition-colors duration-200"
-          style={{ color: focused ? "#60a5fa" : "rgba(148,163,184,0.45)" }} />
+          style={{ color: focused ? "#0F766E" : "rgba(148,163,184,0.65)" }} />
       </div>
       <label htmlFor={id}
         className="absolute left-11 pointer-events-none font-medium transition-all duration-200 z-10"
@@ -186,7 +177,7 @@ function FloatInput({
           top: active ? "8px" : "50%",
           transform: active ? "translateY(0) scale(0.78)" : "translateY(-50%) scale(1)",
           transformOrigin: "left center",
-          color: focused ? "rgba(96,165,250,0.9)" : "rgba(148,163,184,0.5)",
+          color: focused ? "#0F766E" : "rgba(148,163,184,0.7)",
           fontSize: "14px",
         }}>
         {label}
@@ -203,9 +194,9 @@ function FloatInput({
         style={{
           paddingTop: active ? "22px" : "14px",
           paddingBottom: active ? "8px" : "14px",
-          background: focused ? "rgba(59,130,246,0.07)" : "rgba(255,255,255,0.04)",
-          border: focused ? "1.5px solid rgba(59,130,246,0.6)" : "1.5px solid rgba(255,255,255,0.07)",
-          boxShadow: focused ? "0 0 0 4px rgba(59,130,246,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" : "inset 0 1px 0 rgba(255,255,255,0.02)",
+          background: focused ? "rgba(15,118,110,0.08)" : "rgba(255,255,255,0.06)",
+          border: focused ? "1.5px solid rgba(15,118,110,0.8)" : "1.5px solid rgba(255,255,255,0.14)",
+          boxShadow: focused ? "0 0 0 3px rgba(15,118,110,0.14)" : "none",
         }}
       />
       {rightEl && (
@@ -222,7 +213,7 @@ export default function TecnicoLogin() {
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
   const [erro, setErro] = useState("");
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [focused, setFocused] = useState<"email" | "senha" | null>(null);
   const [loginSuccess, setLoginSuccess] = useState(false);
 
@@ -257,53 +248,34 @@ export default function TecnicoLogin() {
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden"
-      style={{ background: "linear-gradient(145deg, #020817 0%, #050d1f 50%, #020817 100%)" }}>
-      <ParticleCanvas />
-
-      {/* Glow blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }} />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)" }} />
-        <div className="absolute -bottom-20 right-1/3 w-72 h-72 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(20,184,166,0.07) 0%, transparent 70%)" }} />
-      </div>
+    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: "#0B1F33" }}>
 
       <div className="relative z-10 flex flex-col flex-1 items-center justify-between px-5 py-10">
         {/* Top: Logo */}
-        <div className="flex flex-col items-center pt-6"
-          style={{ animation: "fade-in-up 0.6s ease forwards" }}>
+        <div className="flex flex-col items-center pt-6">
           <LogoRings size={72} />
           <div className="mt-5 text-center">
             <h1 className="text-2xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Netvius</h1>
             <div className="flex items-center justify-center gap-1.5 mt-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>Central de Operações</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-xs font-medium" style={{ color: "rgba(226,232,240,0.8)" }}>Acesso técnico</span>
             </div>
           </div>
         </div>
 
         {/* Middle: Form card */}
-        <div className="w-full max-w-sm"
-          style={{ animation: "fade-in-up 0.7s ease 0.15s both" }}>
+        <div className="w-full max-w-sm">
 
           {/* Card */}
-          <div className="rounded-3xl p-6 relative overflow-hidden"
+          <div className="rounded-2xl p-6 relative overflow-hidden"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.07)",
-              boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)",
-              backdropFilter: "blur(20px)",
+              boxShadow: "0 20px 48px rgba(0,0,0,0.25)",
             }}>
 
-            {/* Card inner glow */}
-            <div className="absolute top-0 left-0 right-0 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent)" }} />
-
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-white" style={{ letterSpacing: "-0.01em" }}>Acesso ao sistema</h2>
+              <h2 className="text-xl font-bold text-white" style={{ letterSpacing: "-0.01em" }}>Acesso técnico</h2>
               <p className="text-sm mt-1" style={{ color: "rgba(148,163,184,0.55)" }}>Entre com suas credenciais de técnico</p>
             </div>
 
@@ -342,20 +314,15 @@ export default function TecnicoLogin() {
 
               <button type="submit"
                 disabled={loginMutation.isPending || loginSuccess}
-                className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-bold text-sm text-white transition-all active:scale-[0.97] mt-2 relative overflow-hidden"
+                className="w-full flex min-h-12 items-center justify-center gap-2.5 rounded-xl py-3 font-bold text-sm text-white transition-all active:scale-[0.97] mt-2"
                 style={{
                   background: loginSuccess
-                    ? "linear-gradient(135deg, #047857, #10b981)"
+                    ? "#15803D"
                   : loginMutation.isPending
                     ? "rgba(16,185,129,0.3)"
-                    : "linear-gradient(135deg, #047857 0%, #10b981 52%, #06b6d4 100%)",
-                  boxShadow: loginMutation.isPending || loginSuccess ? "none" : "0 8px 32px rgba(16,185,129,0.28), 0 0 0 1px rgba(255,255,255,0.05)",
+                    : "#0F766E",
+                  boxShadow: "none",
                 }}>
-                {/* Shimmer effect */}
-                {!loginMutation.isPending && !loginSuccess && (
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)", animation: "shimmer 2.5s infinite" }} />
-                )}
                 {loginSuccess ? (
                   <><div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" /> Redirecionando...</>
                 ) : loginMutation.isPending ? (
@@ -375,7 +342,7 @@ export default function TecnicoLogin() {
         </div>
 
         {/* Bottom: footer */}
-        <div className="text-center" style={{ animation: "fade-in-up 0.7s ease 0.3s both" }}>
+        <div className="text-center">
           <p className="text-xs" style={{ color: "rgba(148,163,184,0.25)" }}>
             Netvius Tecnologia © {new Date().getFullYear()} · v5.0
           </p>
@@ -383,9 +350,6 @@ export default function TecnicoLogin() {
       </div>
 
       <style>{`
-        @keyframes ping-slow { 0%,100%{transform:scale(1);opacity:0.5} 50%{transform:scale(1.06);opacity:0.25} }
-        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
-        @keyframes fade-in-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
       `}</style>
     </div>
   );
