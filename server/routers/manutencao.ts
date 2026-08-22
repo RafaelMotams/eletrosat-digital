@@ -7,6 +7,7 @@ import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/s
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
 import { calculateMaintenancePayment } from "../payment";
+import { buildTechnicalAssistantSystemPrompt, technicalAssistantProfiles } from "../technicalAssistant";
 
 const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.tecnicoSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
@@ -352,7 +353,25 @@ export const manutencaoRouter = router({
       return { success: true };
     }),
 
-  // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
+  // ── TÉCNICO: Assistente independente de manutenção ─────────────────────────
+  assistenteTecnico: tecnicoProcedure
+    .input(z.object({
+      pergunta: z.string().trim().min(3).max(2000),
+      perfil: z.enum(technicalAssistantProfiles).default("rede_escolar"),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: buildTechnicalAssistantSystemPrompt(input.perfil) },
+          { role: "user", content: input.pergunta },
+        ],
+      });
+      const raw = response.choices?.[0]?.message?.content;
+      const resposta = typeof raw === "string" ? raw : (Array.isArray(raw) ? raw.map((item: any) => item.text ?? "").join("") : "Não foi possível obter uma resposta agora.");
+      return { resposta };
+    }),
+
+  // ── TÉCNICO: Assistente no contexto de manutenção ──────────────────────────
   assistenteIA: manutencaoAccessProcedure
     .input(z.object({
       manutencaoId: z.number(),

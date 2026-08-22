@@ -385,10 +385,10 @@ export default function TecnicoHome() {
 
         {/* Premium field shortcuts + progress card */}
         <div className="mb-4 grid grid-cols-2 gap-3">
-          <button onClick={() => navigate("/tecnico/manutencao")} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.18), rgba(79,70,229,0.10))", border: "1px solid rgba(139,92,246,0.22)" }}>
+          <button onClick={() => navigate("/tecnico/assistente")} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.18), rgba(6,182,212,0.10))", border: "1px solid rgba(16,185,129,0.25)" }}>
             <Bot className="mb-2 h-4 w-4 text-violet-300" />
             <p className="text-xs font-bold text-white">Assistente Técnico</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">Orientação em campo</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">Chat especialista de campo</p>
           </button>
           <button onClick={handleLocate} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.16), rgba(14,116,144,0.08))", border: "1px solid rgba(6,182,212,0.20)" }}>
             <LocateFixed className="mb-2 h-4 w-4 text-cyan-300" />
@@ -418,6 +418,30 @@ export default function TecnicoHome() {
             <span className="text-xs text-slate-500">{total} total</span>
           </div>
         </div>
+
+        <section className="mb-4 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div>
+              <p className="text-xs font-black text-white">Centro de ação</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">Atalhos baseados na sua fila atual</p>
+            </div>
+            <Bell className="h-4 w-4 text-cyan-300" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Iniciar", value: pendentes, filter: "pendente" as FilterType, tone: "#f59e0b", detail: "Pendentes" },
+              { label: "Continuar", value: emAndamento, filter: "em_andamento" as FilterType, tone: "#3b82f6", detail: "Em campo" },
+              { label: "Revisar", value: naoInstaladas, filter: "nao_instalada" as FilterType, tone: "#ef4444", detail: "Não inst." },
+            ].map((action) => (
+              <button key={action.label} onClick={() => setActiveFilter(action.filter)} className="rounded-xl p-2.5 text-left transition active:scale-[0.98]" style={{ background: `${action.tone}12`, border: `1px solid ${action.tone}28` }}>
+                <p className="text-base font-black" style={{ color: action.tone }}>{action.value}</p>
+                <p className="mt-0.5 text-[10px] font-bold text-white">{action.label}</p>
+                <p className="mt-0.5 text-[9px] text-slate-400">{action.detail}</p>
+              </button>
+            ))}
+          </div>
+          {hasSyncError && <p className="mt-3 rounded-lg bg-orange-400/10 px-2.5 py-2 text-[10px] font-semibold text-orange-200">Há itens aguardando nova tentativa de sincronização. As fotos foram preservadas na fila.</p>}
+        </section>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mb-4">

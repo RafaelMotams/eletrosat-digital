@@ -103,7 +103,8 @@ export default function Home() {
 
             {/* Right - Dashboard Preview */}
             <div className="relative">
-              <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
+              <img src="/manus-storage/netvius-field-operations-3d-hero_9efc3462.png" alt="Ilustração 3D abstrata de uma operação técnica conectada" className="pointer-events-none absolute -right-16 -top-20 hidden w-[115%] max-w-none opacity-90 lg:block" />
+              <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
                 {/* Demonstração visual — não representa dados de clientes */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

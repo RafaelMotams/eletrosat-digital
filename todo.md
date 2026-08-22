@@ -698,3 +698,38 @@
 - [x] Confirmar que rafael2020ms@gmail.com lista as 12 escolas, OS e valores correspondentes
 - [x] Testar os filtros de escolas, OS e relatório após a correção
 - [x] Salvar checkpoint e publicar a confirmação de isolamento
+
+## Revisão completa solicitada — Netvius
+- [ ] Auditar rotas públicas, sessões administrativas e fluxos de login sem alterar credenciais nem dados de clientes
+- [ ] Revisar a experiência do aplicativo técnico em dispositivos móveis, incluindo estados vazios, erro e recuperação offline
+- [ ] Revisar o painel administrativo de manutenção, ordens e relatórios quanto a clareza, filtros e dados por tenant
+- [ ] Revisar landing page, SEO técnico e caminhos de entrada sem usar métricas, avaliações ou promessas não verificáveis
+- [ ] Verificar regressões de isolamento entre tenants, permissões de visualizador e integridade da fila offline
+- [ ] Implementar apenas correções seguras identificadas na auditoria, sem ativar e-mail, WhatsApp ou Google Drive
+- [ ] Executar TypeScript, testes relacionados, build de produção e validação visual antes de publicar
+- [ ] Salvar checkpoint da revisão ampla e comunicar limites remanescentes
+
+## Correção do acesso ao Assistente Técnico
+- [x] Identificar o ponto que encaminha o Assistente Técnico para manutenção
+- [x] Direcionar o acesso para a tela de chat especialista do técnico
+- [x] Validar a implementação de rota, estado vazio e retorno ao aplicativo técnico
+- [x] Executar testes relacionados e publicar a correção
+
+## Evolução premium completa — Netvius
+- [x] Auditar a landing page para definir melhorias de conversão baseadas em capacidades reais do produto
+- [x] Criar e integrar elementos visuais próprios de operações de campo, sem simular pessoas, resultados ou avaliações
+- [ ] Refinar a identidade visual de landing, aplicativo técnico e login em uma linguagem única de central de operações
+- [x] Aperfeiçoar o painel administrativo com navegação, estados operacionais e ações de maior clareza
+- [x] Aperfeiçoar o painel master com indicadores reais de tenants, acesso e governança operacional
+- [x] Revisar o chat do Assistente Técnico como recurso independente de manutenção
+- [x] Revalidar procedimentos de tenant, permissões e escopos antes de qualquer recurso administrativo novo
+- [x] Cobrir as mudanças com testes, build e validação visual antes da publicação
+
+## Diferenciais operacionais para aplicativo e painéis
+- [x] Criar acesso independente ao chat do Assistente Técnico, fora da área de manutenção
+- [x] Adicionar um centro de ação no aplicativo com prioridade de atividades e atalhos de campo
+- [x] Adicionar ao painel administrativo uma visão de atenção operacional baseada apenas em dados reais do tenant
+- [x] Adicionar ao painel master um resumo de governança de clientes usando status e planos reais
+- [x] Garantir que novos diferenciais não usem dados entre tenants e respeitem visualizadores
+- [x] Validar cenários vazios, erros e carregamento para os novos diferenciais
+- [x] Exigir sessão técnica válida antes de exibir o chat especialista
