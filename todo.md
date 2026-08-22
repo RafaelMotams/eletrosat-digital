@@ -579,6 +579,14 @@
 
 > Decisão do usuário em 22/08/2026: continuar apenas com verificações internas; envio real de email e WhatsApp permanece desativado e não será simulado.
 
+## Ativação segura de confirmação por e-mail
+- [x] Revisar a credencial e o remetente necessários para envio real de confirmação
+- [x] Não configurar credencial de email: usuário decidiu manter o envio desativado
+- [x] Não validar envio real nem persistir conta de teste: usuário decidiu não ativar e-mail
+- [x] Não publicar ativação de e-mail: recurso permanece desativado por decisão do usuário
+
+> Decisão do usuário em 22/08/2026: não ativar confirmação por e-mail. A credencial atual foi rejeitada pelo provedor e não será utilizada; nenhum e-mail de confirmação será enviado até nova autorização explícita.
+
 ## Continuidade técnica — fórmula e isolamento
 - [x] Mapear todos os pontos de cálculo de manutenção e quilometragem
 - [x] Confirmar que manutenção usa o helper centralizado no relatório e na exportação
