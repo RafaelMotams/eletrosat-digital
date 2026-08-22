@@ -642,7 +642,7 @@
 ## Continuidade sem integrações externas
 - [x] Revisar o estado de sincronização exibido ao técnico e mensagens de recuperação
 - [x] Melhorar a resiliência local do aplicativo técnico sem depender de serviços externos
-- [ ] Testar e publicar as melhorias internas desta continuidade
+- [x] Testar e publicar as melhorias internas desta continuidade
 
 > Decisão do usuário: não usar segredo temporário gerado a cada inicialização. A publicação seguirá pendente até existir um segredo de produção persistente e seguro.
 
