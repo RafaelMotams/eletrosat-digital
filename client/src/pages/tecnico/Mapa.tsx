@@ -209,7 +209,7 @@ export default function TecnicoMapa() {
       {/* Stats */}
       <div className="flex gap-2 px-4 py-2">
         {[
-          { label: "Total", value: stats.total, color: "#3b82f6", icon: MapPin },
+          { label: "Total", value: stats.total, color: "#06b6d4", icon: MapPin },
           { label: "Pendentes", value: stats.pendentes, color: "#f59e0b", icon: Clock },
           { label: "Concluídas", value: stats.concluidas, color: "#10b981", icon: CheckCircle },
         ].map(({ label, value, color, icon: Icon }) => (
@@ -227,7 +227,7 @@ export default function TecnicoMapa() {
       {/* Legenda */}
       <div className="flex gap-4 px-4 pb-2">
         {[
-          { color: "#3b82f6", label: "Pendente" },
+          { color: "#06b6d4", label: "Pendente" },
           { color: "#f59e0b", label: "Em andamento" },
           { color: "#10b981", label: "Concluído" },
         ].map(({ color, label }) => (
@@ -297,7 +297,7 @@ export default function TecnicoMapa() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs text-white"
-                style={{ background: "linear-gradient(135deg, #1d4ed8, #3b82f6)" }}
+                style={{ background: "linear-gradient(135deg, #0f766e, #06b6d4)" }}
               >
                 <Navigation className="w-3.5 h-3.5" />
                 Navegar

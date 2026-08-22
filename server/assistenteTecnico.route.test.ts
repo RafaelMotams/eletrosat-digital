@@ -35,4 +35,34 @@ describe("manutencao.assistenteTecnico", () => {
       .resolves.toEqual({ resposta: "1. Confira a VLAN configurada no switch." });
     expect(invokeLLM).toHaveBeenCalledTimes(1);
   });
+
+  it("bloqueia a análise visual quando não existe sessão técnica", async () => {
+    const caller = manutencaoRouter.createCaller(makeContext());
+    await expect(caller.assistenteTecnicoVisual({
+      pergunta: "Analise a foto do rack",
+      perfil: "aprender_conectado",
+      imageBase64: Buffer.alloc(128).toString("base64"),
+      mimeType: "image/jpeg",
+    })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    expect(invokeLLM).not.toHaveBeenCalled();
+  });
+
+  it("envia a foto somente na solicitação visual do técnico autenticado", async () => {
+    invokeLLM.mockResolvedValue({ choices: [{ message: { content: "O patch panel parece organizado; confirme a identificação das portas." } }] });
+    const caller = manutencaoRouter.createCaller(makeContext({ tecnicoId: 7, tenantId: 180002 }));
+    const imageBase64 = Buffer.alloc(128).toString("base64");
+
+    await expect(caller.assistenteTecnicoVisual({
+      pergunta: "Analise a foto do rack",
+      perfil: "infraestrutura_fisica",
+      imageBase64,
+      mimeType: "image/jpeg",
+    })).resolves.toEqual({ resposta: "O patch panel parece organizado; confirme a identificação das portas." });
+
+    expect(invokeLLM).toHaveBeenCalledTimes(1);
+    const call = invokeLLM.mock.calls[0][0];
+    expect(call.messages[1].content).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: "image_url", image_url: expect.objectContaining({ url: expect.stringContaining("data:image/jpeg;base64,") }) }),
+    ]));
+  });
 });

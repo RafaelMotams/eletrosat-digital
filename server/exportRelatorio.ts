@@ -126,19 +126,21 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       { key: "inep",       width: 13 },
       { key: "municipio",  width: 20 },
       { key: "data",       width: 13 },
-      { key: "aps",        width: 10 },
+      { key: "apsPlanejados", width: 14 },
+      { key: "apsInstalados", width: 14 },
+      { key: "saldoAps",   width: 16 },
       { key: "valorAp",    width: 16 },
       { key: "total",      width: 18 },
       { key: "observacao", width: 35 },
       { key: "foto",       width: 14 },
     ];
 
-    const NCOLS = 10;
+    const NCOLS = 12;
 
     // ── Cabeçalho principal ──────────────────────────────────────────────────
     ws.mergeCells(1, 1, 1, NCOLS);
     const h1 = ws.getCell("A1");
-    h1.value = "NETVIONIS TECNOLOGIA";
+    h1.value = "NETVIUS · CENTRAL DE OPERAÇÕES";
     aplicarEstiloCelula(h1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
     ws.getRow(1).height = 38;
 
@@ -176,7 +178,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       rowIdx++;
 
       // Cabeçalho das colunas
-      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs", "Valor/AP (R$)", "Total (R$)", "Observação", "📷 Ver Foto"];
+      const colHeaders = ["#", "Nome da Escola", "INEP", "Município", "Data Conclusão", "APs Planejados", "APs Instalados", "Saldo (Inst. − Plan.)", "Valor/AP (R$)", "Total (R$)", "Observação", "📷 Ver Foto"];
       const colRow = ws.getRow(rowIdx);
       colRow.height = 22;
       colHeaders.forEach((v, i) => {
@@ -205,7 +207,9 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           os.inep,
           os.municipio,
           dataStr,
+          os.qtdApPlanejado ?? 0,
           os.qtdApInstalado ?? 0,
+          (os.qtdApInstalado ?? 0) - (os.qtdApPlanejado ?? 0),
           valorOsUnit,
           total,
           os.observacao ?? "",
@@ -223,23 +227,23 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
               i === 0 ? "center" :
               i === 2 ? "center" :
               i === 4 ? "center" :
-              i === 8 ? "left" :
+              i === 10 ? "left" :
               i >= 5 ? "right" : "left";
             aplicarEstiloCelula(cell, {
               bg, fg: C.cinzaEscuro, size: 9,
               hAlign,
-              wrap: i === 1 || i === 8,
-              numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
+              wrap: i === 1 || i === 10,
+              numFmt: i === 8 || i === 9 ? '"R$" #,##0.00' : undefined,
               border: borda(),
             });
           }
         });
 
-        // Coluna 10: link direto para a foto (coluna separada)
-        const fotoCell = ws.getCell(rowIdx, 10);
+        // Coluna 12: link direto para a foto (coluna separada)
+        const fotoCell = ws.getCell(rowIdx, 12);
         const fotoUrl = (os as any).fotoMapaCalorUrl as string | null;
         if (fotoUrl) {
-          const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
+          const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvius.org${fotoUrl}`;
           // ExcelJS: definir valor como {text, hyperlink} via cast any
           (fotoCell as any).value = { text: "Ver Foto", hyperlink: urlAbsoluta };
           aplicarEstiloCelula(fotoCell, { bg, fg: C.azulClaro, size: 9, hAlign: "center", border: borda() });
@@ -253,6 +257,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       });
 
       // Subtotal do técnico
+      const totalApsPlanejados = osDoTecnico.reduce((s, r) => s + (r.qtdApPlanejado ?? 0), 0);
       const totalAps = osDoTecnico.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
       const totalTecnico = osDoTecnico.reduce((s, r) => s + getValorOs(r), 0);
 
@@ -260,7 +265,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       subRow.height = 22;
       const subLabels: (string | number)[] = [
         "", `Subtotal — ${osDoTecnico.length} OS`, "", "",
-        "", totalAps, "", totalTecnico, "", "",
+        "", totalApsPlanejados, totalAps, totalAps - totalApsPlanejados, "", totalTecnico, "", "",
       ];
       subLabels.forEach((v, i) => {
         const cell = ws.getCell(rowIdx, i + 1);
@@ -268,7 +273,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
         aplicarEstiloCelula(cell, {
           bg: C.verdeClaro, fg: C.verdeMedio, bold: true, size: 9,
           hAlign: i === 1 ? "left" : i >= 5 ? "right" : "center",
-          numFmt: i === 6 || i === 7 ? '"R$" #,##0.00' : undefined,
+          numFmt: i === 8 || i === 9 ? '"R$" #,##0.00' : undefined,
           border: borda(C.verdeMedio, "thin"),
         });
       });
@@ -280,6 +285,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     }
 
     // ── Total Geral ──────────────────────────────────────────────────────────
+    const totalApsPlanejadosGeral = concluidas.reduce((s, r) => s + (r.qtdApPlanejado ?? 0), 0);
     const totalApsGeral = concluidas.reduce((s, r) => s + (r.qtdApInstalado ?? 0), 0);
     const totalGeralVal = concluidas.reduce((s, r) => s + getValorOs(r), 0);
 
@@ -291,29 +297,43 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       hAlign: "right", border: bordaMedia(),
     });
 
-    const tgAps = ws.getCell(rowIdx, 7);
+    const tgPlan = ws.getCell(rowIdx, 7);
+    tgPlan.value = totalApsPlanejadosGeral;
+    aplicarEstiloCelula(tgPlan, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
+      hAlign: "right", border: bordaMedia(),
+    });
+
+    const tgAps = ws.getCell(rowIdx, 8);
     tgAps.value = totalApsGeral;
     aplicarEstiloCelula(tgAps, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
       hAlign: "right", border: bordaMedia(),
     });
 
-    const tgValAp = ws.getCell(rowIdx, 8);
+    const tgSaldo = ws.getCell(rowIdx, 9);
+    tgSaldo.value = totalApsGeral - totalApsPlanejadosGeral;
+    aplicarEstiloCelula(tgSaldo, {
+      bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
+      hAlign: "right", border: bordaMedia(),
+    });
+
+    const tgValAp = ws.getCell(rowIdx, 10);
     tgValAp.value = "";
     aplicarEstiloCelula(tgValAp, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 11,
       hAlign: "right", border: bordaMedia(),
     });
 
-    const tgTotal = ws.getCell(rowIdx, 9);
+    const tgTotal = ws.getCell(rowIdx, 11);
     tgTotal.value = totalGeralVal;
     aplicarEstiloCelula(tgTotal, {
       bg: C.azulEscuro, fg: C.branco, bold: true, size: 13,
       hAlign: "right", numFmt: '"R$" #,##0.00', border: bordaMedia(),
     });
 
-    // Coluna 10 do total geral (foto) — vazia
-    const tgFoto = ws.getCell(rowIdx, 10);
+    // Coluna 12 do total geral (foto) — vazia
+    const tgFoto = ws.getCell(rowIdx, 12);
     tgFoto.value = "";
     aplicarEstiloCelula(tgFoto, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 9, border: bordaMedia() });
 

@@ -733,3 +733,13 @@
 - [x] Garantir que novos diferenciais não usem dados entre tenants e respeitem visualizadores
 - [x] Validar cenários vazios, erros e carregamento para os novos diferenciais
 - [x] Exigir sessão técnica válida antes de exibir o chat especialista
+
+## Evolução premium de campo e relatórios
+- [x] Auditar o modelo de dados para distinguir APs planejados de APs instalados nos relatórios e exportações
+- [x] Expandir o Assistente Técnico para receber foto da galeria e orientar análise visual de infraestrutura com sessão técnica obrigatória
+- [x] Criar um guia especializado do projeto Aprender Conectado, TP-Link, Intelbras e infraestrutura escolar, sem inventar especificações do projeto
+- [x] Refinar a experiência do técnico para campo, mapa, offline e encerramento da OS com estados claros
+- [x] Evoluir relatório e planilha de OS com comparação planejado versus instalado, resumos e gráficos baseados em dados reais
+- [x] Revisar recursos e visual dos painéis administrativo e master sem cruzar informações entre tenants
+- [x] Refinar landing com copy honesta, visuais 3D próprios e demonstrações claramente identificadas
+- [x] Validar segurança de upload, escopo de tenant, visual mobile/desktop, testes, build e publicação

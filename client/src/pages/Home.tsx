@@ -103,7 +103,7 @@ export default function Home() {
 
             {/* Right - Dashboard Preview */}
             <div className="relative">
-              <img src="/manus-storage/netvius-field-operations-3d-hero_9efc3462.png" alt="Ilustração 3D abstrata de uma operação técnica conectada" className="pointer-events-none absolute -right-16 -top-20 hidden w-[115%] max-w-none opacity-90 lg:block" />
+              <img src="/manus-storage/netvius-admin-operations-3d_eee309de.png" alt="Ilustração 3D conceitual de uma pessoa usando uma central administrativa" className="pointer-events-none absolute -right-16 -top-20 hidden w-[115%] max-w-none opacity-90 lg:block" />
               <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
                 {/* Demonstração visual — não representa dados de clientes */}
                 <div className="flex items-center justify-between">
@@ -177,6 +177,34 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Demonstrações conceituais do produto */}
+      <section className="overflow-hidden bg-slate-950 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.84fr_1.16fr]">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Do campo à central</p>
+            <h2 className="mt-4 text-3xl font-extrabold leading-tight text-white sm:text-4xl">Uma operação conectada, com contexto em cada etapa.</h2>
+            <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">O técnico consulta rota, OS, mapa e orientações no celular. A equipe administrativa acompanha a execução e os relatórios por cliente, sem misturar as informações entre contas.</p>
+            <div className="mt-7 flex flex-wrap gap-3 text-sm">
+              {[
+                "OS, mapa e fotos de campo",
+                "Painel com filtros e exportações",
+                "Acesso separado por cliente",
+              ].map((item) => <span key={item} className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 font-semibold text-emerald-100">{item}</span>)}
+            </div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <figure className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/25">
+              <img src="/manus-storage/netvius-mobile-field-3d_f0ebf0a2.png" alt="Ilustração 3D conceitual de técnico usando o aplicativo no celular ao lado de infraestrutura de rede" className="aspect-[16/10] w-full rounded-2xl object-cover" />
+              <figcaption className="px-2 pb-1 pt-4 text-xs leading-5 text-slate-400">Demonstração conceitual: uso do aplicativo técnico em campo.</figcaption>
+            </figure>
+            <figure className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/25 sm:translate-y-8">
+              <img src="/manus-storage/netvius-admin-operations-3d_eee309de.png" alt="Ilustração 3D conceitual de central administrativa em computador" className="aspect-[16/10] w-full rounded-2xl object-cover" />
+              <figcaption className="px-2 pb-1 pt-4 text-xs leading-5 text-slate-400">Demonstração conceitual: acompanhamento administrativo no computador.</figcaption>
+            </figure>
           </div>
         </div>
       </section>
