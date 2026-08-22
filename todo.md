@@ -558,19 +558,19 @@
 - [x] Seções: Hero, Funcionalidades, Como Funciona, Segurança, Planos, CTA, Footer
 
 ## Solicitação atual — revisão premium e segurança
-- [ ] Auditar autenticação, rotas protegidas e isolamento por tenant
-- [ ] Redesenhar app do técnico com interface premium e recursos de campo
-- [ ] Adicionar seleção do Assistente Técnico para redes internas/externas, TP-Link e Intelbras
-- [ ] Refinar painel administrativo com visual premium e indicadores
-- [ ] Melhorar exportação de OS com formatação, resumo e gráfico baseado em dados reais
+- [x] Auditar autenticação, rotas protegidas e isolamento por tenant
+- [x] Redesenhar app do técnico com interface premium e recursos de campo
+- [x] Adicionar seleção do Assistente Técnico para redes internas/externas, TP-Link e Intelbras
+- [x] Refinar painel administrativo com visual premium e indicadores
+- [x] Melhorar exportação de OS com formatação, resumo e gráfico baseado em dados reais
 - [ ] Escrever testes para segurança, isolamento, assistente, cálculo e exportação
-- [ ] Validar visualmente desktop/mobile e corrigir regressões
-- [ ] Salvar checkpoint e publicar a versão validada
+- [x] Validar visualmente desktop/mobile e corrigir regressões
+- [x] Salvar checkpoint e publicar a versão validada
 
 > Nota: reconhecimento biométrico só deve ser implementado com WebAuthn/passkeys e requisito confirmado. A proteção imediata será por autenticação forte, sessão segura, autorização por tenant, rate limit e auditoria; não será simulada biometria.
 
 ## Pendências herdadas para revisão
-- [ ] Landing page deve abrir primeiro e áreas internas devem exigir login
+- [x] Landing page deve abrir primeiro e áreas internas devem exigir login
 - [ ] Cadastro com confirmação por email e notificação WhatsApp dependem de integração configurada
 - [ ] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda OS
 - [ ] Resolver/validar SSL de netvius.org manualmente no painel de domínio
@@ -589,7 +589,7 @@
 - [x] Separar na planilha os valores de Rodrigo e Ricardo
 - [x] Validar total individual e total geral
 - [x] Testar isolamento e exportação sem inserir dados de teste
-- [ ] Salvar checkpoint e publicar a correção
+- [x] Salvar checkpoint e publicar a correção
 
 > Nenhuma ordem será movida fora do período ou por aproximação de nome; a data considerada será a data de criação/abertura do registro correspondente.
 
