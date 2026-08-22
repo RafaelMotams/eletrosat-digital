@@ -25,4 +25,6 @@ Também foram fechados os seguintes controles de autorização: exportação de 
 
 O TypeScript compilou sem erros e as suítes direcionadas de segurança, isolamento, cálculo, cadastro, sessão e sincronização offline passaram. Após retirar o Google Drive, o único bloqueio externo conhecido para a execução integral é a chave Resend de ambiente, que não está configurada de forma utilizável para confirmação real de email. Esse ponto não foi mascarado nem substituído por simulação.
 
+Em 22/08/2026, o endpoint público de healthcheck de `netvius.org` respondeu com `ok: true` após os checkpoints de segurança e sincronização offline.
+
 > Nenhum sistema pode prometer impedir todo ataque. Os controles acima reduzem riscos concretos por meio de autenticação no servidor, autorização por tenant, princípio de menor privilégio, expiração de sessão, auditoria e falha fechada quando dependências críticas não estão disponíveis.
