@@ -625,7 +625,7 @@
 - [x] Remover fallback de tenant mágico e escopo implícito das rotas críticas
 - [x] Avaliar riscos de arquivos de consulta e dados locais no repositório sem reescrever histórico
 - [x] Documentar rotação externa necessária de segredos e invalidação de sessões
-- [ ] Avaliar sincronização offline para não marcar fotos com falha como concluídas
+- [x] Avaliar sincronização offline para não marcar fotos com falha como concluídas
 - [x] Criar testes de autorização por ID e tenant para recursos sensíveis
 
 ## Operação sem Google Drive e recuperação de publicação
