@@ -510,20 +510,20 @@
 - [x] Frontend: KPIs de Total de Unidades, Concluídas e % Progresso no banner executivo
 
 ## Melhorias Premium (18/07/2026)
-- [ ] Ocultar valores (R$) na página de Relatórios para role viewer
-- [ ] Redesenhar site inicial: premium, elegante, copy de vendas profissional
-- [ ] Mostrar todos os diferenciais e funcionalidades no site
+- [x] Ocultar valores (R$) na página de Relatórios para role viewer
+- [x] Redesenhar site inicial: premium, elegante, copy de vendas profissional
+- [x] Mostrar todos os diferenciais e funcionalidades no site
 - [ ] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
-- [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
-- [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
-- [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior
+- [x] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
+- [x] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
+- [x] Email com resumo: % concluído, escolas finalizadas no dia anterior
 
 ## Melhorias Premium Fase 2 (18/07/2026)
 ### Site Inicial Premium
 - [x] Mudar "Gestão inteligente para equipes externas" para copy premium de vendas
 - [x] Copy de vendas premium no hero ("Cada técnico em campo, cada centavo no lugar certo")
 - [x] CTA final redesenhado com copy urgente ("Pare de perder dinheiro com operação desorganizada")
-- [ ] Redesenhar site com visual de empresa grande (Stripe/Linear level)
+- [x] Redesenhar site com visual de empresa grande (Stripe/Linear level)
 - [x] Seção de segurança (100% seguro, dados na nuvem, proteção total)
 ### App do Técnico - Melhorias
 - [x] Link do Google Maps com coordenadas na página de manutenção
@@ -533,11 +533,11 @@
 - [x] Distância entre cidades no mapa
 - [x] Botão "Iniciar Rota" abrindo Google Maps com navegação
 - [x] IA assistente para ajudar o técnico na instalação de infraestrutura (endpoint assistenteIA)
-- [ ] Visual do app completamente redesenhado (premium, elegante)
+- [x] Visual do app completamente redesenhado (premium, elegante)
 ### Superadmin Premium
 - [x] Aba "Logs de Acesso" adicionada ao painel Superadmin com tabela de auditoria
 - [x] Logs de login registrados no banco (IP, userAgent, sucesso/falha, tipo)
-- [ ] Redesenhar superadmin com visual premium e funcionalidades avançadas
+- [x] Redesenhar superadmin com visual premium e funcionalidades avançadas
 ### Segurança Avançada
 - [x] Rate limiting no login (proteção contra brute force - 5 tentativas, bloqueio 15min)
 - [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
@@ -575,7 +575,7 @@
 - [ ] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda OS
 - [ ] Resolver/validar SSL de netvius.org manualmente no painel de domínio
 - [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
-- [ ] Confirmar conclusão do trabalho após testes reais
+- [x] Confirmar conclusão do trabalho após testes reais
 
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
 - [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
@@ -605,6 +605,15 @@
 - [x] TypeScript sem erros após a alteração do relatório
 - [x] Testes direcionados de isolamento e regras principais: 29 passaram
 - [x] Prévia visual do relatório validada em desktop
-- [ ] Checkpoint final desta correção
+- [x] Checkpoint final desta correção
 
 > Observação de testes: a suíte completa ainda possui duas falhas externas ao recorte — `RESEND_API_KEY` de ambiente com placeholder curto e upload para Google Drive bloqueado por cota de Service Account. Os testes direcionados de isolamento e regras principais passaram.
+
+## Isolamento das 12 escolas de Rodrigo — 22/08/2026
+- [x] Identificar as 12 escolas atribuídas a Rodrigo no tenant 180002 (Rafael)
+- [x] Verificar tenant de cada escola, OS e registro usado no relatório
+- [x] Corrigir apenas vínculos comprovadamente fora do tenant Rafael
+- [x] Confirmar que admin@netvionis.com não lista essas escolas, OS ou valores
+- [x] Confirmar que rafael2020ms@gmail.com lista as 12 escolas, OS e valores correspondentes
+- [x] Testar os filtros de escolas, OS e relatório após a correção
+- [ ] Salvar checkpoint e publicar a confirmação de isolamento
