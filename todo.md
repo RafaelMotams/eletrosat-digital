@@ -603,10 +603,10 @@
 - [x] Exigir confirmação explícita antes de excluir
 - [x] Exibir a ação somente no painel do administrador autorizado
 - [x] Testar bloqueio de exclusão cruzada entre tenants
-- [ ] Validar visualmente o fluxo de exclusão
+- [x] Não validar nem executar exclusão: usuário informou que não precisa remover a planilha
 - [x] Salvar checkpoint e publicar a ação
 
-> Validação visual aguardando sessão administrativa: em 22/08/2026, três verificações da rota `/admin/escolas` redirecionaram corretamente para `/admin/login`. Nenhuma credencial foi informada e nenhuma exclusão foi tentada.
+> Em 22/08/2026, três verificações da rota `/admin/escolas` redirecionaram corretamente para `/admin/login`. O usuário decidiu não remover planilhas; nenhuma credencial foi informada e nenhuma exclusão foi tentada.
 
 ## Elevação de segurança, experiência e relatórios
 - [x] Auditar superfícies públicas, sessões, cookies e rotas internas
