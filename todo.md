@@ -577,6 +577,8 @@
 - [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
 - [x] Confirmar conclusão do trabalho após testes reais
 
+> Decisão do usuário em 22/08/2026: continuar apenas com verificações internas; envio real de email e WhatsApp permanece desativado e não será simulado.
+
 ## Continuidade técnica — fórmula e isolamento
 - [x] Mapear todos os pontos de cálculo de manutenção e quilometragem
 - [x] Confirmar que manutenção usa o helper centralizado no relatório e na exportação

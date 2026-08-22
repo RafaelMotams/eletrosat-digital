@@ -27,4 +27,6 @@ O TypeScript compilou sem erros e as suítes direcionadas de segurança, isolame
 
 Em 22/08/2026, o endpoint público de healthcheck de `netvius.org` respondeu com `ok: true` após os checkpoints de segurança e sincronização offline.
 
+Na continuidade sem integrações externas, a compilação TypeScript e 34 testes direcionados de isolamento, pagamento, cadastro e sincronização offline passaram. O healthcheck público permaneceu disponível; email e WhatsApp foram mantidos desativados por decisão do usuário.
+
 > Nenhum sistema pode prometer impedir todo ataque. Os controles acima reduzem riscos concretos por meio de autenticação no servidor, autorização por tenant, princípio de menor privilégio, expiração de sessão, auditoria e falha fechada quando dependências críticas não estão disponíveis.
