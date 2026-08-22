@@ -1,8 +1,8 @@
-// Service Worker — Eletrosat Digital / Netvius
-// v7 — localStorage com timestamp para rota de OS (persiste ao abrir câmera/WhatsApp no Android)
+// Service Worker — Netvius
+// v8 — cache apenas para a interface e rotas já visitadas; não persiste mutações nem fotos.
 // CORRIGIDO: ao fechar e reabrir o app, vai para o menu (Home) e não para a OS
 // sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
-const CACHE_NAME = 'netvionis-v7';
+const CACHE_NAME = 'netvius-v8';
 
 // Assets essenciais para funcionar offline
 const OFFLINE_ASSETS = ['/tecnico'];
@@ -138,7 +138,7 @@ self.addEventListener('fetch', (event) => {
 <body>
   <div class="icon">📡</div>
   <h1>Sem conexão</h1>
-  <p>Suas OS salvas localmente serão sincronizadas quando a internet voltar.</p>
+  <p>Você pode consultar telas já carregadas. Para enviar fotos, concluir uma OS ou atualizar dados, reconecte-se e tente novamente.</p>
 </body>
 </html>`,
           { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }

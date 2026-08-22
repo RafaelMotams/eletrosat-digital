@@ -5,6 +5,7 @@
  */
 import AdminLayout from "./AdminLayout";
 import AdminLayoutTenant from "./AdminLayoutTenant";
+import { useTenantAuth } from "@/hooks/useTenantAuth";
 
 interface AdminLayoutAutoProps {
   children: React.ReactNode;
@@ -12,9 +13,9 @@ interface AdminLayoutAutoProps {
 }
 
 export default function AdminLayoutAuto({ children, title }: AdminLayoutAutoProps) {
-  const hasTenantToken = !!localStorage.getItem("tenant_admin_token");
+  const { isAuthenticated } = useTenantAuth();
 
-  if (hasTenantToken) {
+  if (isAuthenticated) {
     return <AdminLayoutTenant title={title}>{children}</AdminLayoutTenant>;
   }
 

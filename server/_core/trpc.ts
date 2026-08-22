@@ -46,21 +46,15 @@ export const tenantAdminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    // Caso 1: Admin OAuth do sistema (acesso total, tenantId=1 por padrão)
-    if (ctx.user && ctx.user.role === 'admin') {
-      return next({
-        ctx: {
-          ...ctx,
-          tenantId: 1, // Admin OAuth vê o tenant padrão
-          isSuperAdmin: false,
-        },
-      });
-    }
-
-    // Caso 2: Tenant admin via JWT
+    // Operações de tenant exigem sessão administrativa explícita.
+    // OAuth de plataforma não recebe acesso implícito a nenhum cliente.
+    // Caso: tenant admin via sessão JWT HttpOnly
     if (ctx.tenantSession) {
       if (!ctx.tenantSession.isSuperAdmin && ctx.tenantSession.tenantId <= 0) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Tenant inválido" });
+      }
+      if (ctx.tenantSession.role === "viewer" && opts.type === "mutation") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não pode alterar dados" });
       }
       return next({
         ctx: {

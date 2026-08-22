@@ -7,11 +7,11 @@ import {
   Users, MapPin, FileText, CheckCircle, Lock,
 } from "lucide-react";
 
-const stats = [
-  { value: "5.000+", label: "Escolas" },
-  { value: "120+", label: "Técnicos" },
-  { value: "98%", label: "Uptime" },
-  { value: "15k+", label: "OS Concluídas" },
+const accessPrinciples = [
+  { value: "Sessão", label: "Protegida" },
+  { value: "Dados", label: "Por cliente" },
+  { value: "Acesso", label: "Controlado" },
+  { value: "Registros", label: "Auditáveis" },
 ];
 
 const features = [
@@ -42,8 +42,6 @@ export default function AdminLogin() {
         localStorage.setItem("superadmin_info", JSON.stringify(data.admin));
         navigate("/superadmin/dashboard");
       } else {
-        localStorage.setItem("tenant_admin_token", data.token);
-        localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
         navigate("/admin");
       }
     },
@@ -124,7 +122,7 @@ export default function AdminLogin() {
             opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)",
             transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)", transitionDelay: "0.1s",
           }}>
-            {stats.map((s, i) => (
+            {accessPrinciples.map((s, i) => (
               <div key={i} style={{
                 background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 12, padding: "14px 10px", textAlign: "center",

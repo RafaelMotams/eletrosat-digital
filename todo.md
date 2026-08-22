@@ -596,6 +596,38 @@
 - [x] Preparar ponto de integração para WhatsApp sem simular envio
 - [ ] Salvar checkpoint e publicar o cadastro controlado
 
+## Exclusão segura de planilhas exportadas
+- [ ] Validar o administrador admin@netviones@gmail.com e seu tenant
+- [ ] Auditar tabela, tela e endpoints de planilhas exportadas
+- [ ] Criar exclusão com escopo obrigatório de tenant
+- [ ] Exigir confirmação explícita antes de excluir
+- [ ] Exibir a ação somente no painel do administrador autorizado
+- [ ] Testar bloqueio de exclusão cruzada entre tenants
+- [ ] Validar visualmente o fluxo de exclusão
+- [ ] Salvar checkpoint e publicar a ação
+
+## Elevação de segurança, experiência e relatórios
+- [x] Auditar superfícies públicas, sessões, cookies e rotas internas
+- [x] Revisar autorização de tenant em operações de escolas, OS, manutenção e planilhas
+- [x] Reforçar controles verificáveis contra abuso e acesso cruzado
+- [ ] Refinar hierarquia e recursos do aplicativo técnico
+- [x] Refinar landing page e copy de vendas sem alegações não verificáveis
+- [x] Ampliar o Assistente Técnico para infraestrutura, TP-Link, Intelbras e Telbrás com orientações seguras
+- [x] Evoluir relatório e gerador de planilhas de OS com filtros, resumos e gráficos de dados reais
+- [x] Testar isolamento, cálculos, exportações e interfaces desktop/mobile
+- [ ] Salvar checkpoint das melhorias verificadas
+
+## Auditoria de riscos críticos relatados
+- [x] Confirmar ausência de segredos de fallback previsíveis em produção
+- [x] Confirmar que erros de banco e autenticação falham de forma fechada
+- [x] Remover acesso público não autorizado a fotos, relatórios e planilhas
+- [x] Validar que viewer não consegue executar mutações
+- [x] Remover fallback de tenant mágico e escopo implícito das rotas críticas
+- [x] Avaliar riscos de arquivos de consulta e dados locais no repositório sem reescrever histórico
+- [x] Documentar rotação externa necessária de segredos e invalidação de sessões
+- [ ] Avaliar sincronização offline para não marcar fotos com falha como concluídas
+- [x] Criar testes de autorização por ID e tenant para recursos sensíveis
+
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
 - [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
 - [x] Confirmar tenant atual de cada registro

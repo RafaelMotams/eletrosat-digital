@@ -2,9 +2,9 @@ import { SignJWT, jwtVerify } from "jose";
 import type { Response } from "express";
 import type { Request } from "express";
 import { getSessionCookieOptions } from "./cookies";
+import { jwtSecretKey } from "./jwtSecret";
 
 const COOKIE_NAME = "netvius_tecnico_session";
-const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || "netvius-development-secret");
 
 export interface TecnicoSession {
   tecnicoId: number;
@@ -18,12 +18,12 @@ export async function signTecnicoToken(session: TecnicoSession) {
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
     .setExpirationTime("12h")
-    .sign(secretKey);
+    .sign(jwtSecretKey);
 }
 
 export async function verifyTecnicoToken(token: string): Promise<TecnicoSession | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, jwtSecretKey);
     if (payload.role !== "tecnico" || typeof payload.tecnicoId !== "number" || typeof payload.tenantId !== "number") return null;
     return {
       tecnicoId: payload.tecnicoId,

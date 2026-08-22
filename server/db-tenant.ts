@@ -100,6 +100,14 @@ export async function getTenantAdminByEmail(email: string) {
   return rows[0] ?? null;
 }
 
+export async function getTenantAdminById(id: number) {
+  const rows = await db
+    .select({ id: tenantAdmins.id, tenantId: tenantAdmins.tenantId, role: tenantAdmins.role })
+    .from(tenantAdmins)
+    .where(eq(tenantAdmins.id, id));
+  return rows[0] ?? null;
+}
+
 export async function createTenantAdmin(data: {
   tenantId: number;
   nome: string;

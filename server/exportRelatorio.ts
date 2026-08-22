@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import { Request, Response } from "express";
 import { getOsDetalhadas, getOsNaoInstaladas, getValoresApAllTecnicos } from "./db";
-import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
+import { getTenantSession, verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
 const C = {
@@ -66,8 +66,11 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
   try {
     // Auth
     const token = extractBearerToken(req.headers.authorization);
-    const session = token ? await verifyTenantToken(token) : null;
-    const tenantId = session?.tenantId ?? undefined;
+    const session = await getTenantSession(req) ?? (token ? await verifyTenantToken(token) : null);
+    if (!session || session.isSuperAdmin || session.tenantId <= 0) {
+      return res.status(401).json({ error: "Sessão de tenant válida é obrigatória para exportar relatórios." });
+    }
+    const tenantId = session.tenantId;
 
     const valorPorApFallback = parseFloat(req.query.valorPorAp as string) || 0;
     const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
@@ -79,7 +82,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const naoInstaladas = await getOsNaoInstaladas({ tenantId, tecnicoId: tecnicoIdParam, dataInicio: dataInicioParam, dataFim: dataFimParam });
 
     // Buscar valores por AP por técnico (tabela de preços cadastrada)
-    const valoresApMap = tenantId !== undefined ? await getValoresApAllTecnicos(tenantId) : {};
+    const valoresApMap = await getValoresApAllTecnicos(tenantId);
 
     // Função para obter valor de uma OS: usa tabela do técnico, fallback para valorPorApFallback
     const getValorOs = (os: typeof concluidas[0]): number => {

@@ -32,11 +32,7 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   // Não redirecionar se for um técnico (autenticação própria via localStorage)
   const tecnicoId = localStorage.getItem("tecnico_id");
   if (tecnicoId) return;
-  // Só redireciona para login OAuth se não houver token de tenant
-  const tenantToken = localStorage.getItem("tenant_admin_token");
-  if (!tenantToken) {
-    window.location.href = getLoginUrl();
-  }
+  window.location.href = getLoginUrl();
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -60,14 +56,6 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      async headers() {
-        // Enviar token JWT do tenant admin se disponível
-        const tenantToken = localStorage.getItem("tenant_admin_token");
-        if (tenantToken) {
-          return { Authorization: `Bearer ${tenantToken}` };
-        }
-        return {};
-      },
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),

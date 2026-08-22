@@ -27,6 +27,7 @@ const PERFIS_ASSISTENTE = [
   { value: "infraestrutura_fisica", label: "Infraestrutura física", detail: "Rack, cabeamento, fibra e energia" },
   { value: "configuracao_tp_link", label: "Especialista TP-Link", detail: "Omada, VLAN e provisionamento" },
   { value: "configuracao_intelbras", label: "Especialista Intelbras", detail: "Controladoras, APs e GPON" },
+  { value: "rede_externa_telbras", label: "Rede externa e Telbrás", detail: "Fibra, GPON, enlaces e medição" },
 ] as const;
 
 type PerfilAssistente = typeof PERFIS_ASSISTENTE[number]["value"];
@@ -43,13 +44,22 @@ export default function AdminManutencao() {
   // ── Dados ──────────────────────────────────────────────────────────────────
   const [filtroStatus, setFiltroStatus] = useState("todas");
   const [busca, setBusca] = useState("");
+  const [filtroRelatorioTecnico, setFiltroRelatorioTecnico] = useState("todos");
+  const [filtroRelatorioInicio, setFiltroRelatorioInicio] = useState("");
+  const [filtroRelatorioFim, setFiltroRelatorioFim] = useState("");
+  const filtrosRelatorio = useMemo(() => ({
+    tecnicoId: filtroRelatorioTecnico === "todos" ? undefined : Number(filtroRelatorioTecnico),
+    status: filtroStatus as "todas" | "pendente" | "em_andamento" | "concluida",
+    dataInicio: filtroRelatorioInicio || undefined,
+    dataFim: filtroRelatorioFim || undefined,
+  }), [filtroRelatorioTecnico, filtroRelatorioInicio, filtroRelatorioFim, filtroStatus]);
   const { data: lista, isLoading } = trpc.manutencao.listar.useQuery(
     { status: filtroStatus as any, busca: busca || undefined },
     { refetchInterval: 30000 }
   );
   const { data: escolas } = trpc.escolas.list.useQuery({});
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
-  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery();
+  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery(filtrosRelatorio);
 
   // ── Modais ─────────────────────────────────────────────────────────────────
   const [criarOpen, setCriarOpen] = useState(false);
@@ -213,10 +223,18 @@ export default function AdminManutencao() {
     ];
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
 
+    const tecnicoSelecionado = filtroRelatorioTecnico === "todos"
+      ? "Todos os técnicos"
+      : tecnicos?.find(t => String(t.id) === filtroRelatorioTecnico)?.nome ?? "Técnico selecionado";
+    const periodoSelecionado = filtroRelatorioInicio || filtroRelatorioFim
+      ? `${filtroRelatorioInicio ? new Date(`${filtroRelatorioInicio}T12:00:00`).toLocaleDateString("pt-BR") : "Início"} até ${filtroRelatorioFim ? new Date(`${filtroRelatorioFim}T12:00:00`).toLocaleDateString("pt-BR") : "Hoje"}`
+      : "Todo o período";
+    const statusSelecionado = filtroStatus === "todas" ? "Todos os status" : filtroStatus === "em_andamento" ? "Em andamento" : filtroStatus === "concluida" ? "Concluídas" : "Pendentes";
     const resumoRows: (string | number)[][] = [
       ["NETVIUS · CENTRAL DE MANUTENÇÃO", "", "", "", ""],
       ["Resumo executivo da operação", "", "", "", ""],
       [`Emitido em ${new Date().toLocaleString("pt-BR")}`, "", "", "", ""],
+      [`Filtros: ${periodoSelecionado} · ${tecnicoSelecionado} · ${statusSelecionado}`, "", "", "", ""],
       ["", "", "", "", ""],
       ["INDICADORES", "VALOR", "", "", ""],
       ["Ordens no período", relatorioData.length, "", "", ""],
@@ -240,7 +258,7 @@ export default function AdminManutencao() {
       { s: { r: resumoRows.length - 1, c: 1 }, e: { r: resumoRows.length - 1, c: 4 } },
     ];
     resumo["!cols"] = [{ wch: 34 }, { wch: 18 }, { wch: 16 }, { wch: 20 }, { wch: 25 }];
-    resumo["!freeze"] = { xSplit: 0, ySplit: 5 };
+    resumo["!freeze"] = { xSplit: 0, ySplit: 6 };
 
     const styleHeader = (sheet: XLSX.WorkSheet, row: number, color = "0F766E") => {
       for (let col = 0; col <= 13; col++) {
@@ -330,6 +348,31 @@ export default function AdminManutencao() {
               {s === "todas" ? "Todas" : s === "em_andamento" ? "Em Andamento" : s === "concluida" ? "Concluídas" : "Pendentes"}
             </button>
           ))}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
+          <span className="px-1 text-xs font-semibold text-muted-foreground">Planilha:</span>
+          <Input
+            type="date"
+            aria-label="Data inicial do relatório"
+            className="h-8 w-[142px] text-xs"
+            value={filtroRelatorioInicio}
+            onChange={e => setFiltroRelatorioInicio(e.target.value)}
+          />
+          <Input
+            type="date"
+            aria-label="Data final do relatório"
+            className="h-8 w-[142px] text-xs"
+            value={filtroRelatorioFim}
+            onChange={e => setFiltroRelatorioFim(e.target.value)}
+          />
+          <Select value={filtroRelatorioTecnico} onValueChange={setFiltroRelatorioTecnico}>
+            <SelectTrigger className="h-8 w-[170px] text-xs" aria-label="Técnico do relatório"><SelectValue placeholder="Todos os técnicos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os técnicos</SelectItem>
+              {tecnicos?.map(tecnico => <SelectItem key={tecnico.id} value={String(tecnico.id)}>{tecnico.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
 
         <Button

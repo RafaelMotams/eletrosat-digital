@@ -173,7 +173,12 @@ export const manutencaoRouter = router({
     }),
 
   // ── ADMIN: Relatório Excel (retorna dados) ──────────────────────────────────
-  relatorio: tenantAdminProcedure.query(async ({ ctx }) => {
+  relatorio: tenantAdminProcedure.input(z.object({
+    tecnicoId: z.number().int().positive().optional(),
+    status: z.enum(["todas", "pendente", "em_andamento", "concluida"]).default("todas"),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  })).query(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     const tenantId = requireTenantId(ctx);
@@ -188,7 +193,17 @@ export const manutencaoRouter = router({
       .leftJoin(tecnicos, eq(manutencoes.tecnicoId, tecnicos.id))
       .where(eq(manutencoes.tenantId, tenantId))
       .orderBy(desc(manutencoes.createdAt));
-    return rows.map(r => {
+    const inicio = input.dataInicio ? new Date(`${input.dataInicio}T00:00:00.000Z`).getTime() : undefined;
+    const fim = input.dataFim ? new Date(`${input.dataFim}T23:59:59.999Z`).getTime() : undefined;
+    const rowsFiltradas = rows.filter(r => {
+      if (input.tecnicoId && r.m.tecnicoId !== input.tecnicoId) return false;
+      if (input.status !== "todas" && r.m.status !== input.status) return false;
+      const createdAt = new Date(r.m.createdAt).getTime();
+      if (inicio && createdAt < inicio) return false;
+      if (fim && createdAt > fim) return false;
+      return true;
+    });
+    return rowsFiltradas.map(r => {
       const payment = calculateMaintenancePayment(r.m.quilometragem);
       return {
         id: r.m.id,
@@ -343,7 +358,7 @@ export const manutencaoRouter = router({
       manutencaoId: z.number(),
       pergunta: z.string().min(3),
       contexto: z.string().optional(),
-      perfil: z.enum(["rede_escolar", "infraestrutura_fisica", "configuracao_tp_link", "configuracao_intelbras"]).default("rede_escolar"),
+      perfil: z.enum(["rede_escolar", "infraestrutura_fisica", "configuracao_tp_link", "configuracao_intelbras", "rede_externa_telbras"]).default("rede_escolar"),
     }))
     .mutation(async ({ input, ctx }) => {
       const m = await getManutencaoComDados(input.manutencaoId);
@@ -359,6 +374,7 @@ export const manutencaoRouter = router({
         infraestrutura_fisica: "priorize rack, patch panel, organização, cabeamento, fibra, aterramento, energia e segurança física da instalação",
         configuracao_tp_link: "priorize TP-Link Omada, controlador, adoção de APs, VLANs, roaming, canais, potência e atualização de firmware",
         configuracao_intelbras: "priorize Intelbras, controladoras, switches, APs, GPON, VLANs, provisionamento e documentação do fabricante",
+        rede_externa_telbras: "priorize redes externas, enlaces, fibra, GPON, ONUs, caixas de emenda, medição óptica, equipamentos Telbrás e critérios seguros de aceitação",
       };
       const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
 
@@ -366,7 +382,7 @@ export const manutencaoRouter = router({
 • EQUIPAMENTOS: Controladoras Intelbras (WiseFi), TP-Link Omada, Ubiquiti UniFi, Huawei, MikroTik. APs indoor/outdoor, switches gerenciáveis L2/L3, roteadores, OLTs, ONUs
 • CONFIGURAÇÃO: VLANs, DHCP, DNS, QoS, balanceamento de carga, failover, PPPoE, CGNAT, NAT, firewall, ACLs, SNMP, Zabbix, Grafana
 • INSTALAÇÃO FÍSICA: Montagem de rack (padrão EIA/TIA-568), passagem de cabos, certificação, teste de enlace, fusão de fibra, OTDR, power meter
-• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
+• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Telbrás, Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
 • PROJETOS ESCOLARES: Programa Escolas Conectadas, PBLE, Wi-Fi Brasil — regras de cobertura, quantidade de APs por m², posicionamento ideal
 
 Seu estilo:

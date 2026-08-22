@@ -51,6 +51,7 @@ const PERFIS_ASSISTENTE = [
   { value: "infraestrutura_fisica", label: "Infraestrutura física", detail: "Rack, cabeamento, fibra e energia", color: "#06b6d4" },
   { value: "configuracao_tp_link", label: "Especialista TP-Link", detail: "Omada, VLAN e provisionamento", color: "#22c55e" },
   { value: "configuracao_intelbras", label: "Especialista Intelbras", detail: "Controladoras, APs e GPON", color: "#f59e0b" },
+  { value: "rede_externa_telbras", label: "Rede externa e Telbrás", detail: "Fibra, GPON, enlaces e medição", color: "#8b5cf6" },
 ] as const;
 
 type PerfilAssistente = typeof PERFIS_ASSISTENTE[number]["value"];

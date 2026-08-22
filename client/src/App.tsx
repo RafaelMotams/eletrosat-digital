@@ -104,7 +104,9 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/cadastro" component={Signup} />
+      <Route path="/signup" component={Signup} />
       <Route path="/confirmar-cadastro" component={ConfirmSignup} />
+      <Route path="/confirm-signup" component={ConfirmSignup} />
       {/* Admin routes */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />

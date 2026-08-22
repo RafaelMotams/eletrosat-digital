@@ -1,7 +1,7 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
-import { verifyTenantToken, extractBearerToken, type TenantSession } from "./tenantAuth";
+import { getTenantSession, verifyTenantToken, extractBearerToken, type TenantSession } from "./tenantAuth";
 import { getTecnicoSession, type TecnicoSession } from "./tecnicoAuth";
 
 export type TrpcContext = {
@@ -26,11 +26,12 @@ export async function createContext(
     user = null;
   }
 
-  // Tentar autenticar via JWT de tenant admin (header Authorization)
-  const authHeader = opts.req.headers.authorization;
-  const token = extractBearerToken(authHeader);
-  if (token) {
-    tenantSession = await verifyTenantToken(token);
+  // Preferir sessão HttpOnly do tenant. O header é apenas compatibilidade temporária
+  // para clientes legados e nunca substitui uma sessão inválida.
+  tenantSession = await getTenantSession(opts.req);
+  if (!tenantSession) {
+    const token = extractBearerToken(opts.req.headers.authorization);
+    if (token) tenantSession = await verifyTenantToken(token);
   }
 
   tecnicoSession = await getTecnicoSession(opts.req);

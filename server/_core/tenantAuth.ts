@@ -1,17 +1,51 @@
-import { jwtVerify } from "jose";
+import { SignJWT, jwtVerify } from "jose";
+import type { Request, Response } from "express";
 import { getDb } from "../db";
 import { tenants, tenantAdmins } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { jwtSecretKey } from "./jwtSecret";
+import { getSessionCookieOptions } from "./cookies";
 
-const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
-const secretKey = new TextEncoder().encode(JWT_SECRET);
+const TENANT_SESSION_COOKIE = "netvius_tenant_session";
+
 
 export interface TenantSession {
   adminId: number;
   tenantId: number;
+  email: string;
   role: string;
   isSuperAdmin: boolean;
 }
+
+export async function signTenantToken(session: TenantSession): Promise<string> {
+  return new SignJWT(session as unknown as Record<string, unknown>)
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuedAt()
+    .setExpirationTime("8h")
+    .sign(jwtSecretKey);
+}
+
+function readCookie(req: Request, name: string): string | null {
+  const raw = req.headers.cookie ?? "";
+  const item = raw.split(";").map(value => value.trim()).find(value => value.startsWith(`${name}=`));
+  return item ? decodeURIComponent(item.slice(name.length + 1)) : null;
+}
+
+export async function getTenantSession(req: Request): Promise<TenantSession | null> {
+  const token = readCookie(req, TENANT_SESSION_COOKIE);
+  return token ? verifyTenantToken(token) : null;
+}
+
+export async function setTenantSession(res: Response, req: Request, session: TenantSession) {
+  const token = await signTenantToken(session);
+  res.cookie(TENANT_SESSION_COOKIE, token, { ...getSessionCookieOptions(req), maxAge: 8 * 60 * 60 * 1000 });
+}
+
+export function clearTenantSession(res: Response, req: Request) {
+  res.clearCookie(TENANT_SESSION_COOKIE, { ...getSessionCookieOptions(req), maxAge: -1 });
+}
+
+export { TENANT_SESSION_COOKIE };
 
 /** Verifica e atualiza automaticamente o status do trial se expirado */
 async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenantId: number) {
@@ -51,14 +85,14 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
 
 export async function verifyTenantToken(token: string): Promise<TenantSession | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, jwtSecretKey);
     const session = payload as unknown as TenantSession;
 
     // Superadmin não precisa de verificação de tenant
     if (session.isSuperAdmin) return session;
 
     const db = await getDb();
-    if (!db) return session; // fallback se DB indisponível
+    if (!db) return null;
 
     // Verificar se o admin ainda está ativo
     const [admin] = await db
@@ -86,7 +120,7 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
 export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolean; motivo?: string }> {
   try {
     const db = await getDb();
-    if (!db) return { ok: true }; // fallback
+    if (!db) return { ok: false, motivo: "servico_indisponivel" };
 
     const status = await checkAndExpireTrial(db, tenantId);
 
@@ -102,7 +136,7 @@ export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolea
     }
     return { ok: true };
   } catch {
-    return { ok: true }; // fallback em caso de erro
+    return { ok: false, motivo: "servico_indisponivel" };
   }
 }
 

@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { setTecnicoSession, clearTecnicoSession } from "./_core/tecnicoAuth";
+import { clearTenantSession } from "./_core/tenantAuth";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
@@ -362,7 +363,8 @@ const planilhasImportadasRouter = router({
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
     const { planilhasImportadas } = await import("../drizzle/schema");
-    const tenantId = (ctx as any).tenantId ?? 1;
+    const tenantId = (ctx as { tenantId?: number }).tenantId;
+    if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
     return db.select().from(planilhasImportadas)
       .where(eq(planilhasImportadas.tenantId, tenantId))
       .orderBy(planilhasImportadas.createdAt);
@@ -380,7 +382,8 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
       await db.insert(planilhasImportadas).values({
         tenantId,
         nome: input.nome,
@@ -399,10 +402,14 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
+      const [planilha] = await db.select({ id: planilhasImportadas.id }).from(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
+      if (!planilha) throw new TRPCError({ code: "FORBIDDEN", message: "Planilha fora do tenant autorizado" });
       await db.update(planilhasImportadas)
         .set({ ativa: input.ativa })
-        .where(eq(planilhasImportadas.id, input.id));
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
       return { success: true };
     }),
 
@@ -412,7 +419,13 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      await db.delete(planilhasImportadas).where(eq(planilhasImportadas.id, input.id));
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
+      const [planilha] = await db.select({ id: planilhasImportadas.id }).from(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
+      if (!planilha) throw new TRPCError({ code: "FORBIDDEN", message: "Planilha fora do tenant autorizado" });
+      await db.delete(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
       return { success: true };
     }),
 });
@@ -686,16 +699,26 @@ const ordensRouter = router({
       return { success: true };
     }),
 
-  // Busca fotos de uma OS pelo admin (publicProcedure para funcionar com qualquer autenticação)
-  getOsFotos: publicProcedure
+  // Busca fotos de uma OS somente dentro do tenant administrativo autenticado.
+  getOsFotos: tenantAdminProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      if (os.tenantId !== (ctx as any).tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "OS fora do tenant autorizado" });
+      }
       return listOsFotos(input.osId);
     }),
-  // Busca fotos de uma escola (todas as OS) pelo admin
-  getOsFotosByEscola: publicProcedure
+  // Busca fotos de uma escola somente dentro do tenant administrativo autenticado.
+  getOsFotosByEscola: tenantAdminProcedure
     .input(z.object({ escolaId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const escola = await getEscolaById(input.escolaId);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      if (escola.tenantId !== (ctx as any).tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Escola fora do tenant autorizado" });
+      }
       return listOsFotosByEscola(input.escolaId);
     }),
 });
@@ -1192,6 +1215,32 @@ const tenantAdminSelfRouter = router({
     }),
 });
 
+const tenantSessionRouter = router({
+  me: tenantAdminProcedure.query(async ({ ctx }) => {
+    const session = ctx.tenantSession;
+    if (!session) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão administrativa inválida" });
+    const { getTenantAdminByEmail, getTenantById } = await import("./db-tenant");
+    const admin = await getTenantAdminByEmail(session.email);
+    if (!admin || !admin.ativo || admin.tenantId !== session.tenantId) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão administrativa inválida" });
+    }
+    const tenant = await getTenantById(session.tenantId);
+    return {
+      id: admin.id,
+      nome: admin.nome,
+      email: admin.email,
+      role: admin.role,
+      tenantId: session.tenantId,
+      isSuperAdmin: false,
+      tenant: tenant ? { id: tenant.id, nome: tenant.nome, slug: tenant.slug, plano: tenant.plano, status: tenant.status } : null,
+    };
+  }),
+  logout: tenantAdminProcedure.mutation(({ ctx }) => {
+    clearTenantSession(ctx.res, ctx.req);
+    return { success: true };
+  }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -1209,6 +1258,7 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
+  tenantSession: tenantSessionRouter,
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
