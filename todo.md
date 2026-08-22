@@ -633,7 +633,11 @@
 - [x] Manter fotos no armazenamento atual e documentar o limite de acesso por URL pública
 - [x] Atualizar a suíte de testes para não depender de cota do Google Drive
 - [x] Diagnosticar e corrigir a falha de healthcheck da última publicação
-- [ ] Validar a versão publicada sem Google Drive
+- [x] Validar a versão publicada sem Google Drive
+
+## Verificação da landing pública publicada
+- [x] Alinhar a versão pública com a copy sem números fictícios, preços não confirmados e promessas absolutas de segurança/offline
+- [x] Confirmar a propagação do checkpoint atual para netvius.org antes de tratar a landing como publicada
 
 > Decisão do usuário: não usar segredo temporário gerado a cada inicialização. A publicação seguirá pendente até existir um segredo de produção persistente e seguro.
 
