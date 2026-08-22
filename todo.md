@@ -513,7 +513,7 @@
 - [x] Ocultar valores (R$) na página de Relatórios para role viewer
 - [x] Redesenhar site inicial: premium, elegante, copy de vendas profissional
 - [x] Mostrar todos os diferenciais e funcionalidades no site
-- [ ] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
+- [x] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
 - [x] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
 - [x] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
 - [x] Email com resumo: % concluído, escolas finalizadas no dia anterior

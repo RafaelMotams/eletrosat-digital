@@ -259,6 +259,43 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          <div className="mt-14 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
+            <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="flex flex-col justify-center bg-slate-950 p-8 text-white sm:p-10">
+                <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
+                  <Play className="h-3.5 w-3.5 fill-current" /> Demonstração do fluxo
+                </span>
+                <h3 className="text-2xl font-extrabold">Da abertura à conclusão, com rastreabilidade.</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-300">Uma representação visual do ciclo de uma OS: técnico designado, execução documentada e atualização no painel administrativo.</p>
+              </div>
+              <div className="p-5 sm:p-8">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
+                  <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div>
+                      <p className="text-xs font-bold tracking-wide text-slate-500">FLUXO DE ORDEM DE SERVIÇO</p>
+                      <p className="mt-1 text-sm font-bold text-slate-800">Exemplo de acompanhamento operacional</p>
+                    </div>
+                    <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500" aria-label="Fluxo ativo" />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      { number: "01", title: "OS criada", text: "Escola e técnico definidos", tone: "border-blue-200 bg-blue-50 text-blue-700" },
+                      { number: "02", title: "Em campo", text: "GPS, fotos e observações", tone: "border-amber-200 bg-amber-50 text-amber-700" },
+                      { number: "03", title: "Concluída", text: "Painel e relatório atualizados", tone: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+                    ].map((stage, index) => (
+                      <div key={stage.number} className={`relative rounded-xl border p-4 ${stage.tone}`}>
+                        <span className="text-xs font-black">{stage.number}</span>
+                        <p className="mt-3 text-sm font-bold">{stage.title}</p>
+                        <p className="mt-1 text-xs leading-5 opacity-80">{stage.text}</p>
+                        {index < 2 && <ArrowRight className="absolute -right-5 top-1/2 hidden h-5 w-5 -translate-y-1/2 text-slate-300 sm:block" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
