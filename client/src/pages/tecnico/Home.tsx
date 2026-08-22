@@ -28,16 +28,13 @@ type Escola = {
   [key: string]: unknown;
 };
 
-function formatWhatsApp(raw: string | null | undefined): string | null {
+function formatPhoneLink(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, "");
   if (!digits || digits.length < 8) return null;
-  // Se já começa com 55 (código do Brasil), usa direto
-  if (digits.startsWith("55") && digits.length >= 12) return digits;
-  // Se tem DDD (10 ou 11 dígitos), adiciona código do Brasil
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  // Se tem apenas o número sem DDD (8 ou 9 dígitos), retorna como está
-  return digits;
+  if (digits.startsWith("55") && digits.length >= 12) return `tel:+${digits}`;
+  if (digits.length === 10 || digits.length === 11) return `tel:+55${digits}`;
+  return `tel:${digits}`;
 }
 
 function haversine(a: Escola, b: Escola): number {
@@ -266,6 +263,9 @@ export default function TecnicoHome() {
     !search || e.nome.toLowerCase().includes(search.toLowerCase()) ||
     e.inep.includes(search) || (e.municipio ?? "").toLowerCase().includes(search.toLowerCase())
   );
+  const proximaMissao = finalSorted.find(e => e.status === "em_andamento")
+    ?? finalSorted.find(e => e.status === "pendente")
+    ?? finalSorted.find(e => e.status !== "concluido");
 
   const total = escolas.length;
   const concluidas = escolas.filter(e => e.status === "concluido").length;
@@ -353,9 +353,9 @@ export default function TecnicoHome() {
       <div className="px-4 pt-5 pb-4">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0"
-              style={{ boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}>
-              <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-sm font-black text-white"
+              style={{ boxShadow: "0 4px 16px rgba(15,118,110,0.3)" }} aria-label="Netvius">
+              N
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>{saudacao}</p>
@@ -418,6 +418,21 @@ export default function TecnicoHome() {
             <span className="text-xs text-slate-500">{total} total</span>
           </div>
         </div>
+
+        {proximaMissao && (
+          <section className="mb-4 rounded-2xl border border-emerald-400/25 bg-emerald-400/[0.08] p-4 shadow-lg shadow-black/10">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-200">Próxima missão</p>
+                <h2 className="mt-1 truncate text-base font-black text-white">{proximaMissao.nome}</h2>
+                <p className="mt-1 text-xs text-slate-300">INEP {proximaMissao.inep || "não informado"}{proximaMissao.qtdAp != null ? ` · ${proximaMissao.qtdAp} AP${proximaMissao.qtdAp === 1 ? "" : "s"} planejado${proximaMissao.qtdAp === 1 ? "" : "s"}` : ""}</p>
+              </div>
+              <button onClick={() => navigate(`/tecnico/os/${proximaMissao.id}`)} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-400 px-3 py-2 text-xs font-black text-slate-950 transition hover:bg-emerald-300">
+                Abrir <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </section>
+        )}
 
         <section className="mb-4 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
           <div className="mb-3 flex items-center justify-between px-1">
@@ -559,7 +574,7 @@ export default function TecnicoHome() {
           filtered.map((escola, idx) => {
             const sc = STATUS_CONFIG[escola.status] ?? STATUS_CONFIG.pendente;
             const StatusIcon = sc.icon;
-            const whatsNum = formatWhatsApp(escola.telefoneWhatsApp || escola.telefone);
+            const phoneLink = formatPhoneLink(escola.telefone || escola.telefoneWhatsApp);
 
             return (
               <div key={escola.id}
@@ -634,12 +649,12 @@ export default function TecnicoHome() {
 
                 {/* Action bar */}
                 <div className="flex" style={{ borderTop: `1px solid ${sc.border}` }}>
-                  {whatsNum ? (
-                    <a href={`https://wa.me/${whatsNum}`} target="_blank" rel="noopener noreferrer"
+                  {phoneLink ? (
+                    <a href={phoneLink}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all active:opacity-70"
-                      style={{ color: "#25d366" }} onClick={e => e.stopPropagation()}>
+                      style={{ color: "#34d399" }} onClick={e => e.stopPropagation()}>
                       <Phone className="w-3.5 h-3.5" />
-                      WhatsApp
+                      Ligar
                     </a>
                   ) : (
                     <a href={`https://www.google.com/search?q=${encodeURIComponent(escola.nome + " " + escola.inep + " telefone")}`}

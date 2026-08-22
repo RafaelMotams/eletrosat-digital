@@ -756,8 +756,23 @@
 - [x] Corrigir o componente de mapa: carregamento único, centro por escolas do tenant, erro, timeout e nova tentativa
 - [x] Consolidar a missão e conclusão da OS com AP planejado/instalado, observação condicional e uma única foto de mapa de calor
 - [x] Preservar fotos e registros históricos, removendo apenas categorias extras do novo fluxo técnico
-- [ ] Avaliar impedimentos, sincronização, rota e diagnósticos que podem ser implementados de forma verificável no navegador
+- [x] Avaliar impedimentos, sincronização, rota e diagnósticos que podem ser implementados de forma verificável no navegador
 - [x] Evoluir relatórios e exportações com planejado versus instalado, dados por tenant e somente informações reais
 - [x] Documentar limites: banco compartilhado com isolamento lógico por tenant; integrações de WhatsApp/Google Drive continuam desativadas
 - [x] Validar com testes, build, telas mobile/desktop e publicação
 - [x] Retirar links públicos de WhatsApp da landing enquanto a integração permanece desativada
+
+## Continuidade ampla solicitada
+- [ ] Auditar a tela inicial, ordens, missão e mapa do técnico para priorizar melhorias de campo com dados reais
+- [ ] Aprimorar acessibilidade, navegação e estados de erro/carregamento no aplicativo técnico
+- [ ] Revisar painéis administrativo e master para identificar melhorias sem cruzar dados de tenants
+- [ ] Revisar consistência de marca e copy da landing sem reativar integrações externas
+- [ ] Implementar as melhorias seguras identificadas, com testes e validação visual
+- [x] Remover o acionamento de WhatsApp das ordens técnicas, mantendo ligação e rota como ações disponíveis
+
+## Experiência profissional de operação
+- [x] Criar uma visão de próxima ação mais clara no aplicativo técnico usando somente ordens reais do técnico
+- [x] Melhorar a hierarquia visual e acessibilidade de cartões, filtros e estados do aplicativo
+- [x] Criar uma visão operacional administrativa de prioridades usando contagens reais do tenant
+- [x] Revisar ações rápidas, tabelas e estados vazios do painel administrativo para reduzir cliques desnecessários
+- [x] Validar as melhorias em telas móvel e desktop sem alterar dados de clientes

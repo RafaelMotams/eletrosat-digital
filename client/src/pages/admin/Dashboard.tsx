@@ -2,7 +2,7 @@ import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users, ClipboardList, FileText, Wrench } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -193,6 +193,30 @@ export default function AdminDashboard() {
                 <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {!isViewer && (
+        <section className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">Atalhos operacionais</p>
+            <h2 className="mt-1 text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Trabalhe por prioridade</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Acesse as rotinas mais usadas da operação sem procurar no menu.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              { href: "/admin/ordens", icon: ClipboardList, title: "Ordens de serviço", detail: `${(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)} atividade(s) aberta(s)`, tone: "text-blue-700 bg-blue-50 border-blue-200" },
+              { href: "/admin/manutencao", icon: Wrench, title: "Manutenção", detail: "Atribuir, acompanhar e concluir", tone: "text-amber-700 bg-amber-50 border-amber-200" },
+              { href: "/admin/relatorios", icon: FileText, title: "Relatórios", detail: "Planejado, instalado e exportações", tone: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+            ].map((action) => {
+              const Icon = action.icon;
+              return <a key={action.href} href={action.href} className={`group rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ${action.tone}`}>
+                <Icon className="h-5 w-5" />
+                <p className="mt-3 text-sm font-bold">{action.title}</p>
+                <p className="mt-1 text-xs opacity-80">{action.detail}</p>
+              </a>;
+            })}
           </div>
         </section>
       )}
