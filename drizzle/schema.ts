@@ -68,6 +68,26 @@ export const tenantAdmins = mysqlTable("tenant_admins", {
 export type TenantAdmin = typeof tenantAdmins.$inferSelect;
 export type InsertTenantAdmin = typeof tenantAdmins.$inferInsert;
 
+// Solicitações públicas de cadastro: a conta só é criada após confirmação do email.
+// A senha e o token são guardados exclusivamente em formato hash.
+export const registrationRequests = mysqlTable("registration_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  empresaNome: varchar("empresaNome", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  senhaHash: varchar("senhaHash", { length: 255 }).notNull(),
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  status: mysqlEnum("status", ["pendente", "confirmado", "expirado"]).default("pendente").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  confirmedAt: timestamp("confirmedAt"),
+  tenantId: int("tenantId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RegistrationRequest = typeof registrationRequests.$inferSelect;
+
 // ============================================================
 // TABELAS PRINCIPAIS (com tenant_id para isolamento)
 // ============================================================

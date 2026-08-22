@@ -7,6 +7,7 @@ import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } fro
 import { superadminRouter } from "./routers/superadmin";
 import { manutencaoRouter } from "./routers/manutencao";
 import { tenantConfigRouter } from "./routers/tenantConfig";
+import { signupRouter } from "./routers/signup";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -1212,6 +1213,7 @@ export const appRouter = router({
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
   superadmin: superadminRouter,
+  signup: signupRouter,
   tenantConfig: tenantConfigRouter,
   tenantAdmin: tenantAdminSelfRouter,
 });

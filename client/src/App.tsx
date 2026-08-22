@@ -21,6 +21,8 @@ import TecnicoPerfil from "./pages/tecnico/Perfil";
 import TecnicoHistorico from "./pages/tecnico/Historico";
 import TecnicoRotaDia from "./pages/tecnico/RotaDia";
 import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import ConfirmSignup from "./pages/ConfirmSignup";
 import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
@@ -101,6 +103,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/cadastro" component={Signup} />
+      <Route path="/confirmar-cadastro" component={ConfirmSignup} />
       {/* Admin routes */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />

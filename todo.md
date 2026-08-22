@@ -572,8 +572,8 @@
 ## Pendências herdadas para revisão
 - [x] Landing page deve abrir primeiro e áreas internas devem exigir login
 - [ ] Cadastro com confirmação por email e notificação WhatsApp dependem de integração configurada
-- [ ] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda OS
-- [ ] Resolver/validar SSL de netvius.org manualmente no painel de domínio
+- [x] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda manutenção; OS de instalação usam tabela por AP cadastrada
+- [x] Resolver/validar SSL de netvius.org manualmente no painel de domínio
 - [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
 - [x] Confirmar conclusão do trabalho após testes reais
 
@@ -583,7 +583,18 @@
 - [x] Verificar que cada consulta operacional deriva tenantId da sessão autenticada
 - [x] Adicionar cobertura de testes para limites de tenant nos fluxos de manutenção
 - [x] Executar verificação TypeScript e testes direcionados
-- [ ] Salvar checkpoint das validações internas
+- [x] Salvar checkpoint das validações internas
+
+## Cadastro controlado por email
+- [x] Auditar as tabelas de tenant, admin e os procedimentos de login existentes
+- [x] Criar solicitação de cadastro com token de confirmação e expiração
+- [x] Armazenar a senha somente com hash antes de confirmar a conta
+- [x] Enviar email de confirmação usando a integração de email já configurada
+- [x] Criar telas públicas de cadastro e confirmação, sem abrir painéis internos
+- [x] Registrar a solicitação de conta na auditoria do superadmin
+- [x] Testar criação, expiração e confirmação de conta
+- [x] Preparar ponto de integração para WhatsApp sem simular envio
+- [ ] Salvar checkpoint e publicar o cadastro controlado
 
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
 - [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive

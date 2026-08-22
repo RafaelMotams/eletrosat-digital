@@ -85,8 +85,8 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href="https://wa.me/5575999142134?text=Olá! Quero testar o Netvius gratuitamente" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition shadow-lg shadow-emerald-600/20 group">
-                  Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                <a href="/cadastro" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition shadow-lg shadow-emerald-600/20 group">
+                  Criar conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
                 </a>
                 <a href="/admin/login" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 font-semibold text-base transition">
                   <Lock className="w-4 h-4" /> Acessar Painel
@@ -445,8 +445,8 @@ export default function Home() {
             Com o Netvius, você controla tudo em tempo real.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://wa.me/5575999142134?text=Olá! Quero testar o Netvius gratuitamente por 5 dias" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg transition group">
-              Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+            <a href="/cadastro" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg transition group">
+              Criar conta <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
             </a>
             <a href="/admin/login" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border border-slate-600 hover:border-slate-400 text-white font-semibold transition">
               <Lock className="w-4 h-4" /> Já tenho conta

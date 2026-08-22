@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/mysql2";
-import { tenants, tenantAdmins } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { tenants, tenantAdmins, registrationRequests } from "../drizzle/schema";
+import { desc, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -116,6 +116,100 @@ export async function createTenantAdmin(data: {
     role: data.role ?? "admin",
     ativo: true,
   });
+}
+
+// ============================================================
+// CADASTRO PÚBLICO COM CONFIRMAÇÃO DE EMAIL
+// ============================================================
+
+export async function getRegistrationRequestByEmail(email: string) {
+  const rows = await db.select().from(registrationRequests).where(eq(registrationRequests.email, email));
+  return rows[0] ?? null;
+}
+
+export async function getRegistrationRequestByTokenHash(tokenHash: string) {
+  const rows = await db.select().from(registrationRequests).where(eq(registrationRequests.tokenHash, tokenHash));
+  return rows[0] ?? null;
+}
+
+export async function createRegistrationRequest(data: {
+  nome: string;
+  empresaNome: string;
+  slug: string;
+  email: string;
+  senhaHash: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) {
+  return db.insert(registrationRequests).values({ ...data, status: "pendente" });
+}
+
+export async function refreshRegistrationRequest(id: number, data: {
+  nome: string;
+  empresaNome: string;
+  slug: string;
+  senhaHash: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) {
+  return db.update(registrationRequests)
+    .set({ ...data, status: "pendente", confirmedAt: null, tenantId: null })
+    .where(eq(registrationRequests.id, id));
+}
+
+export async function expireRegistrationRequest(id: number) {
+  return db.update(registrationRequests).set({ status: "expirado" }).where(eq(registrationRequests.id, id));
+}
+
+export async function confirmRegistrationRequest(id: number) {
+  return db.transaction(async (tx) => {
+    const [request] = await tx.select().from(registrationRequests).where(eq(registrationRequests.id, id));
+    if (!request || request.status !== "pendente") throw new Error("Solicitação de cadastro inválida");
+
+    await tx.insert(tenants).values({
+      nome: request.empresaNome,
+      slug: request.slug,
+      plano: "basico",
+      status: "trial",
+      contato: request.nome,
+      email: request.email,
+      diasTrial: 5,
+      trialInicio: new Date(),
+      trialFim: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    });
+
+    const [tenant] = await tx.select().from(tenants).where(eq(tenants.slug, request.slug));
+    if (!tenant) throw new Error("Não foi possível criar o tenant");
+
+    await tx.insert(tenantAdmins).values({
+      tenantId: tenant.id,
+      nome: request.nome,
+      email: request.email,
+      senhaHash: request.senhaHash,
+      role: "admin",
+      ativo: true,
+    });
+
+    await tx.update(registrationRequests)
+      .set({ status: "confirmado", confirmedAt: new Date(), tenantId: tenant.id })
+      .where(eq(registrationRequests.id, id));
+
+    return tenant;
+  });
+}
+
+export async function listRegistrationRequests() {
+  return db.select({
+    id: registrationRequests.id,
+    nome: registrationRequests.nome,
+    empresaNome: registrationRequests.empresaNome,
+    email: registrationRequests.email,
+    status: registrationRequests.status,
+    expiresAt: registrationRequests.expiresAt,
+    confirmedAt: registrationRequests.confirmedAt,
+    tenantId: registrationRequests.tenantId,
+    createdAt: registrationRequests.createdAt,
+  }).from(registrationRequests).orderBy(desc(registrationRequests.createdAt));
 }
 
 export async function updateTenantAdmin(

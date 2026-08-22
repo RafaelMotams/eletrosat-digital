@@ -12,6 +12,7 @@ import {
   updateTenantAdmin,
   deleteTenantAdmin,
   verifyTenantAdminPassword,
+  listRegistrationRequests,
 } from "../db-tenant";
 import { getDashboardStats, listTecnicos, listOrdensServico } from "../db";
 import { SignJWT, jwtVerify } from "jose";
@@ -147,6 +148,16 @@ export const superadminRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
       }
       return listTenants();
+    }),
+
+  listRegistrationRequests: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const session = await verifyToken(input.token);
+      if (!session?.isSuperAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
+      return listRegistrationRequests();
     }),
 
   createTenant: publicProcedure
