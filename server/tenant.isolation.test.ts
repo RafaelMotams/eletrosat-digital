@@ -261,6 +261,16 @@ describe("Isolamento Multi-Tenant: Acesso não autenticado", () => {
     const caller = appRouter.createCaller(createUnauthenticatedContext());
     await expect(caller.dashboard.stats()).rejects.toThrow(TRPCError);
   });
+
+  it("acesso sem autenticação é negado para listagem de manutenção", async () => {
+    const caller = appRouter.createCaller(createUnauthenticatedContext());
+    await expect(caller.manutencao.listar()).rejects.toThrow(TRPCError);
+  });
+
+  it("acesso sem autenticação é negado para o relatório de manutenção", async () => {
+    const caller = appRouter.createCaller(createUnauthenticatedContext());
+    await expect(caller.manutencao.relatorio()).rejects.toThrow(TRPCError);
+  });
 });
 
 describe("Isolamento Multi-Tenant: Admin OAuth (acesso ao tenant padrão)", () => {

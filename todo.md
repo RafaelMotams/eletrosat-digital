@@ -577,6 +577,14 @@
 - [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
 - [x] Confirmar conclusão do trabalho após testes reais
 
+## Continuidade técnica — fórmula e isolamento
+- [x] Mapear todos os pontos de cálculo de manutenção e quilometragem
+- [x] Confirmar que manutenção usa o helper centralizado no relatório e na exportação
+- [x] Verificar que cada consulta operacional deriva tenantId da sessão autenticada
+- [x] Adicionar cobertura de testes para limites de tenant nos fluxos de manutenção
+- [x] Executar verificação TypeScript e testes direcionados
+- [ ] Salvar checkpoint das validações internas
+
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
 - [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
 - [x] Confirmar tenant atual de cada registro

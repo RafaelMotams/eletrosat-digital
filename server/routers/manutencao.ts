@@ -20,6 +20,38 @@ const manutencaoAccessProcedure = publicProcedure.use(({ ctx, next }) => {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+function requireTenantId(ctx: { tenantId?: number }) {
+  const tenantId = Number(ctx.tenantId);
+  if (!Number.isInteger(tenantId) || tenantId <= 0) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Tenant da sessão inválido" });
+  }
+  return tenantId;
+}
+
+async function assertTecnicoInTenant(db: any, tecnicoId: number, tenantId: number) {
+  const [tecnico] = await db
+    .select({ id: tecnicos.id })
+    .from(tecnicos)
+    .where(and(eq(tecnicos.id, tecnicoId), eq(tecnicos.tenantId, tenantId)));
+  if (!tecnico) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence ao seu tenant" });
+}
+
+async function assertEscolaInTenant(db: any, escolaId: number, tenantId: number) {
+  const [escola] = await db
+    .select({ id: escolas.id })
+    .from(escolas)
+    .where(and(eq(escolas.id, escolaId), eq(escolas.tenantId, tenantId)));
+  if (!escola) throw new TRPCError({ code: "FORBIDDEN", message: "Escola não pertence ao seu tenant" });
+}
+
+async function assertManutencaoInTenant(db: any, manutencaoId: number, tenantId: number) {
+  const [manutencao] = await db
+    .select({ id: manutencoes.id })
+    .from(manutencoes)
+    .where(and(eq(manutencoes.id, manutencaoId), eq(manutencoes.tenantId, tenantId)));
+  if (!manutencao) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence ao seu tenant" });
+}
+
 async function getManutencaoComDados(id: number) {
   const db = await getDb();
   if (!db) return null;
@@ -52,7 +84,7 @@ export const manutencaoRouter = router({
     .query(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = requireTenantId(ctx);
 
       const rows = await db
         .select({
@@ -97,7 +129,9 @@ export const manutencaoRouter = router({
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = requireTenantId(ctx);
+      await assertEscolaInTenant(db, input.escolaId, tenantId);
+      if (input.tecnicoId) await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: input.escolaId,
@@ -113,23 +147,28 @@ export const manutencaoRouter = router({
   // ── ADMIN: Atribuir técnico ─────────────────────────────────────────────────
   atribuir: tenantAdminProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const tenantId = requireTenantId(ctx);
+      await assertManutencaoInTenant(db, input.id, tenantId);
+      await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
       await db.update(manutencoes)
         .set({ tecnicoId: input.tecnicoId, dataAtribuicao: new Date(), status: "pendente" })
-        .where(eq(manutencoes.id, input.id));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
       return { success: true };
     }),
 
   // ── ADMIN: Excluir manutenção ───────────────────────────────────────────────
   excluir: tenantAdminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const tenantId = requireTenantId(ctx);
+      await assertManutencaoInTenant(db, input.id, tenantId);
       await db.delete(manutencaoFotos).where(eq(manutencaoFotos.manutencaoId, input.id));
-      await db.delete(manutencoes).where(eq(manutencoes.id, input.id));
+      await db.delete(manutencoes).where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
       return { success: true };
     }),
 
@@ -137,7 +176,7 @@ export const manutencaoRouter = router({
   relatorio: tenantAdminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    const tenantId = (ctx as any).tenantId ?? 1;
+    const tenantId = requireTenantId(ctx);
     const rows = await db
       .select({
         m: manutencoes,
@@ -592,7 +631,8 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = requireTenantId(ctx);
+      if (input.tecnicoId) await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: null,
