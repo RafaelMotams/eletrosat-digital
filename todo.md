@@ -639,6 +639,11 @@
 - [x] Alinhar a versão pública com a copy sem números fictícios, preços não confirmados e promessas absolutas de segurança/offline
 - [x] Confirmar a propagação do checkpoint atual para netvius.org antes de tratar a landing como publicada
 
+## Continuidade sem integrações externas
+- [x] Revisar o estado de sincronização exibido ao técnico e mensagens de recuperação
+- [x] Melhorar a resiliência local do aplicativo técnico sem depender de serviços externos
+- [ ] Testar e publicar as melhorias internas desta continuidade
+
 > Decisão do usuário: não usar segredo temporário gerado a cada inicialização. A publicação seguirá pendente até existir um segredo de produção persistente e seguro.
 
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
@@ -671,7 +676,7 @@
 - [x] Prévia visual do relatório validada em desktop
 - [x] Checkpoint final desta correção
 
-> Observação de testes: a suíte completa ainda possui duas falhas externas ao recorte — `RESEND_API_KEY` de ambiente com placeholder curto e upload para Google Drive bloqueado por cota de Service Account. Os testes direcionados de isolamento e regras principais passaram.
+> Observação de testes atualizada: o Google Drive foi removido da operação. A pendência externa restante para a suíte integral é `RESEND_API_KEY`, ainda sem configuração utilizável para entrega real de email. Os testes direcionados de isolamento, sessão, cálculo e sincronização offline passaram.
 
 ## Isolamento das 12 escolas de Rodrigo — 22/08/2026
 - [x] Identificar as 12 escolas atribuídas a Rodrigo no tenant 180002 (Rafael)

@@ -17,12 +17,12 @@ Também foram fechados os seguintes controles de autorização: exportação de 
 | Sessão de superadmin | Ainda há fluxo legado a migrar para cookie HttpOnly | Migrar painel e login do superadmin antes de eliminar a compatibilidade de token legada |
 | Notificação WhatsApp de cadastro | Não implementada sem provedor configurado | Conectar Meta WhatsApp Cloud API, Twilio ou outro provedor aprovado |
 | Fotos no armazenamento | As rotas da aplicação validam o tenant, mas a camada de armazenamento ainda usa URLs públicas do provedor | Projetar acesso assinado e autorizado por tenant antes de classificar fotos como confidenciais em repouso |
-| Operação sem conexão | O Service Worker mantém interface e rotas já visitadas; o produto não anuncia mais sincronização de fotos ou conclusão de OS sem conexão | Implementar e testar uma fila transacional explícita antes de prometer sincronização offline de mutações |
+| Operação sem conexão | A fila IndexedDB retém a OS quando qualquer foto falha e recupera operações interrompidas em `syncing`; telas em cache continuam sendo apenas conveniência | Validar em dispositivos reais com diferentes redes antes de ampliar a promessa pública de operação offline |
 | Confirmação por email | O fluxo de cadastro é testável por mock, mas a chave Resend atual é um placeholder curto | Configurar uma chave Resend válida e executar um teste controlado de entrega |
 | Google Drive | Integração retirada por decisão operacional; nenhum upload ou reenvio ao Drive é mais executado | Fotos existentes permanecem no armazenamento atual; uma futura integração só será criada mediante nova aprovação |
 
 ## Validação desta etapa
 
-O TypeScript compilou sem erros e as suítes de segurança, isolamento, cálculo, cadastro e rotas administrativas passaram. Após retirar o Google Drive, a execução integral passou a ter somente um bloqueio externo: a chave Resend de ambiente não está configurada de forma utilizável para confirmação real de email. Esse ponto não foi mascarado nem substituído por simulação.
+O TypeScript compilou sem erros e as suítes direcionadas de segurança, isolamento, cálculo, cadastro, sessão e sincronização offline passaram. Após retirar o Google Drive, o único bloqueio externo conhecido para a execução integral é a chave Resend de ambiente, que não está configurada de forma utilizável para confirmação real de email. Esse ponto não foi mascarado nem substituído por simulação.
 
 > Nenhum sistema pode prometer impedir todo ataque. Os controles acima reduzem riscos concretos por meio de autenticação no servidor, autorização por tenant, princípio de menor privilégio, expiração de sessão, auditoria e falha fechada quando dependências críticas não estão disponíveis.
