@@ -606,7 +606,7 @@
 - [ ] Validar visualmente o fluxo de exclusão
 - [x] Salvar checkpoint e publicar a ação
 
-> Validação visual aguardando sessão administrativa: em 22/08/2026, a rota `/admin/escolas` redirecionou corretamente para `/admin/login`. Nenhuma credencial foi informada e nenhuma exclusão foi tentada.
+> Validação visual aguardando sessão administrativa: em 22/08/2026, duas verificações da rota `/admin/escolas` redirecionaram corretamente para `/admin/login`. Nenhuma credencial foi informada e nenhuma exclusão foi tentada.
 
 ## Elevação de segurança, experiência e relatórios
 - [x] Auditar superfícies públicas, sessões, cookies e rotas internas
