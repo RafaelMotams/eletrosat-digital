@@ -563,7 +563,7 @@
 - [x] Adicionar seleção do Assistente Técnico para redes internas/externas, TP-Link e Intelbras
 - [x] Refinar painel administrativo com visual premium e indicadores
 - [x] Melhorar exportação de OS com formatação, resumo e gráfico baseado em dados reais
-- [ ] Escrever testes para segurança, isolamento, assistente, cálculo e exportação
+- [x] Escrever testes para segurança, isolamento, assistente, cálculo e exportação
 - [x] Validar visualmente desktop/mobile e corrigir regressões
 - [x] Salvar checkpoint e publicar a versão validada
 

@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
+import { calculateMaintenancePayment } from "../payment";
 
 const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.tecnicoSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
@@ -149,10 +150,7 @@ export const manutencaoRouter = router({
       .where(eq(manutencoes.tenantId, tenantId))
       .orderBy(desc(manutencoes.createdAt));
     return rows.map(r => {
-      const km = parseFloat(String(r.m.quilometragem ?? "0"));
-      const valorBase = 200;
-      const valorKm = km * 2.50;
-      const valorTotal = valorBase + valorKm;
+      const payment = calculateMaintenancePayment(r.m.quilometragem);
       return {
         id: r.m.id,
         status: r.m.status,
@@ -166,10 +164,10 @@ export const manutencaoRouter = router({
         dataAtribuicao: r.m.dataAtribuicao ? new Date(r.m.dataAtribuicao).toLocaleDateString("pt-BR") : "",
         dataConclusao: r.m.dataConclusao ? new Date(r.m.dataConclusao).toLocaleDateString("pt-BR") : "",
         createdAt: new Date(r.m.createdAt).toLocaleDateString("pt-BR"),
-        quilometragem: km,
-        valorBase,
-        valorKm,
-        valorTotal,
+        quilometragem: payment.kilometers,
+        valorBase: payment.baseValue,
+        valorKm: payment.valueByKm,
+        valorTotal: payment.totalValue,
       };
     });
   }),
