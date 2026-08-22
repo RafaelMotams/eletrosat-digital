@@ -1,16 +1,16 @@
 import { randomBytes } from "crypto";
 
-function resolveJwtSecret(): string {
-  const configured = process.env.JWT_SECRET?.trim();
+export function resolveJwtSecret(environment: NodeJS.ProcessEnv = process.env, nodeEnv = environment.NODE_ENV): string {
+  const configured = environment.NETVIUS_JWT_SECRET?.trim() || environment.JWT_SECRET?.trim();
   if (configured) {
-    if (process.env.NODE_ENV === "production" && configured.length < 32) {
-      throw new Error("JWT_SECRET inválido: use um segredo de produção com pelo menos 32 caracteres.");
+    if (nodeEnv === "production" && configured.length < 32) {
+      throw new Error("Segredo JWT inválido: use um segredo de produção com pelo menos 32 caracteres.");
     }
     return configured;
   }
 
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET é obrigatório em produção. O servidor não pode iniciar sem ele.");
+  if (nodeEnv === "production") {
+    throw new Error("NETVIUS_JWT_SECRET ou JWT_SECRET é obrigatório em produção. O servidor não pode iniciar sem ele.");
   }
 
   // Desenvolvimento e testes: segredo aleatório apenas em memória, nunca previsível ou persistido.

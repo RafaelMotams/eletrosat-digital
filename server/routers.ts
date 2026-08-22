@@ -50,11 +50,9 @@ import {
   getValoresApAllTecnicos,
   getOsNaoInstaladas,
   deleteOrdemServico,
-  listAllOsFotosComDados,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
-import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
 import { ordensServico, escolas } from "../drizzle/schema";
 import { and, eq } from "drizzle-orm";
@@ -538,42 +536,6 @@ const ordensRouter = router({
     .mutation(async ({ input, ctx }) => {
       await deleteOrdemServico(input.osId);
       return { success: true };
-    }),
-
-  reenviarFotosDrive: tenantAdminProcedure
-    .mutation(async ({ ctx }) => {
-      const { uploadFotoParaDrive } = await import("./googleDrive");
-      const todasFotos = await listAllOsFotosComDados();
-      let sucesso = 0;
-      let falhas = 0;
-      const erros: string[] = [];
-
-      for (const { foto, tecnicoNome, escolaNome, dataOS } of todasFotos) {
-        try {
-          let fotoUrl = foto.url;
-          if (fotoUrl.startsWith("/manus-storage/")) {
-            fotoUrl = `https://netvionis.manus.space${fotoUrl}`;
-          }
-          await uploadFotoParaDrive({
-            tecnicoNome,
-            escolaNome,
-            fotoUrl,
-            fotoIndex: foto.id,
-            dataOS,
-          });
-          sucesso++;
-        } catch (err) {
-          falhas++;
-          erros.push(`Foto ${foto.id}: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
-
-      return {
-        total: todasFotos.length,
-        sucesso,
-        falhas,
-        erros: erros.slice(0, 10), // Retorna apenas os primeiros 10 erros
-      };
     }),
 
   deletarTodas: tenantAdminProcedure
@@ -1069,33 +1031,6 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
         });
 
-        // NOTA: O upload ao Google Drive é feito DEPOIS que as fotos são enviadas ao S3
-        // via uploadOsFoto. O Drive é acionado pelo endpoint reenviarParaDrive ou
-        // automaticamente 30s após a conclusão da OS para garantir que todas as fotos
-        // já estejam salvas no S3 antes de tentar enviar ao Drive.
-        // Aqui fazemos apenas um agendamento assíncrono (não bloqueante).
-        const osIdCapturado = osId;
-        const tecnicoNomeCapturado = tecnico?.nome ?? "Tecnico";
-        const escolaNomeCapturado = escola.nome ?? `Escola-${input.escolaId}`;
-        setTimeout(async () => {
-          try {
-            const fotos = await listOsFotos(osIdCapturado);
-            const fotoUrls = fotos.filter(f => f.url).map(f => f.url);
-            if (input.fotoMapaCalorUrl) fotoUrls.unshift(input.fotoMapaCalorUrl);
-            if (fotoUrls.length > 0) {
-              const dataOS = new Date().toISOString().split("T")[0];
-              const result = await uploadFotosOSParaDrive({
-                tecnicoNome: tecnicoNomeCapturado,
-                escolaNome: escolaNomeCapturado,
-                fotos: fotoUrls,
-                dataOS,
-              });
-              console.log(`[Drive] OS ${osIdCapturado}: ${result.sucesso}/${result.total} fotos enviadas para o Drive (agendado)`);
-            }
-          } catch (driveErr) {
-            console.error(`[Drive] Erro ao enviar fotos da OS ${osIdCapturado} ao Drive (agendado):`, driveErr);
-          }
-        }, 30000); // 30s de espera para garantir que todas as fotos já foram enviadas ao S3
       }
       return { osId };
     }),

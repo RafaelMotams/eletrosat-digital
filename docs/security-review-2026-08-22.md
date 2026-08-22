@@ -19,10 +19,10 @@ Também foram fechados os seguintes controles de autorização: exportação de 
 | Fotos no armazenamento | As rotas da aplicação validam o tenant, mas a camada de armazenamento ainda usa URLs públicas do provedor | Projetar acesso assinado e autorizado por tenant antes de classificar fotos como confidenciais em repouso |
 | Operação sem conexão | O Service Worker mantém interface e rotas já visitadas; o produto não anuncia mais sincronização de fotos ou conclusão de OS sem conexão | Implementar e testar uma fila transacional explícita antes de prometer sincronização offline de mutações |
 | Confirmação por email | O fluxo de cadastro é testável por mock, mas a chave Resend atual é um placeholder curto | Configurar uma chave Resend válida e executar um teste controlado de entrega |
-| Google Drive | O teste real de upload recebe `403` porque a Service Account não possui cota no destino atual | Mover o destino para um Shared Drive com permissão à conta de serviço ou usar OAuth/delegação aprovada |
+| Google Drive | Integração retirada por decisão operacional; nenhum upload ou reenvio ao Drive é mais executado | Fotos existentes permanecem no armazenamento atual; uma futura integração só será criada mediante nova aprovação |
 
 ## Validação desta etapa
 
-O TypeScript compilou sem erros e as suítes de segurança, isolamento, cálculo, cadastro e rotas administrativas passaram, totalizando 43 testes locais. A execução integral também confirmou dois bloqueios externos: a chave Resend de ambiente não está configurada de forma utilizável e o upload de teste para o Google Drive não tem cota. Esses pontos não foram mascarados nem substituídos por simulações.
+O TypeScript compilou sem erros e as suítes de segurança, isolamento, cálculo, cadastro e rotas administrativas passaram. Após retirar o Google Drive, a execução integral passou a ter somente um bloqueio externo: a chave Resend de ambiente não está configurada de forma utilizável para confirmação real de email. Esse ponto não foi mascarado nem substituído por simulação.
 
 > Nenhum sistema pode prometer impedir todo ataque. Os controles acima reduzem riscos concretos por meio de autenticação no servidor, autorização por tenant, princípio de menor privilégio, expiração de sessão, auditoria e falha fechada quando dependências críticas não estão disponíveis.

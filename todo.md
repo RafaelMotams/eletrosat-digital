@@ -628,6 +628,15 @@
 - [ ] Avaliar sincronização offline para não marcar fotos com falha como concluídas
 - [x] Criar testes de autorização por ID e tenant para recursos sensíveis
 
+## Operação sem Google Drive e recuperação de publicação
+- [x] Remover chamadas ativas e testes obrigatórios de Google Drive sem apagar fotos já registradas
+- [x] Manter fotos no armazenamento atual e documentar o limite de acesso por URL pública
+- [x] Atualizar a suíte de testes para não depender de cota do Google Drive
+- [x] Diagnosticar e corrigir a falha de healthcheck da última publicação
+- [ ] Validar a versão publicada sem Google Drive
+
+> Decisão do usuário: não usar segredo temporário gerado a cada inicialização. A publicação seguirá pendente até existir um segredo de produção persistente e seguro.
+
 ## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
 - [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
 - [x] Confirmar tenant atual de cada registro

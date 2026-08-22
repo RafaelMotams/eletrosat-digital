@@ -9,7 +9,7 @@ import {
   AlertTriangle, Play, CheckCircle, Clock, XCircle,
   Search, Filter, RefreshCw,
   Wifi, TrendingUp, Trash2, Camera, X, Download, FileSpreadsheet,
-  ChevronDown, UploadCloud, Pencil, CalendarDays
+  ChevronDown, Pencil, CalendarDays
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -410,21 +410,6 @@ export default function AdminOrdens() {
     },
     onError: (err: any) => toast.error(err.message || "Erro ao criar OS"),
   });
-  const [driveReenvioOpen, setDriveReenvioOpen] = useState(false);
-  const [driveResult, setDriveResult] = useState<{ total: number; sucesso: number; falhas: number; erros: string[] } | null>(null);
-
-  const reenviarDriveMut = trpc.ordens.reenviarFotosDrive.useMutation({
-    onSuccess: (data) => {
-      setDriveResult(data);
-      if (data.falhas === 0) {
-        toast.success(`${data.sucesso} fotos enviadas ao Google Drive com sucesso!`);
-      } else {
-        toast.warning(`${data.sucesso} enviadas, ${data.falhas} com falha.`);
-      }
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
   const deletarOsMut = trpc.ordens.deletar.useMutation({
     onSuccess: () => {
       toast.success("OS excluída com sucesso!");
@@ -594,11 +579,6 @@ export default function AdminOrdens() {
               onClick={() => { setExportOpen(true); setValorPorAp(""); setExportTecnicoId("todos"); setExportDataInicio(""); setExportDataFim(""); }}
               className="rounded-xl gap-1.5 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 dark:border-green-900 dark:text-green-400 dark:hover:bg-green-950">
               <FileSpreadsheet className="w-3.5 h-3.5" /> Exportar Planilha
-            </Button>
-            <Button variant="outline" size="sm"
-              onClick={() => { setDriveReenvioOpen(true); setDriveResult(null); }}
-              className="rounded-xl gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-950">
-              <UploadCloud className="w-3.5 h-3.5" /> Enviar ao Drive
             </Button>
             <Button variant="outline" size="sm"
               onClick={() => { setDeleteAllOpen(true); setDeleteConfirmText(""); }}
@@ -820,63 +800,6 @@ export default function AdminOrdens() {
           </div>
         </div>
       )}
-
-      {/* Modal Reenviar Fotos ao Drive */}
-      <Dialog open={driveReenvioOpen} onOpenChange={v => { if (!reenviarDriveMut.isPending) { setDriveReenvioOpen(v); if (!v) setDriveResult(null); } }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UploadCloud className="w-5 h-5 text-blue-500" />
-              Enviar Fotos ao Google Drive
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-2 space-y-3">
-            {!driveResult ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Todas as fotos salvas no sistema serão enviadas ao Google Drive, organizadas por técnico e escola.
-                </p>
-                <p className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
-                  Este processo pode levar alguns minutos dependendo da quantidade de fotos.
-                </p>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span><span className="font-semibold">{driveResult.sucesso}</span> fotos enviadas com sucesso</span>
-                </div>
-                {driveResult.falhas > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <AlertTriangle className="w-4 h-4 text-orange-500" />
-                    <span><span className="font-semibold">{driveResult.falhas}</span> fotos com falha</span>
-                  </div>
-                )}
-                {driveResult.erros.length > 0 && (
-                  <div className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2 max-h-32 overflow-y-auto">
-                    {driveResult.erros.map((e, i) => <p key={i}>{e}</p>)}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setDriveReenvioOpen(false); setDriveResult(null); }} disabled={reenviarDriveMut.isPending} className="rounded-xl">Fechar</Button>
-            {!driveResult && (
-              <Button
-                onClick={() => reenviarDriveMut.mutate()}
-                disabled={reenviarDriveMut.isPending}
-                className="rounded-xl gap-2 bg-blue-600 hover:bg-blue-700 text-white border-none">
-                {reenviarDriveMut.isPending ? (
-                  <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Enviando...</>
-                ) : (
-                  <><UploadCloud className="w-4 h-4" />Enviar ao Drive</>
-                )}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Modal Editar Quantidade de APs */}
       <Dialog open={!!editApModal} onOpenChange={v => !v && setEditApModal(null)}>
