@@ -4,7 +4,7 @@ import {
   ArrowRight, CheckCircle, Zap, Shield, TrendingUp, MapPin, 
   Smartphone, BarChart3, Wifi, Camera, Clock, Users, 
   Globe, Lock, FileText, Route, MessageCircle, ChevronRight,
-  Star, Play, Menu, X
+  Play, Menu, X
 } from "lucide-react";
 
 export default function Home() {
@@ -93,21 +93,11 @@ export default function Home() {
                 </a>
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"].map((c, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full ${c} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}>
-                        {["R", "M", "J", "A"][i]}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-slate-500">Empresas já usando</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
-                  <span className="text-sm text-slate-500 ml-1">5.0</span>
-                </div>
+              <div className="flex flex-wrap items-center gap-2 pt-2 text-sm text-slate-500">
+                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-700">
+                  <Shield className="h-4 w-4" /> Acesso protegido por credenciais
+                </span>
+                <span>Operação de campo, relatórios e manutenção em uma única plataforma.</span>
               </div>
             </div>
 
@@ -225,7 +215,7 @@ export default function Home() {
               { icon: MapPin, title: "Mapa em Tempo Real", desc: "Veja todas as escolas no mapa com status colorido. Clique para ver detalhes e abrir rota.", color: "red" },
               { icon: Users, title: "Multi-Tenant", desc: "Cada cliente tem seu painel isolado. Dados separados, login próprio, gestão independente.", color: "indigo" },
               { icon: FileText, title: "Laudo em PDF", desc: "Gera laudo profissional com fotos, dados da escola, técnico e observações. Pronto para imprimir.", color: "slate" },
-              { icon: Zap, title: "IA Assistente", desc: "Assistente técnico com IA para tirar dúvidas sobre instalação, configuração e infraestrutura.", color: "cyan" },
+              { icon: Zap, title: "Assistente Técnico", desc: "Orientação especializada para dúvidas sobre instalação, configuração e infraestrutura.", color: "cyan" },
             ].map((feature, i) => (
               <div key={i} className="group p-6 rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 bg-white">
                 <div className={`w-12 h-12 rounded-xl bg-${feature.color}-100 flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
@@ -362,7 +352,7 @@ export default function Home() {
                 name: "Profissional", 
                 price: "R$ 499", 
                 desc: "Para empresas em crescimento", 
-                features: ["Até 20 técnicos", "Tudo do Básico", "Fotos obrigatórias", "Laudo em PDF", "Relatórios avançados", "IA Assistente", "Suporte prioritário"],
+                features: ["Até 20 técnicos", "Tudo do Básico", "Fotos obrigatórias", "Laudo em PDF", "Relatórios avançados", "Assistente Técnico", "Suporte prioritário"],
                 highlight: true,
                 cta: "Mais Popular"
               },

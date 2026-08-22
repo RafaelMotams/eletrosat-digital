@@ -616,4 +616,4 @@
 - [x] Confirmar que admin@netvionis.com não lista essas escolas, OS ou valores
 - [x] Confirmar que rafael2020ms@gmail.com lista as 12 escolas, OS e valores correspondentes
 - [x] Testar os filtros de escolas, OS e relatório após a correção
-- [ ] Salvar checkpoint e publicar a confirmação de isolamento
+- [x] Salvar checkpoint e publicar a confirmação de isolamento
