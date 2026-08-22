@@ -700,14 +700,14 @@
 - [x] Salvar checkpoint e publicar a confirmação de isolamento
 
 ## Revisão completa solicitada — Netvius
-- [ ] Auditar rotas públicas, sessões administrativas e fluxos de login sem alterar credenciais nem dados de clientes
-- [ ] Revisar a experiência do aplicativo técnico em dispositivos móveis, incluindo estados vazios, erro e recuperação offline
-- [ ] Revisar o painel administrativo de manutenção, ordens e relatórios quanto a clareza, filtros e dados por tenant
-- [ ] Revisar landing page, SEO técnico e caminhos de entrada sem usar métricas, avaliações ou promessas não verificáveis
-- [ ] Verificar regressões de isolamento entre tenants, permissões de visualizador e integridade da fila offline
-- [ ] Implementar apenas correções seguras identificadas na auditoria, sem ativar e-mail, WhatsApp ou Google Drive
-- [ ] Executar TypeScript, testes relacionados, build de produção e validação visual antes de publicar
-- [ ] Salvar checkpoint da revisão ampla e comunicar limites remanescentes
+- [x] Auditar rotas públicas, sessões administrativas e fluxos de login sem alterar credenciais nem dados de clientes
+- [x] Revisar a experiência do aplicativo técnico em dispositivos móveis, incluindo estados vazios, erro e recuperação offline
+- [x] Revisar o painel administrativo de manutenção, ordens e relatórios quanto a clareza, filtros e dados por tenant
+- [x] Revisar landing page, SEO técnico e caminhos de entrada sem usar métricas, avaliações ou promessas não verificáveis
+- [x] Verificar regressões de isolamento entre tenants, permissões de visualizador e integridade da fila offline
+- [x] Implementar apenas correções seguras identificadas na auditoria, sem ativar e-mail, WhatsApp ou Google Drive
+- [x] Executar TypeScript, testes relacionados, build de produção e validação visual antes de publicar
+- [x] Salvar checkpoint da revisão ampla e comunicar limites remanescentes
 
 ## Correção do acesso ao Assistente Técnico
 - [x] Identificar o ponto que encaminha o Assistente Técnico para manutenção
@@ -718,7 +718,7 @@
 ## Evolução premium completa — Netvius
 - [x] Auditar a landing page para definir melhorias de conversão baseadas em capacidades reais do produto
 - [x] Criar e integrar elementos visuais próprios de operações de campo, sem simular pessoas, resultados ou avaliações
-- [ ] Refinar a identidade visual de landing, aplicativo técnico e login em uma linguagem única de central de operações
+- [x] Refinar a identidade visual de landing, aplicativo técnico e login em uma linguagem única de central de operações
 - [x] Aperfeiçoar o painel administrativo com navegação, estados operacionais e ações de maior clareza
 - [x] Aperfeiçoar o painel master com indicadores reais de tenants, acesso e governança operacional
 - [x] Revisar o chat do Assistente Técnico como recurso independente de manutenção
