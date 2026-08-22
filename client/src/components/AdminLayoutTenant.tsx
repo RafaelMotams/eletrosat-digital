@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Bell, Search, Zap, Shield, Settings, Wrench,
+  Bell, Search, Zap, Shield, Settings, Wrench, Cable,
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
@@ -25,6 +25,7 @@ const navGroups = [
       { path: "/admin/atribuicoes", label: "Atribuições",       icon: GitBranch,       color: "#fbbf24", desc: "Alocação de equipes" },
       { path: "/admin/ordens",      label: "Ordens de Serviço", icon: ClipboardList,   color: "#f472b6", desc: "OS e execução" },
       { path: "/admin/manutencao",   label: "Manutenção",         icon: Wrench,          color: "#fb923c", desc: "Ordens de manutenção" },
+      { path: "/admin/rede-externa", label: "Rede Externa",      icon: Cable,           color: "#22d3ee", desc: "Fotos e link das escolas" },
     ],
   },
   {

@@ -7,7 +7,7 @@ import {
   MessageCircle, Hash, Building2, Signal, WifiOff, Clock,
   Play, XCircle, Camera, Upload, X, AlertTriangle, Zap, Star,
   Info, FileText, Layers, PhoneCall, Gauge, LocateFixed, Image,
-  ChevronRight, Eye, Trash2
+  ChevronRight, Eye, Trash2, Router, Cable, ExternalLink, Bot
 } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { dbEnqueueOS, dbGetCachedEscolas } from "@/hooks/useOfflineDB";
@@ -467,6 +467,31 @@ export default function TecnicoOS() {
   }, [navigate]);
 
   const escolaId = Number(params.id);
+  const [redeExternaCache, setRedeExternaCache] = useState<any>(() => {
+    try {
+      const raw = localStorage.getItem(`rede_externa_escola_${Number(params.id)}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const { data: redeExternaOnline } = trpc.redeExterna.escolaTecnico.useQuery(
+    { escolaId },
+    {
+      enabled: Boolean(escolaId && tecnicoId && isOnline),
+      staleTime: 15 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    },
+  );
+  useEffect(() => {
+    if (!redeExternaOnline) return;
+    setRedeExternaCache(redeExternaOnline);
+    localStorage.setItem(`rede_externa_escola_${escolaId}`, JSON.stringify(redeExternaOnline));
+  }, [redeExternaOnline, escolaId]);
+  const redeExterna = redeExternaOnline ?? redeExternaCache;
 
   // ANTI-REDIRECT ao voltar da câmera/WhatsApp/Maps:
   // Quando o documento fica visível novamente (visibilitychange), atualiza o timestamp da OS ativa
@@ -975,6 +1000,48 @@ export default function TecnicoOS() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ─── Referência da rede externa ─── */}
+      <div className="mx-4 mt-6">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "rgba(34,211,238,0.14)" }}>
+              <Cable className="w-4 h-4" style={{ color: "#67e8f9" }} />
+            </div>
+            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(103,232,249,0.75)" }}>Rede externa</p>
+          </div>
+          {redeExterna?.escola?.redeExternaStatus === "com_rede" && (
+            <span className="rounded-full px-2.5 py-1 text-[10px] font-black" style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", color: "#34d399" }}>DISPONÍVEL</span>
+          )}
+        </div>
+
+        {redeExterna?.escola?.redeExternaStatus === "com_rede" ? (
+          <div className="rounded-3xl overflow-hidden" style={{ background: "rgba(34,211,238,0.045)", border: "1.5px solid rgba(34,211,238,0.18)" }}>
+            {redeExterna.fotoRoteador?.url ? (
+              <a href={redeExterna.fotoRoteador.url} target="_blank" rel="noreferrer" className="block relative">
+                <img src={redeExterna.fotoRoteador.url} alt="Roteador ou modem da rede externa" className="w-full max-h-72 object-cover bg-black/20" />
+                <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black text-white" style={{ background: "rgba(4,10,22,0.82)", backdropFilter: "blur(10px)" }}><Router className="w-4 h-4 text-cyan-300" />Roteador/Modem de referência <ExternalLink className="w-3 h-3" /></span>
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 p-4"><Router className="w-6 h-6 text-cyan-400" /><div><p className="text-sm font-bold text-white">Rede externa confirmada</p><p className="text-xs text-slate-500">A foto do roteador ainda não foi classificada.</p></div></div>
+            )}
+            <div className="p-4">
+              <p className="text-xs text-slate-400">Tipo: <b className="text-slate-200">{redeExterna.escola.redeExternaTipo ?? "não informado"}</b></p>
+              {redeExterna.escola.redeExternaObservacao && <p className="mt-2 whitespace-pre-wrap rounded-xl bg-white/[0.035] p-3 text-xs text-slate-300">{redeExterna.escola.redeExternaObservacao}</p>}
+              {redeExterna.fotos?.length > 1 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                  {redeExterna.fotos.map((foto: any) => <a key={foto.id} href={foto.url} target="_blank" rel="noreferrer" className="shrink-0"><img src={foto.url} alt={foto.titulo ?? foto.originalNome} className="h-20 w-24 rounded-xl object-cover bg-black/20" /><p className="mt-1 w-24 truncate text-[9px] text-slate-500">{foto.titulo ?? foto.categoria}</p></a>)}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-4" style={{ background: "rgba(245,158,11,0.055)", border: "1px solid rgba(245,158,11,0.16)" }}>
+            <div className="flex items-start gap-3"><Info className="mt-0.5 w-5 h-5 shrink-0 text-amber-400" /><div><p className="text-sm font-bold text-amber-100">{redeExterna?.escola?.redeExternaStatus === "sem_rede" ? "Escola marcada sem rede externa" : redeExterna?.escola?.redeExternaStatus === "em_validacao" ? "Rede externa em validação" : "Rede externa ainda não informada"}</p><p className="mt-1 text-xs text-amber-200/55">Confirme a chegada do link antes de depender dele para a instalação interna.</p></div></div>
+          </div>
+        )}
+        <button onClick={() => { localStorage.setItem("assistente_eace_escola_id", String(escolaId)); navigate("/tecnico/assistente"); }} className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-xs font-bold" style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)", color: "#a5b4fc" }}><Bot className="w-4 h-4" />Analisar uma situação com o Assistente EACE</button>
       </div>
 
       {/* ─── Ações da OS ─── */}

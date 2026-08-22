@@ -23,6 +23,8 @@ type Escola = {
   telefone?: string | null;
   telefoneWhatsApp?: string | null;
   velocidadeOfertada?: number | null;
+  redeExternaStatus?: "nao_informada" | "com_rede" | "sem_rede" | "em_validacao";
+  redeExternaTipo?: "fibra" | "radio" | "satelite" | "movel" | "outro" | null;
   latitude?: string | null;
   longitude?: string | null;
   [key: string]: unknown;
@@ -82,7 +84,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   nao_instalada:{ label: "Não instalada",color: "#ef4444", bg: "rgba(239,68,68,0.1)",   border: "rgba(239,68,68,0.2)",   icon: AlertCircle },
 };
 
-type FilterType = "todos" | "pendente" | "em_andamento" | "concluido" | "nao_instalada" | "nao_concluidas";
+type FilterType = "todos" | "pendente" | "em_andamento" | "concluido" | "nao_instalada" | "nao_concluidas" | "com_rede_externa";
 
 // Welcome modal — shows only on first login
 function WelcomeModal({ nome, onClose }: { nome: string; onClose: () => void }) {
@@ -256,6 +258,8 @@ export default function TecnicoHome() {
   const filteredByStatus =
     activeFilter === "todos"
       ? finalSorted
+      : activeFilter === "com_rede_externa"
+      ? finalSorted.filter(e => e.redeExternaStatus === "com_rede")
       : activeFilter === "nao_concluidas"
       ? finalSorted.filter(e => e.status !== "concluido")
       : finalSorted.filter(e => e.status === activeFilter);
@@ -270,6 +274,7 @@ export default function TecnicoHome() {
   const emAndamento = escolas.filter(e => e.status === "em_andamento").length;
   const pendentes = escolas.filter(e => e.status === "pendente").length;
   const naoInstaladas = escolas.filter(e => e.status === "nao_instalada").length;
+  const comRedeExterna = escolas.filter(e => e.redeExternaStatus === "com_rede").length;
   const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
   const totalAps = escolas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
   const apsInstalados = escolas.filter(e => e.status === "concluido").reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
@@ -296,6 +301,7 @@ export default function TecnicoHome() {
   const filterTabs: { key: FilterType; label: string; count: number; color: string }[] = [
     { key: "nao_concluidas", label: "Ativos",      count: naoConcluidasCount, color: "#6366f1" },
     { key: "todos",          label: "Todos",       count: total,             color: "#94a3b8" },
+    { key: "com_rede_externa", label: "Rede externa", count: comRedeExterna, color: "#22d3ee" },
     { key: "pendente",       label: "Pendentes",   count: pendentes,         color: "#f59e0b" },
     { key: "em_andamento",   label: "Andamento",   count: emAndamento,       color: "#3b82f6" },
     { key: "concluido",      label: "Concluídos",  count: concluidas,        color: "#10b981" },
@@ -375,7 +381,7 @@ export default function TecnicoHome() {
 
         {/* Premium field shortcuts + progress card */}
         <div className="mb-4 grid grid-cols-2 gap-3">
-          <button onClick={() => navigate("/tecnico/manutencao")} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.18), rgba(79,70,229,0.10))", border: "1px solid rgba(139,92,246,0.22)" }}>
+          <button onClick={() => { localStorage.removeItem("assistente_eace_escola_id"); navigate("/tecnico/assistente"); }} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.18), rgba(79,70,229,0.10))", border: "1px solid rgba(139,92,246,0.22)" }}>
             <Bot className="mb-2 h-4 w-4 text-violet-300" />
             <p className="text-xs font-bold text-white">Assistente Técnico</p>
             <p className="mt-0.5 text-[10px] text-slate-400">Orientação em campo</p>
@@ -583,6 +589,13 @@ export default function TecnicoHome() {
                               <path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><circle cx="12" cy="20" r="1" fill="#818cf8" stroke="none" />
                             </svg>
                             <span className="text-[10px] font-bold" style={{ color: "#818cf8" }}>{escola.qtdAp} AP{(escola.qtdAp as number) > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {escola.redeExternaStatus === "com_rede" && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+                            style={{ background: "rgba(34,211,238,0.11)", border: "1px solid rgba(34,211,238,0.26)" }}>
+                            <Wifi className="w-2.5 h-2.5" style={{ color: "#67e8f9" }} />
+                            <span className="text-[10px] font-bold" style={{ color: "#67e8f9" }}>Rede externa</span>
                           </div>
                         )}
                       </div>

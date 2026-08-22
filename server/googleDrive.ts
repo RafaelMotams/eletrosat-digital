@@ -2,9 +2,37 @@ import { storageGetSignedUrl } from "./storage";
 import * as crypto from "crypto";
 
 const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID!;
+let accessTokenCache: { token: string; expiresAt: number } | null = null;
+
+export type DrivePhotoFile = {
+  id: string;
+  name: string;
+  mimeType: string;
+  path: string;
+  modifiedTime?: string;
+  md5Checksum?: string;
+  size?: string;
+};
+
+export function isGoogleDriveConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY);
+}
+
+export function extractGoogleDriveFolderId(value: string): string | null {
+  const raw = value.trim();
+  if (!raw) return null;
+  const folderMatch = raw.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (folderMatch?.[1]) return folderMatch[1];
+  const idParam = raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idParam?.[1]) return idParam[1];
+  return /^[a-zA-Z0-9_-]{10,}$/.test(raw) ? raw : null;
+}
 
 // Gera um JWT assinado para autenticação com a conta de serviço
 async function getAccessToken(): Promise<string> {
+  if (accessTokenCache && accessTokenCache.expiresAt > Date.now() + 60_000) {
+    return accessTokenCache.token;
+  }
   const privateKey = (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
 
@@ -40,8 +68,133 @@ async function getAccessToken(): Promise<string> {
     throw new Error(`Falha ao obter token Google: ${err}`);
   }
 
-  const data = (await resp.json()) as { access_token: string };
+  const data = (await resp.json()) as { access_token: string; expires_in?: number };
+  accessTokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + Math.max(60, data.expires_in ?? 3600) * 1000,
+  };
   return data.access_token;
+}
+
+async function listFolderChildren(
+  folderId: string,
+  token: string,
+): Promise<Array<{
+  id: string;
+  name: string;
+  mimeType: string;
+  modifiedTime?: string;
+  md5Checksum?: string;
+  size?: string;
+}>> {
+  const files: Array<{
+    id: string;
+    name: string;
+    mimeType: string;
+    modifiedTime?: string;
+    md5Checksum?: string;
+    size?: string;
+  }> = [];
+  let pageToken: string | undefined;
+  do {
+    const query = encodeURIComponent(`'${folderId.replace(/'/g, "\\'")}' in parents and trashed=false`);
+    const params = new URLSearchParams({
+      q: decodeURIComponent(query),
+      pageSize: "1000",
+      fields: "nextPageToken,files(id,name,mimeType,modifiedTime,md5Checksum,size)",
+      supportsAllDrives: "true",
+      includeItemsFromAllDrives: "true",
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const detail = await response.text();
+      throw new Error(`Falha ao listar a pasta do Google Drive (${response.status}): ${detail}`);
+    }
+    const data = (await response.json()) as {
+      nextPageToken?: string;
+      files?: typeof files;
+    };
+    files.push(...(data.files ?? []));
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+  return files;
+}
+
+/**
+ * Percorre a árvore do Drive sem alterar nenhum arquivo. O limite impede uma
+ * pasta compartilhada incorreta de consumir recursos indefinidamente.
+ */
+export async function listDrivePhotoFiles(
+  folderId: string,
+  maxFiles = 5000,
+): Promise<DrivePhotoFile[]> {
+  if (!isGoogleDriveConfigured()) {
+    throw new Error("Integração Google Drive não configurada no servidor");
+  }
+  const token = await getAccessToken();
+  const result: DrivePhotoFile[] = [];
+  const visited = new Set<string>();
+  const maxFolders = 2000;
+
+  async function walk(currentId: string, currentPath: string): Promise<void> {
+    if (visited.has(currentId) || result.length >= maxFiles) return;
+    if (visited.size >= maxFolders) {
+      throw new Error(`A árvore do Google Drive ultrapassa ${maxFolders} pastas`);
+    }
+    visited.add(currentId);
+    const children = await listFolderChildren(currentId, token);
+    for (const item of children) {
+      if (result.length >= maxFiles) break;
+      const path = currentPath ? `${currentPath}/${item.name}` : item.name;
+      if (item.mimeType === "application/vnd.google-apps.folder") {
+        await walk(item.id, path);
+      } else if (item.mimeType.startsWith("image/") || looksLikeImageName(item.name)) {
+        result.push({ ...item, path });
+      }
+    }
+  }
+
+  await walk(folderId, "");
+  return result;
+}
+
+export async function downloadDriveFile(fileId: string, maxBytes = 25 * 1024 * 1024): Promise<Buffer> {
+  if (!isGoogleDriveConfigured()) {
+    throw new Error("Integração Google Drive não configurada no servidor");
+  }
+  const token = await getAccessToken();
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media&supportsAllDrives=true`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Falha ao baixar arquivo do Google Drive (${response.status}): ${detail}`);
+  }
+  const contentLength = Number(response.headers.get("content-length") ?? 0);
+  if (contentLength > maxBytes) throw new Error("Foto do Google Drive acima do limite de 25 MB");
+  if (!response.body) throw new Error("Google Drive retornou um arquivo sem conteúdo");
+  const reader = response.body.getReader();
+  const chunks: Buffer[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel("arquivo acima do limite");
+      throw new Error("Foto do Google Drive acima do limite de 25 MB");
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks, total);
+}
+
+function looksLikeImageName(name: string): boolean {
+  return /\.(jpe?g|png|webp|gif|bmp|tiff?|heic|heif|avif|dng)$/i.test(name);
 }
 
 /** Busca ou cria uma subpasta dentro de um pai usando fetch direto */

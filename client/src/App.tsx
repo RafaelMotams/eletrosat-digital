@@ -32,10 +32,12 @@ import AdminGerenciarEscolas from "./pages/admin/GerenciarEscolas";
 import AdminConfiguracaoIA from "./pages/admin/ConfiguracaoIA";
 import AdminManutencao from "./pages/admin/Manutencao";
 import TecnicoManutencao from "./pages/tecnico/Manutencao";
+import TecnicoAssistenteEace from "./pages/tecnico/AssistenteEace";
+import AdminRedeExterna from "./pages/admin/RedeExterna";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 
 // Rotas do técnico que devem ser persistidas (exceto login)
-const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota"];
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/assistente"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const OS_ROUTE_KEY = "tecnico_active_os_route";
 const OS_ROUTE_TS_KEY = "tecnico_active_os_ts";
@@ -122,6 +124,7 @@ function Router() {
       <Route path="/admin/gerenciar-escolas" component={AdminGerenciarEscolas} />
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
       <Route path="/admin/manutencao" component={AdminManutencao} />
+      <Route path="/admin/rede-externa" component={AdminRedeExterna} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />
@@ -136,6 +139,7 @@ function Router() {
       <Route path="/tecnico/rota" component={TecnicoRotaDia} />
       <Route path="/tecnico/manutencao" component={TecnicoManutencao} />
       <Route path="/tecnico/manutencao/:id" component={TecnicoManutencao} />
+      <Route path="/tecnico/assistente" component={TecnicoAssistenteEace} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

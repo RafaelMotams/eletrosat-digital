@@ -9,6 +9,8 @@ import { superadminRouter } from "./routers/superadmin";
 import { manutencaoRouter } from "./routers/manutencao";
 import { tenantConfigRouter } from "./routers/tenantConfig";
 import { signupRouter } from "./routers/signup";
+import { redeExternaRouter } from "./routers/redeExterna";
+import { assistenteEaceRouter } from "./routers/assistenteEace";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -1262,6 +1264,8 @@ export const appRouter = router({
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
+  redeExterna: redeExternaRouter,
+  assistenteEace: assistenteEaceRouter,
   superadmin: superadminRouter,
   signup: signupRouter,
   tenantConfig: tenantConfigRouter,
