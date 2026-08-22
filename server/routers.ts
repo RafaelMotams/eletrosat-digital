@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { setTecnicoSession, clearTecnicoSession } from "./_core/tecnicoAuth";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
@@ -54,9 +55,35 @@ import { notifyOwner } from "./_core/notification";
 import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
 import { ordensServico, escolas } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Middleware para verificar se é admin
+const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
+  if (!ctx.tecnicoSession) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
+  }
+  return next({ ctx });
+});
+
+async function assertTecnicoScope(ctx: any, tecnicoId: number, escolaId: number) {
+  const session = ctx.tecnicoSession;
+  if (!session || session.tecnicoId !== tecnicoId) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não autorizado" });
+  const [tecnico, escola] = await Promise.all([getTecnicoById(tecnicoId), getEscolaById(escolaId)]);
+  if (!tecnico || !tecnico.ativo || tecnico.tenantId !== session.tenantId || !escola || escola.tenantId !== session.tenantId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Recurso fora do tenant autorizado" });
+  }
+  return { tecnico, escola };
+}
+
+async function assertTecnicoOsScope(ctx: any, osId: number) {
+  const session = ctx.tecnicoSession;
+  const db = await getDb();
+  if (!session || !db) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const rows = await db.select().from(ordensServico).where(and(eq(ordensServico.id, osId), eq(ordensServico.tecnicoId, session.tecnicoId), eq(ordensServico.tenantId, session.tenantId)));
+  if (!rows[0]) throw new TRPCError({ code: "FORBIDDEN", message: "OS fora do escopo do técnico" });
+  return rows[0];
+}
+
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
     throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores" });
@@ -765,7 +792,7 @@ const planilhaRouter = router({
 const tecnicoAuthRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string().email(), senha: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const tecnico = await getTecnicoByEmail(input.email);
       if (!tecnico) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos" });
@@ -774,6 +801,12 @@ const tecnicoAuthRouter = router({
       if (!valid) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos" });
       }
+      await setTecnicoSession(ctx.res, ctx.req, {
+        tecnicoId: tecnico.id,
+        tenantId: tecnico.tenantId,
+        email: tecnico.email,
+        role: "tecnico",
+      });
       return {
         id: tecnico.id,
         nome: tecnico.nome,
@@ -783,27 +816,35 @@ const tecnicoAuthRouter = router({
       };
     }),
 
-  me: publicProcedure
+  me: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
       return getTecnicoById(input.tecnicoId);
     }),
+  logout: tecnicoProcedure.mutation(async ({ ctx }) => {
+    clearTecnicoSession(ctx.res, ctx.req);
+    return { success: true };
+  }),
   // Busca escolas atribuídas ao técnico pelo ID (não depende de OAuth)
-  minhasEscolas: publicProcedure
+  minhasEscolas: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
-      return listEscolas({ tecnicoId: input.tecnicoId });
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+      return listEscolas({ tecnicoId: input.tecnicoId, tenantId: ctx.tecnicoSession!.tenantId });
     }),
   // Busca OS do técnico pelo ID
-  minhasOrdens: publicProcedure
+  minhasOrdens: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
-      return listOrdensServico({ tecnicoId: input.tecnicoId });
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+      return listOrdensServico({ tecnicoId: input.tecnicoId, tenantId: ctx.tecnicoSession!.tenantId });
     }),
   // Busca telefone da escola pelo INEP usando IA e salva no banco
-  buscarTelefone: publicProcedure
+  buscarTelefone: tecnicoProcedure
     .input(z.object({ escolaId: z.number(), inep: z.string(), nome: z.string(), municipio: z.string().optional() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, ctx.tecnicoSession!.tecnicoId, input.escolaId);
       const { invokeLLM } = await import("./_core/llm");
 
       // Primeiro verifica se já tem telefone salvo
@@ -862,12 +903,13 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Inicia a OS (muda status de aberta para em_andamento)
-  iniciarOS: publicProcedure
+  iniciarOS: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
       // Busca OS existente primeiro (evita race condition)
@@ -906,14 +948,15 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Registra escola como não instalada com motivo
-  naoInstalada: publicProcedure
+  naoInstalada: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
       motivo: z.enum(["escola_desativada", "em_reforma", "mudanca_endereco"]),
       observacao: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
       const result = await registrarNaoInstalada(input.escolaId, input.tecnicoId, input.motivo, input.observacao);
@@ -931,7 +974,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Cria e conclui OS pelo técnico com foto do mapa de calor (sem OAuth)
-  concluirEscola: publicProcedure
+  concluirEscola: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
@@ -940,7 +983,8 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       fotoMapaCalorUrl: z.string().optional(),
       fotoMapaCalorKey: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
 
@@ -1033,7 +1077,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Upload de foto do mapa de calor para uma OS
-  uploadFotoMapaCalor: publicProcedure
+  uploadFotoMapaCalor: tecnicoProcedure
     .input(z.object({
       osId: z.number().optional(),
       escolaId: z.number(),
@@ -1042,7 +1086,9 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
+      if (input.osId) await assertTecnicoOsScope(ctx, input.osId);
       const buffer = Buffer.from(input.imageBase64, "base64");
       const key = `mapa-calor/escola-${input.escolaId}-tecnico-${input.tecnicoId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -1057,7 +1103,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Upload de foto por categoria (apenas mapa_calor)
-  uploadOsFoto: publicProcedure
+  uploadOsFoto: tecnicoProcedure
     .input(z.object({
       osId: z.number(),
       escolaId: z.number(),
@@ -1068,7 +1114,9 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       // clientId: ID único gerado pelo app offline para garantir idempotência
       clientId: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
+      await assertTecnicoOsScope(ctx, input.osId);
       // Validar tamanho da imagem (base64 de 10MB = ~13.3MB de string)
       const maxBase64Size = 14 * 1024 * 1024; // 14MB em caracteres
       if (input.imageBase64.length > maxBase64Size) {
@@ -1093,22 +1141,25 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Busca fotos de uma OS por ID
-  getOsFotos: publicProcedure
+  getOsFotos: tecnicoProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoOsScope(ctx, input.osId);
       return listOsFotos(input.osId);
     }),
 
   // Busca fotos de uma escola (todas as OS)
-  getOsFotosByEscola: publicProcedure
+  getOsFotosByEscola: tecnicoProcedure
     .input(z.object({ escolaId: z.number() }))
-    .query(async ({ input }) => {
-       return listOsFotosByEscola(input.escolaId);
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, ctx.tecnicoSession!.tecnicoId, input.escolaId);
+      return listOsFotosByEscola(input.escolaId);
     }),
   // Verifica se todas as categorias obrigatórias têm foto
-  verificarFotosObrigatorias: publicProcedure
+  verificarFotosObrigatorias: tecnicoProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoOsScope(ctx, input.osId);
       const counts = await countOsFotosByCategoria(input.osId);
       const categorias = ["mapa_calor"] as const;
       const resultado: Record<string, boolean> = {};

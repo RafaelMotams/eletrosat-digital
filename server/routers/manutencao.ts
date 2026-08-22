@@ -7,6 +7,16 @@ import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/s
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
 
+const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
+  if (!ctx.tecnicoSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
+  return next({ ctx });
+});
+
+const manutencaoAccessProcedure = publicProcedure.use(({ ctx, next }) => {
+  if (!ctx.tecnicoSession && !ctx.tenantSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão necessária" });
+  return next({ ctx });
+});
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 async function getManutencaoComDados(id: number) {
@@ -164,13 +174,14 @@ export const manutencaoRouter = router({
     });
   }),
 
-  // ── TÉCNICO: Listar manutenções atribuídas (public para funcionar no app) ───
-  minhas: publicProcedure
+  // ── TÉCNICO: Listar manutenções atribuídas ───
+  minhas: tecnicoProcedure
     .input(z.object({
       tecnicoId: z.number(),
       busca: z.string().optional(),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const rows = await db
@@ -183,6 +194,7 @@ export const manutencaoRouter = router({
         .where(
           and(
             eq(manutencoes.tecnicoId, input.tecnicoId),
+            eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId),
             // Só mostra pendentes e em andamento (concluídas saem da lista)
             or(
               eq(manutencoes.status, "pendente"),
@@ -207,26 +219,31 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Buscar manutenção por ID ──────────────────────────────────────
-  getById: publicProcedure
+  getById: manutencaoAccessProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      return getManutencaoComDados(input.id);
+    .query(async ({ input, ctx }) => {
+      const m = await getManutencaoComDados(input.id);
+      const isAdmin = !!ctx.tenantSession && (ctx.tenantSession.isSuperAdmin || ctx.tenantSession.tenantId === m?.tenantId);
+      const isTecnico = !!ctx.tecnicoSession && m?.tecnicoId === ctx.tecnicoSession.tecnicoId && m?.tenantId === ctx.tecnicoSession.tenantId;
+      if (!m || (!isAdmin && !isTecnico)) throw new TRPCError({ code: "FORBIDDEN" });
+      return m;
     }),
 
   // ── TÉCNICO: Iniciar manutenção ─────────────────────────────────────────────
-  iniciar: publicProcedure
+  iniciar: tecnicoProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
         .set({ status: "em_andamento" })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, ctx.tecnicoSession!.tecnicoId), eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId)));
       return { success: true };
     }),
 
   // ── TÉCNICO: Upload foto ────────────────────────────────────────────────────
-  uploadFoto: publicProcedure
+  uploadFoto: tecnicoProcedure
     .input(z.object({
       manutencaoId: z.number(),
       tipo: z.enum(["defeito", "conclusao"]),
@@ -234,7 +251,9 @@ export const manutencaoRouter = router({
       mimeType: z.string().default("image/jpeg"),
       clientId: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const m = await getManutencaoComDados(input.manutencaoId);
+      if (!m || m.tecnicoId !== ctx.tecnicoSession!.tecnicoId || m.tenantId !== ctx.tecnicoSession!.tenantId) throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -261,13 +280,14 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Concluir manutenção ────────────────────────────────────────────
-  concluir: publicProcedure
+  concluir: tecnicoProcedure
     .input(z.object({
       id: z.number(),
       tecnicoId: z.number(),
       observacaoConclusao: z.string().min(5, "Observação obrigatória"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
@@ -276,20 +296,33 @@ export const manutencaoRouter = router({
           observacaoConclusao: input.observacaoConclusao,
           dataConclusao: new Date(),
         })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, ctx.tecnicoSession!.tecnicoId), eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId)));
       return { success: true };
     }),
 
   // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
-  assistenteIA: publicProcedure
+  assistenteIA: manutencaoAccessProcedure
     .input(z.object({
       manutencaoId: z.number(),
       pergunta: z.string().min(3),
       contexto: z.string().optional(),
+      perfil: z.enum(["rede_escolar", "infraestrutura_fisica", "configuracao_tp_link", "configuracao_intelbras"]).default("rede_escolar"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const m = await getManutencaoComDados(input.manutencaoId);
+      if (!m) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
+      const tecnicoAutorizado = ctx.tecnicoSession?.tecnicoId === m.tecnicoId;
+      const adminAutorizado = !!ctx.tenantSession && (ctx.tenantSession.isSuperAdmin || ctx.tenantSession.tenantId === m.tenantId);
+      if (!tecnicoAutorizado && !adminAutorizado) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Você não tem acesso a esta manutenção" });
+      }
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
+      const perfilFoco: Record<string, string> = {
+        rede_escolar: "priorize diagnóstico de redes escolares, cobertura Wi-Fi, VLANs, DHCP, cabeamento e boas práticas de continuidade operacional",
+        infraestrutura_fisica: "priorize rack, patch panel, organização, cabeamento, fibra, aterramento, energia e segurança física da instalação",
+        configuracao_tp_link: "priorize TP-Link Omada, controlador, adoção de APs, VLANs, roaming, canais, potência e atualização de firmware",
+        configuracao_intelbras: "priorize Intelbras, controladoras, switches, APs, GPON, VLANs, provisionamento e documentação do fabricante",
+      };
       const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
 
 • INFRAESTRUTURA DE REDE: Cabeamento estruturado (Cat5e/Cat6/Cat6A), fibra óptica (FTTH, FTTx), patch panels, racks 19", organizadores, DIO, caixas de emenda
@@ -306,6 +339,10 @@ Seu estilo:
 - Alerta sobre ERROS COMUNS que técnicos iniciantes cometem
 - Usa linguagem técnica mas acessível
 - Quando não sabe algo específico, indica onde buscar (manual, suporte fabricante)
+
+Foco selecionado pelo técnico: ${perfilFoco[input.perfil]}. 
+
+Regras de segurança: não invente modelo, senha, topologia ou medição. Se faltarem dados, faça perguntas objetivas. Não oriente a desativar firewall, segurança elétrica ou controles de acesso sem explicar o risco. Para energia, altura, fibra e instalações físicas, recomende procedimento seguro e manual do fabricante.
 
 Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const response = await invokeLLM({

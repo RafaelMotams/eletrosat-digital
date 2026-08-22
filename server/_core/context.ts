@@ -2,12 +2,14 @@ import type { CreateExpressContextOptions } from "@trpc/server/adapters/express"
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
 import { verifyTenantToken, extractBearerToken, type TenantSession } from "./tenantAuth";
+import { getTecnicoSession, type TecnicoSession } from "./tecnicoAuth";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];
   user: User | null;
   tenantSession: TenantSession | null;
+  tecnicoSession: TecnicoSession | null;
 };
 
 export async function createContext(
@@ -15,6 +17,7 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
   let tenantSession: TenantSession | null = null;
+  let tecnicoSession: TecnicoSession | null = null;
 
   // Tentar autenticar via Manus OAuth (cookie)
   try {
@@ -30,10 +33,13 @@ export async function createContext(
     tenantSession = await verifyTenantToken(token);
   }
 
+  tecnicoSession = await getTecnicoSession(opts.req);
+
   return {
     req: opts.req,
     res: opts.res,
     user,
     tenantSession,
+    tecnicoSession,
   };
 }

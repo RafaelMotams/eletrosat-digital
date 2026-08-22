@@ -5,7 +5,7 @@ import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
   TrendingUp, Navigation, LocateFixed, X, Wifi,
-  Filter, Bell, ChevronDown
+  Filter, Bell, ChevronDown, ShieldCheck, Bot
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -140,8 +140,8 @@ export default function TecnicoHome() {
   useEffect(() => {
     const id = localStorage.getItem("tecnico_id");
     const nome = localStorage.getItem("tecnico_nome");
-    if (!id) {
-      const stored = localStorage.getItem("tecnico");
+      if (!id || localStorage.getItem("tecnico_session_verified") !== "true") {
+        const stored = localStorage.getItem("tecnico");
       if (!stored) { navigate("/tecnico/login"); return; }
       try {
         const t = JSON.parse(stored);
@@ -159,10 +159,27 @@ export default function TecnicoHome() {
     localStorage.removeItem("tecnico_show_welcome");
   }, [navigate]);
 
+  const { data: tecnicoSessao, isError: sessaoInvalida } = trpc.tecnicoAuth.me.useQuery(
+    { tecnicoId },
+    { enabled: !!tecnicoId && isOnline, retry: false, staleTime: 5 * 60 * 1000 }
+  );
+
+  useEffect(() => {
+    if (tecnicoSessao?.id) localStorage.setItem("tecnico_session_verified", "true");
+  }, [tecnicoSessao]);
+
+  useEffect(() => {
+    if (sessaoInvalida && isOnline) {
+      ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_session_verified"].forEach(k => localStorage.removeItem(k));
+      setOfflineEscolas(null);
+      navigate("/tecnico/login");
+    }
+  }, [sessaoInvalida, isOnline, navigate]);
+
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
     {
-      enabled: !!tecnicoId && isOnline,
+      enabled: !!tecnicoId && isOnline && !!tecnicoSessao?.id,
       // Polling a cada 2 minutos — suficiente para ver novas atribuições sem sobrecarregar
       refetchInterval: isOnline ? 2 * 60 * 1000 : false,
       // Dados válidos por 2 minutos antes de considerar desatualizado
@@ -185,7 +202,7 @@ export default function TecnicoHome() {
   // Carrega escolas do cache local SEMPRE ao iniciar (independente de estar online ou offline)
   // Isso garante que as escolas aparecem imediatamente, mesmo sem internet
   useEffect(() => {
-    if (tecnicoId) {
+    if (tecnicoId && localStorage.getItem("tecnico_session_verified") === "true") {
       dbGetCachedEscolas(tecnicoId).then((cached) => {
         if (cached && cached.length > 0) {
           setOfflineEscolas(cached as Escola[]);
@@ -337,6 +354,9 @@ export default function TecnicoHome() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[10px] font-bold" style={{ background: "rgba(16,185,129,0.10)", border: "1px solid rgba(16,185,129,0.18)", color: "#6ee7b7" }} title="Sessão reconhecida pelo servidor">
+              <ShieldCheck className="h-3.5 w-3.5" /> Sessão protegida
+            </div>
             {isOnline && (
               <button onClick={() => refetch()}
                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95"
@@ -355,6 +375,18 @@ export default function TecnicoHome() {
         </div>
 
         {/* Progress card */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <button onClick={() => navigate("/tecnico/manutencao")} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.18), rgba(79,70,229,0.10))", border: "1px solid rgba(139,92,246,0.22)" }}>
+            <Bot className="mb-2 h-4 w-4 text-violet-300" />
+            <p className="text-xs font-bold text-white">Assistente Técnico</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">Orientação em campo</p>
+          </button>
+          <button onClick={handleLocate} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.16), rgba(14,116,144,0.08))", border: "1px solid rgba(6,182,212,0.20)" }}>
+            <LocateFixed className="mb-2 h-4 w-4 text-cyan-300" />
+            <p className="text-xs font-bold text-white">Minha localização</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">{userLat !== null ? "Posição atualizada" : locating ? "Obtendo posição…" : "Otimizar rota"}</p>
+          </button>
+        </div>
         <div className="rounded-2xl p-4 mb-4"
           style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(79,70,229,0.1))", border: "1px solid rgba(59,130,246,0.15)" }}>
           <div className="flex items-center justify-between mb-3">

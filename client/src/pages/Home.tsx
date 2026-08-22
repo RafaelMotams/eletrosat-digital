@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { 
   ArrowRight, CheckCircle, Zap, Shield, TrendingUp, MapPin, 
   Smartphone, BarChart3, Wifi, Camera, Clock, Users, 
@@ -10,15 +8,8 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setLocation(user.role === "admin" ? "/admin" : "/superadmin");
-    }
-  }, [user, setLocation]);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 overflow-hidden">

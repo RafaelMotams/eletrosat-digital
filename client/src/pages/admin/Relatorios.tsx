@@ -503,6 +503,24 @@ export default function AdminRelatorios() {
     [osDetalhadas]
   );
 
+  const pagamentoPorTecnico = useMemo(() => {
+    const agrupado = new Map<string, { nome: string; ordens: number; aps: number; total: number }>();
+    for (const os of osDetalhadas ?? []) {
+      const nome = os.tecnicoNome || "Não atribuído";
+      const atual = agrupado.get(nome) ?? { nome, ordens: 0, aps: 0, total: 0 };
+      atual.ordens += 1;
+      atual.aps += Number(os.qtdApInstalado ?? 0);
+      atual.total += os.valorCalculado == null ? 0 : Number(os.valorCalculado);
+      agrupado.set(nome, atual);
+    }
+    return Array.from(agrupado.values()).sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome));
+  }, [osDetalhadas]);
+
+  const totalPagamentoSelecionado = useMemo(
+    () => pagamentoPorTecnico.reduce((acc, tecnico) => acc + tecnico.total, 0),
+    [pagamentoPorTecnico]
+  );
+
   const tecnicosSelecionados = useMemo(
     () => (tecnicos ?? []).filter(t => tecnicosSel.includes(t.id)),
     [tecnicos, tecnicosSel]
@@ -591,6 +609,54 @@ export default function AdminRelatorios() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Resumo de pagamento por técnico ─────────────────────────────────── */}
+      {!isViewer && pagamentoPorTecnico.length > 0 && (
+        <Card className="mb-6 overflow-hidden border-0 shadow-sm">
+          <CardHeader className="pb-3 bg-gradient-to-r from-emerald-50 to-sky-50 dark:from-emerald-950/20 dark:to-sky-950/20">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  Pagamento por técnico
+                </CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">Valores calculados a partir das OS concluídas e do valor cadastrado por AP.</p>
+              </div>
+              <div className="rounded-xl bg-white/80 dark:bg-background/70 px-4 py-2 text-right shadow-sm">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total do filtro</p>
+                <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                  {totalPagamentoSelecionado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    {["Técnico", "OS concluídas", "APs instalados", "Total a receber"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagamentoPorTecnico.map(tecnico => (
+                    <tr key={tecnico.nome} className="border-b last:border-0 hover:bg-muted/20">
+                      <td className="px-4 py-3 font-semibold">{tecnico.nome}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{tecnico.ordens}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{tecnico.aps}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-700 dark:text-emerald-400">
+                        {tecnico.total > 0 ? tecnico.total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -704,7 +770,7 @@ export default function AdminRelatorios() {
           {totalOsTabela > 0 && (
             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
               <Download className="w-3 h-3" />
-              A planilha exportada contém a coluna <strong className="mx-1">Valor por AP (R$)</strong> — preencha o valor e o total será calculado automaticamente.
+              A planilha separa as OS por técnico e inclui o <strong className="mx-1">Total a Pagar (R$)</strong> individual e geral conforme os valores cadastrados.
             </p>
           )}
         </CardHeader>

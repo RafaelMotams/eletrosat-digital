@@ -556,3 +556,55 @@
 - [x] Design elegante com ícones, gradientes e tipografia premium
 - [x] Botão de login com email/senha fornecida pelo painel revenda (/admin/login)
 - [x] Seções: Hero, Funcionalidades, Como Funciona, Segurança, Planos, CTA, Footer
+
+## Solicitação atual — revisão premium e segurança
+- [ ] Auditar autenticação, rotas protegidas e isolamento por tenant
+- [ ] Redesenhar app do técnico com interface premium e recursos de campo
+- [ ] Adicionar seleção do Assistente Técnico para redes internas/externas, TP-Link e Intelbras
+- [ ] Refinar painel administrativo com visual premium e indicadores
+- [ ] Melhorar exportação de OS com formatação, resumo e gráfico baseado em dados reais
+- [ ] Escrever testes para segurança, isolamento, assistente, cálculo e exportação
+- [ ] Validar visualmente desktop/mobile e corrigir regressões
+- [ ] Salvar checkpoint e publicar a versão validada
+
+> Nota: reconhecimento biométrico só deve ser implementado com WebAuthn/passkeys e requisito confirmado. A proteção imediata será por autenticação forte, sessão segura, autorização por tenant, rate limit e auditoria; não será simulada biometria.
+
+## Pendências herdadas para revisão
+- [ ] Landing page deve abrir primeiro e áreas internas devem exigir login
+- [ ] Cadastro com confirmação por email e notificação WhatsApp dependem de integração configurada
+- [ ] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda OS
+- [ ] Resolver/validar SSL de netvius.org manualmente no painel de domínio
+- [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
+- [ ] Confirmar conclusão do trabalho após testes reais
+
+## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
+- [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
+- [x] Confirmar tenant atual de cada registro
+- [x] Confirmar vínculo das escolas com origem e destino
+- [x] Mover somente registros inequivocamente pertencentes ao cliente Rafael
+- [x] Preservar as demais ordens do tenant admin@netvionis.com
+- [x] Validar que as ordens aparecem no painel de rafael2020ms@gmail.com
+- [x] Validar que as ordens não aparecem no painel de admin@netvionis.com
+- [x] Separar no relatório os valores de Rodrigo e Ricardo
+- [x] Separar na planilha os valores de Rodrigo e Ricardo
+- [x] Validar total individual e total geral
+- [x] Testar isolamento e exportação sem inserir dados de teste
+- [ ] Salvar checkpoint e publicar a correção
+
+> Nenhuma ordem será movida fora do período ou por aproximação de nome; a data considerada será a data de criação/abertura do registro correspondente.
+
+## Resultado validado — 22/08/2026
+- [x] 20 OS do recorte foram transferidas para o tenant 180002 do cliente Rafael
+- [x] Rodrigo: 11 OS e 93 APs no período de 01/08/2026 a 20/08/2026
+- [x] Ricardo: 9 OS e 91 APs no período de 01/08/2026 a 20/08/2026
+- [x] Rodrigo: total calculado de R$ 16.440,00 conforme valores cadastrados por AP
+- [x] Ricardo: total calculado de R$ 15.240,00 conforme valores cadastrados por AP
+- [x] Total do recorte: R$ 31.680,00
+- [x] Relatório administrativo mostra resumo individual por técnico e total do filtro
+- [x] Exportação Excel mantém abas de OS concluídas, resumo por técnico e não instaladas
+- [x] TypeScript sem erros após a alteração do relatório
+- [x] Testes direcionados de isolamento e regras principais: 29 passaram
+- [x] Prévia visual do relatório validada em desktop
+- [ ] Checkpoint final desta correção
+
+> Observação de testes: a suíte completa ainda possui duas falhas externas ao recorte — `RESEND_API_KEY` de ambiente com placeholder curto e upload para Google Drive bloqueado por cota de Service Account. Os testes direcionados de isolamento e regras principais passaram.
