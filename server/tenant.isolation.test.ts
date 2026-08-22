@@ -277,6 +277,18 @@ describe("Isolamento Multi-Tenant: Acesso não autenticado", () => {
     const caller = appRouter.createCaller(createUnauthenticatedContext());
     await expect(caller.manutencao.relatorio({})).rejects.toThrow(TRPCError);
   });
+
+  it("acesso sem autenticação é negado para excluir histórico de planilha", async () => {
+    const caller = appRouter.createCaller(createUnauthenticatedContext());
+    await expect(caller.planilhasImportadas.apagar({ id: 1 })).rejects.toThrow(TRPCError);
+  });
+});
+
+describe("Isolamento Multi-Tenant: Histórico de planilhas", () => {
+  it("perfil visualizador não pode excluir histórico de planilha", async () => {
+    const caller = appRouter.createCaller(createTenantContext(1, "viewer"));
+    await expect(caller.planilhasImportadas.apagar({ id: 1 })).rejects.toThrow(TRPCError);
+  });
 });
 
 describe("Isolamento Multi-Tenant: OAuth sem tenant implícito", () => {

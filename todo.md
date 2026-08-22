@@ -597,12 +597,12 @@
 - [ ] Salvar checkpoint e publicar o cadastro controlado
 
 ## Exclusão segura de planilhas exportadas
-- [ ] Validar o administrador admin@netviones@gmail.com e seu tenant
-- [ ] Auditar tabela, tela e endpoints de planilhas exportadas
-- [ ] Criar exclusão com escopo obrigatório de tenant
-- [ ] Exigir confirmação explícita antes de excluir
-- [ ] Exibir a ação somente no painel do administrador autorizado
-- [ ] Testar bloqueio de exclusão cruzada entre tenants
+- [x] Validar o administrador admin@netviones@gmail.com e seu tenant — o e-mail não existe; admin@netvionis.com (Rafael Mota) pertence ao tenant 1
+- [x] Auditar tabela, tela e endpoints de planilhas exportadas
+- [x] Criar exclusão com escopo obrigatório de tenant
+- [x] Exigir confirmação explícita antes de excluir
+- [x] Exibir a ação somente no painel do administrador autorizado
+- [x] Testar bloqueio de exclusão cruzada entre tenants
 - [ ] Validar visualmente o fluxo de exclusão
 - [ ] Salvar checkpoint e publicar a ação
 

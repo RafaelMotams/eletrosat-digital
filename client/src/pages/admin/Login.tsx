@@ -108,7 +108,7 @@ export default function AdminLogin() {
             <h1 style={{ color: "white", fontSize: 38, fontWeight: 800, lineHeight: 1.15, marginBottom: 16, fontFamily: "'Outfit', sans-serif" }}>
               Gerencie sua equipe com{" "}
               <span style={{ background: "linear-gradient(135deg, #10b981, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                inteligência
+                controle
               </span>
             </h1>
             <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
@@ -202,7 +202,7 @@ export default function AdminLogin() {
                 <span style={{ color: "#10b981", fontSize: 12, fontWeight: 600 }}>Sistema online</span>
               </div>
               <h2 style={{ color: "white", fontWeight: 800, fontSize: 28, fontFamily: "'Outfit', sans-serif", lineHeight: 1.2, marginBottom: 8 }}>
-                Bem-vindo de volta
+                Bem-vindo
               </h2>
               <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>
                 Entre com suas credenciais para acessar o painel
@@ -309,7 +309,7 @@ export default function AdminLogin() {
             }}>
               <Lock size={14} color="rgba(16,185,129,0.7)" style={{ flexShrink: 0, marginTop: 1 }} />
               <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, lineHeight: 1.5 }}>
-                Suas credenciais são protegidas com criptografia. Sessão expira automaticamente após inatividade.
+                Suas credenciais são validadas no servidor. A sessão expira automaticamente após inatividade.
               </p>
             </div>
           </div>

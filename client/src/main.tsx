@@ -32,6 +32,15 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   // Não redirecionar se for um técnico (autenticação própria via localStorage)
   const tecnicoId = localStorage.getItem("tecnico_id");
   if (tecnicoId) return;
+  // Painéis próprios do Netvius usam credenciais de tenant ou superadmin, não OAuth da plataforma.
+  if (window.location.pathname.startsWith("/admin")) {
+    window.location.href = "/admin/login";
+    return;
+  }
+  if (window.location.pathname.startsWith("/superadmin")) {
+    window.location.href = "/superadmin/login";
+    return;
+  }
   window.location.href = getLoginUrl();
 };
 
