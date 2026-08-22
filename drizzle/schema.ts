@@ -8,6 +8,7 @@ import {
   decimal,
   boolean,
   uniqueIndex,
+  index,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
@@ -128,6 +129,13 @@ export const escolas = mysqlTable("escolas", {
   velocidadeMinima: varchar("velocidadeMinima", { length: 20 }),
   velocidadeOfertada: varchar("velocidadeOfertada", { length: 20 }),
   tipoConexao: varchar("tipoConexao", { length: 50 }).default("Fibra"),
+  // Situação da rede que entrega o link até a escola. Este estado é separado
+  // da execução da rede interna para não confundir link disponível com OS concluída.
+  redeExternaStatus: mysqlEnum("redeExternaStatus", ["nao_informada", "com_rede", "sem_rede", "em_validacao"])
+    .default("nao_informada")
+    .notNull(),
+  redeExternaTipo: mysqlEnum("redeExternaTipo", ["fibra", "radio", "satelite", "movel", "outro"]),
+  redeExternaObservacao: text("redeExternaObservacao"),
   status: mysqlEnum("status", ["pendente", "em_andamento", "concluido", "nao_instalada"]).default("pendente").notNull(),
   motivoNaoInstalacao: mysqlEnum("motivoNaoInstalacao", ["escola_desativada", "em_reforma", "mudanca_endereco"]),
   tecnicoId: int("tecnicoId"),
@@ -143,6 +151,66 @@ export const escolas = mysqlTable("escolas", {
 }));
 export type Escola = typeof escolas.$inferSelect;
 export type InsertEscola = typeof escolas.$inferInsert;
+
+// ============================================================
+// CENTRAL DE REDE EXTERNA
+// ============================================================
+
+// Configuração do conector Google Drive por tenant. O ID da pasta não é um
+// segredo; as credenciais da conta de serviço continuam somente no servidor.
+export const redeExternaConfig = mysqlTable("rede_externa_config", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull().unique(),
+  driveFolderId: varchar("driveFolderId", { length: 255 }),
+  driveFolderNome: varchar("driveFolderNome", { length: 255 }),
+  ultimaSincronizacao: timestamp("ultimaSincronizacao"),
+  ultimoResultado: text("ultimoResultado"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RedeExternaConfig = typeof redeExternaConfig.$inferSelect;
+export type InsertRedeExternaConfig = typeof redeExternaConfig.$inferInsert;
+
+// Arquivos podem chegar já vinculados a uma escola ou ficar em revisão. Isso
+// evita associação silenciosa quando duas pastas têm nomes parecidos.
+export const redeExternaFotos = mysqlTable("rede_externa_fotos", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  escolaId: int("escolaId"),
+  categoria: mysqlEnum("categoria", [
+    "roteador_modem",
+    "fachada",
+    "antena",
+    "cto_caixa",
+    "entrada_cabo",
+    "teste_conexao",
+    "travessia",
+    "outro",
+  ]).default("outro").notNull(),
+  statusVinculo: mysqlEnum("statusVinculo", ["vinculada", "revisao", "ignorada"])
+    .default("revisao")
+    .notNull(),
+  titulo: varchar("titulo", { length: 255 }),
+  originalNome: varchar("originalNome", { length: 500 }).notNull(),
+  originalMimeType: varchar("originalMimeType", { length: 120 }),
+  origem: mysqlEnum("origem", ["pasta", "zip", "google_drive", "manual"]).notNull(),
+  caminhoOrigem: text("caminhoOrigem"),
+  driveFileId: varchar("driveFileId", { length: 255 }),
+  driveModifiedTime: varchar("driveModifiedTime", { length: 64 }),
+  sha256: varchar("sha256", { length: 64 }),
+  url: text("url").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantDriveFileIdx: uniqueIndex("rede_externa_tenant_drive_file_unique").on(table.tenantId, table.driveFileId),
+  tenantEscolaIdx: index("rede_externa_tenant_escola_idx").on(table.tenantId, table.escolaId),
+  tenantStatusIdx: index("rede_externa_tenant_status_idx").on(table.tenantId, table.statusVinculo),
+}));
+
+export type RedeExternaFoto = typeof redeExternaFotos.$inferSelect;
+export type InsertRedeExternaFoto = typeof redeExternaFotos.$inferInsert;
 
 // Tabela de Atribuições Manuais (sobrescreve regra de cidade)
 export const atribuicoesManual = mysqlTable("atribuicoes_manual", {
