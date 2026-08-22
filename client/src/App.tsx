@@ -20,7 +20,6 @@ import TecnicoMapa from "./pages/tecnico/Mapa";
 import TecnicoPerfil from "./pages/tecnico/Perfil";
 import TecnicoHistorico from "./pages/tecnico/Historico";
 import TecnicoRotaDia from "./pages/tecnico/RotaDia";
-import AssistenteTecnico from "./pages/tecnico/AssistenteTecnico";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import ConfirmSignup from "./pages/ConfirmSignup";
@@ -135,7 +134,6 @@ function Router() {
       <Route path="/tecnico/perfil" component={TecnicoPerfil} />
       <Route path="/tecnico/historico" component={TecnicoHistorico} />
       <Route path="/tecnico/rota" component={TecnicoRotaDia} />
-      <Route path="/tecnico/assistente" component={AssistenteTecnico} />
       <Route path="/tecnico/manutencao" component={TecnicoManutencao} />
       <Route path="/tecnico/manutencao/:id" component={TecnicoManutencao} />
       <Route path="/404" component={NotFound} />

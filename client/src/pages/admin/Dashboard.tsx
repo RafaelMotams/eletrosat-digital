@@ -2,7 +2,7 @@ import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users, ClipboardList, FileText, Wrench } from "lucide-react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -170,56 +170,6 @@ export default function AdminDashboard() {
           </button>
         </div>
       </div>
-
-      {!isViewer && (
-        <section className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">Centro de atenção</p>
-              <h2 className="mt-1 text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Prioridades da operação</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Resumo calculado somente a partir dos dados do seu painel.</p>
-            </div>
-            <a href="/admin/ordens" className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700">Abrir ordens</a>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { label: "Pendências para acompanhar", value: stats?.pendentes ?? 0, detail: "Aguardam início ou definição", tone: "amber" },
-              { label: "Atividades em campo", value: stats?.emAndamento ?? 0, detail: "Em execução pela equipe", tone: "blue" },
-              { label: "Conclusão do plano", value: `${pct}%`, detail: `${stats?.concluidas ?? 0} unidades concluídas`, tone: "emerald" },
-            ].map((item) => (
-              <div key={item.label} className={`rounded-xl border p-4 ${item.tone === "amber" ? "border-amber-200 bg-amber-50" : item.tone === "blue" ? "border-blue-200 bg-blue-50" : "border-emerald-200 bg-emerald-50"}`}>
-                <p className="text-xs font-semibold text-muted-foreground">{item.label}</p>
-                <p className="mt-2 text-2xl font-black text-foreground">{item.value}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!isViewer && (
-        <section className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-600">Atalhos operacionais</p>
-            <h2 className="mt-1 text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Trabalhe por prioridade</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Acesse as rotinas mais usadas da operação sem procurar no menu.</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { href: "/admin/ordens", icon: ClipboardList, title: "Ordens de serviço", detail: `${(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)} atividade(s) aberta(s)`, tone: "text-blue-700 bg-blue-50 border-blue-200" },
-              { href: "/admin/manutencao", icon: Wrench, title: "Manutenção", detail: "Atribuir, acompanhar e concluir", tone: "text-amber-700 bg-amber-50 border-amber-200" },
-              { href: "/admin/relatorios", icon: FileText, title: "Relatórios", detail: "Planejado, instalado e exportações", tone: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-            ].map((action) => {
-              const Icon = action.icon;
-              return <a key={action.href} href={action.href} className={`group rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ${action.tone}`}>
-                <Icon className="h-5 w-5" />
-                <p className="mt-3 text-sm font-bold">{action.title}</p>
-                <p className="mt-1 text-xs opacity-80">{action.detail}</p>
-              </a>;
-            })}
-          </div>
-        </section>
-      )}
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

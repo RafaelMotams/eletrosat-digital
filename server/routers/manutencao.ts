@@ -7,7 +7,6 @@ import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/s
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
 import { calculateMaintenancePayment } from "../payment";
-import { buildTechnicalAssistantSystemPrompt, technicalAssistantProfiles } from "../technicalAssistant";
 
 const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
   if (!ctx.tecnicoSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
@@ -353,55 +352,7 @@ export const manutencaoRouter = router({
       return { success: true };
     }),
 
-  // ── TÉCNICO: Assistente independente de manutenção ─────────────────────────
-  assistenteTecnico: tecnicoProcedure
-    .input(z.object({
-      pergunta: z.string().trim().min(3).max(2000),
-      perfil: z.enum(technicalAssistantProfiles).default("rede_escolar"),
-    }))
-    .mutation(async ({ input }) => {
-      const response = await invokeLLM({
-        messages: [
-          { role: "system", content: buildTechnicalAssistantSystemPrompt(input.perfil) },
-          { role: "user", content: input.pergunta },
-        ],
-      });
-      const raw = response.choices?.[0]?.message?.content;
-      const resposta = typeof raw === "string" ? raw : (Array.isArray(raw) ? raw.map((item: any) => item.text ?? "").join("") : "Não foi possível obter uma resposta agora.");
-      return { resposta };
-    }),
-
-  // ── TÉCNICO: análise visual sem persistir a foto ───────────────────────────
-  assistenteTecnicoVisual: tecnicoProcedure
-    .input(z.object({
-      pergunta: z.string().trim().max(2000).default("Analise a infraestrutura mostrada na foto e indique o próximo passo seguro."),
-      perfil: z.enum(technicalAssistantProfiles).default("rede_escolar"),
-      imageBase64: z.string().min(100).max(8_400_000),
-      mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
-    }))
-    .mutation(async ({ input }) => {
-      const bytes = Buffer.from(input.imageBase64, "base64");
-      if (bytes.length === 0 || bytes.length > 6 * 1024 * 1024) {
-        throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "Envie uma imagem de até 6 MB." });
-      }
-      const response = await invokeLLM({
-        messages: [
-          { role: "system", content: `${buildTechnicalAssistantSystemPrompt(input.perfil)} Ao analisar uma foto, separe o que está visível, riscos ou inconsistências possíveis, próximos passos seguros e dados que ainda precisam ser verificados. Não trate a análise visual como laudo, aceite formal, certificação ou diagnóstico definitivo. A foto é usada apenas nesta solicitação e não deve ser tratada como anexo permanente da OS.` },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: input.pergunta || "Analise a infraestrutura mostrada na foto e indique o próximo passo seguro." },
-              { type: "image_url", image_url: { url: `data:${input.mimeType};base64,${input.imageBase64}`, detail: "high" } },
-            ],
-          },
-        ],
-      });
-      const raw = response.choices?.[0]?.message?.content;
-      const resposta = typeof raw === "string" ? raw : (Array.isArray(raw) ? raw.map((item: any) => item.text ?? "").join("") : "Não foi possível analisar a foto agora.");
-      return { resposta };
-    }),
-
-  // ── TÉCNICO: Assistente no contexto de manutenção ──────────────────────────
+  // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
   assistenteIA: manutencaoAccessProcedure
     .input(z.object({
       manutencaoId: z.number(),

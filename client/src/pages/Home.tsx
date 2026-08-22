@@ -34,8 +34,8 @@ export default function Home() {
             <a href="/admin/login" className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition">
               Entrar
             </a>
-            <a href="/cadastro" className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition shadow-sm">
-              Solicitar acesso
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition shadow-sm">
+              Falar com Vendas
             </a>
           </div>
 
@@ -54,8 +54,8 @@ export default function Home() {
             <a href="#planos" className="block text-sm font-medium text-slate-600 py-2">Planos</a>
             <hr className="border-slate-100" />
             <a href="/admin/login" className="block text-sm font-semibold text-emerald-600 py-2">Entrar no Painel</a>
-            <a href="/cadastro" className="block text-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold">
-              Solicitar acesso
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="block text-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold">
+              Falar com Vendas
             </a>
           </div>
         )}
@@ -103,8 +103,7 @@ export default function Home() {
 
             {/* Right - Dashboard Preview */}
             <div className="relative">
-              <img src="/manus-storage/netvius-admin-operations-3d_eee309de.png" alt="Ilustração 3D conceitual de uma pessoa usando uma central administrativa" className="pointer-events-none absolute -right-16 -top-20 hidden w-[115%] max-w-none opacity-90 lg:block" />
-              <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
+              <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
                 {/* Demonstração visual — não representa dados de clientes */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -177,34 +176,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Demonstrações conceituais do produto */}
-      <section className="overflow-hidden bg-slate-950 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.84fr_1.16fr]">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Do campo à central</p>
-            <h2 className="mt-4 text-3xl font-extrabold leading-tight text-white sm:text-4xl">Uma operação conectada, com contexto em cada etapa.</h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">O técnico consulta rota, OS, mapa e orientações no celular. A equipe administrativa acompanha a execução e os relatórios por cliente, sem misturar as informações entre contas.</p>
-            <div className="mt-7 flex flex-wrap gap-3 text-sm">
-              {[
-                "OS, mapa e fotos de campo",
-                "Painel com filtros e exportações",
-                "Acesso separado por cliente",
-              ].map((item) => <span key={item} className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 font-semibold text-emerald-100">{item}</span>)}
-            </div>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <figure className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/25">
-              <img src="/manus-storage/netvius-mobile-field-3d_f0ebf0a2.png" alt="Ilustração 3D conceitual de técnico usando o aplicativo no celular ao lado de infraestrutura de rede" className="aspect-[16/10] w-full rounded-2xl object-cover" />
-              <figcaption className="px-2 pb-1 pt-4 text-xs leading-5 text-slate-400">Demonstração conceitual: uso do aplicativo técnico em campo.</figcaption>
-            </figure>
-            <figure className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 shadow-2xl shadow-black/25 sm:translate-y-8">
-              <img src="/manus-storage/netvius-admin-operations-3d_eee309de.png" alt="Ilustração 3D conceitual de central administrativa em computador" className="aspect-[16/10] w-full rounded-2xl object-cover" />
-              <figcaption className="px-2 pb-1 pt-4 text-xs leading-5 text-slate-400">Demonstração conceitual: acompanhamento administrativo no computador.</figcaption>
-            </figure>
           </div>
         </div>
       </section>
@@ -421,16 +392,16 @@ export default function Home() {
                 desc: "Entenda a operação antes de implantar", 
                 features: ["Ordens e manutenções", "Relatórios e planilhas", "Laudos em PDF", "Assistente Técnico", "Acompanhamento por equipe"],
                 highlight: true,
-                cta: "Solicitar acesso",
-                href: "/cadastro"
+                cta: "Falar com vendas",
+                href: "https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius"
               },
               { 
                 name: "Implantação", 
                 price: "Conforme operação", 
                 desc: "Organize sua equipe e os dados iniciais", 
                 features: ["Importação de escolas", "Técnicos e atribuições", "Configuração operacional", "Treinamento do fluxo de campo"],
-                cta: "Solicitar acesso",
-                href: "/cadastro"
+                cta: "Falar com vendas",
+                href: "https://wa.me/5575999142134?text=Olá! Quero organizar a implantação do Netvius"
               },
             ].map((plan, i) => (
               <div key={i} className={`relative p-8 rounded-2xl transition-all duration-300 ${plan.highlight ? "bg-white border-2 border-emerald-500 shadow-xl shadow-emerald-100 scale-[1.02]" : "bg-white border border-slate-200 hover:shadow-lg"}`}>
@@ -471,8 +442,8 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
             Sua equipe em campo merece uma gestão profissional
           </h2>
-              <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            Chega de planilhas dispersas e ligações para saber o status.
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            Chega de planilhas, grupos de WhatsApp e ligações para saber o status. 
             Com o Netvius, você controla tudo em tempo real.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -521,7 +492,7 @@ export default function Home() {
             <div>
               <p className="font-semibold text-slate-900 mb-4">Contato</p>
               <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="/cadastro" className="hover:text-slate-900 transition">Solicitar acesso</a></li>
+                <li><a href="https://wa.me/5575999142134" target="_blank" rel="noopener" className="hover:text-slate-900 transition flex items-center gap-1"><MessageCircle className="w-3 h-3" /> (75) 99914-2134</a></li>
                 <li><a href="mailto:contato@netvius.org" className="hover:text-slate-900 transition">contato@netvius.org</a></li>
               </ul>
             </div>

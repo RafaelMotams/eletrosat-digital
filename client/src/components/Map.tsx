@@ -76,7 +76,7 @@
 
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
 
@@ -92,37 +92,21 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-let mapsLoader: Promise<void> | null = null;
-
 function loadMapScript() {
-  if (window.google?.maps) return Promise.resolve();
-  if (mapsLoader) return mapsLoader;
-
-  mapsLoader = new Promise<void>((resolve, reject) => {
-    const existing = document.getElementById("netvius-google-maps-sdk") as HTMLScriptElement | null;
-    const timeout = window.setTimeout(() => {
-      mapsLoader = null;
-      reject(new Error("O carregamento do mapa excedeu o tempo esperado."));
-    }, 12_000);
-    const complete = () => window.clearTimeout(timeout);
-
-    if (existing) {
-      existing.addEventListener("load", () => { complete(); resolve(); }, { once: true });
-      existing.addEventListener("error", () => { complete(); mapsLoader = null; reject(new Error("Não foi possível carregar o mapa.")); }, { once: true });
-      return;
-    }
-
+  return new Promise(resolve => {
     const script = document.createElement("script");
-    script.id = "netvius-google-maps-sdk";
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.onload = () => { complete(); resolve(); };
-    script.onerror = () => { complete(); mapsLoader = null; script.remove(); reject(new Error("Não foi possível carregar o mapa.")); };
+    script.onload = () => {
+      resolve(null);
+      script.remove(); // Clean up immediately
+    };
+    script.onerror = () => {
+      console.error("Failed to load Google Maps script");
+    };
     document.head.appendChild(script);
   });
-
-  return mapsLoader;
 }
 
 interface MapViewProps {
@@ -130,27 +114,22 @@ interface MapViewProps {
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
-  onMapError?: (error: Error) => void;
 }
 
 export function MapView({
   className,
-  initialCenter = { lat: -14.235, lng: -51.9253 },
+  initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
   onMapReady,
-  onMapError,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [retryKey, setRetryKey] = useState(0);
 
   const init = usePersistFn(async () => {
-    if (map.current) return;
-    setError(null);
     await loadMapScript();
     if (!mapContainer.current) {
-      throw new Error("Área do mapa indisponível.");
+      console.error("Map container not found");
+      return;
     }
     map.current = new window.google.maps.Map(mapContainer.current, {
       zoom: initialZoom,
@@ -159,6 +138,7 @@ export function MapView({
       fullscreenControl: true,
       zoomControl: true,
       streetViewControl: true,
+      mapId: "DEMO_MAP_ID",
     });
     if (onMapReady) {
       onMapReady(map.current);
@@ -166,18 +146,10 @@ export function MapView({
   });
 
   useEffect(() => {
-    init().catch((cause: Error) => {
-      const message = cause.message || "Não foi possível iniciar o mapa.";
-      setError(message);
-      onMapError?.(cause);
-    });
-  }, [init, onMapError, retryKey]);
+    init();
+  }, [init]);
 
-  return <div className={cn("relative w-full h-[500px]", className)}>
-    <div ref={mapContainer} className="h-full w-full" />
-    {error && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/90 p-6 text-center text-white">
-      <p className="text-sm font-semibold">{error}</p>
-      <button type="button" onClick={() => { map.current = null; setRetryKey((value) => value + 1); }} className="min-h-11 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-700">Tentar novamente</button>
-    </div>}
-  </div>;
+  return (
+    <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />
+  );
 }

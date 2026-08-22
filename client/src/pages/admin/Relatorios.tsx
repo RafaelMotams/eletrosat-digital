@@ -155,15 +155,15 @@ function exportarExcel(
 
   /* ════════════════════════════════════════════════════════════════
      ABA 1 — OS CONCLUÍDAS
-     Colunas: Nº | Escola | INEP | Município | UF | Técnico | Data | APs planejados | instalados | saldo | Valor por AP
+     Colunas: Nº | Escola | INEP | Município | UF | Técnico | Data | APs | Valor por AP
   ════════════════════════════════════════════════════════════════ */
   const rows1: any[][] = [
-    ["RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS", "", "", "", "", "", "", "", "", "", ""],
-    [`Período: ${periodoLabel}`, "", "", "", "", "", "", "", "", "", ""],
-    [`Técnico(s): ${tecLabel}`, "", "", "", "", "", "", "", "", "", ""],
-    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", "", "", ""],
-    ["Nº", "Nome da Escola", "INEP", "Município", "UF", "Técnico", "Data Conclusão", "APs Planejados", "APs Instalados", "Saldo (Inst. − Plan.)", "Valor por AP (R$)"],
+    ["RELATÓRIO DE ORDENS DE SERVIÇO CONCLUÍDAS", "", "", "", "", "", "", "", ""],
+    [`Período: ${periodoLabel}`, "", "", "", "", "", "", "", ""],
+    [`Técnico(s): ${tecLabel}`, "", "", "", "", "", "", "", ""],
+    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["Nº", "Nome da Escola", "INEP", "Município", "UF", "Técnico", "Data Conclusão", "APs Instalados", "Valor por AP (R$)"],
   ];
 
   osDetalhadas.forEach((os: any, i: number) => {
@@ -175,24 +175,21 @@ function exportarExcel(
       os.uf ?? "",
       os.tecnicoNome ?? "",
       formatDate(os.dataConclusao),
-      os.qtdApPlanejado ?? 0,
       os.qtdApInstalado ?? 0,
-      (os.qtdApInstalado ?? 0) - (os.qtdApPlanejado ?? 0),
       os.valorCalculado != null ? Number(os.valorCalculado) : "",
     ]);
   });
 
-  const totalApsPlanejados1 = osDetalhadas.reduce((acc: number, os: any) => acc + (os.qtdApPlanejado ?? 0), 0);
   const totalAps1   = osDetalhadas.reduce((acc: number, os: any) => acc + (os.qtdApInstalado ?? 0), 0);
   const totalValor1 = osDetalhadas.reduce((acc: number, os: any) => acc + (os.valorCalculado != null ? Number(os.valorCalculado) : 0), 0);
 
-  rows1.push(["", `TOTAL — ${osDetalhadas.length} escola(s)`, "", "", "", "", "", totalApsPlanejados1, totalAps1, totalAps1 - totalApsPlanejados1, totalValor1 > 0 ? totalValor1 : ""]);
+  rows1.push(["", `TOTAL — ${osDetalhadas.length} escola(s)`, "", "", "", "", "", totalAps1, totalValor1 > 0 ? totalValor1 : ""]);
 
   const ws1 = XLSX.utils.aoa_to_sheet(rows1);
 
   ws1["!cols"] = [
     { wch: 5 }, { wch: 44 }, { wch: 12 }, { wch: 24 }, { wch: 4 },
-    { wch: 26 }, { wch: 16 }, { wch: 15 }, { wch: 15 }, { wch: 19 }, { wch: 20 },
+    { wch: 26 }, { wch: 16 }, { wch: 14 }, { wch: 20 },
   ];
 
   const headerR1 = 5; // 0-indexed
@@ -207,10 +204,10 @@ function exportarExcel(
   ];
 
   ws1["!merges"] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } },
-    { s: { r: 3, c: 0 }, e: { r: 3, c: 10 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
     { s: { r: totalR1, c: 1 }, e: { r: totalR1, c: 6 } },
   ];
 
@@ -224,8 +221,8 @@ function exportarExcel(
   const sValor    = { font: { bold: true, sz: 10, color: { rgb: "1A6B3A" } }, fill: { fgColor: { rgb: "E8F5EE" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: FMT_CONT };
   const sTotal    = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "center", vertical: "center" } };
   const sTotalVal = { font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "1A6B3A" } }, alignment: { horizontal: "right", vertical: "center" }, numFmt: FMT_CONT };
-  const cols1 = ["A","B","C","D","E","F","G","H","I","J","K"];
-  const hdrs1 = ["Nº","Nome da Escola","INEP","Município","UF","Técnico","Data Conclusão","APs Planejados","APs Instalados","Saldo (Inst. − Plan.)","Valor por AP (R$)"];
+  const cols1 = ["A","B","C","D","E","F","G","H","I"];
+  const hdrs1 = ["Nº","Nome da Escola","INEP","Município","UF","Técnico","Data Conclusão","APs Instalados","Valor por AP (R$)"];
 
   // Título e info
   ["A1","A2","A3","A4"].forEach((a, i) => {
@@ -246,7 +243,7 @@ function exportarExcel(
     cols1.forEach((col, ci) => {
       const addr = `${col}${ri + 1}`;
       if (!ws1[addr]) ws1[addr] = { t: "s", v: "" };
-      if (ci === 10 && ws1[addr].v !== "") {
+      if (ci === 8 && ws1[addr].v !== "") {
         ws1[addr].s = sValor;
         ws1[addr].t = "n";
       } else {
@@ -259,9 +256,9 @@ function exportarExcel(
   cols1.forEach((col, ci) => {
     const addr = `${col}${totalR1 + 1}`;
     if (!ws1[addr]) ws1[addr] = { t: "s", v: "" };
-    ws1[addr].s = ci === 10 ? sTotalVal : sTotal;
-    if (ci >= 7 && ci <= 9) ws1[addr].t = "n";
-    if (ci === 10 && totalValor1 > 0) ws1[addr].t = "n";
+    ws1[addr].s = ci === 8 ? sTotalVal : sTotal;
+    if (ci === 7) ws1[addr].t = "n";
+    if (ci === 8 && totalValor1 > 0) ws1[addr].t = "n";
   });
 
   XLSX.utils.book_append_sheet(wb, ws1, "OS Concluídas");
@@ -505,11 +502,6 @@ export default function AdminRelatorios() {
     () => (osDetalhadas ?? []).reduce((acc, os) => acc + (os.qtdApInstalado ?? 0), 0),
     [osDetalhadas]
   );
-  const totalApsPlanejadosTabela = useMemo(
-    () => (osDetalhadas ?? []).reduce((acc, os) => acc + (os.qtdApPlanejado ?? 0), 0),
-    [osDetalhadas]
-  );
-  const saldoApsTabela = totalApsTabela - totalApsPlanejadosTabela;
 
   const pagamentoPorTecnico = useMemo(() => {
     const agrupado = new Map<string, { nome: string; ordens: number; aps: number; total: number }>();
@@ -754,7 +746,7 @@ export default function AdminRelatorios() {
               OS Concluídas
               {totalOsTabela > 0 && (
                 <span className="ml-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold">
-                  {totalOsTabela} · {totalApsTabela}/{totalApsPlanejadosTabela} APs
+                  {totalOsTabela} · {totalApsTabela} APs
                 </span>
               )}
             </CardTitle>
@@ -778,7 +770,7 @@ export default function AdminRelatorios() {
           {totalOsTabela > 0 && (
             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
               <Download className="w-3 h-3" />
-              A planilha separa as OS por técnico e inclui <strong className="mx-1">planejado, instalado e saldo de APs</strong>, além do total a pagar conforme os valores cadastrados.
+              A planilha separa as OS por técnico e inclui o <strong className="mx-1">Total a Pagar (R$)</strong> individual e geral conforme os valores cadastrados.
             </p>
           )}
         </CardHeader>
@@ -797,7 +789,7 @@ export default function AdminRelatorios() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","Saldo",...(isViewer ? [] : ["Valor (R$)"]),"Técnico","Data","Observação"].map(h => (
+                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.",...(isViewer ? [] : ["Valor (R$)"]),"Técnico","Data","Observação"].map(h => (
                       <th key={h} className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -819,7 +811,6 @@ export default function AdminRelatorios() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{os.qtdApPlanejado}</td>
-                      <td className="px-4 py-3 text-center"><span className={`inline-flex min-w-8 items-center justify-center rounded-full px-2 py-1 text-xs font-bold ${(os.qtdApInstalado ?? 0) === (os.qtdApPlanejado ?? 0) ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"}`}>{(os.qtdApInstalado ?? 0) - (os.qtdApPlanejado ?? 0)}</span></td>
                       {!isViewer && (
                       <td className="px-4 py-3 text-center">
                         {os.valorCalculado != null ? (
@@ -855,8 +846,6 @@ export default function AdminRelatorios() {
                         {totalApsTabela}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-muted-foreground font-bold">{totalApsPlanejadosTabela}</td>
-                    <td className="px-4 py-3 text-center"><span className={`font-bold ${saldoApsTabela === 0 ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>{saldoApsTabela}</span></td>
                     {!isViewer && (
                     <td className="px-4 py-3 text-center">
                       {(() => {
