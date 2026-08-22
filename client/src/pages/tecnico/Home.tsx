@@ -123,6 +123,7 @@ export default function TecnicoHome() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("nao_concluidas");
   // Welcome modal removido conforme solicitado
   const [pendingOsCount, setPendingOsCount] = useState(0);
+  const [failedOsCount, setFailedOsCount] = useState(0);
   const isOnline = useOnlineStatus();
   const { syncState } = useSyncOfflineOS();
 
@@ -130,7 +131,8 @@ export default function TecnicoHome() {
   useEffect(() => {
     const refresh = async () => {
       const all = await dbGetAllPendingOS();
-      setPendingOsCount(all.filter(o => o.status === "pending" || o.status === "error").length);
+      setPendingOsCount(all.filter(o => o.status === "pending" || o.status === "error" || o.status === "syncing").length);
+      setFailedOsCount(all.filter(o => o.status === "error").length);
     };
     refresh();
     const interval = setInterval(refresh, 15_000);
@@ -293,6 +295,7 @@ export default function TecnicoHome() {
   }
 
   const naoConcluidasCount = pendentes + emAndamento + naoInstaladas;
+  const hasSyncError = Boolean(syncState.lastError) && failedOsCount > 0;
   const filterTabs: { key: FilterType; label: string; count: number; color: string }[] = [
     { key: "nao_concluidas", label: "Ativos",      count: naoConcluidasCount, color: "#6366f1" },
     { key: "todos",          label: "Todos",       count: total,             color: "#94a3b8" },
@@ -309,16 +312,18 @@ export default function TecnicoHome() {
       {/* WelcomeModal removido conforme solicitado */}
 
       {/* Indicador de status de sync */}
-      {(!isOnline || syncState.isSyncing || pendingOsCount > 0) && (
+      {(!isOnline || syncState.isSyncing || pendingOsCount > 0 || hasSyncError) && (
         <div className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold"
           style={{
             background: !isOnline
               ? "rgba(245,158,11,0.1)"
               : syncState.isSyncing
               ? "rgba(59,130,246,0.1)"
+              : hasSyncError
+              ? "rgba(234,88,12,0.1)"
               : "rgba(16,185,129,0.1)",
-            borderBottom: `1px solid ${!isOnline ? "rgba(245,158,11,0.15)" : syncState.isSyncing ? "rgba(59,130,246,0.15)" : "rgba(16,185,129,0.15)"}`,
-            color: !isOnline ? "#fbbf24" : syncState.isSyncing ? "#60a5fa" : "#34d399",
+            borderBottom: `1px solid ${!isOnline ? "rgba(245,158,11,0.15)" : syncState.isSyncing ? "rgba(59,130,246,0.15)" : hasSyncError ? "rgba(234,88,12,0.2)" : "rgba(16,185,129,0.15)"}`,
+            color: !isOnline ? "#fbbf24" : syncState.isSyncing ? "#60a5fa" : hasSyncError ? "#fdba74" : "#34d399",
           }}>
           {!isOnline ? (
             <>
@@ -329,6 +334,11 @@ export default function TecnicoHome() {
             <>
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               Sincronizando OS pendentes...
+            </>
+          ) : hasSyncError ? (
+            <>
+              <AlertCircle className="w-3.5 h-3.5" />
+              {failedOsCount} OS aguarda nova tentativa — fotos foram preservadas
             </>
           ) : (
             <>
