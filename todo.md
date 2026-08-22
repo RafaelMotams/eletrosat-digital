@@ -746,8 +746,8 @@
 
 ## Incidente de disponibilização da versão pública
 - [x] Comparar netvius.org com a versão publicada mais recente sem alterar dados
-- [ ] Identificar e corrigir eventual cache, domínio ou disponibilização divergente
-- [ ] Validar no domínio público a presença das melhorias e comunicar o resultado
+- [x] Identificar e corrigir eventual cache, domínio ou disponibilização divergente
+- [x] Validar no domínio público a presença das melhorias e comunicar o resultado
 
 ## Modernização operacional — especificação do usuário
 - [x] Padronizar as novas superfícies como produto Netvius e eliminar referências visíveis legadas de Netvionis sem apagar histórico necessário
@@ -760,3 +760,4 @@
 - [x] Evoluir relatórios e exportações com planejado versus instalado, dados por tenant e somente informações reais
 - [x] Documentar limites: banco compartilhado com isolamento lógico por tenant; integrações de WhatsApp/Google Drive continuam desativadas
 - [x] Validar com testes, build, telas mobile/desktop e publicação
+- [x] Retirar links públicos de WhatsApp da landing enquanto a integração permanece desativada
