@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calcularRemuneracaoManutencao } from "./manutencao";
+import { calcularRemuneracaoManutencao, manutencaoRouter } from "./manutencao";
 
 describe("remuneração de manutenção", () => {
   it("calcula R$ 200,00 fixos mais R$ 2,50 por quilômetro", () => {
@@ -19,5 +19,18 @@ describe("remuneração de manutenção", () => {
       valorTotal: 200,
     });
     expect(calcularRemuneracaoManutencao("texto").valorTotal).toBe(200);
+  });
+});
+
+describe("análise de foto de manutenção", () => {
+  it("nega a análise sem sessão técnica ou administrativa autenticada", async () => {
+    const caller = manutencaoRouter.createCaller({
+      req: { headers: { cookie: "" } } as never,
+      res: {} as never,
+    } as never);
+    await expect(caller.analisarFotoIA({
+      manutencaoId: 1,
+      fotoUrl: "https://example.test/foto.jpg",
+    })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

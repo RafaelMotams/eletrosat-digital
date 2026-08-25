@@ -423,6 +423,9 @@ Seu estilo:
 - Alerta sobre ERROS COMUNS que técnicos iniciantes cometem
 - Usa linguagem técnica mas acessível
 - Quando não sabe algo específico, indica onde buscar (manual, suporte fabricante)
+- Não inventa regras de programas públicos, normas ou manuais não fornecidos
+- Não solicita senhas, chaves, tokens ou dados de outro cliente
+- Para energia, altura, fibra, ferramentas ou qualquer risco físico, prioriza EPI, desligamento seguro e escalonamento ao responsável técnico
 
 Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const response = await invokeLLM({
@@ -433,6 +436,50 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       });
       const raw = response.choices?.[0]?.message?.content;
       const content = typeof raw === 'string' ? raw : (Array.isArray(raw) ? raw.map((c: any) => c.text ?? '').join('') : 'Não foi possível obter resposta.');
+      return { resposta: content };
+    }),
+
+  // ── TÉCNICO: Analisar foto já vinculada à manutenção ───────────────────────
+  analisarFotoIA: tenantOrTecnicoProcedure
+    .input(z.object({
+      manutencaoId: z.number(),
+      fotoUrl: z.string().url(),
+      pergunta: z.string().max(1000).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const restrictions = [eq(manutencoes.id, input.manutencaoId), eq(manutencoes.tenantId, ctx.accessSession.tenantId)];
+      if (ctx.accessSession.kind === "tecnico" && ctx.accessSession.tecnicoId !== null) {
+        restrictions.push(eq(manutencoes.tecnicoId, ctx.accessSession.tecnicoId));
+      }
+      const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(...restrictions)).limit(1);
+      if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence à sessão autenticada" });
+
+      const [foto] = await db.select({ url: manutencaoFotos.url }).from(manutencaoFotos).where(and(
+        eq(manutencaoFotos.manutencaoId, input.manutencaoId),
+        eq(manutencaoFotos.url, input.fotoUrl),
+      )).limit(1);
+      if (!foto) throw new TRPCError({ code: "NOT_FOUND", message: "Foto não pertence a esta manutenção" });
+
+      const resposta = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: "Você é o Professor Marcos, orientador de infraestrutura de rede. Analise somente elementos técnicos visíveis na imagem. Responda em português com as seções: O que é visível; Hipóteses (sempre marcadas como hipótese); Próximo teste seguro; Quando interromper e escalar. Não identifique pessoas, não afirme certeza sem evidência, não invente regras de programas públicos, não peça credenciais e não oriente atividade elétrica, altura ou fibra sem alertar EPI e responsável técnico.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: input.pergunta?.trim() || "Analise esta foto de manutenção e indique a próxima verificação segura." },
+              { type: "image_url", image_url: { url: foto.url, detail: "auto" } },
+            ],
+          },
+        ],
+      });
+      const raw = resposta.choices?.[0]?.message?.content;
+      const content = typeof raw === "string" ? raw : (Array.isArray(raw) ? raw.map((item: any) => item.text ?? "").join("") : "Não foi possível analisar esta foto agora.");
+      await recordAuditEvent({ tenantId: ctx.accessSession.tenantId, actorType: ctx.accessSession.kind === "tecnico" ? "tecnico" : "admin", actorId: ctx.accessSession.kind === "tecnico" ? ctx.accessSession.tecnicoId ?? 0 : ctx.accessSession.adminId ?? 0, action: "manutencao.foto_analisada", entityType: "manutencao", entityId: input.manutencaoId, req: ctx.req });
       return { resposta: content };
     }),
 

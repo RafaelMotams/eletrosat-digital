@@ -50,10 +50,16 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
   const [aberto, setAberto] = useState(false);
   const [pergunta, setPergunta] = useState("");
   const [historico, setHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
+  const [fotoSelecionada, setFotoSelecionada] = useState<string | null>(null);
+  const detalhesQuery = trpc.manutencao.getById.useQuery({ id: manutencaoId }, { enabled: aberto });
   const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
     onSuccess: (data) => {
       setHistorico(prev => [...prev, { role: "ai", text: data.resposta }]);
     },
+    onError: (e) => toast.error(e.message),
+  });
+  const analisarFotoMut = trpc.manutencao.analisarFotoIA.useMutation({
+    onSuccess: (data) => setHistorico(prev => [...prev, { role: "ai", text: data.resposta }]),
     onError: (e) => toast.error(e.message),
   });
 
@@ -63,6 +69,14 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
     setHistorico(prev => [...prev, { role: "user", text: p }]);
     setPergunta("");
     assistenteMut.mutate({ manutencaoId, pergunta: p });
+  }
+
+  function handleAnalisarFoto() {
+    if (!fotoSelecionada) return toast.error("Escolha uma foto desta manutenção.");
+    const p = pergunta.trim() || "Analise a foto e indique a próxima verificação segura.";
+    setHistorico(prev => [...prev, { role: "user", text: `Análise de foto: ${p}` }]);
+    setPergunta("");
+    analisarFotoMut.mutate({ manutencaoId, fotoUrl: fotoSelecionada, pergunta: p });
   }
 
   return (
@@ -145,6 +159,20 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
             </div>
           )}
 
+          {detalhesQuery.data?.fotos?.length ? (
+            <div className="mb-3 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(139,92,246,0.18)" }}>
+              <p className="mb-2 text-xs font-bold" style={{ color: "#ddd6fe" }}>Analisar foto já enviada</p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {detalhesQuery.data.fotos.map((foto: any) => (
+                  <button key={foto.id ?? foto.url} onClick={() => setFotoSelecionada(foto.url)} className="shrink-0 overflow-hidden rounded-lg" style={{ outline: fotoSelecionada === foto.url ? "2px solid #a855f7" : "1px solid rgba(255,255,255,.14)" }}>
+                    <img src={foto.url} alt={`Foto de ${foto.tipo ?? "manutenção"}`} className="h-14 w-14 object-cover" />
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,.5)" }}>A análise indica hipóteses e o próximo teste seguro; não substitui avaliação presencial nem orientação do responsável técnico.</p>
+            </div>
+          ) : null}
+
           {/* Input */}
           <div className="flex gap-2">
             <input
@@ -161,18 +189,19 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
             />
             <button
               onClick={handleEnviar}
-              disabled={!pergunta.trim() || assistenteMut.isPending}
+              disabled={!pergunta.trim() || assistenteMut.isPending || analisarFotoMut.isPending}
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{
                 background: pergunta.trim() ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "rgba(255,255,255,0.07)",
               }}
             >
-              {assistenteMut.isPending
+              {assistenteMut.isPending || analisarFotoMut.isPending
                 ? <Loader2 className="w-4 h-4 animate-spin text-white" />
                 : <Send className="w-4 h-4 text-white" />
               }
             </button>
           </div>
+          {fotoSelecionada && <button onClick={handleAnalisarFoto} disabled={analisarFotoMut.isPending} className="mt-2 w-full rounded-xl py-2 text-xs font-bold text-white disabled:opacity-50" style={{ background: "rgba(139,92,246,.22)", border: "1px solid rgba(168,85,247,.35)" }}>{analisarFotoMut.isPending ? "Analisando foto..." : "Analisar foto selecionada"}</button>}
         </div>
       )}
     </div>

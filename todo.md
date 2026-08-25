@@ -628,7 +628,7 @@
 - [x] Modelar estoque de materiais por tenant e técnico com movimentações auditáveis
 - [x] Criar gestão administrativa de estoque, transferências e níveis mínimos de material
 - [x] Criar no aplicativo técnico a consulta de materiais, consumo e cache offline isolado por tenant e técnico
-- [ ] Evoluir o roteirizador para apoiar planejamento editável e confirmação humana de rota
-- [ ] Evoluir o Assistente Técnico para analisar foto de diagnóstico com limites de segurança e escalonamento
+- [x] Evoluir o roteirizador para apoiar planejamento editável, sugestão GPS e confirmação humana de rota
+- [x] Evoluir o Assistente Técnico para analisar foto de diagnóstico com limites de segurança, auditoria e escalonamento
 - [ ] Aprimorar manutenção, ordens e exportações com relatórios profissionais e auditáveis
 - [ ] Validar isolamento, offline, responsividade, acessibilidade, testes e publicação incremental

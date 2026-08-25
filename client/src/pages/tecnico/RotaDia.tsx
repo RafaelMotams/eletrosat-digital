@@ -69,6 +69,7 @@ export default function RotaDia() {
   const [selecionadas, setSelecionadas] = useState<number[]>([]);
   const [busca, setBusca] = useState("");
   const [ordenarPorRota, setOrdenarPorRota] = useState(false);
+  const [rotaConfirmada, setRotaConfirmada] = useState(false);
 
   // Carregar tecnicoId
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function RotaDia() {
         // Só restaura se for do mesmo dia
         if (parsed.data === new Date().toDateString()) {
           setSelecionadas(parsed.ids ?? []);
+          setRotaConfirmada(Boolean(parsed.confirmada));
         }
       } catch {}
     }
@@ -94,7 +96,8 @@ export default function RotaDia() {
   useEffect(() => {
     localStorage.setItem(ROTA_DIA_KEY, JSON.stringify({
       ids: selecionadas,
-      data: new Date().toDateString()
+      data: new Date().toDateString(),
+      confirmada: rotaConfirmada,
     }));
   }, [selecionadas]);
 
@@ -139,6 +142,7 @@ export default function RotaDia() {
   );
 
   function toggleEscola(id: number) {
+    setRotaConfirmada(false);
     setSelecionadas(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
@@ -151,10 +155,19 @@ export default function RotaDia() {
     [nova[idx], nova[novoIdx]] = [nova[novoIdx], nova[idx]];
     // Reordenar selecionadas conforme nova ordem
     setSelecionadas(nova.map(e => e.id));
+    setRotaConfirmada(false);
+  }
+
+  function aplicarSugestaoDeRota() {
+    const sugestao = sortByRoute(escolas.filter(e => selecionadas.includes(e.id)));
+    setSelecionadas(sugestao.map(e => e.id));
+    setOrdenarPorRota(false);
+    setRotaConfirmada(false);
   }
 
   function limparRota() {
     setSelecionadas([]);
+    setRotaConfirmada(false);
   }
 
   function compartilharWhatsApp() {
@@ -242,6 +255,10 @@ export default function RotaDia() {
           <button
             onClick={() => {
               if (rotaOrdenada.length > 0) {
+                if (!rotaConfirmada) {
+                  window.alert("Revise e confirme a sequência da rota antes de iniciar. Você pode aceitar a sugestão ou reorganizar manualmente.");
+                  return;
+                }
                 navigate(`/tecnico/os/${rotaOrdenada[0].id}`);
               }
             }}
@@ -254,13 +271,26 @@ export default function RotaDia() {
               marginBottom: 8
             }}>
             <Play className="w-4 h-4" />
-            Iniciar Rota ({rotaOrdenada.length} escola{rotaOrdenada.length > 1 ? "s" : ""})
+            {rotaConfirmada ? "Iniciar rota confirmada" : `Confirmar sequência (${rotaOrdenada.length})`}
           </button>
+
+          {!rotaConfirmada && (
+            <button
+              onClick={() => setRotaConfirmada(true)}
+              style={{
+                width: "100%", padding: "9px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+                background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.28)", color: "#6ee7b7",
+                marginBottom: 8
+              }}>
+              Confirmar sequência revisada
+            </button>
+          )}
+          {rotaConfirmada && <p style={{ color: "#6ee7b7", fontSize: 11, textAlign: "center", marginBottom: 8 }}>Sequência confirmada por você. Alterações exigem nova confirmação.</p>}
 
           <div className="flex gap-2">
             {/* Ordenar por rota */}
             <button
-              onClick={() => setOrdenarPorRota(v => !v)}
+              onClick={() => ordenarPorRota ? aplicarSugestaoDeRota() : setOrdenarPorRota(true)}
               style={{
                 flex: 1, padding: "8px", borderRadius: 8, fontSize: 12, fontWeight: 600,
                 background: ordenarPorRota ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.05)",
@@ -269,7 +299,7 @@ export default function RotaDia() {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 4
               }}>
               <Navigation className="w-3.5 h-3.5" />
-              {ordenarPorRota ? "Rota otimizada" : "Otimizar rota"}
+              {ordenarPorRota ? "Aplicar sugestão GPS" : "Ver sugestão GPS"}
             </button>
 
             {/* Compartilhar WhatsApp */}
