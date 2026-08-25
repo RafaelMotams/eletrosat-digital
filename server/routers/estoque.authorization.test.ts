@@ -23,6 +23,14 @@ describe("estoque: autorização por tenant", () => {
     })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
+  it("nega ajuste de inventário pelo perfil visualizador", async () => {
+    await expect(caller({ adminId: 77, tenantId: 7001, role: "viewer", isSuperAdmin: false }).movimentacoes.ajustar({
+      materialId: 1,
+      quantidadeReal: 3,
+      observacao: "Contagem mensal",
+    })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
   it("nega consumo técnico sem sessão assinada", async () => {
     await expect(caller().movimentacoes.consumir({
       materialId: 1,

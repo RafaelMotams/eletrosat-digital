@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Boxes, ClipboardList, ArrowDownToLine, ArrowRightLeft, PackagePlus, Search, TriangleAlert, Warehouse, Wrench, FileSpreadsheet } from "lucide-react";
+import { Boxes, ClipboardCheck, ClipboardList, ArrowDownToLine, ArrowRightLeft, PackagePlus, Search, TriangleAlert, Warehouse, Wrench, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import AdminLayoutTenant from "@/components/AdminLayoutTenant";
@@ -93,6 +93,42 @@ function MovementDialog({
   </Dialog>;
 }
 
+function InventoryDialog({ materials, onAdjust }: { materials: Array<{ id: number; nome: string; codigo: string; unidade: string; saldo: number }>; onAdjust: (data: { materialId: number; quantidadeReal: number; observacao: string }) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [materialId, setMaterialId] = useState("");
+  const [quantidadeReal, setQuantidadeReal] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [saving, setSaving] = useState(false);
+  const selected = materials.find(material => material.id === Number(materialId));
+  function selecionarMaterial(value: string) {
+    setMaterialId(value);
+    const material = materials.find(item => item.id === Number(value));
+    setQuantidadeReal(material ? String(material.saldo) : "");
+  }
+  async function submit() {
+    if (!materialId || quantidadeReal === "" || Number(quantidadeReal) < 0) return toast.error("Selecione o material e informe o saldo físico contado.");
+    if (observacao.trim().length < 3) return toast.error("Informe o motivo do ajuste para auditoria.");
+    setSaving(true);
+    try {
+      await onAdjust({ materialId: Number(materialId), quantidadeReal: Number(quantidadeReal), observacao: observacao.trim() });
+      setOpen(false); setMaterialId(""); setQuantidadeReal(""); setObservacao("");
+    } finally { setSaving(false); }
+  }
+  return <Dialog open={open} onOpenChange={setOpen}>
+    <DialogTrigger asChild><Button variant="outline" className="gap-2" disabled={materials.length === 0}><ClipboardCheck className="h-4 w-4" /> Ajustar inventário</Button></DialogTrigger>
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader><DialogTitle>Conferir inventário físico</DialogTitle><DialogDescription>Informe o saldo contado no almoxarifado. A diferença gera uma movimentação auditável, sem alterar materiais de outras empresas.</DialogDescription></DialogHeader>
+      <div className="grid gap-4 py-2">
+        <div className="grid gap-2"><Label>Material</Label><Select value={materialId} onValueChange={selecionarMaterial}><SelectTrigger><SelectValue placeholder="Selecionar material" /></SelectTrigger><SelectContent>{materials.map(material => <SelectItem key={material.id} value={String(material.id)}>{material.codigo} — {material.nome}</SelectItem>)}</SelectContent></Select></div>
+        {selected && <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">Saldo registrado: <strong>{formatQuantity(selected.saldo)} {selected.unidade}</strong></p>}
+        <div className="grid gap-2"><Label>Saldo físico contado</Label><Input type="number" min="0" step="0.001" value={quantidadeReal} onChange={event => setQuantidadeReal(event.target.value)} placeholder="0" /></div>
+        <div className="grid gap-2"><Label>Motivo da conferência</Label><Input value={observacao} onChange={event => setObservacao(event.target.value)} placeholder="Ex.: contagem mensal do almoxarifado" /></div>
+      </div>
+      <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button onClick={submit} disabled={saving}>{saving ? "Registrando..." : "Registrar ajuste"}</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
+}
+
 export default function AdminEstoque() {
   const { admin } = useTenantAuth();
   const isViewer = admin?.role === "viewer";
@@ -106,12 +142,14 @@ export default function AdminEstoque() {
   const createMaterial = trpc.estoque.materiais.create.useMutation({ onSuccess: async () => { await utils.estoque.materiais.list.invalidate(); toast.success("Material cadastrado."); }, onError: error => toast.error(error.message) });
   const entrada = trpc.estoque.movimentacoes.entrada.useMutation({ onSuccess: async () => { await Promise.all([utils.estoque.saldos.list.invalidate(), utils.estoque.movimentacoes.list.invalidate()]); toast.success("Entrada registrada no almoxarifado."); }, onError: error => toast.error(error.message) });
   const transferir = trpc.estoque.movimentacoes.transferir.useMutation({ onSuccess: async () => { await Promise.all([utils.estoque.saldos.list.invalidate(), utils.estoque.movimentacoes.list.invalidate()]); toast.success("Material transferido para o técnico."); }, onError: error => toast.error(error.message) });
+  const ajustar = trpc.estoque.movimentacoes.ajustar.useMutation({ onSuccess: async result => { await Promise.all([utils.estoque.saldos.list.invalidate(), utils.estoque.movimentacoes.list.invalidate()]); toast.success(`Inventário atualizado: ${result.diferenca > 0 ? "+" : ""}${formatQuantity(result.diferenca)} item(ns).`); }, onError: error => toast.error(error.message) });
 
   const materials = materialsQuery.data ?? [];
   const saldos = saldosQuery.data ?? [];
   const technicians = (tecnicosQuery.data ?? []).filter(t => t.ativo);
   const almoxarifado = new Map(saldos.filter(s => s.holderType === "almoxarifado").map(s => [s.materialId, Number(s.quantidade)]));
   const abaixoMinimo = materials.filter(m => (almoxarifado.get(m.id) ?? 0) < Number(m.estoqueMinimo));
+  const inventoryMaterials = materials.map(material => ({ ...material, saldo: almoxarifado.get(material.id) ?? 0 }));
   const filteredMaterials = useMemo(() => materials.filter(m => {
     const correspondeBusca = `${m.codigo} ${m.nome} ${m.categoria ?? ""}`.toLowerCase().includes(search.toLowerCase());
     const abaixoDoMinimo = (almoxarifado.get(m.id) ?? 0) < Number(m.estoqueMinimo);
@@ -166,7 +204,7 @@ export default function AdminEstoque() {
   if (materialsQuery.isLoading || saldosQuery.isLoading) return <AdminLayoutTenant title="Estoque" subtitle="Materiais e movimentações por empresa"><OperationState kind="loading" title="Carregando estoque" description="Consultando catálogo e saldos da empresa." /></AdminLayoutTenant>;
   if (materialsQuery.error || saldosQuery.error) return <AdminLayoutTenant title="Estoque" subtitle="Materiais e movimentações por empresa"><OperationState kind="error" title="Não foi possível carregar o estoque" description="Confira sua conexão e tente novamente." actionLabel="Tentar novamente" onAction={() => { materialsQuery.refetch(); saldosQuery.refetch(); }} /></AdminLayoutTenant>;
 
-  return <AdminLayoutTenant title="Estoque" subtitle="Controle materiais, almoxarifado e itens em posse dos técnicos" actions={<div className="flex flex-wrap gap-2"><Button variant="outline" className="gap-2" onClick={exportarEstoque} disabled={materials.length === 0}><FileSpreadsheet className="h-4 w-4" /> Exportar XLSX</Button>{!isViewer && <><MovementDialog title="Registrar entrada" description="A entrada é adicionada ao almoxarifado desta empresa." materials={materials} action={async data => { await entrada.mutateAsync({ materialId: data.materialId, quantidade: data.quantidade, observacao: data.observacao }); }}><Button variant="outline" className="gap-2" disabled={actionDisabled}><ArrowDownToLine className="h-4 w-4" /> Registrar entrada</Button></MovementDialog><StockDialog onCreate={async data => { await createMaterial.mutateAsync(data); }} /></>}</div>}>
+  return <AdminLayoutTenant title="Estoque" subtitle="Controle materiais, almoxarifado e itens em posse dos técnicos" actions={<div className="flex flex-wrap gap-2"><Button variant="outline" className="gap-2" onClick={exportarEstoque} disabled={materials.length === 0}><FileSpreadsheet className="h-4 w-4" /> Exportar XLSX</Button>{!isViewer && <><InventoryDialog materials={inventoryMaterials} onAdjust={async data => { await ajustar.mutateAsync(data); }} /><MovementDialog title="Registrar entrada" description="A entrada é adicionada ao almoxarifado desta empresa." materials={materials} action={async data => { await entrada.mutateAsync({ materialId: data.materialId, quantidade: data.quantidade, observacao: data.observacao }); }}><Button variant="outline" className="gap-2" disabled={actionDisabled}><ArrowDownToLine className="h-4 w-4" /> Registrar entrada</Button></MovementDialog><StockDialog onCreate={async data => { await createMaterial.mutateAsync(data); }} /></>}</div>}>
     {isViewer && <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Perfil visualizador: você pode consultar o estoque, mas não pode cadastrar nem movimentar materiais.</div>}
     <div className="grid gap-4 md:grid-cols-4 mb-6">
       <Card><CardContent className="pt-5"><p className="text-sm text-muted-foreground">Materiais ativos</p><p className="mt-1 text-3xl font-bold">{materials.filter(m => m.ativo).length}</p></CardContent></Card>

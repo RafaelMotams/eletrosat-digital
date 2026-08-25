@@ -627,6 +627,8 @@
 - [x] Confirmar que o técnico já registra consumo de material com validação de saldo e auditoria no próprio estoque
 - [x] Adicionar filtro acionável de itens abaixo do mínimo no estoque do aplicativo técnico
 - [x] Validar que a rota de estoque técnico sem sessão redireciona ao login de forma segura
+- [x] Permitir ajuste de inventário físico com motivo, trilha de movimentação e auditoria no painel de estoque
+- [x] Validar visualmente o ajuste de inventário e seu bloqueio seguro sem materiais cadastrados
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

@@ -235,6 +235,59 @@ export const estoqueRouter = router({
         return { id };
       }),
 
+    ajustar: tenantAdminProcedure.input(z.object({
+      materialId: z.number().int().positive(),
+      quantidadeReal: z.number().finite().min(0).max(1_000_000),
+      observacao: z.string().trim().min(3).max(2_000),
+    })).mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      await requireMaterial(db, ctx.tenantId, input.materialId);
+      const [saldo] = await db.select({ quantidade: estoqueSaldos.quantidade }).from(estoqueSaldos)
+        .where(and(
+          eq(estoqueSaldos.tenantId, ctx.tenantId),
+          eq(estoqueSaldos.materialId, input.materialId),
+          eq(estoqueSaldos.holderType, "almoxarifado"),
+          eq(estoqueSaldos.holderId, 0),
+        ))
+        .limit(1);
+      const quantidadeAnterior = Number(saldo?.quantidade ?? 0);
+      const diferenca = input.quantidadeReal - quantidadeAnterior;
+      if (Math.abs(diferenca) < 0.0005) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "O saldo físico informado é igual ao saldo registrado" });
+      }
+      const id = await db.transaction(async (tx: any) => {
+        if (diferenca > 0) {
+          await incrementarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "almoxarifado", holderId: 0 }, diferenca);
+        } else {
+          await debitarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "almoxarifado", holderId: 0 }, Math.abs(diferenca));
+        }
+        return registrarMovimentacao(tx, {
+          tenantId: ctx.tenantId,
+          materialId: input.materialId,
+          tipo: "ajuste",
+          origemType: diferenca > 0 ? "externo" : "almoxarifado",
+          origemId: 0,
+          destinoType: diferenca > 0 ? "almoxarifado" : "consumo",
+          destinoId: 0,
+          quantidade: Math.abs(diferenca),
+          observacao: `Inventário físico: ${input.observacao}`,
+          actorType: "admin",
+          actorId: ctx.tenantSession?.adminId,
+        });
+      });
+      await recordAuditEvent({
+        tenantId: ctx.tenantId,
+        actorType: "admin",
+        actorId: ctx.tenantSession?.adminId,
+        action: "estoque.ajuste_inventario",
+        entityType: "estoque_movimentacao",
+        entityId: id,
+        metadata: { materialId: input.materialId, quantidadeAnterior, quantidadeReal: input.quantidadeReal, diferenca },
+        req: ctx.req,
+      });
+      return { id, quantidadeAnterior, quantidadeReal: input.quantidadeReal, diferenca };
+    }),
+
     transferir: tenantAdminProcedure.input(z.object({ materialId: z.number().int().positive(), tecnicoId: z.number().int().positive(), quantidade: quantidadeSchema, observacao: z.string().trim().max(2_000).optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
