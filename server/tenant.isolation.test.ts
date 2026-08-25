@@ -70,6 +70,18 @@ function createOAuthAndTenantContext(tenantId: number): TrpcContext {
   };
 }
 
+function createOAuthUserAndTenantContext(tenantId: number): TrpcContext {
+  const context = createOAuthAndTenantContext(tenantId);
+  return {
+    ...context,
+    user: {
+      ...context.user!,
+      role: "user",
+      email: "tecnico@oauth-sobreposto.com",
+    },
+  };
+}
+
 function createUnauthenticatedContext(): TrpcContext {
   return {
     user: null,
@@ -265,6 +277,13 @@ describe("Isolamento Multi-Tenant: Ordens de Serviço", () => {
     const result = await caller.ordens.list();
     expect(result.every(o => o.tenantId === 2)).toBe(true);
     expect(result.some(o => o.tenantId === 1)).toBe(false);
+  });
+
+  it("sessão OAuth coexistente não remove o filtro do tenant administrativo", async () => {
+    const caller = appRouter.createCaller(createOAuthUserAndTenantContext(2));
+    const result = await caller.ordens.list();
+    expect(result).toHaveLength(1);
+    expect(result[0]?.tenantId).toBe(2);
   });
 
   it("tenant 1 não consegue ver OS do tenant 2 por ID", async () => {

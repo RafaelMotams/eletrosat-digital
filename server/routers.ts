@@ -442,14 +442,13 @@ const ordensRouter = router({
         .optional()
     )
     .query(async ({ input, ctx }) => {
-      // Técnico OAuth só vê suas próprias OS
-      if (ctx.user && ctx.user.role !== "admin") {
-        const tecnico = await getTecnicoByEmail(ctx.user.email ?? "");
-        if (!tecnico) return [];
-        return listOrdensServico({ tecnicoId: tecnico.id });
-      }
-      // Admin OAuth ou tenant admin via JWT - filtrar por tenantId
+      // tenantAdminProcedure já confirmou uma sessão administrativa. A sessão
+      // OAuth pode coexistir no mesmo navegador, mas jamais pode substituir o
+      // tenant assinado do painel nem reativar uma consulta sem escopo.
       const tenantId = (ctx as any).tenantId;
+      if (!Number.isInteger(tenantId) || tenantId <= 0) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Tenant operacional inválido" });
+      }
       const dataInicio = input?.dataInicio ? new Date(input.dataInicio + "T00:00:00") : undefined;
       const dataFim = input?.dataFim ? new Date(input.dataFim + "T23:59:59") : undefined;
       return listOrdensServico({ ...input, dataInicio, dataFim, tenantId });
