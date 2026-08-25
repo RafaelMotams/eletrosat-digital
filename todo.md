@@ -591,8 +591,8 @@
 - [x] Auditar o projeto atual contra a separação entre Master, revenda, empresa e usuários internos
 - [x] Mapear lacunas de isolamento em banco, arquivos, cache, filas, exportações e notificações
 - [x] Definir uma estratégia incremental de migração sem apagar dados existentes
-- [ ] Implementar por etapas as correções prioritárias de segurança e autorização
-- [ ] Revisar OS, manutenção, aplicativo offline e Assistente Técnico conforme regras inegociáveis
+- [x] Implementar o primeiro pacote P0 de segurança e autorização (sessões, tenant, storage, auditoria e manutenção)
+- [x] Revisar OS, manutenção, aplicativo offline e Assistente Técnico com sessão técnica, validação de tenant e fila offline por técnico
 - [ ] Aprimorar relatórios com AP planejada, instalada, a menos, a mais, diferença e percentual
 - [ ] Consolidar estados de carregamento, vazio, erro, offline, conflito e permissão negada nas telas críticas
 - [ ] Executar testes, build, validação visual e publicação por checkpoints
@@ -607,3 +607,7 @@
 - [x] Corrigir sessão inválida para redirecionar ao login em vez de manter painel sem dados
 - [x] Validar tecnicamente o hotfix: dados persistidos por tenant, testes de isolamento e redirecionamento de sessão inválida
 - [x] Confirmar que a tela de login administrativa carregou normalmente após a renderização inicial
+
+## Hotfix — Acesso ao Painel (25/08/2026)
+- [x] Reproduzir e corrigir a falha de login: assinatura e verificação JWT usavam chaves diferentes
+- [ ] Validar que o login retorna ao painel com dados exclusivos do tenant autenticado

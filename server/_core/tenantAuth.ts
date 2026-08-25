@@ -2,9 +2,7 @@ import { jwtVerify } from "jose";
 import { getDb } from "../db";
 import { tenants, tenantAdmins } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
-
-const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
-const secretKey = new TextEncoder().encode(JWT_SECRET);
+import { jwtSecretKey } from "./jwtSecret";
 
 export interface TenantSession {
   adminId: number;
@@ -52,7 +50,7 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
 
 export async function verifyTenantToken(token: string): Promise<TenantSession | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, jwtSecretKey);
     const session = payload as unknown as Partial<TenantSession>;
     if (
       typeof session.adminId !== "number" ||

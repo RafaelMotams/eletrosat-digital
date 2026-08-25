@@ -144,13 +144,16 @@ export async function dbEnqueueOS(
   return entry;
 }
 
-export async function dbGetPendingOS(): Promise<PendingOS[]> {
+export async function dbGetPendingOS(tecnicoId?: number): Promise<PendingOS[]> {
   try {
     const db = await openDB();
     const all = await wrap<PendingOS[]>(
       tx(db, "pendingOS", "readonly").getAll()
     );
-    return all.filter((o) => o.status === "pending" || o.status === "error");
+    return all.filter((o) =>
+      (o.status === "pending" || o.status === "error")
+      && (tecnicoId === undefined || o.tecnicoId === tecnicoId)
+    );
   } catch {
     return [];
   }
@@ -184,20 +187,20 @@ export async function dbUpdateOSStatus(
   );
 }
 
-export async function dbRemoveDoneOS(): Promise<void> {
+export async function dbRemoveDoneOS(tecnicoId?: number): Promise<void> {
   try {
     const db = await openDB();
     const all = await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
     const store = tx(db, "pendingOS", "readwrite");
     for (const o of all) {
-      if (o.status === "done") store.delete(o.id);
+      if (o.status === "done" && (tecnicoId === undefined || o.tecnicoId === tecnicoId)) store.delete(o.id);
     }
   } catch {}
 }
 
 /** Conta quantas OS estão pendentes de sincronização */
-export async function dbCountPending(): Promise<number> {
-  const list = await dbGetPendingOS();
+export async function dbCountPending(tecnicoId?: number): Promise<number> {
+  const list = await dbGetPendingOS(tecnicoId);
   return list.length;
 }
 

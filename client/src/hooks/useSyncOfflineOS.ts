@@ -95,15 +95,21 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     lastError: null,
   });
 
+  const getTecnicoIdAtivo = useCallback(() => {
+    const value = Number(localStorage.getItem("tecnico_id"));
+    return Number.isInteger(value) && value > 0 ? value : null;
+  }, []);
+
   // Mantém a ref atualizada com o valor mais recente de isOnline
   useEffect(() => {
     isOnlineRef.current = isOnline;
   }, [isOnline]);
 
   const refreshPendingCount = useCallback(async () => {
-    const pending = await dbGetPendingOS();
+    const tecnicoId = getTecnicoIdAtivo();
+    const pending = tecnicoId ? await dbGetPendingOS(tecnicoId) : [];
     setSyncState((s) => ({ ...s, pendingCount: pending.length }));
-  }, []);
+  }, [getTecnicoIdAtivo]);
 
   const syncOne = useCallback(async (os: PendingOS): Promise<boolean> => {
     // ── ANTI-DUPLICAÇÃO: se esta OS já está sendo processada, pula ──
@@ -246,7 +252,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     // ── ANTI-DUPLICAÇÃO: impede duas execuções simultâneas de runSync ──
     if (syncingRef.current || !isOnlineRef.current) return;
 
-    const pending = await dbGetPendingOS();
+    const tecnicoId = getTecnicoIdAtivo();
+    if (!tecnicoId) return;
+    const pending = await dbGetPendingOS(tecnicoId);
     if (pending.length === 0) return;
 
     syncingRef.current = true;
@@ -268,9 +276,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     }
 
     // Remove as OS já sincronizadas do IndexedDB
-    await dbRemoveDoneOS();
+    await dbRemoveDoneOS(tecnicoId);
 
-    const remaining = await dbGetPendingOS();
+    const remaining = await dbGetPendingOS(tecnicoId);
     syncingRef.current = false;
     setSyncState({
       isSyncing: false,
@@ -280,7 +288,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     });
 
     if (!anyError) onSyncDone?.();
-  }, [syncOne, onSyncDone]);
+  }, [syncOne, onSyncDone, getTecnicoIdAtivo]);
 
   // Sincroniza ao montar (se online)
   useEffect(() => {
