@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { estoqueMovimentacoes, estoqueSaldos, materiaisEstoque, ordensServico, tecnicos } from "../../drizzle/schema";
 import { recordAuditEvent } from "../audit";
@@ -199,11 +199,29 @@ export const estoqueRouter = router({
   }),
 
   movimentacoes: router({
-    list: tenantAdminProcedure.input(z.object({ materialId: z.number().int().positive().optional(), limit: z.number().int().min(1).max(200).default(100) }).optional())
+    list: tenantAdminProcedure.input(z.object({
+      materialId: z.number().int().positive().optional(),
+      tecnicoId: z.number().int().positive().optional(),
+      tipo: z.enum(["entrada", "transferencia", "consumo", "devolucao", "ajuste"]).optional(),
+      inicio: z.date().optional(),
+      fim: z.date().optional(),
+      limit: z.number().int().min(1).max(200).default(100),
+    }).optional())
       .query(async ({ ctx, input }) => {
         const db = await requireDb();
         const filters = [eq(estoqueMovimentacoes.tenantId, ctx.tenantId)];
         if (input?.materialId) filters.push(eq(estoqueMovimentacoes.materialId, input.materialId));
+        if (input?.tecnicoId) filters.push(or(
+          and(eq(estoqueMovimentacoes.origemType, "tecnico"), eq(estoqueMovimentacoes.origemId, input.tecnicoId)),
+          and(eq(estoqueMovimentacoes.destinoType, "tecnico"), eq(estoqueMovimentacoes.destinoId, input.tecnicoId)),
+        )!);
+        if (input?.tipo) filters.push(eq(estoqueMovimentacoes.tipo, input.tipo));
+        if (input?.inicio) filters.push(gte(estoqueMovimentacoes.createdAt, input.inicio));
+        if (input?.fim) {
+          const fimInclusivo = new Date(input.fim);
+          fimInclusivo.setHours(23, 59, 59, 999);
+          filters.push(lte(estoqueMovimentacoes.createdAt, fimInclusivo));
+        }
         return db.select({
           id: estoqueMovimentacoes.id,
           tipo: estoqueMovimentacoes.tipo,

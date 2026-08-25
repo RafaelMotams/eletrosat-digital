@@ -633,6 +633,9 @@
 - [x] Validar a tela de estoque com estados vazios seguros após incluir a devolução de materiais
 - [x] Exibir no dashboard alerta acionável de materiais abaixo do estoque mínimo
 - [x] Validar dashboard com dados reais e ausência correta de alerta quando não há materiais críticos
+- [x] Adicionar filtros de histórico de estoque por técnico, tipo de movimento e período
+- [x] Validar o carregamento seguro do painel de estoque antes da consulta do histórico filtrado
+- [x] Validar o acionamento do filtro por período e a limpeza de filtros no histórico de estoque
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
