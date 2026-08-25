@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import TecnicoLogin from "./pages/tecnico/Login";
@@ -13,6 +13,7 @@ import AdminCadastro from "./pages/admin/Cadastro";
 import ConfirmarEmail from "./pages/admin/ConfirmarEmail";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
 import { chavesRotaTecnico, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
+import { decidirRotaInicialTecnico, ROTA_OS_TTL_MS } from "@shared/tecnicoRouteState";
 
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminTecnicos = lazy(() => import("./pages/admin/Tecnicos"));
@@ -40,16 +41,16 @@ const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 // Rotas do técnico que devem ser persistidas (exceto login)
 const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
-const OS_ROUTE_TTL = 12 * 60 * 60 * 1000; // 12 horas em ms
 const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"] as const;
 
 // ESTRATÉGIA DE PERSISTÊNCIA:
-// - localStorage (OS_ROUTE_KEY): rota de OS ativa com timestamp. Persiste ao abrir câmera,
-//   WhatsApp, Maps no Android (onde sessionStorage pode ser limpo). Expira após 4h.
-// - localStorage ("tecnico_last_route"): rotas de menu (Home, Mapa, Perfil, Histórico).
+// - localStorage isolado por tenant/técnico mantém a OS ativa por até 12h ao alternar para câmera,
+//   WhatsApp ou Maps no Android.
+// - a última rota de menu também permanece no mesmo namespace da sessão técnica.
 
 function RoutePersistence() {
   const [location, navigate] = useLocation();
+  const escopoRestauradoRef = useRef<string | null>(null);
 
   const escopoTecnico = criarEscopoTecnicoLocal(
     Number(localStorage.getItem("tecnico_tenant_id")),
@@ -62,51 +63,42 @@ function RoutePersistence() {
     LEGACY_ROUTE_KEYS.forEach(chave => localStorage.removeItem(chave));
   }, [chavesRota]);
 
-  // Salvar rota atual
   useEffect(() => {
-    if (!chavesRota) return;
+    if (!chavesRota) {
+      escopoRestauradoRef.current = null;
+      return;
+    }
+
+    // A restauração ocorre antes da escrita e somente uma vez por sessão isolada.
+    if (escopoRestauradoRef.current !== chavesRota.ativa) {
+      escopoRestauradoRef.current = chavesRota.ativa;
+      const decisao = decidirRotaInicialTecnico({
+        localizacao: location,
+        rotaAtiva: localStorage.getItem(chavesRota.ativa),
+        rotaAtivaEm: parseInt(localStorage.getItem(chavesRota.ativaTimestamp) || "0", 10),
+        ultimoMenu: localStorage.getItem(chavesRota.ultimoMenu),
+        agora: Date.now(),
+        rotasMenu: TECNICO_ROUTES,
+      });
+
+      if (decisao.limparRotaAtiva) {
+        localStorage.removeItem(chavesRota.ativa);
+        localStorage.removeItem(chavesRota.ativaTimestamp);
+      }
+      if (decisao.destino) {
+        navigate(decisao.destino, { replace: true });
+        return;
+      }
+    }
+
     if (location.startsWith(TECNICO_OS_PREFIX)) {
-      // OS ativa: salva em localStorage com timestamp
       localStorage.setItem(chavesRota.ativa, location);
       localStorage.setItem(chavesRota.ativaTimestamp, String(Date.now()));
     } else if (TECNICO_ROUTES.includes(location)) {
-      // Menu: salva rota de menu e limpa a OS ativa
       localStorage.setItem(chavesRota.ultimoMenu, location);
       localStorage.removeItem(chavesRota.ativa);
       localStorage.removeItem(chavesRota.ativaTimestamp);
     }
-  }, [chavesRota, location]);
-
-  // Ao montar: restaurar rota (apenas quando já estiver em rota do técnico)
-  useEffect(() => {
-    if (!chavesRota) return;
-
-    const activeOsRoute = localStorage.getItem(chavesRota.ativa);
-    const activeOsTs = parseInt(localStorage.getItem(chavesRota.ativaTimestamp) || "0", 10);
-    const lastMenuRoute = localStorage.getItem(chavesRota.ultimoMenu);
-    // Só redireciona se o usuário já estiver em uma rota do técnico (nunca da raiz /)
-    const isAtTecnicoMenu = TECNICO_ROUTES.includes(location);
-
-    // Verificar se a OS ativa ainda é válida (dentro do TTL de 12h)
-    const osRouteValida = activeOsRoute &&
-      activeOsRoute.startsWith(TECNICO_OS_PREFIX) &&
-      (Date.now() - activeOsTs) < OS_ROUTE_TTL;
-
-    if (osRouteValida) {
-      // Há uma OS ativa válida — redireciona apenas se já estiver no menu do técnico
-      if (isAtTecnicoMenu) {
-        navigate(activeOsRoute!, { replace: true });
-      }
-    } else {
-      // Sem OS ativa ou expirada
-      localStorage.removeItem(chavesRota.ativa);
-      localStorage.removeItem(chavesRota.ativaTimestamp);
-      // Restaura última tela de menu visitada apenas se já estiver em /tecnico
-      if (location === "/tecnico" && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
-        navigate(lastMenuRoute, { replace: true });
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chavesRota, location, navigate]);
 
   return null;
