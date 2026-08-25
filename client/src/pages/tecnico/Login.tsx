@@ -61,23 +61,8 @@ function ParticleCanvas() {
 /* ─── Animated logo rings ─── */
 function LogoRings({ size = 96 }: { size?: number }) {
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size * 2, height: size * 2 }}>
-      {[1.9, 1.5, 1.2].map((scale, i) => (
-        <div key={i} className="absolute rounded-full border"
-          style={{
-            width: size * scale, height: size * scale,
-            borderColor: `rgba(59,130,246,${0.08 + i * 0.04})`,
-            animation: `ping-slow ${2 + i * 0.5}s ease-in-out infinite`,
-            animationDelay: `${i * 0.3}s`,
-          }} />
-      ))}
-      <div className="relative rounded-2xl overflow-hidden shadow-2xl"
-        style={{
-          width: size, height: size,
-          boxShadow: "0 0 40px rgba(59,130,246,0.5), 0 0 80px rgba(99,102,241,0.2), 0 0 0 1px rgba(255,255,255,0.1)",
-        }}>
-        <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
-      </div>
+    <div className="grid place-items-center rounded-2xl bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-500/20" style={{ width: size, height: size }} aria-label="Netvius">
+      <Wifi style={{ width: size * 0.48, height: size * 0.48 }} strokeWidth={2.5} />
     </div>
   );
 }
@@ -222,7 +207,6 @@ export default function TecnicoLogin() {
   const [senha, setSenha] = useState("");
   const [showSenha, setShowSenha] = useState(false);
   const [erro, setErro] = useState("");
-  const [showSplash, setShowSplash] = useState(true);
   const [focused, setFocused] = useState<"email" | "senha" | null>(null);
   const [loginSuccess, setLoginSuccess] = useState(false);
 
@@ -255,13 +239,9 @@ export default function TecnicoLogin() {
     loginMutation.mutate({ email: email.trim(), senha });
   };
 
-  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
-
   return (
     <div className="min-h-screen flex flex-col overflow-hidden"
       style={{ background: "linear-gradient(145deg, #020817 0%, #050d1f 50%, #020817 100%)" }}>
-      <ParticleCanvas />
-
       {/* Glow blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full"

@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect, useMemo } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { Link } from "wouter";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users, Boxes, ClipboardList, Wrench } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -214,6 +214,30 @@ export default function AdminDashboard() {
           <Link href="/admin/estoque" className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700">Abrir estoque <ArrowRight className="h-4 w-4" /></Link>
         </div>
       )}
+
+      <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-label="Central de prioridades">
+        <div className="flex flex-col gap-2 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Central de operação</p>
+            <h2 className="mt-1 text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Decisões que pedem atenção</h2>
+          </div>
+          <p className="text-xs text-muted-foreground">Baseada no status atual do seu tenant</p>
+        </div>
+        <div className="grid gap-px bg-border md:grid-cols-3">
+          <Link href="/admin/ordens" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700"><ClipboardList className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Ordens em aberto</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)} atividade(s) pendente(s) ou em andamento.</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <Link href="/admin/estoque" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700"><Boxes className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Estoque e técnicos</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{materiaisCriticos.length > 0 ? `${materiaisCriticos.length} item(ns) abaixo do mínimo.` : "Sem alerta de reposição no almoxarifado."}</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <Link href="/admin/manutencao" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Wrench className="h-5 w-5" /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Manutenções</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Abra a fila de atendimento, laudos e quilometragem.</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </section>
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

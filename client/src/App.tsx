@@ -36,10 +36,11 @@ const TecnicoHistorico = lazy(() => import("./pages/tecnico/Historico"));
 const TecnicoRotaDia = lazy(() => import("./pages/tecnico/RotaDia"));
 const TecnicoManutencao = lazy(() => import("./pages/tecnico/Manutencao"));
 const TecnicoEstoque = lazy(() => import("./pages/tecnico/Estoque"));
+const TecnicoFerramentas = lazy(() => import("./pages/tecnico/Ferramentas"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 
 // Rotas do técnico que devem ser persistidas (exceto login)
-const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque"];
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque", "/tecnico/ferramentas"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"] as const;
 
@@ -142,6 +143,7 @@ function Router() {
       <Route path="/tecnico/manutencao" component={TecnicoManutencao} />
       <Route path="/tecnico/manutencao/:id" component={TecnicoManutencao} />
       <Route path="/tecnico/estoque" component={TecnicoEstoque} />
+      <Route path="/tecnico/ferramentas" component={TecnicoFerramentas} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

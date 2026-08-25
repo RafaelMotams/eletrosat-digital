@@ -77,7 +77,6 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     }
     const tenantId = session.tenantId;
 
-    const valorPorApFallback = parseFloat(req.query.valorPorAp as string) || 0;
     const tecnicoIdParam = req.query.tecnicoId ? parseInt(req.query.tecnicoId as string) : undefined;
     const dataInicioParam = req.query.dataInicio ? new Date(req.query.dataInicio as string) : null;
     const dataFimParam = req.query.dataFim ? new Date(req.query.dataFim as string) : null;
@@ -89,15 +88,13 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // Buscar valores por AP por técnico (tabela de preços cadastrada)
     const valoresApMap = await getValoresApAllTecnicos(tenantId);
 
-    // Função para obter valor de uma OS: usa tabela do técnico, fallback para valorPorApFallback
+    // Valores financeiros pertencem à tabela protegida do tenant; a requisição
+    // nunca pode informar um valor de fallback.
     const getValorOs = (os: typeof concluidas[0]): number => {
       const tecValores = valoresApMap[os.tecnicoId ?? 0] ?? {};
       const qtd = os.qtdApInstalado ?? 0;
-      return tecValores[qtd] ?? valorPorApFallback;
+      return tecValores[qtd] ?? 0;
     };
-
-    // Valor por AP para exibição no cabeçalho (usa fallback se não há tabela)
-    const valorPorAp = valorPorApFallback;
 
     // Agrupar por técnico (ordenado por nome)
     const porTecnico: Record<string, typeof concluidas> = {};
@@ -110,6 +107,40 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     const wb = new ExcelJS.Workbook();
     wb.creator = "Netvius";
     wb.created = new Date();
+
+    const wsMenu = wb.addWorksheet("Menu", { properties: { tabColor: { argb: C.verdeMedio } } });
+    wsMenu.columns = [{ width: 5 }, { width: 42 }, { width: 56 }];
+    wsMenu.mergeCells("B2:C2");
+    const menuTitle = wsMenu.getCell("B2");
+    menuTitle.value = "NETVIUS — RELATÓRIO EXECUTIVO";
+    aplicarEstiloCelula(menuTitle, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 18, hAlign: "center", border: bordaMedia() });
+    wsMenu.getRow(2).height = 34;
+    wsMenu.mergeCells("B3:C3");
+    const menuSubtitle = wsMenu.getCell("B3");
+    menuSubtitle.value = `Gerado em ${new Date().toLocaleString("pt-BR")} · Dados filtrados pelo tenant autenticado`;
+    aplicarEstiloCelula(menuSubtitle, { bg: C.azulSuave, fg: C.azulMedio, italic: true, size: 10, hAlign: "center", border: borda(C.azulSuave) });
+    wsMenu.getRow(3).height = 22;
+    const menuItems = [
+      ["Relatório Detalhado", "Ordens concluídas, APs, valores protegidos e evidências no sistema."],
+      ["Pagamento por Técnico", "Consolidação financeira por técnico, calculada no servidor."],
+      ["Não Instaladas", "Exceções operacionais e motivos registrados."],
+    ];
+    menuItems.forEach(([aba, descricao], index) => {
+      const row = 6 + index * 2;
+      const menuLink = wsMenu.getCell(row, 2);
+      menuLink.value = { text: aba, hyperlink: `#'${aba}'!A1` };
+      menuLink.font = { name: "Calibri", bold: true, size: 12, color: { argb: C.azulClaro }, underline: true };
+      menuLink.fill = { type: "pattern", pattern: "solid", fgColor: { argb: C.cinzaClaro } };
+      menuLink.border = borda();
+      const menuDescription = wsMenu.getCell(row, 3);
+      menuDescription.value = descricao;
+      aplicarEstiloCelula(menuDescription, { bg: C.cinzaClaro, fg: C.cinzaEscuro, size: 10, wrap: true, border: borda() });
+      wsMenu.getRow(row).height = 30;
+    });
+    wsMenu.getCell("B14").value = "Use os links acima para navegar entre as abas. Evidências fotográficas permanecem disponíveis somente dentro do sistema autenticado.";
+    aplicarEstiloCelula(wsMenu.getCell("B14"), { fg: C.cinzaMedio, size: 9, italic: true, wrap: true });
+    wsMenu.mergeCells("B14:C14");
+    wsMenu.getRow(14).height = 30;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ABA 1 — RELATÓRIO DETALHADO
@@ -143,7 +174,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // ── Cabeçalho principal ──────────────────────────────────────────────────
     ws.mergeCells(1, 1, 1, NCOLS);
     const h1 = ws.getCell("A1");
-    h1.value = "NETVIONIS TECNOLOGIA";
+    h1.value = "NETVIUS";
     aplicarEstiloCelula(h1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
     ws.getRow(1).height = 38;
 
@@ -240,15 +271,14 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
           }
         });
 
-        // Coluna 10: link direto para a foto (coluna separada)
+        // Coluna 10: evidências devem ser abertas pelo sistema autenticado, nunca
+        // por URL pública persistida dentro da planilha.
         const fotoCell = ws.getCell(rowIdx, 10);
         const fotoUrl = (os as any).fotoMapaCalorUrl as string | null;
         if (fotoUrl) {
-          const urlAbsoluta = fotoUrl.startsWith('http') ? fotoUrl : `https://netvionis.manus.space${fotoUrl}`;
-          // ExcelJS: definir valor como {text, hyperlink} via cast any
-          (fotoCell as any).value = { text: "Ver Foto", hyperlink: urlAbsoluta };
+          fotoCell.value = "No sistema";
           aplicarEstiloCelula(fotoCell, { bg, fg: C.azulClaro, size: 9, hAlign: "center", border: borda() });
-          fotoCell.font = { name: "Calibri", size: 9, underline: true, color: { argb: "FF0563C1" }, bold: true };
+          fotoCell.font = { name: "Calibri", size: 9, color: { argb: "FF0563C1" }, bold: true };
         } else {
           fotoCell.value = "Sem foto";
           aplicarEstiloCelula(fotoCell, { bg, fg: C.cinzaMedio, size: 9, hAlign: "center", border: borda() });
@@ -342,7 +372,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // Título
     ws2.mergeCells("A1:E1");
     const t1 = ws2.getCell("A1");
-    t1.value = "NETVIONIS TECNOLOGIA";
+    t1.value = "NETVIUS";
     aplicarEstiloCelula(t1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 15, hAlign: "center" });
     ws2.getRow(1).height = 36;
 
@@ -354,7 +384,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
 
     ws2.mergeCells("A3:E3");
     const t3 = ws2.getCell("A3");
-    t3.value = `Emitido em: ${dataGer}   ·   Valor por AP: R$ ${valorPorAp.toFixed(2).replace(".", ",")}`;
+    t3.value = `Emitido em: ${dataGer}   ·   Valores conforme tabela protegida de cada técnico`;
     aplicarEstiloCelula(t3, { bg: C.verdeClaro, fg: C.verdeMedio, italic: true, size: 9, hAlign: "center" });
     ws2.getRow(3).height = 18;
 
@@ -454,7 +484,7 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
     // Título
     ws3.mergeCells(1, 1, 1, NCOLS3);
     const ni1 = ws3.getCell("A1");
-    ni1.value = "NETVIONIS TECNOLOGIA";
+    ni1.value = "NETVIUS";
     aplicarEstiloCelula(ni1, { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
     ws3.getRow(1).height = 38;
 

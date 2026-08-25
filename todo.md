@@ -656,6 +656,17 @@
 - [x] Redesenhar o aplicativo técnico com sistema visual premium, espaçamento e tipografia consistentes
 - [x] Modernizar a navegação e os componentes de campo para maior clareza e organização em telas móveis
 - [x] Adicionar melhorias funcionais úteis ao fluxo diário do técnico sem alterar dados ou permissões existentes
+- [x] Executar Fase 0: inventariar arquitetura, fluxos de sessão, dados, jobs e integrações da Netvius
+- [x] Executar Fase 0: registrar achados P0/P1 com evidências de código e limites de acesso externos
+- [x] Entregar o plano P0 incremental para autorização antes de alterações críticas
+- [x] Auditar manualmente no ambiente principal as sessões, autorização e isolamento multi-tenant da Fase 0
+- [x] Auditar manualmente no ambiente principal cache offline, evidências, jobs e exportações críticas da Fase 0
+- [x] Criar um kit de ferramentas de campo útil ao técnico, com cálculos de rede e estados seguros para uso em zona rural
+- [x] Refinar o aplicativo técnico com layout premium, contraste, espaçamento e ações de campo sem sobreposição em telas móveis
+- [x] Evoluir o painel administrativo com experiência de gestão orientada a exceções e estoque por técnico
+- [x] Modernizar a exportação XLSX com marca Netvius, navegação executiva e proteção de valores vindos do servidor
+- [x] Desativar com segurança o job diário legado fixado em tenant até uma configuração tenant-aware autorizada
+- [x] Remover a marca antiga Netvionis ainda exibida na tela técnica de acesso
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
