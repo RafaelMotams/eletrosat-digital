@@ -25,6 +25,11 @@ export function calcularRemuneracaoManutencao(quilometragem: number | string | n
   };
 }
 
+export function manutencaoNoPeriodo(registro: { createdAt: Date | string; dataConclusao?: Date | string | null }, inicio?: Date, fim?: Date) {
+  const dataReferencia = new Date(registro.dataConclusao ?? registro.createdAt);
+  return (!inicio || dataReferencia >= inicio) && (!fim || dataReferencia <= fim);
+}
+
 function escolaDaManutencao(manutencao: typeof manutencoes.$inferSelect, escola: any): any {
   return escola ?? {
     id: null,
@@ -74,6 +79,8 @@ export const manutencaoRouter = router({
       status: z.enum(["pendente", "em_andamento", "concluida", "todas"]).optional(),
       tecnicoId: z.number().optional(),
       busca: z.string().optional(),
+      inicio: z.date().optional(),
+      fim: z.date().optional(),
     }).optional())
     .query(async ({ input, ctx }) => {
       const db = await getDb();
@@ -104,6 +111,9 @@ export const manutencaoRouter = router({
       }
       if (input?.tecnicoId) {
         result = result.filter(r => r.tecnicoId === input.tecnicoId);
+      }
+      if (input?.inicio || input?.fim) {
+        result = result.filter(r => manutencaoNoPeriodo(r, input.inicio, input.fim));
       }
       if (input?.busca) {
         const b = input.busca.toLowerCase();
@@ -193,7 +203,12 @@ export const manutencaoRouter = router({
     }),
 
   // ── ADMIN: Relatório Excel (retorna dados) ──────────────────────────────────
-  relatorio: tenantAdminProcedure.query(async ({ ctx }) => {
+  relatorio: tenantAdminProcedure.input(z.object({
+    status: z.enum(["pendente", "em_andamento", "concluida", "todas"]).optional(),
+    tecnicoId: z.number().optional(),
+    inicio: z.date().optional(),
+    fim: z.date().optional(),
+  }).optional()).query(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     const tenantId = (ctx as any).tenantId;
@@ -208,7 +223,15 @@ export const manutencaoRouter = router({
       .leftJoin(tecnicos, eq(manutencoes.tecnicoId, tecnicos.id))
       .where(eq(manutencoes.tenantId, tenantId))
       .orderBy(desc(manutencoes.createdAt));
-    return rows.map(r => {
+    const filtradas = rows.filter(r => {
+      if (input?.status && input.status !== "todas" && r.m.status !== input.status) return false;
+      if (input?.tecnicoId && r.m.tecnicoId !== input.tecnicoId) return false;
+      if (input?.inicio || input?.fim) {
+        if (!manutencaoNoPeriodo(r.m, input.inicio, input.fim)) return false;
+      }
+      return true;
+    });
+    return filtradas.map(r => {
       const remuneracao = calcularRemuneracaoManutencao(r.m.quilometragem);
       return {
         id: r.m.id,

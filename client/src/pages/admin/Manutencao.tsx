@@ -34,14 +34,24 @@ export default function AdminManutencao() {
 
   // ── Dados ──────────────────────────────────────────────────────────────────
   const [filtroStatus, setFiltroStatus] = useState("todas");
+  const [filtroTecnicoId, setFiltroTecnicoId] = useState("todos");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [busca, setBusca] = useState("");
+  const filtrosManutencao = useMemo(() => ({
+    status: filtroStatus as "pendente" | "em_andamento" | "concluida" | "todas",
+    tecnicoId: filtroTecnicoId === "todos" ? undefined : Number(filtroTecnicoId),
+    busca: busca || undefined,
+    inicio: dataInicio ? new Date(`${dataInicio}T00:00:00`) : undefined,
+    fim: dataFim ? new Date(`${dataFim}T23:59:59`) : undefined,
+  }), [filtroStatus, filtroTecnicoId, busca, dataInicio, dataFim]);
   const { data: lista, isLoading, error: listaError, refetch: refetchLista } = trpc.manutencao.listar.useQuery(
-    { status: filtroStatus as any, busca: busca || undefined },
+    filtrosManutencao,
     { refetchInterval: 30000 }
   );
   const { data: escolas } = trpc.escolas.list.useQuery({});
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
-  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery();
+  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery(filtrosManutencao);
 
   // ── Modais ─────────────────────────────────────────────────────────────────
   const [criarOpen, setCriarOpen] = useState(false);
@@ -143,12 +153,15 @@ export default function AdminManutencao() {
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    if (!lista) return { total: 0, pendente: 0, em_andamento: 0, concluida: 0 };
+    if (!lista) return { total: 0, pendente: 0, em_andamento: 0, concluida: 0, tecnicos: 0, quilometragem: 0, valorTotal: 0 };
     return {
       total: lista.length,
       pendente: lista.filter(m => m.status === "pendente").length,
       em_andamento: lista.filter(m => m.status === "em_andamento").length,
       concluida: lista.filter(m => m.status === "concluida").length,
+      tecnicos: new Set(lista.map(m => m.tecnicoId).filter(Boolean)).size,
+      quilometragem: lista.reduce((s, m) => s + Number(m.quilometragem ?? 0), 0),
+      valorTotal: lista.reduce((s, m) => s + Number(m.valorTotal ?? 0), 0),
     };
   }, [lista]);
 
@@ -255,7 +268,7 @@ export default function AdminManutencao() {
     <AdminLayoutAuto title="Manutenção">
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3 mb-6">
         {[
           { label: "Total",       value: stats.total,       color: "#3b82f6", icon: Wrench },
           { label: "Pendentes",   value: stats.pendente,    color: "#f59e0b", icon: Clock },
@@ -277,6 +290,14 @@ export default function AdminManutencao() {
               </CardContent>
             </Card>
           );
+        })}
+        {[
+          { label: "Técnicos", value: stats.tecnicos, color: "#8b5cf6", icon: User },
+          { label: "Km no período", value: stats.quilometragem.toLocaleString("pt-BR", { maximumFractionDigits: 1 }), color: "#0ea5e9", icon: Navigation },
+          { label: "Total previsto", value: stats.valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }), color: "#059669", icon: FileSpreadsheet },
+        ].map((s, i) => {
+          const Icon = s.icon;
+          return <Card key={`indicador-${i}`} className="border-0 shadow-sm"><CardContent className="p-4 flex items-center gap-3"><div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: s.color + "18" }}><Icon size={16} style={{ color: s.color }} /></div><div><p className="text-xl font-bold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground">{s.label}</p></div></CardContent></Card>;
         })}
       </div>
 
@@ -314,6 +335,15 @@ export default function AdminManutencao() {
             </button>
           ))}
         </div>
+
+        <Select value={filtroTecnicoId} onValueChange={setFiltroTecnicoId}>
+          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Todos os técnicos" /></SelectTrigger>
+          <SelectContent><SelectItem value="todos">Todos os técnicos</SelectItem>{(tecnicos ?? []).filter(t => t.ativo).map(t => <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>)}</SelectContent>
+        </Select>
+
+        <Input aria-label="Data inicial da manutenção" type="date" className="w-full sm:w-40" value={dataInicio} onChange={event => setDataInicio(event.target.value)} />
+        <Input aria-label="Data final da manutenção" type="date" className="w-full sm:w-40" value={dataFim} onChange={event => setDataFim(event.target.value)} />
+        {(filtroTecnicoId !== "todos" || dataInicio || dataFim) && <Button variant="ghost" size="sm" onClick={() => { setFiltroTecnicoId("todos"); setDataInicio(""); setDataFim(""); }}>Limpar filtros</Button>}
 
         <Button
           variant="outline"

@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   Route, CheckCircle, Circle, Share2, MessageCircle,
   MapPin, Wifi, ChevronLeft, Search, Navigation,
-  ListChecks, Trash2, ArrowUp, ArrowDown, Play
+  ListChecks, Trash2, ArrowUp, ArrowDown, Play, CalendarDays
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbGetCachedEscolas } from "@/hooks/useOfflineDB";
@@ -23,6 +23,7 @@ type Escola = {
   velocidadeOfertada?: number | null;
   latitude?: string | null;
   longitude?: string | null;
+  dataConclusao?: Date | string | null;
   [key: string]: unknown;
 };
 
@@ -141,6 +142,21 @@ export default function RotaDia() {
     [rotaOrdenada]
   );
 
+  const resumoSemanal = useMemo(() => {
+    const agora = new Date();
+    const inicioSemana = new Date(agora);
+    inicioSemana.setHours(0, 0, 0, 0);
+    inicioSemana.setDate(agora.getDate() - ((agora.getDay() + 6) % 7));
+    const concluidas = escolas.filter(escola => escola.status === "concluido" && escola.dataConclusao && new Date(escola.dataConclusao) >= inicioSemana);
+    const pendentes = escolas.filter(escola => escola.status === "pendente" || escola.status === "em_andamento");
+    return {
+      concluidas: concluidas.length,
+      pendentes: pendentes.length,
+      apsConcluidos: concluidas.reduce((total, escola) => total + (escola.qtdAp ?? 0), 0),
+      inicioSemana,
+    };
+  }, [escolas]);
+
   function toggleEscola(id: number) {
     setRotaConfirmada(false);
     setSelecionadas(prev =>
@@ -233,6 +249,24 @@ export default function RotaDia() {
               color: "#f1f5f9", fontSize: 13, outline: "none"
             }}
           />
+        </div>
+      </div>
+
+      {/* Resumo semanal de execução */}
+      <div style={{ margin: "12px 16px 0", background: "linear-gradient(135deg,rgba(16,185,129,0.13),rgba(6,78,59,0.16))", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 12, padding: "12px 14px" }}>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-4 h-4" style={{ color: "#6ee7b7" }} />
+            <div><p style={{ color: "#d1fae5", fontSize: 13, fontWeight: 700 }}>Resumo da semana</p><p style={{ color: "rgba(167,243,208,0.62)", fontSize: 10 }}>Desde {resumoSemanal.inicioSemana.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</p></div>
+          </div>
+          <span style={{ color: "#6ee7b7", fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.12)", borderRadius: 999, padding: "4px 8px" }}>Dados reais</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Concluídas", value: resumoSemanal.concluidas, color: "#6ee7b7" },
+            { label: "Pendentes", value: resumoSemanal.pendentes, color: "#fcd34d" },
+            { label: "APs feitos", value: resumoSemanal.apsConcluidos, color: "#a5b4fc" },
+          ].map(item => <div key={item.label} style={{ background: "rgba(255,255,255,0.045)", borderRadius: 9, padding: "9px 7px", textAlign: "center" }}><p style={{ color: item.color, fontSize: 18, fontWeight: 800 }}>{item.value}</p><p style={{ color: "rgba(148,163,184,0.62)", fontSize: 9, fontWeight: 600, marginTop: 2 }}>{item.label}</p></div>)}
         </div>
       </div>
 

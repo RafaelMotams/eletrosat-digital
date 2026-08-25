@@ -205,6 +205,13 @@ export default function AdminEstoque() {
   };
 
   function exportarEstoque() {
+    const filtrosExportacao = [{
+      "Gerado em": formatDate(new Date()),
+      "Período inicial": historyInicio ? new Date(`${historyInicio}T00:00:00`).toLocaleDateString("pt-BR") : "Todo o histórico",
+      "Período final": historyFim ? new Date(`${historyFim}T23:59:59`).toLocaleDateString("pt-BR") : "Atual",
+      "Técnico": historyTecnicoId === "todos" ? "Todos" : technicians.find(t => t.id === Number(historyTecnicoId))?.nome || "—",
+      "Tipo de movimento": historyTipo === "todos" ? "Todos" : historyTipo,
+    }];
     const resumo = materials.map(material => {
       const atual = almoxarifado.get(material.id) ?? 0;
       const minimo = Number(material.estoqueMinimo);
@@ -234,6 +241,14 @@ export default function AdminEstoque() {
       "Quantidade": Number(m.quantidade),
       "Referência": m.ordemServicoId ? `OS #${m.ordemServicoId}` : m.manutencaoId ? `Manutenção #${m.manutencaoId}` : m.observacao || "—",
     }));
+    const divergencias = (movimentosQuery.data ?? []).filter(m => m.tipo === "ajuste").map(m => ({
+      "Data do ajuste": formatDate(m.createdAt),
+      "Material": m.materialNome,
+      "Código": m.materialCodigo,
+      "Diferença ajustada": Number(m.quantidade),
+      "Direção": Number(m.quantidade) >= 0 ? "Acréscimo" : "Redução",
+      "Motivo registrado": m.observacao || "—",
+    }));
     const workbook = XLSX.utils.book_new();
     const addSheet = (name: string, rows: Record<string, unknown>[], widths: number[]) => {
       const sheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Sem dados": "Nenhum registro no período" }]);
@@ -241,17 +256,19 @@ export default function AdminEstoque() {
       sheet["!cols"] = widths.map(wch => ({ wch }));
       XLSX.utils.book_append_sheet(workbook, sheet, name);
     };
-    addSheet("Resumo de estoque", resumo, [16, 32, 20, 12, 20, 18, 22, 14]);
+    addSheet("Filtros da exportação", filtrosExportacao, [22, 20, 20, 28, 22]);
+    addSheet("Inventário atual", resumo, [16, 32, 20, 12, 20, 18, 22, 14]);
     addSheet("Materiais por técnico", porTecnico, [28, 16, 32, 14, 12]);
     addSheet("Movimentações", historico, [20, 32, 16, 16, 14, 34]);
-    XLSX.writeFile(workbook, `netvius-estoque-${new Date().toISOString().slice(0, 10)}.xlsx`);
-    toast.success("Planilha de estoque exportada.");
+    addSheet("Divergências e ajustes", divergencias, [20, 32, 16, 20, 16, 42]);
+    XLSX.writeFile(workbook, `netvius-inventario-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success("Inventário auditável exportado.");
   }
 
   if (materialsQuery.isLoading || saldosQuery.isLoading) return <AdminLayoutTenant title="Estoque" subtitle="Materiais e movimentações por empresa"><OperationState kind="loading" title="Carregando estoque" description="Consultando catálogo e saldos da empresa." /></AdminLayoutTenant>;
   if (materialsQuery.error || saldosQuery.error) return <AdminLayoutTenant title="Estoque" subtitle="Materiais e movimentações por empresa"><OperationState kind="error" title="Não foi possível carregar o estoque" description="Confira sua conexão e tente novamente." actionLabel="Tentar novamente" onAction={() => { materialsQuery.refetch(); saldosQuery.refetch(); }} /></AdminLayoutTenant>;
 
-  return <AdminLayoutTenant title="Estoque" subtitle="Controle materiais, almoxarifado e itens em posse dos técnicos" actions={<div className="flex flex-wrap gap-2"><Button variant="outline" className="gap-2" onClick={exportarEstoque} disabled={materials.length === 0}><FileSpreadsheet className="h-4 w-4" /> Exportar XLSX</Button>{!isViewer && <><InventoryDialog materials={inventoryMaterials} onAdjust={async data => { await ajustar.mutateAsync(data); }} /><MovementDialog title="Registrar entrada" description="A entrada é adicionada ao almoxarifado desta empresa." materials={materials} action={async data => { await entrada.mutateAsync({ materialId: data.materialId, quantidade: data.quantidade, observacao: data.observacao }); }}><Button variant="outline" className="gap-2" disabled={actionDisabled}><ArrowDownToLine className="h-4 w-4" /> Registrar entrada</Button></MovementDialog><StockDialog onCreate={async data => { await createMaterial.mutateAsync(data); }} /></>}</div>}>
+  return <AdminLayoutTenant title="Estoque" subtitle="Controle materiais, almoxarifado e itens em posse dos técnicos" actions={<div className="flex flex-wrap gap-2"><Button variant="outline" className="gap-2" onClick={exportarEstoque} disabled={materials.length === 0}><FileSpreadsheet className="h-4 w-4" /> Exportar inventário</Button>{!isViewer && <><InventoryDialog materials={inventoryMaterials} onAdjust={async data => { await ajustar.mutateAsync(data); }} /><MovementDialog title="Registrar entrada" description="A entrada é adicionada ao almoxarifado desta empresa." materials={materials} action={async data => { await entrada.mutateAsync({ materialId: data.materialId, quantidade: data.quantidade, observacao: data.observacao }); }}><Button variant="outline" className="gap-2" disabled={actionDisabled}><ArrowDownToLine className="h-4 w-4" /> Registrar entrada</Button></MovementDialog><StockDialog onCreate={async data => { await createMaterial.mutateAsync(data); }} /></>}</div>}>
     {isViewer && <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Perfil visualizador: você pode consultar o estoque, mas não pode cadastrar nem movimentar materiais.</div>}
     <div className="grid gap-4 md:grid-cols-4 mb-6">
       <Card><CardContent className="pt-5"><p className="text-sm text-muted-foreground">Materiais ativos</p><p className="mt-1 text-3xl font-bold">{materials.filter(m => m.ativo).length}</p></CardContent></Card>

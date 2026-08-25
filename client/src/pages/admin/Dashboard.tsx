@@ -63,7 +63,9 @@ export default function AdminDashboard() {
   const isViewer = admin?.role === 'viewer';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [periodoProdutividade, setPeriodoProdutividade] = useState<"todo" | "7d" | "30d" | "mes">("todo");
+  const [periodoProdutividade, setPeriodoProdutividade] = useState<"todo" | "7d" | "30d" | "mes" | "custom">("todo");
+  const [produtividadeInicio, setProdutividadeInicio] = useState("");
+  const [produtividadeFim, setProdutividadeFim] = useState("");
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -89,19 +91,31 @@ export default function AdminDashboard() {
   }, [dataUpdatedAt]);
   const produtividadeInput = useMemo(() => {
     if (periodoProdutividade === "todo") return undefined;
+    if (periodoProdutividade === "custom") {
+      if (!produtividadeInicio || !produtividadeFim) return undefined;
+      return {
+        dataInicio: new Date(`${produtividadeInicio}T00:00:00`).toISOString(),
+        dataFim: new Date(`${produtividadeFim}T00:00:00`).toISOString(),
+      };
+    }
     const inicio = new Date();
     if (periodoProdutividade === "7d") inicio.setDate(inicio.getDate() - 6);
     if (periodoProdutividade === "30d") inicio.setDate(inicio.getDate() - 29);
     if (periodoProdutividade === "mes") inicio.setDate(1);
     inicio.setHours(0, 0, 0, 0);
     return { dataInicio: inicio.toISOString(), dataFim: new Date().toISOString() };
-  }, [periodoProdutividade]);
-  const periodoProdutividadeLabel = { todo: "Todo período", "7d": "Últimos 7 dias", "30d": "Últimos 30 dias", mes: "Mês atual" }[periodoProdutividade];
+  }, [periodoProdutividade, produtividadeInicio, produtividadeFim]);
+  const periodoProdutividadeIncompleto = periodoProdutividade === "custom" && (!produtividadeInicio || !produtividadeFim);
+  const periodoProdutividadeInvalido = periodoProdutividade === "custom" && produtividadeInicio && produtividadeFim && produtividadeInicio > produtividadeFim;
+  const periodoProdutividadeLabel = periodoProdutividade === "custom"
+    ? periodoProdutividadeIncompleto ? "Selecione o período" : periodoProdutividadeInvalido ? "Período inválido" : "Período personalizado"
+    : { todo: "Todo período", "7d": "Últimos 7 dias", "30d": "Últimos 30 dias", mes: "Mês atual" }[periodoProdutividade];
   const { data: produtividade, isLoading: loadingProd, refetch: refetchProd } = trpc.dashboard.produtividade.useQuery(
     produtividadeInput,
     {
       refetchInterval: isOnline ? 30000 : false,
       refetchIntervalInBackground: false,
+      enabled: !periodoProdutividadeIncompleto && !periodoProdutividadeInvalido,
     }
   );
   const { data: materiais } = trpc.estoque.materiais.list.useQuery(undefined, { refetchInterval: isOnline ? 30000 : false });
@@ -326,8 +340,9 @@ export default function AdminDashboard() {
               </div>
               <div><h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Produtividade por Técnico</h3><p className="text-xs text-muted-foreground">{periodoProdutividadeLabel}</p></div>
             </div>
-            <Select value={periodoProdutividade} onValueChange={value => setPeriodoProdutividade(value as "todo" | "7d" | "30d" | "mes")}><SelectTrigger className="w-full sm:w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todo">Todo período</SelectItem><SelectItem value="7d">Últimos 7 dias</SelectItem><SelectItem value="30d">Últimos 30 dias</SelectItem><SelectItem value="mes">Mês atual</SelectItem></SelectContent></Select>
+            <Select value={periodoProdutividade} onValueChange={value => setPeriodoProdutividade(value as "todo" | "7d" | "30d" | "mes" | "custom")}><SelectTrigger className="w-full sm:w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todo">Todo período</SelectItem><SelectItem value="7d">Últimos 7 dias</SelectItem><SelectItem value="30d">Últimos 30 dias</SelectItem><SelectItem value="mes">Mês atual</SelectItem><SelectItem value="custom">Período personalizado</SelectItem></SelectContent></Select>
           </div>
+          {periodoProdutividade === "custom" && <div className="mb-4 grid gap-3 rounded-xl border border-border/70 bg-muted/30 p-3 sm:grid-cols-2"><label className="grid gap-1 text-xs font-medium text-muted-foreground">Data inicial<input type="date" value={produtividadeInicio} onChange={event => setProdutividadeInicio(event.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring" /></label><label className="grid gap-1 text-xs font-medium text-muted-foreground">Data final<input type="date" value={produtividadeFim} min={produtividadeInicio || undefined} onChange={event => setProdutividadeFim(event.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring" /></label>{(periodoProdutividadeIncompleto || periodoProdutividadeInvalido) && <p className="sm:col-span-2 text-xs text-amber-700 dark:text-amber-300">{periodoProdutividadeInvalido ? "A data final deve ser igual ou posterior à data inicial." : "Informe a data inicial e a data final para aplicar o período personalizado."}</p>}</div>}
 
           {loadingProd ? (
             <div className="h-52 bg-muted rounded-xl animate-pulse" />
