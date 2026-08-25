@@ -10,6 +10,7 @@ import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbGetCachedEscolas } from "@/hooks/useOfflineDB";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { filtrarAtividadesSemanais, organizarRotaSemanal, type FiltroRotaSemanal } from "@shared/rotaSemanal";
+import { chaveTecnicoLocal, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
 
 type Escola = {
   id: number;
@@ -61,8 +62,6 @@ function sortByRoute(list: Escola[]): Escola[] {
   return [...sorted, ...withoutCoords];
 }
 
-const ROTA_DIA_KEY = "tecnico_rota_dia";
-
 const statusSemanal = {
   concluido: { label: "Concluída", color: "#6ee7b7", background: "rgba(16,185,129,0.12)", border: "rgba(52,211,153,0.25)", icon: CheckCircle },
   em_andamento: { label: "Em andamento", color: "#a5b4fc", background: "rgba(99,102,241,0.12)", border: "rgba(129,140,248,0.25)", icon: Play },
@@ -107,9 +106,10 @@ export default function RotaDia() {
     navigate("/tecnico/login", { replace: true });
   }, [erroSessao, isOnline, navigate, sessaoLocalCarregada, tecnicoId]);
 
-  const rotaDiaStorageKey = useMemo(() => (
-    tecnicoId && tenantId ? `${ROTA_DIA_KEY}:${tenantId}:${tecnicoId}` : null
-  ), [tecnicoId, tenantId]);
+  const rotaDiaStorageKey = useMemo(() => {
+    const escopo = criarEscopoTecnicoLocal(tenantId ?? 0, tecnicoId ?? 0);
+    return escopo ? chaveTecnicoLocal(escopo, "rota-dia") : null;
+  }, [tecnicoId, tenantId]);
 
   // Carregar seleção salva do dia
   useEffect(() => {

@@ -649,6 +649,7 @@
 - [x] Validar visualmente indicadores e filtros de manutenção com dados reais do tenant
 - [x] Organizar no aplicativo técnico a visão semanal de rota por atividades concluídas e pendentes
 - [x] Redirecionar com segurança a rota técnica semanal quando não houver sessão assinada válida
+- [x] Isolar por tenant e técnico as rotas persistidas no navegador do aplicativo de campo
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

@@ -12,6 +12,7 @@ import AdminLogin from "./pages/admin/Login";
 import AdminCadastro from "./pages/admin/Cadastro";
 import ConfirmarEmail from "./pages/admin/ConfirmarEmail";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
+import { chavesRotaTecnico, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
 
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminTecnicos = lazy(() => import("./pages/admin/Tecnicos"));
@@ -39,9 +40,8 @@ const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 // Rotas do técnico que devem ser persistidas (exceto login)
 const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
-const OS_ROUTE_KEY = "tecnico_active_os_route";
-const OS_ROUTE_TS_KEY = "tecnico_active_os_ts";
 const OS_ROUTE_TTL = 12 * 60 * 60 * 1000; // 12 horas em ms
+const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"] as const;
 
 // ESTRATÉGIA DE PERSISTÊNCIA:
 // - localStorage (OS_ROUTE_KEY): rota de OS ativa com timestamp. Persiste ao abrir câmera,
@@ -51,28 +51,39 @@ const OS_ROUTE_TTL = 12 * 60 * 60 * 1000; // 12 horas em ms
 function RoutePersistence() {
   const [location, navigate] = useLocation();
 
+  const escopoTecnico = criarEscopoTecnicoLocal(
+    Number(localStorage.getItem("tecnico_tenant_id")),
+    Number(localStorage.getItem("tecnico_id")),
+  );
+  const chavesRota = escopoTecnico ? chavesRotaTecnico(escopoTecnico) : null;
+
+  useEffect(() => {
+    if (!chavesRota) return;
+    LEGACY_ROUTE_KEYS.forEach(chave => localStorage.removeItem(chave));
+  }, [chavesRota]);
+
   // Salvar rota atual
   useEffect(() => {
+    if (!chavesRota) return;
     if (location.startsWith(TECNICO_OS_PREFIX)) {
       // OS ativa: salva em localStorage com timestamp
-      localStorage.setItem(OS_ROUTE_KEY, location);
-      localStorage.setItem(OS_ROUTE_TS_KEY, String(Date.now()));
+      localStorage.setItem(chavesRota.ativa, location);
+      localStorage.setItem(chavesRota.ativaTimestamp, String(Date.now()));
     } else if (TECNICO_ROUTES.includes(location)) {
       // Menu: salva rota de menu e limpa a OS ativa
-      localStorage.setItem("tecnico_last_route", location);
-      localStorage.removeItem(OS_ROUTE_KEY);
-      localStorage.removeItem(OS_ROUTE_TS_KEY);
+      localStorage.setItem(chavesRota.ultimoMenu, location);
+      localStorage.removeItem(chavesRota.ativa);
+      localStorage.removeItem(chavesRota.ativaTimestamp);
     }
-  }, [location]);
+  }, [chavesRota, location]);
 
   // Ao montar: restaurar rota (apenas quando já estiver em rota do técnico)
   useEffect(() => {
-    const tecnicoId = localStorage.getItem("tecnico_id");
-    if (!tecnicoId) return;
+    if (!chavesRota) return;
 
-    const activeOsRoute = localStorage.getItem(OS_ROUTE_KEY);
-    const activeOsTs = parseInt(localStorage.getItem(OS_ROUTE_TS_KEY) || "0", 10);
-    const lastMenuRoute = localStorage.getItem("tecnico_last_route");
+    const activeOsRoute = localStorage.getItem(chavesRota.ativa);
+    const activeOsTs = parseInt(localStorage.getItem(chavesRota.ativaTimestamp) || "0", 10);
+    const lastMenuRoute = localStorage.getItem(chavesRota.ultimoMenu);
     // Só redireciona se o usuário já estiver em uma rota do técnico (nunca da raiz /)
     const isAtTecnicoMenu = TECNICO_ROUTES.includes(location);
 
@@ -88,15 +99,15 @@ function RoutePersistence() {
       }
     } else {
       // Sem OS ativa ou expirada
-      localStorage.removeItem(OS_ROUTE_KEY);
-      localStorage.removeItem(OS_ROUTE_TS_KEY);
+      localStorage.removeItem(chavesRota.ativa);
+      localStorage.removeItem(chavesRota.ativaTimestamp);
       // Restaura última tela de menu visitada apenas se já estiver em /tecnico
       if (location === "/tecnico" && lastMenuRoute && TECNICO_ROUTES.includes(lastMenuRoute)) {
         navigate(lastMenuRoute, { replace: true });
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [chavesRota, location, navigate]);
 
   return null;
 }

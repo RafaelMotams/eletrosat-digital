@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbClearTecnicoData } from "@/hooks/useOfflineDB";
+import { chavesRotaTecnico, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
 import {
   User, Wifi, CheckCircle, Clock, Zap, LogOut, Award, TrendingUp,
   Shield, Star, ChevronRight, Settings, Bell, HelpCircle, Activity, Boxes
@@ -65,7 +66,9 @@ export default function TecnicoPerfil() {
     try {
       await logoutMutation.mutateAsync();
     } finally {
-      ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
+      const escopo = criarEscopoTecnicoLocal(tenantId, tecnicoId);
+      if (escopo) Object.values(chavesRotaTecnico(escopo)).forEach(chave => localStorage.removeItem(chave));
+      ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
       navigate("/tecnico/login");
     }
