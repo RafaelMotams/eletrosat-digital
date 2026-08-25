@@ -176,6 +176,64 @@ function InfoCard({
   );
 }
 
+// ─── Guia de campo opcional ───────────────────────────────────────────────────
+function ChecklistCampo({ tipoConexao }: { tipoConexao?: string | null }) {
+  const [aberto, setAberto] = useState(false);
+  const [concluidos, setConcluidos] = useState<number[]>([]);
+  const isFibra = tipoConexao?.toLowerCase().includes("fibra");
+  const itens = isFibra
+    ? [
+        "Confirme condições seguras de trabalho e o acesso ao ponto de instalação.",
+        "Verifique a rota física, fixação e identificação do cabo antes de conectar.",
+        "Inspecione conectores e limpeza; pare e escale se houver dano ou dúvida.",
+        "Valide o enlace e registre o resultado conforme o atendimento.",
+      ]
+    : [
+        "Confirme condições seguras de trabalho e o acesso ao ponto de instalação.",
+        "Verifique energia, fixação e posição prevista do equipamento.",
+        "Conecte a infraestrutura e valide a conectividade antes do teste final.",
+        "Registre o mapa de calor e as observações do atendimento.",
+      ];
+
+  function alternarItem(index: number) {
+    setConcluidos(prev => prev.includes(index) ? prev.filter(item => item !== index) : [...prev, index]);
+  }
+
+  return (
+    <div className="mx-4 mt-5 rounded-3xl overflow-hidden" style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(96,165,250,0.18)" }}>
+      <button type="button" onClick={() => setAberto(prev => !prev)} aria-expanded={aberto} className="w-full flex items-center gap-3 px-4 py-4 text-left transition-all active:scale-[0.99]">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.16)" }}>
+          <FileText className="w-5 h-5" style={{ color: "#60a5fa" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-black text-white">Guia rápido de campo</p>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(147,197,253,0.72)" }}>Opcional · {concluidos.length}/{itens.length} etapas revisadas</p>
+        </div>
+        <ChevronRight className={`w-5 h-5 transition-transform ${aberto ? "rotate-90" : ""}`} style={{ color: "#93c5fd" }} />
+      </button>
+
+      {aberto && (
+        <div className="px-4 pb-4 space-y-2">
+          <p className="text-[11px] leading-relaxed px-1" style={{ color: "rgba(191,219,254,0.7)" }}>
+            Use como apoio. Este guia não altera os requisitos de conclusão da OS nem substitui orientações do responsável técnico.
+          </p>
+          {itens.map((item, index) => {
+            const concluido = concluidos.includes(index);
+            return (
+              <button key={item} type="button" onClick={() => alternarItem(index)} className="w-full flex items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all" style={{ background: concluido ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.035)", border: `1px solid ${concluido ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.07)"}` }}>
+                <span className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: concluido ? "#10b981" : "rgba(255,255,255,0.08)", border: concluido ? "none" : "1px solid rgba(255,255,255,0.15)" }}>
+                  {concluido && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                </span>
+                <span className="text-xs leading-relaxed" style={{ color: concluido ? "#a7f3d0" : "rgba(226,232,240,0.82)" }}>{item}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Compressor de imagem via Canvas ────────────────────────────────────────
 async function comprimirImagem(
   file: File,
@@ -976,6 +1034,8 @@ export default function TecnicoOS() {
           </div>
         </div>
       </div>
+
+      <ChecklistCampo tipoConexao={escola.tipoConexao} />
 
       {/* ─── Ações da OS ─── */}
       <div className="mx-4 mt-6">

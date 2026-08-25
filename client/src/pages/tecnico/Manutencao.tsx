@@ -208,6 +208,37 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
   );
 }
 
+function GuiaManutencao() {
+  const [aberto, setAberto] = useState(false);
+  const [concluidos, setConcluidos] = useState<number[]>([]);
+  const itens = [
+    "Confirme condições seguras de trabalho antes de abrir o atendimento.",
+    "Isole o sintoma e valide alimentação, cabos e conexões visíveis antes de alterar configurações.",
+    "Faça um teste por vez e registre o resultado na observação de conclusão.",
+    "Interrompa e escale ao responsável técnico diante de risco elétrico, altura, fibra ou dúvida operacional.",
+  ];
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)" }}>
+      <button onClick={() => setAberto(v => !v)} aria-expanded={aberto} className="w-full flex items-center gap-3 p-4 text-left">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.18)" }}><Wrench className="w-4 h-4" style={{ color: "#60a5fa" }} /></div>
+        <div className="flex-1"><p className="text-sm font-bold text-white">Guia rápido de manutenção</p><p className="text-xs" style={{ color: "rgba(147,197,253,0.72)" }}>Opcional · {concluidos.length}/{itens.length} etapas revisadas</p></div>
+        {aberto ? <ChevronUp className="w-4 h-4" style={{ color: "#93c5fd" }} /> : <ChevronDown className="w-4 h-4" style={{ color: "#93c5fd" }} />}
+      </button>
+      {aberto && <div className="px-4 pb-4 space-y-2">
+        <p className="text-[11px] leading-relaxed" style={{ color: "rgba(191,219,254,0.7)" }}>Este guia não bloqueia a conclusão e não substitui a orientação do responsável técnico.</p>
+        {itens.map((item, index) => {
+          const concluido = concluidos.includes(index);
+          return <button key={item} onClick={() => setConcluidos(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index])} className="w-full flex items-start gap-3 rounded-xl p-3 text-left" style={{ background: concluido ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)", border: `1px solid ${concluido ? "rgba(16,185,129,0.28)" : "rgba(255,255,255,0.07)"}` }}>
+            <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full flex items-center justify-center" style={{ background: concluido ? "#10b981" : "rgba(255,255,255,0.08)" }}>{concluido && <CheckCircle className="w-3.5 h-3.5 text-white" />}</span>
+            <span className="text-xs leading-relaxed" style={{ color: concluido ? "#a7f3d0" : "rgba(255,255,255,0.78)" }}>{item}</span>
+          </button>;
+        })}
+      </div>}
+    </div>
+  );
+}
+
 // ── Tela de detalhe / conclusão ───────────────────────────────────────────────
 function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId: number; onVoltar: () => void }) {
   const utils = trpc.useUtils();
@@ -408,6 +439,8 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
           <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>Descrição do Problema</p>
           <p className="text-sm text-white leading-relaxed">{m.descricaoProblema}</p>
         </div>
+
+        <GuiaManutencao />
 
         {/* Assistente IA */}
         <AssistenteIA manutencaoId={id} />

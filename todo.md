@@ -612,6 +612,19 @@
 - [x] Reproduzir e corrigir a falha de login: assinatura e verificação JWT usavam chaves diferentes
 - [x] Validar login completo e dashboard do tenant de teste com dados carregados e sessão isolada
 
+## Integrações Externas Adiadas por Decisão do Usuário (25/08/2026)
+- [x] Registrar o adiamento de alertas externos até autorização de provedor e credenciais
+- [ ] Retomar relatório diário por email para os destinatários definidos quando houver provedor autorizado
+- [ ] Retomar alerta de novo cadastro por WhatsApp quando houver provedor autorizado
+
+## Retomada de Melhorias Internas (25/08/2026)
+- [x] Revisar backlog funcional e priorizar a próxima melhoria interna sem dependência externa
+- [x] Aplicar as melhorias internas prioritárias do aplicativo técnico e painel administrativo
+- [x] Validar segurança, responsividade e testes das melhorias internas
+- [x] Criar checklist técnico contextual opcional para instalação e manutenção no aplicativo de campo
+- [x] Adicionar filtro acionável para materiais abaixo do estoque mínimo no painel de estoque
+- [x] Validar visualmente o filtro de estoque crítico e sua ação de limpar filtro no painel autenticado
+
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
 - [x] Consolidar os indicadores de AP no painel sem compensar déficits e excedentes entre escolas
