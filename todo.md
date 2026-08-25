@@ -630,5 +630,9 @@
 - [x] Criar no aplicativo técnico a consulta de materiais, consumo e cache offline isolado por tenant e técnico
 - [x] Evoluir o roteirizador para apoiar planejamento editável, sugestão GPS e confirmação humana de rota
 - [x] Evoluir o Assistente Técnico para analisar foto de diagnóstico com limites de segurança, auditoria e escalonamento
-- [ ] Aprimorar manutenção, ordens e exportações com relatórios profissionais e auditáveis
-- [ ] Validar isolamento, offline, responsividade, acessibilidade, testes e publicação incremental
+- [x] Aprimorar manutenção, ordens e exportações com relatórios profissionais e auditáveis, incluindo estoque XLSX
+- [x] Validar isolamento, offline, responsividade, acessibilidade e testes da evolução operacional
+- [x] Reduzir o pacote inicial com carregamento progressivo de telas administrativas e técnicas
+- [x] Validar responsividade móvel da landing page após a divisão de rotas
+- [x] Confirmar que a tela técnica renderiza corretamente após a inicialização do carregamento progressivo
+- [x] Validar visualmente o painel de estoque autenticado, seus indicadores, navegação e estado vazio

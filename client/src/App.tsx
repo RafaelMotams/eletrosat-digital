@@ -2,39 +2,39 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminTecnicos from "./pages/admin/Tecnicos";
-import AdminEscolas from "./pages/admin/Escolas";
-import AdminAtribuicoes from "./pages/admin/Atribuicoes";
-import AdminOrdens from "./pages/admin/Ordens";
-import AdminRelatorios from "./pages/admin/Relatorios";
-import AdminMapa from "./pages/admin/Mapa";
-import AdminPlanilha from "./pages/admin/Planilha";
 import TecnicoLogin from "./pages/tecnico/Login";
-import TecnicoHome from "./pages/tecnico/Home";
-import TecnicoOS from "./pages/tecnico/OrdemServico";
-import TecnicoMapa from "./pages/tecnico/Mapa";
-import TecnicoPerfil from "./pages/tecnico/Perfil";
-import TecnicoHistorico from "./pages/tecnico/Historico";
-import TecnicoRotaDia from "./pages/tecnico/RotaDia";
 import Home from "./pages/Home";
 import SuperAdminLogin from "./pages/superadmin/Login";
-import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminCadastro from "./pages/admin/Cadastro";
 import ConfirmarEmail from "./pages/admin/ConfirmarEmail";
-import AdminConfiguracoes from "./pages/admin/Configuracoes";
-
-import AdminGerenciarEscolas from "./pages/admin/GerenciarEscolas";
-import AdminConfiguracaoIA from "./pages/admin/ConfiguracaoIA";
-import AdminManutencao from "./pages/admin/Manutencao";
-import AdminEstoque from "./pages/admin/Estoque";
-import TecnicoManutencao from "./pages/tecnico/Manutencao";
-import TecnicoEstoque from "./pages/tecnico/Estoque";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
+
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminTecnicos = lazy(() => import("./pages/admin/Tecnicos"));
+const AdminEscolas = lazy(() => import("./pages/admin/Escolas"));
+const AdminAtribuicoes = lazy(() => import("./pages/admin/Atribuicoes"));
+const AdminOrdens = lazy(() => import("./pages/admin/Ordens"));
+const AdminRelatorios = lazy(() => import("./pages/admin/Relatorios"));
+const AdminMapa = lazy(() => import("./pages/admin/Mapa"));
+const AdminPlanilha = lazy(() => import("./pages/admin/Planilha"));
+const AdminConfiguracoes = lazy(() => import("./pages/admin/Configuracoes"));
+const AdminGerenciarEscolas = lazy(() => import("./pages/admin/GerenciarEscolas"));
+const AdminConfiguracaoIA = lazy(() => import("./pages/admin/ConfiguracaoIA"));
+const AdminManutencao = lazy(() => import("./pages/admin/Manutencao"));
+const AdminEstoque = lazy(() => import("./pages/admin/Estoque"));
+const TecnicoHome = lazy(() => import("./pages/tecnico/Home"));
+const TecnicoOS = lazy(() => import("./pages/tecnico/OrdemServico"));
+const TecnicoMapa = lazy(() => import("./pages/tecnico/Mapa"));
+const TecnicoPerfil = lazy(() => import("./pages/tecnico/Perfil"));
+const TecnicoHistorico = lazy(() => import("./pages/tecnico/Historico"));
+const TecnicoRotaDia = lazy(() => import("./pages/tecnico/RotaDia"));
+const TecnicoManutencao = lazy(() => import("./pages/tecnico/Manutencao"));
+const TecnicoEstoque = lazy(() => import("./pages/tecnico/Estoque"));
+const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 
 // Rotas do técnico que devem ser persistidas (exceto login)
 const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque"];
@@ -103,6 +103,7 @@ function RoutePersistence() {
 
 function Router() {
   return (
+    <Suspense fallback={<div className="grid min-h-screen place-items-center bg-slate-950 text-sm font-semibold text-slate-200">Carregando módulo seguro...</div>}>
     <Switch>
       <Route path="/" component={Home} />
       {/* Admin routes */}
@@ -141,6 +142,7 @@ function Router() {
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
