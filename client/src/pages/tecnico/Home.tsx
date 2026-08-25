@@ -5,7 +5,7 @@ import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
   TrendingUp, Navigation, LocateFixed, X, Wifi,
-  Filter, Bell, ChevronDown, ShieldCheck, Bot
+  Filter, Bell, ChevronDown
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -123,7 +123,6 @@ export default function TecnicoHome() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("nao_concluidas");
   // Welcome modal removido conforme solicitado
   const [pendingOsCount, setPendingOsCount] = useState(0);
-  const [failedOsCount, setFailedOsCount] = useState(0);
   const isOnline = useOnlineStatus();
   const { syncState } = useSyncOfflineOS();
 
@@ -131,8 +130,7 @@ export default function TecnicoHome() {
   useEffect(() => {
     const refresh = async () => {
       const all = await dbGetAllPendingOS();
-      setPendingOsCount(all.filter(o => o.status === "pending" || o.status === "error" || o.status === "syncing").length);
-      setFailedOsCount(all.filter(o => o.status === "error").length);
+      setPendingOsCount(all.filter(o => o.status === "pending" || o.status === "error").length);
     };
     refresh();
     const interval = setInterval(refresh, 15_000);
@@ -142,8 +140,8 @@ export default function TecnicoHome() {
   useEffect(() => {
     const id = localStorage.getItem("tecnico_id");
     const nome = localStorage.getItem("tecnico_nome");
-      if (!id || localStorage.getItem("tecnico_session_verified") !== "true") {
-        const stored = localStorage.getItem("tecnico");
+    if (!id) {
+      const stored = localStorage.getItem("tecnico");
       if (!stored) { navigate("/tecnico/login"); return; }
       try {
         const t = JSON.parse(stored);
@@ -161,27 +159,10 @@ export default function TecnicoHome() {
     localStorage.removeItem("tecnico_show_welcome");
   }, [navigate]);
 
-  const { data: tecnicoSessao, isError: sessaoInvalida } = trpc.tecnicoAuth.me.useQuery(
-    { tecnicoId },
-    { enabled: !!tecnicoId && isOnline, retry: false, staleTime: 5 * 60 * 1000 }
-  );
-
-  useEffect(() => {
-    if (tecnicoSessao?.id) localStorage.setItem("tecnico_session_verified", "true");
-  }, [tecnicoSessao]);
-
-  useEffect(() => {
-    if (sessaoInvalida && isOnline) {
-      ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_session_verified"].forEach(k => localStorage.removeItem(k));
-      setOfflineEscolas(null);
-      navigate("/tecnico/login");
-    }
-  }, [sessaoInvalida, isOnline, navigate]);
-
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
     {
-      enabled: !!tecnicoId && isOnline && !!tecnicoSessao?.id,
+      enabled: !!tecnicoId && isOnline,
       // Polling a cada 2 minutos — suficiente para ver novas atribuições sem sobrecarregar
       refetchInterval: isOnline ? 2 * 60 * 1000 : false,
       // Dados válidos por 2 minutos antes de considerar desatualizado
@@ -204,7 +185,7 @@ export default function TecnicoHome() {
   // Carrega escolas do cache local SEMPRE ao iniciar (independente de estar online ou offline)
   // Isso garante que as escolas aparecem imediatamente, mesmo sem internet
   useEffect(() => {
-    if (tecnicoId && localStorage.getItem("tecnico_session_verified") === "true") {
+    if (tecnicoId) {
       dbGetCachedEscolas(tecnicoId).then((cached) => {
         if (cached && cached.length > 0) {
           setOfflineEscolas(cached as Escola[]);
@@ -295,7 +276,6 @@ export default function TecnicoHome() {
   }
 
   const naoConcluidasCount = pendentes + emAndamento + naoInstaladas;
-  const hasSyncError = Boolean(syncState.lastError) && failedOsCount > 0;
   const filterTabs: { key: FilterType; label: string; count: number; color: string }[] = [
     { key: "nao_concluidas", label: "Ativos",      count: naoConcluidasCount, color: "#6366f1" },
     { key: "todos",          label: "Todos",       count: total,             color: "#94a3b8" },
@@ -306,24 +286,23 @@ export default function TecnicoHome() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col pb-28 field-app-shell">
+    <div className="min-h-screen flex flex-col pb-28"
+      style={{ background: "linear-gradient(160deg, #050d1f 0%, #0a1930 60%, #050d1f 100%)" }}>
 
       {/* Welcome modal */}
       {/* WelcomeModal removido conforme solicitado */}
 
       {/* Indicador de status de sync */}
-      {(!isOnline || syncState.isSyncing || pendingOsCount > 0 || hasSyncError) && (
+      {(!isOnline || syncState.isSyncing || pendingOsCount > 0) && (
         <div className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold"
           style={{
             background: !isOnline
               ? "rgba(245,158,11,0.1)"
               : syncState.isSyncing
               ? "rgba(59,130,246,0.1)"
-              : hasSyncError
-              ? "rgba(234,88,12,0.1)"
               : "rgba(16,185,129,0.1)",
-            borderBottom: `1px solid ${!isOnline ? "rgba(245,158,11,0.15)" : syncState.isSyncing ? "rgba(59,130,246,0.15)" : hasSyncError ? "rgba(234,88,12,0.2)" : "rgba(16,185,129,0.15)"}`,
-            color: !isOnline ? "#fbbf24" : syncState.isSyncing ? "#60a5fa" : hasSyncError ? "#fdba74" : "#34d399",
+            borderBottom: `1px solid ${!isOnline ? "rgba(245,158,11,0.15)" : syncState.isSyncing ? "rgba(59,130,246,0.15)" : "rgba(16,185,129,0.15)"}`,
+            color: !isOnline ? "#fbbf24" : syncState.isSyncing ? "#60a5fa" : "#34d399",
           }}>
           {!isOnline ? (
             <>
@@ -334,11 +313,6 @@ export default function TecnicoHome() {
             <>
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               Sincronizando OS pendentes...
-            </>
-          ) : hasSyncError ? (
-            <>
-              <AlertCircle className="w-3.5 h-3.5" />
-              {failedOsCount} OS aguarda nova tentativa — fotos foram preservadas
             </>
           ) : (
             <>
@@ -363,9 +337,6 @@ export default function TecnicoHome() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[10px] font-bold" style={{ background: "rgba(16,185,129,0.10)", border: "1px solid rgba(16,185,129,0.18)", color: "#6ee7b7" }} title="Sessão reconhecida pelo servidor">
-              <ShieldCheck className="h-3.5 w-3.5" /> Sessão protegida
-            </div>
             {isOnline && (
               <button onClick={() => refetch()}
                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95"
@@ -383,21 +354,9 @@ export default function TecnicoHome() {
           </div>
         </div>
 
-        {/* Premium field shortcuts + progress card */}
-        <div className="mb-4 grid grid-cols-2 gap-3">
-          <button onClick={() => navigate("/tecnico/assistente")} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.18), rgba(6,182,212,0.10))", border: "1px solid rgba(16,185,129,0.25)" }}>
-            <Bot className="mb-2 h-4 w-4 text-violet-300" />
-            <p className="text-xs font-bold text-white">Assistente Técnico</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">Chat especialista de campo</p>
-          </button>
-          <button onClick={handleLocate} className="rounded-2xl p-3 text-left transition-all active:scale-[0.98]" style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.16), rgba(14,116,144,0.08))", border: "1px solid rgba(6,182,212,0.20)" }}>
-            <LocateFixed className="mb-2 h-4 w-4 text-cyan-300" />
-            <p className="text-xs font-bold text-white">Minha localização</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">{userLat !== null ? "Posição atualizada" : locating ? "Obtendo posição…" : "Otimizar rota"}</p>
-          </button>
-        </div>
-        <div className="rounded-2xl p-5 mb-4 field-card"
-          style={{ borderColor: "rgba(6,182,212,0.20)" }}>
+        {/* Progress card */}
+        <div className="rounded-2xl p-4 mb-4"
+          style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(79,70,229,0.1))", border: "1px solid rgba(59,130,246,0.15)" }}>
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs font-medium text-slate-400 mb-0.5">Progresso do dia</p>
@@ -411,37 +370,13 @@ export default function TecnicoHome() {
           {/* Progress bar */}
           <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
             <div className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #06b6d4, #10b981)", boxShadow: "0 0 14px rgba(6,182,212,0.35)" }} />
+              style={{ width: `${progresso}%`, background: "linear-gradient(90deg, #2563eb, #4f46e5)" }} />
           </div>
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-slate-500">{concluidas} concluídas</span>
             <span className="text-xs text-slate-500">{total} total</span>
           </div>
         </div>
-
-        <section className="mb-4 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-          <div className="mb-3 flex items-center justify-between px-1">
-            <div>
-              <p className="text-xs font-black text-white">Centro de ação</p>
-              <p className="mt-0.5 text-[10px] text-slate-400">Atalhos baseados na sua fila atual</p>
-            </div>
-            <Bell className="h-4 w-4 text-cyan-300" />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: "Iniciar", value: pendentes, filter: "pendente" as FilterType, tone: "#f59e0b", detail: "Pendentes" },
-              { label: "Continuar", value: emAndamento, filter: "em_andamento" as FilterType, tone: "#3b82f6", detail: "Em campo" },
-              { label: "Revisar", value: naoInstaladas, filter: "nao_instalada" as FilterType, tone: "#ef4444", detail: "Não inst." },
-            ].map((action) => (
-              <button key={action.label} onClick={() => setActiveFilter(action.filter)} className="rounded-xl p-2.5 text-left transition active:scale-[0.98]" style={{ background: `${action.tone}12`, border: `1px solid ${action.tone}28` }}>
-                <p className="text-base font-black" style={{ color: action.tone }}>{action.value}</p>
-                <p className="mt-0.5 text-[10px] font-bold text-white">{action.label}</p>
-                <p className="mt-0.5 text-[9px] text-slate-400">{action.detail}</p>
-              </button>
-            ))}
-          </div>
-          {hasSyncError && <p className="mt-3 rounded-lg bg-orange-400/10 px-2.5 py-2 text-[10px] font-semibold text-orange-200">Há itens aguardando nova tentativa de sincronização. As fotos foram preservadas na fila.</p>}
-        </section>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mb-4">
@@ -563,8 +498,8 @@ export default function TecnicoHome() {
 
             return (
               <div key={escola.id}
-                className="rounded-2xl overflow-hidden transition-all duration-200 field-card"
-                style={{ borderColor: sc.border }}>
+                className="rounded-2xl overflow-hidden transition-all duration-200"
+                style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${sc.border}` }}>
 
                 {/* Card body */}
                 <button onClick={() => navigate(`/tecnico/os/${escola.id}`)}

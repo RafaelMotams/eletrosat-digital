@@ -40,21 +40,18 @@ export const adminProcedure = t.procedure.use(
   }),
 );
 
-// Procedure que aceita tanto OAuth (admin do sistema) quanto JWT de tenant admin
-// Retorna o tenantId para filtrar dados
+// Procedure exclusiva do painel de revenda: toda chamada deve carregar um JWT
+// de tenant válido. Não há fallback para o tenant padrão.
 export const tenantAdminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    // Operações de tenant exigem sessão administrativa explícita.
-    // OAuth de plataforma não recebe acesso implícito a nenhum cliente.
-    // Caso: tenant admin via sessão JWT HttpOnly
+    // Caso 1: sessão explícita do painel de revenda.
+    // Esta verificação vem antes do cookie OAuth: o navegador pode carregar ambos,
+    // e o token da revenda deve sempre definir o tenant das chamadas do painel.
     if (ctx.tenantSession) {
       if (!ctx.tenantSession.isSuperAdmin && ctx.tenantSession.tenantId <= 0) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Tenant inválido" });
-      }
-      if (ctx.tenantSession.role === "viewer" && opts.type === "mutation") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não pode alterar dados" });
       }
       return next({
         ctx: {

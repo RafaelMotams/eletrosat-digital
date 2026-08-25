@@ -1,6 +1,5 @@
 import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
-import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,8 +25,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function GerenciarEscolas() {
   const utils = trpc.useUtils();
-  const { admin } = useTenantAuth();
-  const podeGerenciarPlanilhas = admin?.role === "admin" || admin?.isSuperAdmin === true;
 
   // ── Dados ──────────────────────────────────────────────────────────────────
   const { data: escolas, isLoading: loadingEscolas } = trpc.escolas.list.useQuery({});
@@ -45,7 +42,6 @@ export default function GerenciarEscolas() {
 
   // Modal confirmar apagar planilha
   const [planilhaParaApagar, setPlanilhaParaApagar] = useState<number | null>(null);
-  const [confirmacaoApagarPlanilha, setConfirmacaoApagarPlanilha] = useState("");
 
   // Modal confirmar desativar em massa
   const [confirmarDesativarTodas, setConfirmarDesativarTodas] = useState(false);
@@ -72,7 +68,6 @@ export default function GerenciarEscolas() {
       toast.success("Planilha removida do histórico");
       utils.planilhasImportadas.listar.invalidate();
       setPlanilhaParaApagar(null);
-      setConfirmacaoApagarPlanilha("");
     },
     onError: (e) => toast.error("Erro: " + e.message),
   });
@@ -350,16 +345,14 @@ export default function GerenciarEscolas() {
                 Histórico de planilhas carregadas no sistema. Você pode ativar, desativar ou remover do histórico.
               </p>
             </div>
-            {podeGerenciarPlanilhas && (
-              <Button
-                className="gap-2"
-                style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}
-                onClick={() => setImportDialogOpen(true)}
-              >
-                <Upload size={15} />
-                Importar Planilha
-              </Button>
-            )}
+            <Button
+              className="gap-2"
+              style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}
+              onClick={() => setImportDialogOpen(true)}
+            >
+              <Upload size={15} />
+              Importar Planilha
+            </Button>
           </div>
 
           {/* Info box */}
@@ -387,16 +380,14 @@ export default function GerenciarEscolas() {
                   <p className="font-semibold text-foreground">Nenhuma planilha importada ainda</p>
                   <p className="text-sm text-muted-foreground mt-1">Importe uma planilha de escolas para começar</p>
                 </div>
-                {podeGerenciarPlanilhas && (
-                  <Button
-                    className="gap-2 mt-2"
-                    style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}
-                    onClick={() => setImportDialogOpen(true)}
-                  >
-                    <Upload size={15} />
-                    Importar Planilha
-                  </Button>
-                )}
+                <Button
+                  className="gap-2 mt-2"
+                  style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "white" }}
+                  onClick={() => setImportDialogOpen(true)}
+                >
+                  <Upload size={15} />
+                  Importar Planilha
+                </Button>
               </CardContent>
             </Card>
           ) : (
@@ -454,34 +445,30 @@ export default function GerenciarEscolas() {
                           <Download size={14} />
                         </a>
 
-                        {podeGerenciarPlanilhas && (
-                          <>
-                            {/* Toggle ativa/inativa */}
-                            <button
-                              onClick={() => togglePlanilhaMut.mutate({ id: p.id, ativa: !p.ativa })}
-                              disabled={togglePlanilhaMut.isPending}
-                              title={p.ativa ? "Desativar planilha" : "Ativar planilha"}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
-                              style={{
-                                background: p.ativa ? "rgba(239,68,68,0.06)" : "rgba(16,185,129,0.06)",
-                                color: p.ativa ? "#ef4444" : "#10b981",
-                                borderColor: p.ativa ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)",
-                              }}
-                            >
-                              {p.ativa ? <ToggleRight size={13} /> : <ToggleLeft size={13} />}
-                              {p.ativa ? "Desativar" : "Ativar"}
-                            </button>
+                        {/* Toggle ativa/inativa */}
+                        <button
+                          onClick={() => togglePlanilhaMut.mutate({ id: p.id, ativa: !p.ativa })}
+                          disabled={togglePlanilhaMut.isPending}
+                          title={p.ativa ? "Desativar planilha" : "Ativar planilha"}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
+                          style={{
+                            background: p.ativa ? "rgba(239,68,68,0.06)" : "rgba(16,185,129,0.06)",
+                            color: p.ativa ? "#ef4444" : "#10b981",
+                            borderColor: p.ativa ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)",
+                          }}
+                        >
+                          {p.ativa ? <ToggleRight size={13} /> : <ToggleLeft size={13} />}
+                          {p.ativa ? "Desativar" : "Ativar"}
+                        </button>
 
-                            {/* Apagar do histórico */}
-                            <button
-                              onClick={() => { setPlanilhaParaApagar(p.id); setConfirmacaoApagarPlanilha(""); }}
-                              title="Remover do histórico"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </>
-                        )}
+                        {/* Apagar do histórico */}
+                        <button
+                          onClick={() => setPlanilhaParaApagar(p.id)}
+                          title="Remover do histórico"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   </CardContent>
@@ -512,12 +499,7 @@ export default function GerenciarEscolas() {
       </Dialog>
 
       {/* ── Modal Confirmar Apagar Planilha ── */}
-      <Dialog open={planilhaParaApagar !== null} onOpenChange={(o) => {
-        if (!o) {
-          setPlanilhaParaApagar(null);
-          setConfirmacaoApagarPlanilha("");
-        }
-      }}>
+      <Dialog open={planilhaParaApagar !== null} onOpenChange={(o) => !o && setPlanilhaParaApagar(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -529,21 +511,12 @@ export default function GerenciarEscolas() {
             Isso remove apenas o registro desta planilha do histórico. 
             <strong> As escolas importadas não serão afetadas.</strong>
           </p>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            <strong>Confirmação necessária:</strong> digite <code className="rounded bg-amber-100 px-1 font-semibold">REMOVER</code> para excluir o histórico desta planilha. A ação só é aceita para registros do seu tenant.
-          </div>
-          <Input
-            value={confirmacaoApagarPlanilha}
-            onChange={(event) => setConfirmacaoApagarPlanilha(event.target.value)}
-            placeholder="Digite REMOVER"
-            aria-label="Confirmação para remover histórico de planilha"
-          />
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPlanilhaParaApagar(null)}>Cancelar</Button>
             <Button
               variant="destructive"
               onClick={() => planilhaParaApagar && apagarPlanilhaMut.mutate({ id: planilhaParaApagar })}
-              disabled={apagarPlanilhaMut.isPending || confirmacaoApagarPlanilha !== "REMOVER"}
+              disabled={apagarPlanilhaMut.isPending}
             >
               {apagarPlanilhaMut.isPending ? "Removendo..." : "Remover"}
             </Button>

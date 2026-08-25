@@ -231,8 +231,6 @@ export default function SuperadminDashboard() {
     basico: tenants.filter(t => t.plano === "basico").length,
     profissional: tenants.filter(t => t.plano === "profissional").length,
     enterprise: tenants.filter(t => t.plano === "enterprise").length,
-    trials: tenants.filter(t => t.status === "trial").length,
-    expirados: tenants.filter(t => t.status === "expirado").length,
   };
 
   const navItems = [
@@ -382,34 +380,6 @@ export default function SuperadminDashboard() {
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-                <div className="rounded-2xl border p-5" style={{ background: "linear-gradient(135deg, rgba(0,245,160,0.08), rgba(0,217,245,0.04))", borderColor: "rgba(0,245,160,0.16)" }}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "rgba(0,245,160,0.7)" }}>Governança da revenda</p>
-                      <h3 className="mt-2 text-lg font-black text-white">Visão organizada da base de clientes</h3>
-                      <p className="mt-2 max-w-xl text-sm leading-6" style={{ color: "rgba(255,255,255,0.55)" }}>Crie acessos por cliente, acompanhe o estado de cada conta e mantenha a administração separada por tenant.</p>
-                    </div>
-                    <Shield size={22} style={{ color: "#00f5a0" }} />
-                  </div>
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-                    {[
-                      { label: "Em trial", value: stats.trials, color: "#a78bfa" },
-                      { label: "Expirados", value: stats.expirados, color: "#f87171" },
-                      { label: "Ativos", value: stats.ativos, color: "#34d399" },
-                    ].map((item) => <div key={item.label} className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}><p className="text-xl font-black" style={{ color: item.color }}>{item.value}</p><p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{item.label}</p></div>)}
-                  </div>
-                </div>
-                <div className="rounded-2xl border p-5" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}>
-                  <p className="text-sm font-bold text-white">Ações rápidas</p>
-                  <p className="mt-1 text-xs leading-5" style={{ color: "rgba(255,255,255,0.4)" }}>Operações administrativas com escopo explícito de cliente.</p>
-                  <div className="mt-4 grid gap-2">
-                    <button onClick={() => setView("novo")} className="rounded-xl px-3 py-2.5 text-left text-xs font-bold" style={{ background: "rgba(0,245,160,0.12)", color: "#00f5a0", border: "1px solid rgba(0,245,160,0.18)" }}>Criar cliente e acesso administrativo</button>
-                    <button onClick={() => setView("clientes")} className="rounded-xl px-3 py-2.5 text-left text-xs font-bold" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.08)" }}>Revisar clientes e permissões</button>
-                  </div>
-                </div>
               </div>
 
               {/* Planos breakdown */}

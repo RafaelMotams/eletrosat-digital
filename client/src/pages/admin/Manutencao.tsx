@@ -17,20 +17,10 @@ import {
   CheckCircle, Clock, AlertTriangle, Building2, User, Calendar,
   FileSpreadsheet, Image as ImageIcon, Filter, RefreshCw,
   Navigation, MessageCircle, Phone, Zap, Bot, Send, ChevronDown, ChevronUp,
-  FileText, Printer, ShieldCheck,
+  FileText, Printer,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-
-const PERFIS_ASSISTENTE = [
-  { value: "rede_escolar", label: "Rede escolar", detail: "Diagnóstico, cobertura e continuidade" },
-  { value: "infraestrutura_fisica", label: "Infraestrutura física", detail: "Rack, cabeamento, fibra e energia" },
-  { value: "configuracao_tp_link", label: "Especialista TP-Link", detail: "Omada, VLAN e provisionamento" },
-  { value: "configuracao_intelbras", label: "Especialista Intelbras", detail: "Controladoras, APs e GPON" },
-  { value: "rede_externa_telbras", label: "Rede externa e Telbrás", detail: "Fibra, GPON, enlaces e medição" },
-] as const;
-
-type PerfilAssistente = typeof PERFIS_ASSISTENTE[number]["value"];
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pendente:    { label: "Pendente",    color: "bg-amber-50 text-amber-700 border-amber-200",   icon: Clock },
@@ -44,22 +34,13 @@ export default function AdminManutencao() {
   // ── Dados ──────────────────────────────────────────────────────────────────
   const [filtroStatus, setFiltroStatus] = useState("todas");
   const [busca, setBusca] = useState("");
-  const [filtroRelatorioTecnico, setFiltroRelatorioTecnico] = useState("todos");
-  const [filtroRelatorioInicio, setFiltroRelatorioInicio] = useState("");
-  const [filtroRelatorioFim, setFiltroRelatorioFim] = useState("");
-  const filtrosRelatorio = useMemo(() => ({
-    tecnicoId: filtroRelatorioTecnico === "todos" ? undefined : Number(filtroRelatorioTecnico),
-    status: filtroStatus as "todas" | "pendente" | "em_andamento" | "concluida",
-    dataInicio: filtroRelatorioInicio || undefined,
-    dataFim: filtroRelatorioFim || undefined,
-  }), [filtroRelatorioTecnico, filtroRelatorioInicio, filtroRelatorioFim, filtroStatus]);
   const { data: lista, isLoading } = trpc.manutencao.listar.useQuery(
     { status: filtroStatus as any, busca: busca || undefined },
     { refetchInterval: 30000 }
   );
   const { data: escolas } = trpc.escolas.list.useQuery({});
   const { data: tecnicos } = trpc.tecnicos.list.useQuery();
-  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery(filtrosRelatorio);
+  const { data: relatorioData } = trpc.manutencao.relatorio.useQuery();
 
   // ── Modais ─────────────────────────────────────────────────────────────────
   const [criarOpen, setCriarOpen] = useState(false);
@@ -88,7 +69,6 @@ export default function AdminManutencao() {
   // ── IA Assistente no modal de detalhe ─────────────────────────────────────
   const [iaAberta, setIaAberta] = useState(false);
   const [iaPergunta, setIaPergunta] = useState("");
-  const [iaPerfil, setIaPerfil] = useState<PerfilAssistente>("rede_escolar");
   const [iaHistorico, setIaHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
     onSuccess: (data) => setIaHistorico(prev => [...prev, { role: "ai", text: data.resposta }]),
@@ -99,7 +79,7 @@ export default function AdminManutencao() {
     const p = iaPergunta.trim();
     setIaHistorico(prev => [...prev, { role: "user", text: p }]);
     setIaPergunta("");
-    assistenteMut.mutate({ manutencaoId: detalheOpen, pergunta: p, perfil: iaPerfil });
+    assistenteMut.mutate({ manutencaoId: detalheOpen, pergunta: p });
   }
 
   // ── Form criar ─────────────────────────────────────────────────────────────
@@ -162,15 +142,12 @@ export default function AdminManutencao() {
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    if (!lista) return { total: 0, pendente: 0, em_andamento: 0, concluida: 0, km: 0, receber: 0 };
-    const km = lista.reduce((sum, item) => sum + Number(item.quilometragem ?? 0), 0);
+    if (!lista) return { total: 0, pendente: 0, em_andamento: 0, concluida: 0 };
     return {
       total: lista.length,
       pendente: lista.filter(m => m.status === "pendente").length,
       em_andamento: lista.filter(m => m.status === "em_andamento").length,
       concluida: lista.filter(m => m.status === "concluida").length,
-      km,
-      receber: lista.reduce((sum, item) => sum + 200 + Number(item.quilometragem ?? 0) * 2.5, 0),
     };
   }, [lista]);
 
@@ -180,116 +157,103 @@ export default function AdminManutencao() {
       toast.error("Nenhum dado para exportar");
       return;
     }
-
-    const money = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-    const totalKm = relatorioData.reduce((sum, row) => sum + Number(row.quilometragem ?? 0), 0);
-    const totalGeral = relatorioData.reduce((sum, row) => sum + Number(row.valorTotal ?? 200), 0);
-    const totalConcluidas = relatorioData.filter(row => row.status === "concluida").length;
-    const totalPendentes = relatorioData.filter(row => row.status !== "concluida").length;
-
-    const porTecnico = relatorioData.reduce<Record<string, { os: number; km: number; total: number }>>((acc, row) => {
-      const tecnico = row.tecnico || "Não atribuído";
-      acc[tecnico] ??= { os: 0, km: 0, total: 0 };
-      acc[tecnico].os += 1;
-      acc[tecnico].km += Number(row.quilometragem ?? 0);
-      acc[tecnico].total += Number(row.valorTotal ?? 200);
-      return acc;
-    }, {});
-    const tecnicosResumo = Object.entries(porTecnico).sort((a, b) => b[1].total - a[1].total);
-    const maxOs = Math.max(...tecnicosResumo.map(([, value]) => value.os), 1);
-
-    const linhasDetalhadas = relatorioData.map(row => ({
-      "ID": row.id,
-      "Status": row.status === "concluida" ? "Concluída" : row.status === "em_andamento" ? "Em andamento" : "Pendente",
-      "Escola": row.escola,
-      "INEP": row.inep,
-      "Município": row.municipio,
-      "Técnico": row.tecnico,
-      "Km percorridos": Number(row.quilometragem ?? 0),
-      "Valor base (R$)": Number(row.valorBase ?? 200),
-      "Valor km (R$)": Number(row.valorKm ?? 0),
-      "Total da OS (R$)": Number(row.valorTotal ?? 200),
-      "Descrição do problema": row.descricaoProblema,
-      "Observação de conclusão": row.observacaoConclusao ?? "",
-      "Data de conclusão": row.dataConclusao,
-      "Data de criação": row.createdAt,
+    const totalGeral = relatorioData.reduce((s, r) => s + (r.valorTotal ?? 0), 0);
+    const totalConcluido = relatorioData.filter(r => r.status === "concluida").reduce((s, r) => s + (r.valorTotal ?? 0), 0);
+    const linhas = relatorioData.map(r => ({
+      "ID": r.id,
+      "Status": r.status === "concluida" ? "Concluída" : r.status === "em_andamento" ? "Em Andamento" : "Pendente",
+      "Escola": r.escola,
+      "INEP": r.inep,
+      "Município": r.municipio,
+      "Técnico": r.tecnico,
+      "Km": r.quilometragem ?? 0,
+      "Valor Base (R$)": r.valorBase ?? 200,
+      "Valor Km (R$)": r.valorKm ?? 0,
+      "Total OS (R$)": r.valorTotal ?? 200,
+      "Descrição do Problema": r.descricaoProblema,
+      "Observação": r.observacaoConclusao ?? "",
+      "Data Conclusão": r.dataConclusao,
+      "Data Criação": r.createdAt,
     }));
-    const ws = XLSX.utils.json_to_sheet(linhasDetalhadas);
+    const ws = XLSX.utils.json_to_sheet(linhas);
+    // Adicionar linha de total geral
     const totalRow = relatorioData.length + 1;
-    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "TOTAL GERAL", totalKm, "", "", totalGeral, "", "", "", ""]], { origin: totalRow });
-    ws["!cols"] = [
-      { wch: 7 }, { wch: 15 }, { wch: 34 }, { wch: 14 }, { wch: 20 }, { wch: 24 },
-      { wch: 16 }, { wch: 17 }, { wch: 16 }, { wch: 17 }, { wch: 42 }, { wch: 38 }, { wch: 18 }, { wch: 18 },
-    ];
-    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "TOTAL GERAL:", "", "", "", totalGeral, "", "", "", ""]], { origin: totalRow });
 
-    const tecnicoSelecionado = filtroRelatorioTecnico === "todos"
-      ? "Todos os técnicos"
-      : tecnicos?.find(t => String(t.id) === filtroRelatorioTecnico)?.nome ?? "Técnico selecionado";
-    const periodoSelecionado = filtroRelatorioInicio || filtroRelatorioFim
-      ? `${filtroRelatorioInicio ? new Date(`${filtroRelatorioInicio}T12:00:00`).toLocaleDateString("pt-BR") : "Início"} até ${filtroRelatorioFim ? new Date(`${filtroRelatorioFim}T12:00:00`).toLocaleDateString("pt-BR") : "Hoje"}`
-      : "Todo o período";
-    const statusSelecionado = filtroStatus === "todas" ? "Todos os status" : filtroStatus === "em_andamento" ? "Em andamento" : filtroStatus === "concluida" ? "Concluídas" : "Pendentes";
-    const resumoRows: (string | number)[][] = [
-      ["NETVIUS · CENTRAL DE MANUTENÇÃO", "", "", "", ""],
-      ["Resumo executivo da operação", "", "", "", ""],
-      [`Emitido em ${new Date().toLocaleString("pt-BR")}`, "", "", "", ""],
-      [`Filtros: ${periodoSelecionado} · ${tecnicoSelecionado} · ${statusSelecionado}`, "", "", "", ""],
-      ["", "", "", "", ""],
-      ["INDICADORES", "VALOR", "", "", ""],
-      ["Ordens no período", relatorioData.length, "", "", ""],
-      ["Ordens concluídas", totalConcluidas, "", "", ""],
-      ["Ordens em aberto", totalPendentes, "", "", ""],
-      ["Quilometragem registrada", Number(totalKm.toFixed(2)), "km", "", ""],
-      ["Total a receber", money(totalGeral), "R$ 200 + R$ 2,50/km", "", ""],
-      ["", "", "", "", ""],
-      ["GRÁFICO · ORDENS POR TÉCNICO", "", "", "", ""],
-      ["Técnico", "OS", "Km", "Total", "Distribuição"],
-      ...tecnicosResumo.map(([tecnico, value]) => [tecnico, value.os, Number(value.km.toFixed(2)), money(value.total), "█".repeat(Math.max(1, Math.round((value.os / maxOs) * 20))) ]),
-      ["", "", "", "", ""],
-      ["FÓRMULA APLICADA", "R$ 200,00 por escola + (quilometragem × R$ 2,50)", "", "", ""],
-    ];
-    const resumo = XLSX.utils.aoa_to_sheet(resumoRows);
-    resumo["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } },
-      { s: { r: 11, c: 0 }, e: { r: 11, c: 4 } },
-      { s: { r: resumoRows.length - 1, c: 1 }, e: { r: resumoRows.length - 1, c: 4 } },
-    ];
-    resumo["!cols"] = [{ wch: 34 }, { wch: 18 }, { wch: 16 }, { wch: 20 }, { wch: 25 }];
-    resumo["!freeze"] = { xSplit: 0, ySplit: 6 };
-
-    const styleHeader = (sheet: XLSX.WorkSheet, row: number, color = "0F766E") => {
-      for (let col = 0; col <= 13; col++) {
-        const cell = sheet[XLSX.utils.encode_cell({ r: row, c: col })];
-        if (cell) cell.s = { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: color } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
+    // Estilo de cabeçalho
+    const range = XLSX.utils.decode_range(ws["!ref"] ?? "A1");
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[addr]) continue;
+      ws[addr].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "10B981" } },
+        alignment: { horizontal: "center" },
+      };
+    }
+    [6, 7, 8, 9].forEach(C => {
+      for (let R = 1; R <= relatorioData.length + 1; R++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        if (ws[addr]) ws[addr].z = C === 6 ? "0.00\" km\"" : "R$ #,##0.00";
       }
-    };
-    styleHeader(ws, 0);
-    [0, 1, 2, 4, 11, 12].forEach(row => styleHeader(resumo, row, row === 0 ? "0F766E" : "155E75"));
+    });
+    const totalAddr = XLSX.utils.encode_cell({ r: totalRow, c: 5 });
+    const totalValorAddr = XLSX.utils.encode_cell({ r: totalRow, c: 9 });
+    if (ws[totalAddr]) ws[totalAddr].s = { font: { bold: true, color: { rgb: "065F46" } }, fill: { fgColor: { rgb: "D1FAE5" } }, alignment: { horizontal: "right" } };
+    if (ws[totalValorAddr]) {
+      ws[totalValorAddr].s = { font: { bold: true, color: { rgb: "065F46" } }, fill: { fgColor: { rgb: "D1FAE5" } }, alignment: { horizontal: "right" } };
+      ws[totalValorAddr].z = "R$ #,##0.00";
+    }
+    ws["!autofilter"] = { ref: `A1:N${relatorioData.length + 1}` };
+    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+    ws["!cols"] = [
+      { wch: 6 }, { wch: 12 }, { wch: 38 }, { wch: 14 }, { wch: 18 },
+      { wch: 22 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+      { wch: 40 }, { wch: 35 }, { wch: 14 }, { wch: 14 },
+    ];
+
+    const resumo = [
+      ["RELATÓRIO FINANCEIRO DE MANUTENÇÃO"],
+      ["Netvius — Remuneração por ordem de manutenção"],
+      [],
+      ["Regra de cálculo", "R$ 200,00 por escola + R$ 2,50 por km percorrido"],
+      ["Data de emissão", new Date().toLocaleDateString("pt-BR")],
+      [],
+      ["Indicador", "Quantidade", "Valor (R$)"],
+      ["Ordens de manutenção", relatorioData.length, totalGeral],
+      ["Ordens concluídas", relatorioData.filter(r => r.status === "concluida").length, totalConcluido],
+      ["Ordens pendentes/em andamento", relatorioData.filter(r => r.status !== "concluida").length, totalGeral - totalConcluido],
+      [],
+      ["TOTAL GERAL", "", totalGeral],
+    ];
+    const wsResumo = XLSX.utils.aoa_to_sheet(resumo);
+    wsResumo["!merges"] = [
+      XLSX.utils.decode_range("A1:C1"),
+      XLSX.utils.decode_range("A2:C2"),
+    ];
+    wsResumo["!cols"] = [{ wch: 34 }, { wch: 20 }, { wch: 20 }];
+    wsResumo["!freeze"] = { xSplit: 0, ySplit: 2 };
+    ["A1", "A2", "A7", "B7", "C7", "A12", "B12", "C12"].forEach(addr => {
+      if (!wsResumo[addr]) return;
+      wsResumo[addr].s = {
+        font: { bold: true, color: { rgb: addr === "A2" ? "D1FAE5" : "FFFFFF" } },
+        fill: { fgColor: { rgb: addr === "A2" ? "047857" : "065F46" } },
+        alignment: { horizontal: addr === "A1" || addr === "A2" ? "left" : "center" },
+      };
+    });
+    ["C8", "C9", "C10", "C12"].forEach(addr => { if (wsResumo[addr]) wsResumo[addr].z = "R$ #,##0.00"; });
 
     const wb = XLSX.utils.book_new();
-    wb.Props = { Title: "Relatório de Manutenções Netvius", Subject: "Ordens de serviço e valores", Author: "Netvius", CreatedDate: new Date() };
-    XLSX.utils.book_append_sheet(wb, resumo, "Resumo Executivo");
-    XLSX.utils.book_append_sheet(wb, ws, "OS Detalhadas");
-    XLSX.writeFile(wb, `relatorio-manutencoes-netvius-${new Date().toISOString().slice(0, 10)}.xlsx`);
-    toast.success(`Relatório exportado: ${relatorioData.length} OS, ${money(totalGeral)} total`);
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo financeiro");
+    XLSX.utils.book_append_sheet(wb, ws, "Ordens de manutenção");
+    XLSX.writeFile(wb, `relatorio-manutencoes-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success("Relatório exportado!");
   }
 
   return (
     <AdminLayoutAuto title="Manutenção">
 
       {/* ── Stats ── */}
-      <div className="mb-5 rounded-2xl border border-emerald-500/15 bg-gradient-to-r from-emerald-500/[0.07] via-card to-card p-4 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-600"><ShieldCheck size={18} /></div>
-            <div><p className="text-sm font-bold text-foreground">Central de manutenção protegida</p><p className="text-xs text-muted-foreground">Dados filtrados pelo tenant ativo · atualização automática a cada 30s</p></div>
-          </div>
-          <div className="flex gap-5 text-xs"><span><b className="text-foreground">{stats.km.toFixed(1)} km</b> registrados</span><span><b className="text-emerald-600">{stats.receber.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</b> estimados</span></div>
-        </div>
-      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Total",       value: stats.total,       color: "#3b82f6", icon: Wrench },
@@ -348,31 +312,6 @@ export default function AdminManutencao() {
               {s === "todas" ? "Todas" : s === "em_andamento" ? "Em Andamento" : s === "concluida" ? "Concluídas" : "Pendentes"}
             </button>
           ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
-          <span className="px-1 text-xs font-semibold text-muted-foreground">Planilha:</span>
-          <Input
-            type="date"
-            aria-label="Data inicial do relatório"
-            className="h-8 w-[142px] text-xs"
-            value={filtroRelatorioInicio}
-            onChange={e => setFiltroRelatorioInicio(e.target.value)}
-          />
-          <Input
-            type="date"
-            aria-label="Data final do relatório"
-            className="h-8 w-[142px] text-xs"
-            value={filtroRelatorioFim}
-            onChange={e => setFiltroRelatorioFim(e.target.value)}
-          />
-          <Select value={filtroRelatorioTecnico} onValueChange={setFiltroRelatorioTecnico}>
-            <SelectTrigger className="h-8 w-[170px] text-xs" aria-label="Técnico do relatório"><SelectValue placeholder="Todos os técnicos" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os técnicos</SelectItem>
-              {tecnicos?.map(tecnico => <SelectItem key={tecnico.id} value={String(tecnico.id)}>{tecnico.nome}</SelectItem>)}
-            </SelectContent>
-          </Select>
         </div>
 
         <Button
@@ -810,15 +749,6 @@ export default function AdminManutencao() {
                 </button>
                 {iaAberta && (
                   <div className="px-4 pb-4">
-                    <div className="mb-3 rounded-xl border border-purple-200/70 bg-white/60 p-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <div><p className="text-xs font-bold text-foreground">Foco do especialista</p><p className="text-[11px] text-muted-foreground">Direcione a orientação para a operação</p></div>
-                        <span className="rounded-full bg-purple-100 px-2 py-1 text-[10px] font-bold text-purple-700">Professor Marcos</span>
-                      </div>
-                      <select value={iaPerfil} onChange={e => setIaPerfil(e.target.value as PerfilAssistente)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none">
-                        {PERFIS_ASSISTENTE.map(item => <option key={item.value} value={item.value}>{item.label} — {item.detail}</option>)}
-                      </select>
-                    </div>
                     {iaHistorico.length > 0 && (
                       <div className="space-y-3 mb-3 max-h-48 overflow-y-auto">
                         {iaHistorico.map((h, i) => (

@@ -17,8 +17,6 @@
  *  }
  */
 
-import { isRetryableOfflineStatus } from "@/lib/offlineSyncGuard";
-
 const DB_NAME = "netvionis_offline";
 const DB_VERSION = 3; // v3: store "fotoRascunho" para persistir fotos ao voltar da câmera
 
@@ -152,7 +150,7 @@ export async function dbGetPendingOS(): Promise<PendingOS[]> {
     const all = await wrap<PendingOS[]>(
       tx(db, "pendingOS", "readonly").getAll()
     );
-    return all.filter((o) => isRetryableOfflineStatus(o.status));
+    return all.filter((o) => o.status === "pending" || o.status === "error");
   } catch {
     return [];
   }

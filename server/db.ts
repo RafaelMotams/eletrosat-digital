@@ -778,7 +778,7 @@ export async function listOsFotosByEscola(escolaId: number) {
   return db.select().from(osFotos).where(eq(osFotos.escolaId, escolaId)).orderBy(osFotos.createdAt);
 }
 
-export async function listAllOsFotosComDados(): Promise<Array<{
+export async function listAllOsFotosComDados(tenantId: number): Promise<Array<{
   foto: OsFoto;
   tecnicoNome: string;
   escolaNome: string;
@@ -798,6 +798,7 @@ export async function listAllOsFotosComDados(): Promise<Array<{
     .leftJoin(tecnicos, eq(osFotos.tecnicoId, tecnicos.id))
     .leftJoin(escolas, eq(osFotos.escolaId, escolas.id))
     .leftJoin(ordensServico, eq(osFotos.osId, ordensServico.id))
+    .where(eq(ordensServico.tenantId, tenantId))
     .orderBy(osFotos.id);
   return rows.map(r => ({
     foto: r.foto,
@@ -819,13 +820,13 @@ export async function countOsFotosByCategoria(osId: number): Promise<Record<stri
 }
 
 // ─── VALORES POR AP POR TÉCNICO ──────────────────────────────────────────────
-export async function getValoresApTecnico(tecnicoId: number): Promise<Record<number, number>> {
+export async function getValoresApTecnico(tecnicoId: number, tenantId: number): Promise<Record<number, number>> {
   const db = await getDb();
   if (!db) return {};
   const rows = await db
     .select()
     .from(tecnicoValoresAp)
-    .where(eq(tecnicoValoresAp.tecnicoId, tecnicoId));
+    .where(and(eq(tecnicoValoresAp.tecnicoId, tecnicoId), eq(tecnicoValoresAp.tenantId, tenantId)));
   const map: Record<number, number> = {};
   for (const row of rows) {
     map[row.qtdAp] = parseFloat(row.valor as string);
@@ -841,7 +842,7 @@ export async function setValoresApTecnico(
   const db = await getDb();
   if (!db) return;
   // Apaga os registros antigos e insere os novos (upsert manual)
-  await db.delete(tecnicoValoresAp).where(eq(tecnicoValoresAp.tecnicoId, tecnicoId));
+  await db.delete(tecnicoValoresAp).where(and(eq(tecnicoValoresAp.tecnicoId, tecnicoId), eq(tecnicoValoresAp.tenantId, tenantId)));
   const toInsert = valores
     .filter(v => v.valor > 0)
     .map(v => ({

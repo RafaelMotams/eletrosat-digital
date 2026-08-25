@@ -60,6 +60,9 @@ export const tenantAdmins = mysqlTable("tenant_admins", {
   senhaHash: varchar("senhaHash", { length: 255 }).notNull(),
   role: mysqlEnum("role", ["admin", "viewer"]).default("admin").notNull(), // admin = acesso total, viewer = só leitura
   ativo: boolean("ativo").default(true).notNull(),
+  emailVerificadoEm: timestamp("emailVerificadoEm"),
+  emailVerificacaoHash: varchar("emailVerificacaoHash", { length: 128 }),
+  emailVerificacaoExpiraEm: timestamp("emailVerificacaoExpiraEm"),
   ultimoLogin: timestamp("ultimoLogin"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

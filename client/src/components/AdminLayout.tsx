@@ -96,7 +96,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen flex admin-shell">
+    <div className="min-h-screen flex bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -251,8 +251,8 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         <header
           className="flex items-center px-4 gap-4 flex-shrink-0 sticky top-0 z-10"
           style={{
-            height: 64,
-            background: "rgba(248,250,252,0.9)",
+            height: 56,
+            background: "rgba(255,255,255,0.98)",
             borderBottom: "1px solid oklch(0.89 0.018 240)",
             boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
             backdropFilter: "blur(12px)",
@@ -294,8 +294,8 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto" style={{ padding: "clamp(16px, 2vw, 32px)" }}>
-          <div className="admin-content">{children}</div>
+        <main className="flex-1 overflow-auto" style={{ padding: "24px" }}>
+          {children}
         </main>
       </div>
 

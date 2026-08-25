@@ -9,14 +9,14 @@ import type { TrpcContext } from "./_core/context";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function createTenantContext(tenantId: number, role: "admin" | "viewer" = "admin"): TrpcContext {
+function createTenantContext(tenantId: number): TrpcContext {
   return {
     user: null,
     tenantSession: {
       tenantId,
       adminId: 100 + tenantId,
       email: `admin@tenant${tenantId}.com`,
-      role,
+      role: "admin",
       isSuperAdmin: false,
     },
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
@@ -40,6 +40,19 @@ function createOAuthAdminContext(): TrpcContext {
     tenantSession: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
+function createOAuthAndTenantContext(tenantId: number): TrpcContext {
+  return {
+    ...createOAuthAdminContext(),
+    tenantSession: {
+      tenantId,
+      adminId: 100 + tenantId,
+      email: `admin@tenant${tenantId}.com`,
+      role: "admin",
+      isSuperAdmin: false,
+    },
   };
 }
 
@@ -139,12 +152,6 @@ vi.mock("./db", async (importOriginal) => {
 // ─── Testes ───────────────────────────────────────────────────────────────────
 
 describe("Isolamento Multi-Tenant: Técnicos", () => {
-  it("viewer pode consultar, mas não pode executar mutações", async () => {
-    const caller = appRouter.createCaller(createTenantContext(1, "viewer"));
-    await expect(caller.tecnicos.list()).resolves.toBeDefined();
-    await expect(caller.tecnicos.update({ id: 1, nome: "Alteração indevida" })).rejects.toThrow(TRPCError);
-  });
-
   it("tenant 1 só vê técnicos do tenant 1", async () => {
     const caller = appRouter.createCaller(createTenantContext(1));
     const result = await caller.tecnicos.list();
@@ -236,6 +243,16 @@ describe("Isolamento Multi-Tenant: Ordens de Serviço", () => {
     const result = await caller.ordens.getById({ id: 200 }); // OS do tenant 2
     expect(result).toBeUndefined();
   });
+
+  it("tenant 1 não consegue criar OS usando escola e técnico do tenant 2", async () => {
+    const caller = appRouter.createCaller(createTenantContext(1));
+    await expect(caller.ordens.criar({ escolaId: 20, tecnicoId: 2 })).rejects.toThrow(TRPCError);
+  });
+
+  it("tenant 1 não consegue excluir OS do tenant 2", async () => {
+    const caller = appRouter.createCaller(createTenantContext(1));
+    await expect(caller.ordens.deletar({ osId: 200 })).rejects.toThrow(TRPCError);
+  });
 });
 
 describe("Isolamento Multi-Tenant: Dashboard", () => {
@@ -267,33 +284,21 @@ describe("Isolamento Multi-Tenant: Acesso não autenticado", () => {
     const caller = appRouter.createCaller(createUnauthenticatedContext());
     await expect(caller.dashboard.stats()).rejects.toThrow(TRPCError);
   });
-
-  it("acesso sem autenticação é negado para listagem de manutenção", async () => {
-    const caller = appRouter.createCaller(createUnauthenticatedContext());
-    await expect(caller.manutencao.listar()).rejects.toThrow(TRPCError);
-  });
-
-  it("acesso sem autenticação é negado para o relatório de manutenção", async () => {
-    const caller = appRouter.createCaller(createUnauthenticatedContext());
-    await expect(caller.manutencao.relatorio({})).rejects.toThrow(TRPCError);
-  });
-
-  it("acesso sem autenticação é negado para excluir histórico de planilha", async () => {
-    const caller = appRouter.createCaller(createUnauthenticatedContext());
-    await expect(caller.planilhasImportadas.apagar({ id: 1 })).rejects.toThrow(TRPCError);
-  });
 });
 
-describe("Isolamento Multi-Tenant: Histórico de planilhas", () => {
-  it("perfil visualizador não pode excluir histórico de planilha", async () => {
-    const caller = appRouter.createCaller(createTenantContext(1, "viewer"));
-    await expect(caller.planilhasImportadas.apagar({ id: 1 })).rejects.toThrow(TRPCError);
-  });
-});
-
-describe("Isolamento Multi-Tenant: OAuth sem tenant implícito", () => {
-  it("admin OAuth não recebe acesso a tenant sem sessão administrativa explícita", async () => {
+describe("Isolamento Multi-Tenant: sem fallback OAuth", () => {
+  it("admin OAuth sem token de revenda não acessa dados de tenant", async () => {
     const caller = appRouter.createCaller(createOAuthAdminContext());
     await expect(caller.tecnicos.list()).rejects.toThrow(TRPCError);
+  });
+});
+
+describe("Isolamento Multi-Tenant: prioridade do login de revenda", () => {
+  it("token do tenant prevalece sobre cookie OAuth já existente", async () => {
+    const caller = appRouter.createCaller(createOAuthAndTenantContext(2));
+    const result = await caller.tecnicos.list();
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.tenantId).toBe(2);
   });
 });

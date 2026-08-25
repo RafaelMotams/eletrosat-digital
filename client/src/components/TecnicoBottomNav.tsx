@@ -26,13 +26,13 @@ export default function TecnicoBottomNav() {
       <div className="absolute top-0 left-0 right-0 h-px"
         style={{ background: "linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.2) 30%, rgba(99,102,241,0.2) 70%, transparent 100%)" }} />
 
-      <div className="flex items-center justify-between max-w-xl mx-auto px-2 pt-2 pb-1 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center justify-around px-1 pt-2 pb-1">
         {tabs.map(({ path, icon: Icon, label, color, glow, grad }) => {
           const active = location === path || (path !== "/tecnico" && location.startsWith(path));
           return (
             <button key={path} onClick={() => navigate(path)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-2xl transition-all duration-250 active:scale-90 relative"
-              style={{ minWidth: "56px" }}>
+              className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-2xl transition-all duration-250 active:scale-90 relative"
+              style={{ minWidth: "64px" }}>
 
               {/* Active indicator dot at top */}
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 transition-all duration-300"
@@ -47,7 +47,7 @@ export default function TecnicoBottomNav() {
               {/* Icon container */}
               <div className="w-12 h-10 rounded-2xl flex items-center justify-center transition-all duration-250 relative overflow-hidden"
                 style={{
-                  background: active ? "rgba(6,182,212,0.12)" : "transparent",
+                  background: active ? `${color}15` : "transparent",
                   boxShadow: active ? `0 4px 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
                 }}>
                 {/* Inner glow for active */}
@@ -57,7 +57,7 @@ export default function TecnicoBottomNav() {
                 )}
                 <Icon className="w-5 h-5 relative z-10 transition-all duration-250"
                   style={{
-                    color: active ? "#22d3ee" : "rgba(148,163,184,0.52)",
+                    color: active ? color : "rgba(71,85,105,0.55)",
                     strokeWidth: active ? 2.5 : 1.8,
                     filter: active ? `drop-shadow(0 0 6px ${glow})` : "none",
                   }} />
@@ -66,7 +66,7 @@ export default function TecnicoBottomNav() {
               {/* Label */}
               <span className="text-[9px] font-bold tracking-wide transition-all duration-250"
                 style={{
-                  color: active ? "#67e8f9" : "rgba(148,163,184,0.48)",
+                  color: active ? color : "rgba(71,85,105,0.5)",
                   textShadow: active ? `0 0 12px ${glow}` : "none",
                   letterSpacing: "0.04em",
                 }}>

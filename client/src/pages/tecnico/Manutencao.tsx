@@ -46,19 +46,8 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string; i
 };
 
 // ── Componente Assistente IA ──────────────────────────────────────────────────
-const PERFIS_ASSISTENTE = [
-  { value: "rede_escolar", label: "Rede escolar", detail: "Diagnóstico, cobertura e continuidade", color: "#8b5cf6" },
-  { value: "infraestrutura_fisica", label: "Infraestrutura física", detail: "Rack, cabeamento, fibra e energia", color: "#06b6d4" },
-  { value: "configuracao_tp_link", label: "Especialista TP-Link", detail: "Omada, VLAN e provisionamento", color: "#22c55e" },
-  { value: "configuracao_intelbras", label: "Especialista Intelbras", detail: "Controladoras, APs e GPON", color: "#f59e0b" },
-  { value: "rede_externa_telbras", label: "Rede externa e Telbrás", detail: "Fibra, GPON, enlaces e medição", color: "#8b5cf6" },
-] as const;
-
-type PerfilAssistente = typeof PERFIS_ASSISTENTE[number]["value"];
-
 function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
   const [aberto, setAberto] = useState(false);
-  const [perfil, setPerfil] = useState<PerfilAssistente>("rede_escolar");
   const [pergunta, setPergunta] = useState("");
   const [historico, setHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
@@ -73,7 +62,7 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
     const p = pergunta.trim();
     setHistorico(prev => [...prev, { role: "user", text: p }]);
     setPergunta("");
-    assistenteMut.mutate({ manutencaoId, pergunta: p, perfil });
+    assistenteMut.mutate({ manutencaoId, pergunta: p });
   }
 
   return (
@@ -101,24 +90,6 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
       {/* Conteúdo */}
       {aberto && (
         <div className="px-4 pb-4">
-          <div className="mb-4 rounded-2xl p-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div>
-                <p className="text-xs font-bold text-white">Perfil do especialista</p>
-                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.48)" }}>Escolha o foco antes de enviar a dúvida</p>
-              </div>
-              <span className="rounded-full px-2 py-1 text-[10px] font-bold" style={{ color: PERFIS_ASSISTENTE.find(p => p.value === perfil)?.color, background: `${PERFIS_ASSISTENTE.find(p => p.value === perfil)?.color}18` }}>Professor Marcos</span>
-            </div>
-            <select
-              value={perfil}
-              onChange={e => setPerfil(e.target.value as PerfilAssistente)}
-              className="w-full rounded-xl px-3 py-2.5 text-xs font-semibold outline-none"
-              style={{ background: "#172033", color: "white", border: "1px solid rgba(255,255,255,0.11)" }}
-            >
-              {PERFIS_ASSISTENTE.map(item => <option key={item.value} value={item.value}>{item.label} — {item.detail}</option>)}
-            </select>
-          </div>
-
           {/* Histórico */}
           {historico.length > 0 && (
             <div className="space-y-3 mb-3 max-h-64 overflow-y-auto">
@@ -213,6 +184,7 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
   const utils = trpc.useUtils();
   const { data: m, isLoading } = trpc.manutencao.getById.useQuery({ id });
   const [obs, setObs] = useState("");
+  const [kmRodado, setKmRodado] = useState("");
   const [fotos, setFotos] = useState<{ tipo: "defeito" | "conclusao"; preview: string; base64: string; mime: string; clientId: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [viewFoto, setViewFoto] = useState<string | null>(null);
@@ -248,12 +220,17 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
 
   async function handleConcluir() {
     if (obs.trim().length < 5) { toast.error("Observação obrigatória (mínimo 5 caracteres)"); return; }
+    const km = Number(kmRodado.replace(",", "."));
+    if (!kmRodado.trim() || !Number.isFinite(km) || km < 0) {
+      toast.error("Informe a quilometragem percorrida para concluir a manutenção");
+      return;
+    }
     setUploading(true);
     try {
       for (const f of fotos) {
         await uploadFotoMut.mutateAsync({ manutencaoId: id, tipo: f.tipo, base64: f.base64, mimeType: f.mime, clientId: f.clientId });
       }
-      await concluirMut.mutateAsync({ id, tecnicoId, observacaoConclusao: obs });
+      await concluirMut.mutateAsync({ id, tecnicoId, observacaoConclusao: obs, quilometragem: km });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao concluir");
     } finally {
@@ -274,6 +251,10 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
   const Icon = st.icon;
   const isConcluida = m.status === "concluida";
   const escola = (m as any).escola;
+  const kmInformado = Number(kmRodado.replace(",", "."));
+  const kmValido = kmRodado.trim() !== "" && Number.isFinite(kmInformado) && kmInformado >= 0;
+  const valorTotalAtual = 200 + (kmValido ? kmInformado * 2.5 : 0);
+  const formatCurrency = (valor: number) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   // Google Maps URL
   const mapsUrl = escola?.latitude && escola?.longitude
@@ -489,6 +470,27 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
               )}
             </div>
 
+            {/* Quilometragem e remuneração */}
+            <div className="rounded-2xl p-4" style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#6ee7b7" }}>Quilometragem percorrida <span style={{ color: "#fca5a5" }}>*</span></p>
+              <div className="flex items-center gap-3">
+                <input
+                  value={kmRodado}
+                  onChange={e => setKmRodado(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Ex.: 50"
+                  className="min-w-0 flex-1 rounded-xl px-3 py-3 text-sm outline-none"
+                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
+                />
+                <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.6)" }}>km</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.05)" }}><span style={{ color: "rgba(255,255,255,0.45)" }}>Valor fixo</span><p className="mt-1 font-extrabold text-white">R$ 200,00</p></div>
+                <div className="rounded-xl p-2.5" style={{ background: "rgba(255,255,255,0.05)" }}><span style={{ color: "rgba(255,255,255,0.45)" }}>Total estimado</span><p className="mt-1 font-extrabold" style={{ color: "#6ee7b7" }}>{formatCurrency(valorTotalAtual)}</p></div>
+              </div>
+              <p className="mt-2 text-[11px]" style={{ color: kmValido ? "rgba(255,255,255,0.45)" : "#fca5a5" }}>{kmValido ? `R$ 200,00 + ${kmInformado.toLocaleString("pt-BR")} km × R$ 2,50 = ${formatCurrency(valorTotalAtual)}` : "Informe o total de quilômetros percorridos."}</p>
+            </div>
+
             {/* Observação obrigatória */}
             <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
               <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -510,12 +512,12 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
             {/* Botão concluir */}
             <button
               onClick={handleConcluir}
-              disabled={uploading || concluirMut.isPending || obs.trim().length < 5}
+              disabled={uploading || concluirMut.isPending || obs.trim().length < 5 || !kmValido}
               className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all active:scale-95"
               style={{
-                background: obs.trim().length >= 5 ? "linear-gradient(135deg, #059669, #10b981)" : "rgba(255,255,255,0.06)",
-                color: obs.trim().length >= 5 ? "white" : "rgba(255,255,255,0.25)",
-                boxShadow: obs.trim().length >= 5 ? "0 8px 32px rgba(16,185,129,0.35)" : "none",
+                background: obs.trim().length >= 5 && kmValido ? "linear-gradient(135deg, #059669, #10b981)" : "rgba(255,255,255,0.06)",
+                color: obs.trim().length >= 5 && kmValido ? "white" : "rgba(255,255,255,0.25)",
+                boxShadow: obs.trim().length >= 5 && kmValido ? "0 8px 32px rgba(16,185,129,0.35)" : "none",
               }}
             >
               {(uploading || concluirMut.isPending)

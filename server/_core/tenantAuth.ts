@@ -1,13 +1,10 @@
-import { SignJWT, jwtVerify } from "jose";
-import type { Request, Response } from "express";
+import { jwtVerify } from "jose";
 import { getDb } from "../db";
 import { tenants, tenantAdmins } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
-import { jwtSecretKey } from "./jwtSecret";
-import { getSessionCookieOptions } from "./cookies";
 
-const TENANT_SESSION_COOKIE = "netvius_tenant_session";
-
+const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
+const secretKey = new TextEncoder().encode(JWT_SECRET);
 
 export interface TenantSession {
   adminId: number;
@@ -16,36 +13,6 @@ export interface TenantSession {
   role: string;
   isSuperAdmin: boolean;
 }
-
-export async function signTenantToken(session: TenantSession): Promise<string> {
-  return new SignJWT(session as unknown as Record<string, unknown>)
-    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
-    .setIssuedAt()
-    .setExpirationTime("8h")
-    .sign(jwtSecretKey);
-}
-
-function readCookie(req: Request, name: string): string | null {
-  const raw = req.headers.cookie ?? "";
-  const item = raw.split(";").map(value => value.trim()).find(value => value.startsWith(`${name}=`));
-  return item ? decodeURIComponent(item.slice(name.length + 1)) : null;
-}
-
-export async function getTenantSession(req: Request): Promise<TenantSession | null> {
-  const token = readCookie(req, TENANT_SESSION_COOKIE);
-  return token ? verifyTenantToken(token) : null;
-}
-
-export async function setTenantSession(res: Response, req: Request, session: TenantSession) {
-  const token = await signTenantToken(session);
-  res.cookie(TENANT_SESSION_COOKIE, token, { ...getSessionCookieOptions(req), maxAge: 8 * 60 * 60 * 1000 });
-}
-
-export function clearTenantSession(res: Response, req: Request) {
-  res.clearCookie(TENANT_SESSION_COOKIE, { ...getSessionCookieOptions(req), maxAge: -1 });
-}
-
-export { TENANT_SESSION_COOKIE };
 
 /** Verifica e atualiza automaticamente o status do trial se expirado */
 async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenantId: number) {
@@ -85,32 +52,56 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
 
 export async function verifyTenantToken(token: string): Promise<TenantSession | null> {
   try {
-    const { payload } = await jwtVerify(token, jwtSecretKey);
-    const session = payload as unknown as TenantSession;
-
-    // Superadmin não precisa de verificação de tenant
-    if (session.isSuperAdmin) return session;
+    const { payload } = await jwtVerify(token, secretKey);
+    const session = payload as unknown as Partial<TenantSession>;
+    if (
+      typeof session.adminId !== "number" ||
+      typeof session.tenantId !== "number" ||
+      typeof session.role !== "string" ||
+      typeof session.isSuperAdmin !== "boolean"
+    ) {
+      return null;
+    }
+    const sessionData: Omit<TenantSession, "email"> = {
+      adminId: session.adminId,
+      tenantId: session.tenantId,
+      role: session.role,
+      isSuperAdmin: session.isSuperAdmin,
+    };
 
     const db = await getDb();
+    // Sem banco não é possível confirmar se o vínculo admin/tenant ainda é válido.
     if (!db) return null;
 
-    // Verificar se o admin ainda está ativo
+    // O token só vale se o administrador continuar ativo e ligado ao mesmo tenant.
     const [admin] = await db
-      .select({ ativo: tenantAdmins.ativo })
+      .select({
+        ativo: tenantAdmins.ativo,
+        tenantId: tenantAdmins.tenantId,
+        role: tenantAdmins.role,
+        email: tenantAdmins.email,
+      })
       .from(tenantAdmins)
-      .where(eq(tenantAdmins.id, session.adminId));
+      .where(eq(tenantAdmins.id, sessionData.adminId));
 
-    if (!admin || !admin.ativo) return null;
-
-    // Verificar status do tenant (incluindo expiração de trial)
-    if (session.tenantId > 0) {
-      const status = await checkAndExpireTrial(db, session.tenantId);
-      if (!status || status === "expirado" || status === null) {
-        return null; // Bloqueia acesso
-      }
+    if (!admin || !admin.ativo || admin.tenantId !== sessionData.tenantId || admin.role !== sessionData.role) {
+      return null;
     }
 
-    return session;
+    if (sessionData.isSuperAdmin) {
+      if (sessionData.tenantId !== 0 || admin.tenantId !== 0) return null;
+      return { ...sessionData, email: admin.email };
+    }
+
+    if (sessionData.tenantId <= 0) return null;
+
+    // Verificar status do tenant (incluindo expiração de trial)
+    const status = await checkAndExpireTrial(db, sessionData.tenantId);
+    if (!status || status === "expirado") {
+      return null;
+    }
+
+    return { ...sessionData, email: admin.email };
   } catch {
     return null;
   }
@@ -120,7 +111,7 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
 export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolean; motivo?: string }> {
   try {
     const db = await getDb();
-    if (!db) return { ok: false, motivo: "servico_indisponivel" };
+    if (!db) return { ok: false, motivo: "indisponivel" };
 
     const status = await checkAndExpireTrial(db, tenantId);
 
@@ -136,7 +127,7 @@ export async function verifyTenantActive(tenantId: number): Promise<{ ok: boolea
     }
     return { ok: true };
   } catch {
-    return { ok: false, motivo: "servico_indisponivel" };
+    return { ok: false, motivo: "indisponivel" };
   }
 }
 

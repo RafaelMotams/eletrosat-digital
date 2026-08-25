@@ -5,19 +5,19 @@ import type { TrpcContext } from "./_core/context";
 // Mock das funções de banco de dados
 vi.mock("./db", () => ({
   listTecnicos: vi.fn().mockResolvedValue([
-    { id: 1, tenantId: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", telefone: "75999999999", cidadeResponsavel: "Monte Santo", ativo: true, senhaHash: "", createdAt: new Date(), updatedAt: new Date() }
+    { id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", telefone: "75999999999", cidadeResponsavel: "Monte Santo", ativo: true, senhaHash: "", createdAt: new Date(), updatedAt: new Date() }
   ]),
   getTecnicoByEmail: vi.fn().mockResolvedValue({
-    id: 1, tenantId: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", senhaHash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y", cidadeResponsavel: "Monte Santo", ativo: true, createdAt: new Date(), updatedAt: new Date()
+    id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com", senhaHash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh9y", cidadeResponsavel: "Monte Santo", ativo: true, createdAt: new Date(), updatedAt: new Date()
   }),
-  getTecnicoById: vi.fn().mockResolvedValue({ id: 1, tenantId: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com" }),
+  getTecnicoById: vi.fn().mockResolvedValue({ id: 1, nome: "Rodrigo Silva", email: "rodrigo@test.com" }),
   createTecnico: vi.fn().mockResolvedValue({}),
   updateTecnico: vi.fn().mockResolvedValue({}),
   deleteTecnico: vi.fn().mockResolvedValue({}),
   listEscolas: vi.fn().mockResolvedValue([
-    { id: 1, tenantId: 1, inep: "29118913", nome: "ESCOLA CAMINHO SUAVE", municipio: "Monte Santo", status: "pendente", tecnicoId: null, qtdAp: 1, tipoConexao: "Fibra", latitude: "-10.44810828", longitude: "-39.57060199", updatedAt: new Date(), createdAt: new Date() }
+    { id: 1, inep: "29118913", nome: "ESCOLA CAMINHO SUAVE", municipio: "Monte Santo", status: "pendente", tecnicoId: null, qtdAp: 1, tipoConexao: "Fibra", latitude: "-10.44810828", longitude: "-39.57060199", updatedAt: new Date(), createdAt: new Date() }
   ]),
-  getEscolaById: vi.fn().mockResolvedValue({ id: 1, tenantId: 1, inep: "29118913", nome: "ESCOLA CAMINHO SUAVE", status: "pendente", qtdAp: 1 }),
+  getEscolaById: vi.fn().mockResolvedValue({ id: 1, inep: "29118913", nome: "ESCOLA CAMINHO SUAVE", status: "pendente", qtdAp: 1 }),
   getEscolaByInep: vi.fn().mockResolvedValue(null),
   createEscola: vi.fn().mockResolvedValue({}),
   updateEscola: vi.fn().mockResolvedValue({}),
@@ -25,9 +25,9 @@ vi.mock("./db", () => ({
   atribuirPorCidade: vi.fn().mockResolvedValue({}),
   setAtribuicaoManual: vi.fn().mockResolvedValue({}),
   listOrdensServico: vi.fn().mockResolvedValue([
-    { id: 1, tenantId: 1, escolaId: 1, tecnicoId: 1, status: "aberta", qtdApInstalado: null, observacao: null, dataAbertura: new Date(), dataConclusao: null, createdAt: new Date(), updatedAt: new Date() }
+    { id: 1, escolaId: 1, tecnicoId: 1, status: "aberta", qtdApInstalado: null, observacao: null, dataAbertura: new Date(), dataConclusao: null, createdAt: new Date(), updatedAt: new Date() }
   ]),
-  getOrdemById: vi.fn().mockResolvedValue({ id: 1, tenantId: 1, escolaId: 1, tecnicoId: 1, status: "aberta" }),
+  getOrdemById: vi.fn().mockResolvedValue({ id: 1, escolaId: 1, tecnicoId: 1, status: "aberta" }),
   createOrdemServico: vi.fn().mockResolvedValue({}),
   concluirOrdemServico: vi.fn().mockResolvedValue({}),
   getDashboardStats: vi.fn().mockResolvedValue({ totalEscolas: 23, concluidas: 5, pendentes: 18, emAndamento: 0, totalApsInstalados: 15 }),
@@ -41,8 +41,8 @@ vi.mock("./_core/notification", () => ({
 
 function createAdminCtx(): TrpcContext {
   return {
-    user: null,
-    tenantSession: { tenantId: 1, adminId: 101, email: "admin@tenant1.com", role: "admin", isSuperAdmin: false },
+    user: { id: 1, openId: "admin-1", name: "Admin", email: "admin@test.com", role: "admin", loginMethod: "manus", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() },
+    tenantSession: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
@@ -90,7 +90,7 @@ describe("Técnicos", () => {
 });
 
 describe("Escolas", () => {
-  it("admin lista as escolas do seu tenant", async () => {
+  it("admin lista todas as escolas", async () => {
     const caller = appRouter.createCaller(createAdminCtx());
     const list = await caller.escolas.list({});
     expect(list).toHaveLength(1);
@@ -108,7 +108,7 @@ describe("Escolas", () => {
 });
 
 describe("Ordens de Serviço", () => {
-  it("admin lista as OS do seu tenant", async () => {
+  it("admin lista todas as OS", async () => {
     const caller = appRouter.createCaller(createAdminCtx());
     const list = await caller.ordens.list({});
     expect(list).toHaveLength(1);
@@ -136,3 +136,4 @@ describe("Auth do Técnico", () => {
     await expect(caller.tecnicoAuth.login({ email: "wrong@test.com", senha: "wrongpass" })).rejects.toThrow();
   });
 });
+

@@ -60,6 +60,26 @@ export default function TecnicoHistorico() {
     }
   );
 
+  const periodoFinanceiro = useMemo(() => {
+    if (periodo === "todos") return { dataInicio: null, dataFim: null };
+    const now = new Date();
+    if (periodo === "hoje") return { dataInicio: startOfDay(now).toISOString(), dataFim: now.toISOString() };
+    if (periodo === "semana") return { dataInicio: startOfWeek(now).toISOString(), dataFim: now.toISOString() };
+    if (periodo === "mes") return { dataInicio: startOfMonth(now).toISOString(), dataFim: now.toISOString() };
+    if (periodo === "custom" && dataInicio) {
+      return {
+        dataInicio: new Date(dataInicio + "T00:00:00").toISOString(),
+        dataFim: (dataFim ? new Date(dataFim + "T23:59:59") : now).toISOString(),
+      };
+    }
+    return { dataInicio: null, dataFim: null };
+  }, [periodo, dataInicio, dataFim]);
+
+  const { data: ganhos, isLoading: carregandoGanhos } = trpc.tecnicoAuth.ganhosPeriodo.useQuery(
+    { tecnicoId, ...periodoFinanceiro },
+    { enabled: !!tecnicoId, staleTime: 2 * 60 * 1000, refetchOnWindowFocus: false, retry: 1 }
+  );
+
   const escolasFiltradas = useMemo(() => {
     let list = escolas as Escola[];
     if (search) {
@@ -90,6 +110,7 @@ export default function TecnicoHistorico() {
   const naoInstaladas = escolasFiltradas.filter(e => e.status === "nao_instalada");
   const pendentes     = escolasFiltradas.filter(e => e.status === "pendente");
   const totalAps      = concluidas.reduce((acc, e) => acc + (e.qtdAp || 1), 0);
+  const ganhosFormatados = (ganhos?.total ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const periodoLabel = PERIODOS.find(p => p.value === periodo)?.label ?? "Todos";
 
@@ -133,6 +154,26 @@ export default function TecnicoHistorico() {
               <p className="text-[9px] font-semibold mt-0.5 uppercase tracking-wide" style={{ color: "rgba(148,163,184,0.5)" }}>{s.label}</p>
             </div>
           ))}
+        </div>
+
+        {/* Ganhos em OS concluídas */}
+        <div className="rounded-2xl p-4 mb-4" style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.16), rgba(6,78,59,0.2))", border: "1px solid rgba(52,211,153,0.28)" }}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#a7f3d0" }}>GANHOS EM OS CONCLUÍDAS</p>
+              <p className="mt-1 text-3xl font-black text-white">{carregandoGanhos ? "..." : ganhosFormatados}</p>
+              <p className="mt-1 text-xs" style={{ color: "rgba(209,250,229,0.65)" }}>{ganhos?.quantidadeOs ?? 0} {ganhos?.quantidadeOs === 1 ? "ordem concluída" : "ordens concluídas"} no período</p>
+            </div>
+            <div className="rounded-2xl px-3 py-2 text-right" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <p className="text-[10px] uppercase font-bold" style={{ color: "rgba(209,250,229,0.55)" }}>Base</p>
+              <p className="mt-1 text-xs font-bold" style={{ color: "#d1fae5" }}>Relatório de OS</p>
+            </div>
+          </div>
+          {(ganhos?.osSemValorConfigurado ?? 0) > 0 && (
+            <p className="mt-3 rounded-xl px-3 py-2 text-[11px]" style={{ background: "rgba(245,158,11,0.12)", color: "#fde68a" }}>
+              {ganhos?.osSemValorConfigurado} {ganhos?.osSemValorConfigurado === 1 ? "OS não possui" : "OS não possuem"} valor por AP configurado e foi incluída com R$ 0,00.
+            </p>
+          )}
         </div>
 
         {/* APs destaque */}

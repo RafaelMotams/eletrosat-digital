@@ -32,7 +32,7 @@ function ParticleCanvas() {
         if (p.y > canvas.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(45,212,191,${p.a})`;
+        ctx.fillStyle = `rgba(99,179,237,${p.a})`;
         ctx.fill();
       });
       // draw lines between close particles
@@ -44,7 +44,7 @@ function ParticleCanvas() {
             ctx.beginPath();
             ctx.moveTo(pts[i].x, pts[i].y);
             ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(45,212,191,${0.08 * (1 - dist / 100)})`;
+            ctx.strokeStyle = `rgba(99,179,237,${0.08 * (1 - dist / 100)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -66,7 +66,7 @@ function LogoRings({ size = 96 }: { size?: number }) {
         <div key={i} className="absolute rounded-full border"
           style={{
             width: size * scale, height: size * scale,
-            borderColor: `rgba(45,212,191,${0.08 + i * 0.04})`,
+            borderColor: `rgba(59,130,246,${0.08 + i * 0.04})`,
             animation: `ping-slow ${2 + i * 0.5}s ease-in-out infinite`,
             animationDelay: `${i * 0.3}s`,
           }} />
@@ -74,7 +74,7 @@ function LogoRings({ size = 96 }: { size?: number }) {
       <div className="relative rounded-2xl overflow-hidden shadow-2xl"
         style={{
           width: size, height: size,
-          boxShadow: "0 0 40px rgba(16,185,129,0.45), 0 0 80px rgba(6,182,212,0.18), 0 0 0 1px rgba(255,255,255,0.1)",
+          boxShadow: "0 0 40px rgba(59,130,246,0.5), 0 0 80px rgba(99,102,241,0.2), 0 0 0 1px rgba(255,255,255,0.1)",
         }}>
         <img src="/manus-storage/netvionis-logo_1c60afaf.webp" alt="Netvius" className="w-full h-full object-cover" />
       </div>
@@ -105,9 +105,9 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
 
       {/* Glow blobs */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)" }} />
       <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)" }} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo with rings */}
@@ -120,9 +120,9 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
           style={{ opacity: phase >= 1 ? 1 : 0, transform: phase >= 1 ? "translateY(0)" : "translateY(16px)", transition: "all 0.5s ease 0.1s" }}>
           <h1 className="text-3xl font-black text-white tracking-tight" style={{ letterSpacing: "-0.02em" }}>Netvius</h1>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.7)" }}>Central do Técnico de Campo</p>
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style={{ animationDelay: "0.5s" }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            <p className="text-sm font-medium" style={{ color: "rgba(148,163,184,0.7)" }}>Área do Técnico de Campo</p>
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" style={{ animationDelay: "0.5s" }} />
           </div>
         </div>
 
@@ -136,7 +136,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <Icon className="w-3 h-3 text-emerald-400" />
+              <Icon className="w-3 h-3 text-blue-400" />
               <span className="text-xs font-medium text-slate-300">{label}</span>
             </div>
           ))}
@@ -149,7 +149,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
         <div className="h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
           <div className="h-full rounded-full"
             style={{
-              background: "linear-gradient(90deg, #10b981, #14b8a6, #06b6d4)",
+              background: "linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6)",
               animation: "splash-bar 1.5s ease-in-out forwards",
             }} />
         </div>
@@ -264,11 +264,11 @@ export default function TecnicoLogin() {
       {/* Glow blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)" }} />
         <div className="absolute top-1/2 -left-40 w-80 h-80 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)" }} />
         <div className="absolute -bottom-20 right-1/3 w-72 h-72 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(20,184,166,0.07) 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)" }} />
       </div>
 
       <div className="relative z-10 flex flex-col flex-1 items-center justify-between px-5 py-10">
@@ -280,7 +280,7 @@ export default function TecnicoLogin() {
             <h1 className="text-2xl font-black text-white" style={{ letterSpacing: "-0.02em" }}>Netvius</h1>
             <div className="flex items-center justify-center gap-1.5 mt-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>Central de Operações</span>
+              <span className="text-xs font-medium" style={{ color: "rgba(148,163,184,0.6)" }}>Sistema Operacional</span>
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@ export default function TecnicoLogin() {
 
             {/* Card inner glow */}
             <div className="absolute top-0 left-0 right-0 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent)" }} />
+              style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent)" }} />
 
             <div className="mb-6">
               <h2 className="text-xl font-bold text-white" style={{ letterSpacing: "-0.01em" }}>Acesso ao sistema</h2>
@@ -345,11 +345,11 @@ export default function TecnicoLogin() {
                 className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-bold text-sm text-white transition-all active:scale-[0.97] mt-2 relative overflow-hidden"
                 style={{
                   background: loginSuccess
-                    ? "linear-gradient(135deg, #047857, #10b981)"
-                  : loginMutation.isPending
-                    ? "rgba(16,185,129,0.3)"
-                    : "linear-gradient(135deg, #047857 0%, #10b981 52%, #06b6d4 100%)",
-                  boxShadow: loginMutation.isPending || loginSuccess ? "none" : "0 8px 32px rgba(16,185,129,0.28), 0 0 0 1px rgba(255,255,255,0.05)",
+                    ? "linear-gradient(135deg, #059669, #10b981)"
+                    : loginMutation.isPending
+                    ? "rgba(59,130,246,0.3)"
+                    : "linear-gradient(135deg, #1d4ed8 0%, #4338ca 50%, #7c3aed 100%)",
+                  boxShadow: loginMutation.isPending || loginSuccess ? "none" : "0 8px 32px rgba(29,78,216,0.4), 0 0 0 1px rgba(255,255,255,0.05)",
                 }}>
                 {/* Shimmer effect */}
                 {!loginMutation.isPending && !loginSuccess && (

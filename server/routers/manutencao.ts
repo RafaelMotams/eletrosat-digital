@@ -6,51 +6,37 @@ import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
-import { calculateMaintenancePayment } from "../payment";
-import { buildTechnicalAssistantSystemPrompt, technicalAssistantProfiles } from "../technicalAssistant";
-
-const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
-  if (!ctx.tecnicoSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
-  return next({ ctx });
-});
-
-const manutencaoAccessProcedure = publicProcedure.use(({ ctx, next }) => {
-  if (!ctx.tecnicoSession && !ctx.tenantSession) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão necessária" });
-  return next({ ctx });
-});
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function requireTenantId(ctx: { tenantId?: number }) {
-  const tenantId = Number(ctx.tenantId);
-  if (!Number.isInteger(tenantId) || tenantId <= 0) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Tenant da sessão inválido" });
-  }
-  return tenantId;
+export const VALOR_BASE_MANUTENCAO = 200;
+export const VALOR_POR_KM_MANUTENCAO = 2.5;
+
+export function calcularRemuneracaoManutencao(quilometragem: number | string | null | undefined) {
+  const kmConvertido = typeof quilometragem === "number" ? quilometragem : Number.parseFloat(String(quilometragem ?? 0));
+  const km = Number.isFinite(kmConvertido) && kmConvertido >= 0 ? kmConvertido : 0;
+  const valorKm = Math.round(km * VALOR_POR_KM_MANUTENCAO * 100) / 100;
+  return {
+    quilometragem: km,
+    valorBase: VALOR_BASE_MANUTENCAO,
+    valorKm,
+    valorTotal: Math.round((VALOR_BASE_MANUTENCAO + valorKm) * 100) / 100,
+  };
 }
 
-async function assertTecnicoInTenant(db: any, tecnicoId: number, tenantId: number) {
-  const [tecnico] = await db
-    .select({ id: tecnicos.id })
-    .from(tecnicos)
-    .where(and(eq(tecnicos.id, tecnicoId), eq(tecnicos.tenantId, tenantId)));
-  if (!tecnico) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence ao seu tenant" });
-}
-
-async function assertEscolaInTenant(db: any, escolaId: number, tenantId: number) {
-  const [escola] = await db
-    .select({ id: escolas.id })
-    .from(escolas)
-    .where(and(eq(escolas.id, escolaId), eq(escolas.tenantId, tenantId)));
-  if (!escola) throw new TRPCError({ code: "FORBIDDEN", message: "Escola não pertence ao seu tenant" });
-}
-
-async function assertManutencaoInTenant(db: any, manutencaoId: number, tenantId: number) {
-  const [manutencao] = await db
-    .select({ id: manutencoes.id })
-    .from(manutencoes)
-    .where(and(eq(manutencoes.id, manutencaoId), eq(manutencoes.tenantId, tenantId)));
-  if (!manutencao) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence ao seu tenant" });
+function escolaDaManutencao(manutencao: typeof manutencoes.$inferSelect, escola: any): any {
+  return escola ?? {
+    id: null,
+    nome: manutencao.escolaNaoCadastradaNome ?? "Escola não cadastrada",
+    inep: manutencao.escolaNaoCadastradaInep ?? null,
+    municipio: manutencao.escolaNaoCadastradaMunicipio ?? null,
+    endereco: manutencao.escolaNaoCadastradaEndereco ?? null,
+    telefone: manutencao.escolaNaoCadastradaWhatsapp ?? null,
+    telefoneWhatsApp: manutencao.escolaNaoCadastradaWhatsapp ?? null,
+    latitude: manutencao.escolaNaoCadastradaLatitude ?? null,
+    longitude: manutencao.escolaNaoCadastradaLongitude ?? null,
+    velocidadeOfertada: null,
+  };
 }
 
 async function getManutencaoComDados(id: number) {
@@ -68,7 +54,13 @@ async function getManutencaoComDados(id: number) {
     .where(eq(manutencoes.id, id));
   if (!rows[0]) return null;
   const fotos = await db.select().from(manutencaoFotos).where(eq(manutencaoFotos.manutencaoId, id));
-  return { ...rows[0].m, escola: rows[0].escola, tecnico: rows[0].tecnico, fotos };
+  return {
+    ...rows[0].m,
+    ...calcularRemuneracaoManutencao(rows[0].m.quilometragem),
+    escola: escolaDaManutencao(rows[0].m, rows[0].escola),
+    tecnico: rows[0].tecnico,
+    fotos,
+  };
 }
 
 // ─── router ──────────────────────────────────────────────────────────────────
@@ -85,7 +77,7 @@ export const manutencaoRouter = router({
     .query(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = requireTenantId(ctx);
+      const tenantId = (ctx as any).tenantId;
 
       const rows = await db
         .select({
@@ -99,7 +91,12 @@ export const manutencaoRouter = router({
         .where(eq(manutencoes.tenantId, tenantId))
         .orderBy(desc(manutencoes.createdAt));
 
-      let result = rows.map(r => ({ ...r.m, escola: r.escola, tecnico: r.tecnico }));
+      let result = rows.map(r => ({
+        ...r.m,
+        ...calcularRemuneracaoManutencao(r.m.quilometragem),
+        escola: escolaDaManutencao(r.m, r.escola),
+        tecnico: r.tecnico,
+      }));
 
       if (input?.status && input.status !== "todas") {
         result = result.filter(r => r.status === input.status);
@@ -130,9 +127,7 @@ export const manutencaoRouter = router({
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = requireTenantId(ctx);
-      await assertEscolaInTenant(db, input.escolaId, tenantId);
-      if (input.tecnicoId) await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
+      const tenantId = (ctx as any).tenantId;
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: input.escolaId,
@@ -148,41 +143,31 @@ export const manutencaoRouter = router({
   // ── ADMIN: Atribuir técnico ─────────────────────────────────────────────────
   atribuir: tenantAdminProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = requireTenantId(ctx);
-      await assertManutencaoInTenant(db, input.id, tenantId);
-      await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
       await db.update(manutencoes)
         .set({ tecnicoId: input.tecnicoId, dataAtribuicao: new Date(), status: "pendente" })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
+        .where(eq(manutencoes.id, input.id));
       return { success: true };
     }),
 
   // ── ADMIN: Excluir manutenção ───────────────────────────────────────────────
   excluir: tenantAdminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = requireTenantId(ctx);
-      await assertManutencaoInTenant(db, input.id, tenantId);
       await db.delete(manutencaoFotos).where(eq(manutencaoFotos.manutencaoId, input.id));
-      await db.delete(manutencoes).where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
+      await db.delete(manutencoes).where(eq(manutencoes.id, input.id));
       return { success: true };
     }),
 
   // ── ADMIN: Relatório Excel (retorna dados) ──────────────────────────────────
-  relatorio: tenantAdminProcedure.input(z.object({
-    tecnicoId: z.number().int().positive().optional(),
-    status: z.enum(["todas", "pendente", "em_andamento", "concluida"]).default("todas"),
-    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  })).query(async ({ ctx, input }) => {
+  relatorio: tenantAdminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    const tenantId = requireTenantId(ctx);
+    const tenantId = (ctx as any).tenantId;
     const rows = await db
       .select({
         m: manutencoes,
@@ -194,18 +179,8 @@ export const manutencaoRouter = router({
       .leftJoin(tecnicos, eq(manutencoes.tecnicoId, tecnicos.id))
       .where(eq(manutencoes.tenantId, tenantId))
       .orderBy(desc(manutencoes.createdAt));
-    const inicio = input.dataInicio ? new Date(`${input.dataInicio}T00:00:00.000Z`).getTime() : undefined;
-    const fim = input.dataFim ? new Date(`${input.dataFim}T23:59:59.999Z`).getTime() : undefined;
-    const rowsFiltradas = rows.filter(r => {
-      if (input.tecnicoId && r.m.tecnicoId !== input.tecnicoId) return false;
-      if (input.status !== "todas" && r.m.status !== input.status) return false;
-      const createdAt = new Date(r.m.createdAt).getTime();
-      if (inicio && createdAt < inicio) return false;
-      if (fim && createdAt > fim) return false;
-      return true;
-    });
-    return rowsFiltradas.map(r => {
-      const payment = calculateMaintenancePayment(r.m.quilometragem);
+    return rows.map(r => {
+      const remuneracao = calcularRemuneracaoManutencao(r.m.quilometragem);
       return {
         id: r.m.id,
         status: r.m.status,
@@ -219,22 +194,18 @@ export const manutencaoRouter = router({
         dataAtribuicao: r.m.dataAtribuicao ? new Date(r.m.dataAtribuicao).toLocaleDateString("pt-BR") : "",
         dataConclusao: r.m.dataConclusao ? new Date(r.m.dataConclusao).toLocaleDateString("pt-BR") : "",
         createdAt: new Date(r.m.createdAt).toLocaleDateString("pt-BR"),
-        quilometragem: payment.kilometers,
-        valorBase: payment.baseValue,
-        valorKm: payment.valueByKm,
-        valorTotal: payment.totalValue,
+        ...remuneracao,
       };
     });
   }),
 
-  // ── TÉCNICO: Listar manutenções atribuídas ───
-  minhas: tecnicoProcedure
+  // ── TÉCNICO: Listar manutenções atribuídas (public para funcionar no app) ───
+  minhas: publicProcedure
     .input(z.object({
       tecnicoId: z.number(),
       busca: z.string().optional(),
     }))
-    .query(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+    .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const rows = await db
@@ -247,7 +218,6 @@ export const manutencaoRouter = router({
         .where(
           and(
             eq(manutencoes.tecnicoId, input.tecnicoId),
-            eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId),
             // Só mostra pendentes e em andamento (concluídas saem da lista)
             or(
               eq(manutencoes.status, "pendente"),
@@ -257,7 +227,11 @@ export const manutencaoRouter = router({
         )
         .orderBy(desc(manutencoes.createdAt));
 
-      let result = rows.map(r => ({ ...r.m, escola: r.escola }));
+      let result = rows.map(r => ({
+        ...r.m,
+        ...calcularRemuneracaoManutencao(r.m.quilometragem),
+        escola: escolaDaManutencao(r.m, r.escola),
+      }));
 
       if (input.busca) {
         const b = input.busca.toLowerCase();
@@ -272,31 +246,26 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Buscar manutenção por ID ──────────────────────────────────────
-  getById: manutencaoAccessProcedure
+  getById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input, ctx }) => {
-      const m = await getManutencaoComDados(input.id);
-      const isAdmin = !!ctx.tenantSession && (ctx.tenantSession.isSuperAdmin || ctx.tenantSession.tenantId === m?.tenantId);
-      const isTecnico = !!ctx.tecnicoSession && m?.tecnicoId === ctx.tecnicoSession.tecnicoId && m?.tenantId === ctx.tecnicoSession.tenantId;
-      if (!m || (!isAdmin && !isTecnico)) throw new TRPCError({ code: "FORBIDDEN" });
-      return m;
+    .query(async ({ input }) => {
+      return getManutencaoComDados(input.id);
     }),
 
   // ── TÉCNICO: Iniciar manutenção ─────────────────────────────────────────────
-  iniciar: tecnicoProcedure
+  iniciar: publicProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
         .set({ status: "em_andamento" })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, ctx.tecnicoSession!.tecnicoId), eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId)));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
       return { success: true };
     }),
 
   // ── TÉCNICO: Upload foto ────────────────────────────────────────────────────
-  uploadFoto: tecnicoProcedure
+  uploadFoto: publicProcedure
     .input(z.object({
       manutencaoId: z.number(),
       tipo: z.enum(["defeito", "conclusao"]),
@@ -304,9 +273,7 @@ export const manutencaoRouter = router({
       mimeType: z.string().default("image/jpeg"),
       clientId: z.string().optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
-      const m = await getManutencaoComDados(input.manutencaoId);
-      if (!m || m.tecnicoId !== ctx.tecnicoSession!.tecnicoId || m.tenantId !== ctx.tecnicoSession!.tenantId) throw new TRPCError({ code: "FORBIDDEN" });
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -333,75 +300,44 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Concluir manutenção ────────────────────────────────────────────
-  concluir: tecnicoProcedure
+  concluir: publicProcedure
     .input(z.object({
       id: z.number(),
       tecnicoId: z.number(),
       observacaoConclusao: z.string().min(5, "Observação obrigatória"),
+      quilometragem: z.number().finite().min(0, "Informe uma quilometragem válida"),
     }))
-    .mutation(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
         .set({
           status: "concluida",
           observacaoConclusao: input.observacaoConclusao,
+          quilometragem: String(input.quilometragem),
           dataConclusao: new Date(),
         })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, ctx.tecnicoSession!.tecnicoId), eq(manutencoes.tenantId, ctx.tecnicoSession!.tenantId)));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
       return { success: true };
     }),
 
-  // ── TÉCNICO: Assistente independente de manutenção ─────────────────────────
-  assistenteTecnico: tecnicoProcedure
-    .input(z.object({
-      pergunta: z.string().trim().min(3).max(2000),
-      perfil: z.enum(technicalAssistantProfiles).default("rede_escolar"),
-    }))
-    .mutation(async ({ input }) => {
-      const response = await invokeLLM({
-        messages: [
-          { role: "system", content: buildTechnicalAssistantSystemPrompt(input.perfil) },
-          { role: "user", content: input.pergunta },
-        ],
-      });
-      const raw = response.choices?.[0]?.message?.content;
-      const resposta = typeof raw === "string" ? raw : (Array.isArray(raw) ? raw.map((item: any) => item.text ?? "").join("") : "Não foi possível obter uma resposta agora.");
-      return { resposta };
-    }),
-
-  // ── TÉCNICO: Assistente no contexto de manutenção ──────────────────────────
-  assistenteIA: manutencaoAccessProcedure
+  // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
+  assistenteIA: publicProcedure
     .input(z.object({
       manutencaoId: z.number(),
       pergunta: z.string().min(3),
       contexto: z.string().optional(),
-      perfil: z.enum(["rede_escolar", "infraestrutura_fisica", "configuracao_tp_link", "configuracao_intelbras", "rede_externa_telbras"]).default("rede_escolar"),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const m = await getManutencaoComDados(input.manutencaoId);
-      if (!m) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
-      const tecnicoAutorizado = ctx.tecnicoSession?.tecnicoId === m.tecnicoId;
-      const adminAutorizado = !!ctx.tenantSession && (ctx.tenantSession.isSuperAdmin || ctx.tenantSession.tenantId === m.tenantId);
-      if (!tecnicoAutorizado && !adminAutorizado) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Você não tem acesso a esta manutenção" });
-      }
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
-      const perfilFoco: Record<string, string> = {
-        rede_escolar: "priorize diagnóstico de redes escolares, cobertura Wi-Fi, VLANs, DHCP, cabeamento e boas práticas de continuidade operacional",
-        infraestrutura_fisica: "priorize rack, patch panel, organização, cabeamento, fibra, aterramento, energia e segurança física da instalação",
-        configuracao_tp_link: "priorize TP-Link Omada, controlador, adoção de APs, VLANs, roaming, canais, potência e atualização de firmware",
-        configuracao_intelbras: "priorize Intelbras, controladoras, switches, APs, GPON, VLANs, provisionamento e documentação do fabricante",
-        rede_externa_telbras: "priorize redes externas, enlaces, fibra, GPON, ONUs, caixas de emenda, medição óptica, equipamentos Telbrás e critérios seguros de aceitação",
-      };
       const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
 
 • INFRAESTRUTURA DE REDE: Cabeamento estruturado (Cat5e/Cat6/Cat6A), fibra óptica (FTTH, FTTx), patch panels, racks 19", organizadores, DIO, caixas de emenda
 • EQUIPAMENTOS: Controladoras Intelbras (WiseFi), TP-Link Omada, Ubiquiti UniFi, Huawei, MikroTik. APs indoor/outdoor, switches gerenciáveis L2/L3, roteadores, OLTs, ONUs
 • CONFIGURAÇÃO: VLANs, DHCP, DNS, QoS, balanceamento de carga, failover, PPPoE, CGNAT, NAT, firewall, ACLs, SNMP, Zabbix, Grafana
 • INSTALAÇÃO FÍSICA: Montagem de rack (padrão EIA/TIA-568), passagem de cabos, certificação, teste de enlace, fusão de fibra, OTDR, power meter
-• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Telbrás, Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
+• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
 • PROJETOS ESCOLARES: Programa Escolas Conectadas, PBLE, Wi-Fi Brasil — regras de cobertura, quantidade de APs por m², posicionamento ideal
 
 Seu estilo:
@@ -411,10 +347,6 @@ Seu estilo:
 - Alerta sobre ERROS COMUNS que técnicos iniciantes cometem
 - Usa linguagem técnica mas acessível
 - Quando não sabe algo específico, indica onde buscar (manual, suporte fabricante)
-
-Foco selecionado pelo técnico: ${perfilFoco[input.perfil]}. 
-
-Regras de segurança: não invente modelo, senha, topologia ou medição. Se faltarem dados, faça perguntas objetivas. Não oriente a desativar firewall, segurança elétrica ou controles de acesso sem explicar o risco. Para energia, altura, fibra e instalações físicas, recomende procedimento seguro e manual do fabricante.
 
 Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const response = await invokeLLM({
@@ -666,8 +598,7 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const tenantId = requireTenantId(ctx);
-      if (input.tecnicoId) await assertTecnicoInTenant(db, input.tecnicoId, tenantId);
+      const tenantId = (ctx as any).tenantId;
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: null,
