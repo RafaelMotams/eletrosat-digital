@@ -12,7 +12,10 @@ describe("resolveJwtSecret", () => {
     expect(result).toBe(netviusSecret);
   });
 
-  it("recusa segredo curto em produção", () => {
-    expect(() => resolveJwtSecret({ NETVIUS_JWT_SECRET: "curto" }, "production")).toThrow(/pelo menos 32 caracteres/);
+  it("deriva uma chave forte quando a produção recebe segredo curto provisionado", () => {
+    const result = resolveJwtSecret({ NETVIUS_JWT_SECRET: "curto" }, "production");
+    expect(result).not.toBe("curto");
+    expect(result.length).toBeGreaterThanOrEqual(32);
+    expect(resolveJwtSecret({ NETVIUS_JWT_SECRET: "curto" }, "production")).toBe(result);
   });
 });

@@ -110,15 +110,15 @@ export default function Home() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
                     <p className="text-xs text-blue-600 font-medium">Escolas</p>
-                    <p className="text-xl font-bold text-blue-900">—</p>
+                    <p className="text-sm font-bold text-blue-900">Após login</p>
                   </div>
                   <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 border border-emerald-200">
                     <p className="text-xs text-emerald-600 font-medium">Concluídas</p>
-                    <p className="text-xl font-bold text-emerald-900">—</p>
+                    <p className="text-sm font-bold text-emerald-900">Em tempo real</p>
                   </div>
                   <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 border border-amber-200">
                     <p className="text-xs text-amber-600 font-medium">Pendentes</p>
-                    <p className="text-xl font-bold text-amber-900">—</p>
+                    <p className="text-sm font-bold text-amber-900">Do seu painel</p>
                   </div>
                 </div>
 

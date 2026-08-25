@@ -599,3 +599,8 @@
 - [x] Remover personificação e métricas operacionais de clientes da Central Master
 - [x] Exigir sessão assinada do técnico nas consultas e ações operacionais
 - [x] Bloquear mutações de usuários visualizadores no backend por padrão
+
+## Hotfix — Dados em Branco (25/08/2026)
+- [x] Identificar que a prévia pública exibia traços de demonstração e identificá-la claramente
+- [x] Corrigir sessão inválida para redirecionar ao login em vez de manter painel sem dados
+- [ ] Validar que cada conta volta a visualizar somente os próprios dados após o hotfix

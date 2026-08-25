@@ -26,15 +26,24 @@ const queryClient = new QueryClient({
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
+  const trpcCode = (error.data as { code?: string } | undefined)?.code;
+  const isUnauthorized = error.message === UNAUTHED_ERR_MSG || trpcCode === "UNAUTHORIZED";
   if (!isUnauthorized) return;
-  // Não redirecionar se for um técnico (autenticação própria via localStorage)
-  const tecnicoId = localStorage.getItem("tecnico_id");
-  if (tecnicoId) return;
-  // Painel administrativo exige token de tenant; nunca usar fallback OAuth.
-  const tenantToken = localStorage.getItem("tenant_admin_token");
-  if (!tenantToken) {
+  const path = window.location.pathname;
+
+  // Sessão de tenant inválida não pode deixar a tela administrativa aberta com
+  // consultas vazias; remove o token antigo e solicita novo login.
+  if (path.startsWith("/admin") && !path.startsWith("/admin/login") && !path.startsWith("/admin/cadastro")) {
+    localStorage.removeItem("tenant_admin_token");
+    localStorage.removeItem("tenant_admin_info");
     window.location.href = "/admin/login";
+    return;
+  }
+
+  // O técnico mantém a fila offline no dispositivo, mas precisa renovar a sessão
+  // para voltar a consultar ou sincronizar dados no servidor.
+  if (path.startsWith("/tecnico") && !path.startsWith("/tecnico/login")) {
+    window.location.href = "/tecnico/login?reason=session-expired";
   }
 };
 
