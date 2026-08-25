@@ -2,7 +2,8 @@ import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
+import { Link } from "wouter";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -91,6 +92,8 @@ export default function AdminDashboard() {
       refetchIntervalInBackground: false,
     }
   );
+  const { data: materiais } = trpc.estoque.materiais.list.useQuery(undefined, { refetchInterval: isOnline ? 30000 : false });
+  const { data: saldos } = trpc.estoque.saldos.list.useQuery(undefined, { refetchInterval: isOnline ? 30000 : false });
 
   const handleRefresh = () => {
     refetchStats();
@@ -105,6 +108,8 @@ export default function AdminDashboard() {
   const totalApsExibir = (stats as any)?.totalApsPlanejados ?? stats?.totalApsInstalados ?? 0;
   const totalApsConcluidos = (stats as any)?.totalApsConcluidos ?? 0;
   const pctAps = totalApsExibir > 0 ? Math.round((totalApsConcluidos / totalApsExibir) * 100) : 0;
+  const saldoAlmoxarifado = new Map((saldos ?? []).filter(saldo => saldo.holderType === "almoxarifado").map(saldo => [saldo.materialId, Number(saldo.quantidade)]));
+  const materiaisCriticos = (materiais ?? []).filter(material => (saldoAlmoxarifado.get(material.id) ?? 0) < Number(material.estoqueMinimo));
 
   return (
     <AdminLayoutAuto title="Dashboard">
@@ -170,6 +175,19 @@ export default function AdminDashboard() {
           </button>
         </div>
       </div>
+
+      {materiaisCriticos.length > 0 && (
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><AlertCircle className="h-5 w-5" /></div>
+            <div>
+              <p className="font-bold text-amber-950">Reposição necessária</p>
+              <p className="mt-0.5 text-sm text-amber-800">{materiaisCriticos.length} {materiaisCriticos.length === 1 ? "material está abaixo" : "materiais estão abaixo"} do estoque mínimo no almoxarifado.</p>
+            </div>
+          </div>
+          <Link href="/admin/estoque" className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-700">Abrir estoque <ArrowRight className="h-4 w-4" /></Link>
+        </div>
+      )}
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

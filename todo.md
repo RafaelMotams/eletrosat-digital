@@ -631,6 +631,8 @@
 - [x] Validar visualmente o ajuste de inventário e seu bloqueio seguro sem materiais cadastrados
 - [x] Permitir devolução auditável de material do técnico para o almoxarifado
 - [x] Validar a tela de estoque com estados vazios seguros após incluir a devolução de materiais
+- [x] Exibir no dashboard alerta acionável de materiais abaixo do estoque mínimo
+- [x] Validar dashboard com dados reais e ausência correta de alerta quando não há materiais críticos
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
