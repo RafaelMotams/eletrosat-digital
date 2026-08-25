@@ -18,7 +18,7 @@
  */
 
 const DB_NAME = "netvionis_offline";
-const DB_VERSION = 3; // v3: store "fotoRascunho" para persistir fotos ao voltar da câmera
+const DB_VERSION = 4; // v4: cache de materiais isolado por tenant e técnico
 
 export type FotoOffline = {
   categoria: string;
@@ -54,6 +54,14 @@ export type EscolaCache = {
   ts: number;
 };
 
+export type EstoqueTecnicoCache = {
+  key: string;
+  tenantId: number;
+  tecnicoId: number;
+  data: unknown[];
+  ts: number;
+};
+
 // ─── Abrir / criar banco ───────────────────────────────────────────────────
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -75,6 +83,9 @@ function openDB(): Promise<IDBDatabase> {
       // v3: rascunho de fotos para persistir ao voltar da câmera no Android
       if (!db.objectStoreNames.contains("fotoRascunho")) {
         db.createObjectStore("fotoRascunho", { keyPath: "escolaId" });
+      }
+      if (!db.objectStoreNames.contains("estoqueTecnico")) {
+        db.createObjectStore("estoqueTecnico", { keyPath: "key" });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -98,6 +109,33 @@ function wrap<T>(req: IDBRequest<T>): Promise<T> {
     req.onsuccess = () => res(req.result);
     req.onerror = () => rej(req.error);
   });
+}
+
+// ─── Cache de materiais do técnico ────────────────────────────────────────
+
+function estoqueCacheKey(tenantId: number, tecnicoId: number) {
+  return `${tenantId}:${tecnicoId}`;
+}
+
+export async function dbCacheEstoqueTecnico(tenantId: number, tecnicoId: number, data: unknown[]): Promise<void> {
+  if (!tenantId || !tecnicoId) return;
+  try {
+    const db = await openDB();
+    const entry: EstoqueTecnicoCache = { key: estoqueCacheKey(tenantId, tecnicoId), tenantId, tecnicoId, data, ts: Date.now() };
+    await wrap(tx(db, "estoqueTecnico", "readwrite").put(entry));
+  } catch {}
+}
+
+export async function dbGetCachedEstoqueTecnico(tenantId: number, tecnicoId: number): Promise<unknown[] | null> {
+  if (!tenantId || !tecnicoId) return null;
+  try {
+    const db = await openDB();
+    const entry = await wrap<EstoqueTecnicoCache | undefined>(tx(db, "estoqueTecnico", "readonly").get(estoqueCacheKey(tenantId, tecnicoId)));
+    if (!entry || Date.now() - entry.ts > 7 * 24 * 60 * 60 * 1000) return null;
+    return entry.data;
+  } catch {
+    return null;
+  }
 }
 
 // ─── Cache de escolas ─────────────────────────────────────────────────────
@@ -247,7 +285,7 @@ export async function dbClearFotoRascunho(escolaId: number): Promise<void> {
 }
 
 /** Remove do aparelho os dados locais de um técnico após confirmar que não há OS pendentes. */
-export async function dbClearTecnicoData(tecnicoId: number): Promise<void> {
+export async function dbClearTecnicoData(tecnicoId: number, tenantId?: number): Promise<void> {
   const db = await openDB();
   const pending = await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
   const pendentesDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status !== "done");
@@ -256,6 +294,14 @@ export async function dbClearTecnicoData(tecnicoId: number): Promise<void> {
   }
 
   await wrap(tx(db, "escolas", "readwrite").delete(tecnicoId));
+
+  if (tenantId) {
+    await wrap(tx(db, "estoqueTecnico", "readwrite").delete(estoqueCacheKey(tenantId, tecnicoId)));
+  } else {
+    const entries = await wrap<EstoqueTecnicoCache[]>(tx(db, "estoqueTecnico", "readonly").getAll());
+    const store = tx(db, "estoqueTecnico", "readwrite");
+    for (const entry of entries.filter(item => item.tecnicoId === tecnicoId)) store.delete(entry.key);
+  }
 
   const doneDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status === "done");
   for (const item of doneDoTecnico) {

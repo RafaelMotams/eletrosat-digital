@@ -7,6 +7,7 @@ import { superadminRouter } from "./routers/superadmin";
 import { cadastroRouter } from "./routers/cadastro";
 import { manutencaoRouter } from "./routers/manutencao";
 import { tenantConfigRouter } from "./routers/tenantConfig";
+import { estoqueRouter } from "./routers/estoque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -848,6 +849,7 @@ const tecnicoAuthRouter = router({
       });
       return {
         id: tecnico.id,
+        tenantId: tecnico.tenantId,
         nome: tecnico.nome,
         email: tecnico.email,
         telefone: tecnico.telefone,
@@ -1358,6 +1360,7 @@ export const appRouter = router({
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
+  estoque: estoqueRouter,
   superadmin: superadminRouter,
   cadastro: cadastroRouter,
   tenantConfig: tenantConfigRouter,

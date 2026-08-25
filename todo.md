@@ -595,7 +595,7 @@
 - [x] Revisar OS, manutenção, aplicativo offline e Assistente Técnico com sessão técnica, validação de tenant e fila offline por técnico
 - [x] Aprimorar relatórios com AP planejada, instalada, a menos, a mais, diferença e percentual
 - [x] Consolidar estados de carregamento, vazio, erro, offline, conflito e permissão negada nas telas críticas
-- [ ] Executar testes, build, validação visual e publicação por checkpoints
+- [x] Executar testes, build, validação visual e publicação por checkpoints
 - [x] Remover personificação e métricas operacionais de clientes da Central Master
 - [x] Exigir sessão assinada do técnico nas consultas e ações operacionais
 - [x] Bloquear mutações de usuários visualizadores no backend por padrão
@@ -621,3 +621,14 @@
 - [x] Criar componentes reutilizáveis para carregamento, vazio, erro e permissão negada
 - [x] Aplicar estados claros nas telas administrativas de relatórios e manutenção
 - [x] Aplicar estados claros no aplicativo técnico para manutenção e falhas de sincronização
+
+## Evolução Operacional de Campo e Gestão Premium (25/08/2026)
+- [x] Consolidar requisitos e restrições para técnico de infraestrutura em zona rural
+- [x] Criar especificação detalhada de design, funcionalidades e comportamento seguro do Netvius
+- [x] Modelar estoque de materiais por tenant e técnico com movimentações auditáveis
+- [x] Criar gestão administrativa de estoque, transferências e níveis mínimos de material
+- [x] Criar no aplicativo técnico a consulta de materiais, consumo e cache offline isolado por tenant e técnico
+- [ ] Evoluir o roteirizador para apoiar planejamento editável e confirmação humana de rota
+- [ ] Evoluir o Assistente Técnico para analisar foto de diagnóstico com limites de segurança e escalonamento
+- [ ] Aprimorar manutenção, ordens e exportações com relatórios profissionais e auditáveis
+- [ ] Validar isolamento, offline, responsividade, acessibilidade, testes e publicação incremental

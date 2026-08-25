@@ -232,6 +232,7 @@ export default function TecnicoLogin() {
         setLoginSuccess(true);
         const isFirstLogin = !localStorage.getItem("tecnico_ever_logged");
         localStorage.setItem("tecnico_id", String(data.id));
+        localStorage.setItem("tecnico_tenant_id", String((data as any).tenantId ?? ""));
         localStorage.setItem("tecnico_nome", data.nome);
         localStorage.setItem("tecnico_email", data.email);
         localStorage.setItem("tecnico", JSON.stringify(data));

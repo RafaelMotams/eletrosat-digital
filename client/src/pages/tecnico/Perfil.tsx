@@ -5,7 +5,7 @@ import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbClearTecnicoData } from "@/hooks/useOfflineDB";
 import {
   User, Wifi, CheckCircle, Clock, Zap, LogOut, Award, TrendingUp,
-  Shield, Star, ChevronRight, Settings, Bell, HelpCircle, Activity
+  Shield, Star, ChevronRight, Settings, Bell, HelpCircle, Activity, Boxes
 } from "lucide-react";
 
 /* ─── Animated circular progress ─── */
@@ -32,6 +32,7 @@ export default function TecnicoPerfil() {
   const [, navigate] = useLocation();
   const [mounted, setMounted] = useState(false);
   const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
+  const tenantId = Number(localStorage.getItem("tecnico_tenant_id") || 0);
   const tecnicoNome = localStorage.getItem("tecnico_nome") || "Técnico";
   const tecnicoEmail = localStorage.getItem("tecnico_email") || "";
   const logoutMutation = trpc.tecnicoAuth.logout.useMutation();
@@ -55,7 +56,7 @@ export default function TecnicoPerfil() {
 
   const handleLogout = async () => {
     try {
-      await dbClearTecnicoData(tecnicoId);
+      await dbClearTecnicoData(tecnicoId, tenantId);
     } catch (error) {
       window.alert(error instanceof Error ? `${error.message} Conecte-se e sincronize antes de sair.` : "Sincronize as ordens pendentes antes de sair.");
       return;
@@ -64,7 +65,7 @@ export default function TecnicoPerfil() {
     try {
       await logoutMutation.mutateAsync();
     } finally {
-      ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
+      ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
       navigate("/tecnico/login");
     }
@@ -220,12 +221,13 @@ export default function TecnicoPerfil() {
         <div className="rounded-2xl overflow-hidden mb-4"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
           {[
+            { icon: Boxes, label: "Meus materiais", sub: "Saldo e consumo de estoque", color: "#06b6d4", path: "/tecnico/estoque" },
             { icon: Shield, label: "Segurança", sub: "Senha e autenticação", color: "#3b82f6" },
             { icon: Settings, label: "Preferências", sub: "Notificações e aparência", color: "#6366f1" },
             { icon: HelpCircle, label: "Suporte", sub: "Ajuda e documentação", color: "#10b981" },
-          ].map(({ icon: Icon, label, sub, color }, i, arr) => (
+          ].map(({ icon: Icon, label, sub, color, path }, i, arr) => (
             <div key={label}>
-              <button className="w-full flex items-center gap-3 px-4 py-3.5 transition-all active:bg-white/5">
+              <button onClick={() => path && navigate(path)} className="w-full flex items-center gap-3 px-4 py-3.5 transition-all active:bg-white/5">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: `${color}15`, border: `1px solid ${color}25` }}>
                   <Icon className="w-4 h-4" style={{ color }} />

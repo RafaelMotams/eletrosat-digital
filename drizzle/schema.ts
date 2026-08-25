@@ -218,6 +218,71 @@ export const tecnicoValoresAp = mysqlTable("tecnico_valores_ap", {
 export type TecnicoValorAp = typeof tecnicoValoresAp.$inferSelect;
 export type InsertTecnicoValorAp = typeof tecnicoValoresAp.$inferInsert;
 
+// ============================================================
+// ESTOQUE OPERACIONAL (isolado por tenant)
+// ============================================================
+// O catálogo pertence à empresa. Códigos são únicos somente dentro do tenant.
+export const materiaisEstoque = mysqlTable("materiais_estoque", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  codigo: varchar("codigo", { length: 80 }).notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  categoria: varchar("categoria", { length: 100 }),
+  unidade: varchar("unidade", { length: 20 }).default("un").notNull(),
+  estoqueMinimo: decimal("estoqueMinimo", { precision: 12, scale: 3 }).default("0.000").notNull(),
+  ativo: boolean("ativo").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantCodigoIdx: uniqueIndex("materiais_tenant_codigo_unique").on(table.tenantId, table.codigo),
+  tenantNomeIdx: index("materiais_tenant_nome_idx").on(table.tenantId, table.nome),
+}));
+export type MaterialEstoque = typeof materiaisEstoque.$inferSelect;
+export type InsertMaterialEstoque = typeof materiaisEstoque.$inferInsert;
+
+// Saldo por detentor. O almoxarifado usa holderType="almoxarifado" e holderId=0;
+// um técnico usa holderType="tecnico" e o próprio tecnicoId.
+export const estoqueSaldos = mysqlTable("estoque_saldos", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  materialId: int("materialId").notNull(),
+  holderType: mysqlEnum("holderType", ["almoxarifado", "tecnico"]).notNull(),
+  holderId: int("holderId").notNull().default(0),
+  quantidade: decimal("quantidade", { precision: 12, scale: 3 }).default("0.000").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  saldoUnicoIdx: uniqueIndex("estoque_saldo_holder_unique").on(table.tenantId, table.materialId, table.holderType, table.holderId),
+  tenantHolderIdx: index("estoque_saldo_tenant_holder_idx").on(table.tenantId, table.holderType, table.holderId),
+}));
+export type EstoqueSaldo = typeof estoqueSaldos.$inferSelect;
+export type InsertEstoqueSaldo = typeof estoqueSaldos.$inferInsert;
+
+// Livro-razão append-only. O saldo é atualizado na mesma transação da movimentação.
+export const estoqueMovimentacoes = mysqlTable("estoque_movimentacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  materialId: int("materialId").notNull(),
+  tipo: mysqlEnum("tipo", ["entrada", "transferencia", "consumo", "devolucao", "ajuste"]).notNull(),
+  origemType: mysqlEnum("origemType", ["almoxarifado", "tecnico", "externo"]).notNull(),
+  origemId: int("origemId").notNull().default(0),
+  destinoType: mysqlEnum("destinoType", ["almoxarifado", "tecnico", "consumo"]).notNull(),
+  destinoId: int("destinoId").notNull().default(0),
+  quantidade: decimal("quantidade", { precision: 12, scale: 3 }).notNull(),
+  ordemServicoId: int("ordemServicoId"),
+  manutencaoId: int("manutencaoId"),
+  observacao: text("observacao"),
+  clientId: varchar("clientId", { length: 100 }),
+  actorType: mysqlEnum("actorType", ["admin", "tecnico", "sistema"]).notNull(),
+  actorId: int("actorId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  clientIdIdx: uniqueIndex("estoque_mov_client_id_unique").on(table.clientId),
+  tenantCreatedIdx: index("estoque_mov_tenant_created_idx").on(table.tenantId, table.createdAt),
+  materialCreatedIdx: index("estoque_mov_material_created_idx").on(table.tenantId, table.materialId, table.createdAt),
+}));
+export type EstoqueMovimentacao = typeof estoqueMovimentacoes.$inferSelect;
+export type InsertEstoqueMovimentacao = typeof estoqueMovimentacoes.$inferInsert;
+
 // Tabela de Planilhas Importadas (histórico de uploads de planilhas de escolas)
 export const planilhasImportadas = mysqlTable("planilhas_importadas", {
   id: int("id").autoincrement().primaryKey(),
