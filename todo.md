@@ -624,6 +624,9 @@
 - [x] Criar checklist técnico contextual opcional para instalação e manutenção no aplicativo de campo
 - [x] Adicionar filtro acionável para materiais abaixo do estoque mínimo no painel de estoque
 - [x] Validar visualmente o filtro de estoque crítico e sua ação de limpar filtro no painel autenticado
+- [x] Confirmar que o técnico já registra consumo de material com validação de saldo e auditoria no próprio estoque
+- [x] Adicionar filtro acionável de itens abaixo do mínimo no estoque do aplicativo técnico
+- [x] Validar que a rota de estoque técnico sem sessão redireciona ao login de forma segura
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
