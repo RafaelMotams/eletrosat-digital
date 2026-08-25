@@ -685,26 +685,34 @@ export default function AdminRelatorios() {
               )}
             </CardTitle>
 
-            <button
-              onClick={() => exportarExcel(osDetalhadas ?? [], tecnicosSelecionados, periodo, dataInicio, dataFim, osNaoInstaladas ?? [])}
-              disabled={!osDetalhadas || osDetalhadas.length === 0}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: "linear-gradient(135deg, #16a34a, #22c55e)",
-                color: "white",
-                boxShadow: "0 2px 8px rgba(34,197,94,0.35)",
-              }}
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Exportar Excel
-            </button>
+            {!isViewer && (
+              <button
+                onClick={() => exportarExcel(osDetalhadas ?? [], tecnicosSelecionados, periodo, dataInicio, dataFim, osNaoInstaladas ?? [])}
+                disabled={!osDetalhadas || osDetalhadas.length === 0}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                  color: "white",
+                  boxShadow: "0 2px 8px rgba(34,197,94,0.35)",
+                }}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Exportar Excel
+              </button>
+            )}
           </div>
 
           {/* Dica sobre o campo de valor */}
-          {totalOsTabela > 0 && (
+          {totalOsTabela > 0 && !isViewer && (
             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
               <Download className="w-3 h-3" />
               A planilha exportada contém a coluna <strong className="mx-1">Valor por AP (R$)</strong> — preencha o valor e o total será calculado automaticamente.
+            </p>
+          )}
+          {isViewer && (
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+              <EyeOff className="w-3 h-3" />
+              Perfil visualizador: valores financeiros e exportações estão protegidos.
             </p>
           )}
         </CardHeader>

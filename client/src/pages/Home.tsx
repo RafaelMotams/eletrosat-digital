@@ -222,6 +222,49 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Demonstração visual do fluxo operacional */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 text-white">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[0.8fr_1.2fr] gap-14 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-emerald-300">
+              <Play className="h-3.5 w-3.5" /> Fluxo demonstrativo
+            </div>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-extrabold leading-tight">Da abertura à conclusão, sem perder o histórico.</h2>
+            <p className="mt-5 text-base sm:text-lg leading-relaxed text-slate-300">Acompanhe uma ordem avançando pelas etapas operacionais. O técnico recebe a atividade, registra evidências e a gestão consulta o resultado no painel.</p>
+            <div className="mt-7 grid sm:grid-cols-2 gap-3 text-sm text-slate-300">
+              {["Atribuição por empresa e técnico", "Fotos e observações da execução", "Status atualizado no painel", "Relatório disponível para conferência"].map(item => (
+                <div key={item} className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-emerald-400" /> {item}</div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 sm:p-7 shadow-2xl shadow-emerald-950/30 backdrop-blur">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ordem demonstrativa</p><p className="mt-1 font-bold">Fluxo de atendimento</p></div>
+              <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Sincronizado</span>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                { icon: Clock, label: "1. Ordem criada", text: "Responsável e local definidos", color: "text-amber-300", bg: "bg-amber-400/10" },
+                { icon: Camera, label: "2. Em execução", text: "Fotos, km e observações", color: "text-sky-300", bg: "bg-sky-400/10" },
+                { icon: CheckCircle, label: "3. Concluída", text: "Relatório pronto para gestão", color: "text-emerald-300", bg: "bg-emerald-400/10" },
+              ].map((step, index) => (
+                <div key={step.label} className="relative rounded-2xl border border-white/10 bg-slate-950/55 p-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${step.bg}`}><step.icon className={`h-5 w-5 ${step.color}`} /></div>
+                  <p className="mt-4 text-sm font-bold">{step.label}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-400">{step.text}</p>
+                  {index < 2 && <span className="absolute -right-3 top-1/2 hidden h-2 w-2 -translate-y-1/2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,.9)] sm:block animate-pulse" />}
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/55 p-4">
+              <div className="flex items-center justify-between text-xs text-slate-400"><span>Progresso da operação</span><span className="font-bold text-emerald-300">3 de 3 etapas</span></div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full w-full rounded-full bg-gradient-to-r from-sky-400 via-teal-400 to-emerald-400" /></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section id="como-funciona" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
         <div className="max-w-7xl mx-auto">

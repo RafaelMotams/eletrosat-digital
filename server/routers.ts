@@ -142,6 +142,9 @@ const tecnicosRouter = router({
   getValoresAp: tenantAdminProcedure
     .input(z.object({ tecnicoId: z.number() }))
     .query(async ({ input, ctx }) => {
+      if (ctx.tenantSession?.role === "viewer") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não acessa valores financeiros" });
+      }
       const tecnico = await getTecnicoById(input.tecnicoId);
       if (!tecnico || tecnico.tenantId !== (ctx as any).tenantId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence a este tenant" });
@@ -157,6 +160,9 @@ const tecnicosRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      if (ctx.tenantSession?.role === "viewer") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não altera valores financeiros" });
+      }
       const tenantId = (ctx as any).tenantId;
       const tecnico = await getTecnicoById(input.tecnicoId);
       if (!tecnico || tecnico.tenantId !== tenantId) {
@@ -749,17 +755,18 @@ const relatoriosRouter = router({
       const inicio = input.dataInicio ? new Date(input.dataInicio) : null;
       const fim = input.dataFim ? new Date(input.dataFim) : null;
       const tenantId = (ctx as any).tenantId;
+      const isViewer = ctx.tenantSession?.role === "viewer";
       // Suporte a múltiplos técnicos
       const tecnicoIds = input.tecnicoIds && input.tecnicoIds.length > 0 ? input.tecnicoIds : undefined;
       const tecnicoId = !tecnicoIds && input.tecnicoId && input.tecnicoId > 0 ? input.tecnicoId : undefined;
       const rows = await getOsDetalhadas({ tecnicoId, tecnicoIds, dataInicio: inicio, dataFim: fim, tenantId });
       // Buscar tabela de valores por AP de todos os técnicos do tenant
-      const valoresMap = await getValoresApAllTecnicos(tenantId);
+      const valoresMap = isViewer ? {} : await getValoresApAllTecnicos(tenantId);
       // Calcular valor por OS com base nos APs instalados e valor cadastrado do técnico
       return rows.map(os => {
         const tecValores = valoresMap[os.tecnicoId ?? 0] ?? {};
         const qtd = os.qtdApInstalado ?? 0;
-        const valorCalculado = tecValores[qtd] ?? null;
+        const valorCalculado = isViewer ? null : (tecValores[qtd] ?? null);
         return { ...os, valorCalculado };
       });
     }),

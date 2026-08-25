@@ -71,6 +71,10 @@ export async function exportarRelatorioExcel(req: Request, res: Response) {
       res.status(401).json({ error: "Sessão de tenant válida é obrigatória para exportar relatórios" });
       return;
     }
+    if (session.role === "viewer") {
+      res.status(403).json({ error: "Perfil visualizador não pode exportar valores financeiros" });
+      return;
+    }
     const tenantId = session.tenantId;
 
     const valorPorApFallback = parseFloat(req.query.valorPorAp as string) || 0;

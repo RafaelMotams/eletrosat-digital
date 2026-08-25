@@ -510,10 +510,10 @@
 - [x] Frontend: KPIs de Total de Unidades, Concluídas e % Progresso no banner executivo
 
 ## Melhorias Premium (18/07/2026)
-- [ ] Ocultar valores (R$) na página de Relatórios para role viewer
-- [ ] Redesenhar site inicial: premium, elegante, copy de vendas profissional
-- [ ] Mostrar todos os diferenciais e funcionalidades no site
-- [ ] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
+- [x] Ocultar valores (R$) na página de Relatórios para role viewer
+- [x] Redesenhar site inicial: premium, elegante, copy de vendas profissional
+- [x] Mostrar todos os diferenciais e funcionalidades no site
+- [x] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
 - [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
 - [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
 - [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior
@@ -523,7 +523,7 @@
 - [x] Mudar "Gestão inteligente para equipes externas" para copy premium de vendas
 - [x] Copy de vendas premium no hero ("Cada técnico em campo, cada centavo no lugar certo")
 - [x] CTA final redesenhado com copy urgente ("Pare de perder dinheiro com operação desorganizada")
-- [ ] Redesenhar site com visual de empresa grande (Stripe/Linear level)
+- [x] Redesenhar site com visual de empresa grande (Stripe/Linear level)
 - [x] Seção de segurança (100% seguro, dados na nuvem, proteção total)
 ### App do Técnico - Melhorias
 - [x] Link do Google Maps com coordenadas na página de manutenção
@@ -533,11 +533,11 @@
 - [x] Distância entre cidades no mapa
 - [x] Botão "Iniciar Rota" abrindo Google Maps com navegação
 - [x] IA assistente para ajudar o técnico na instalação de infraestrutura (endpoint assistenteIA)
-- [ ] Visual do app completamente redesenhado (premium, elegante)
+- [x] Visual do app completamente redesenhado (premium, elegante)
 ### Superadmin Premium
 - [x] Aba "Logs de Acesso" adicionada ao painel Superadmin com tabela de auditoria
 - [x] Logs de login registrados no banco (IP, userAgent, sucesso/falha, tipo)
-- [ ] Redesenhar superadmin com visual premium e funcionalidades avançadas
+- [x] Redesenhar superadmin com visual premium e funcionalidades avançadas
 ### Segurança Avançada
 - [x] Rate limiting no login (proteção contra brute force - 5 tentativas, bloqueio 15min)
 - [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
@@ -566,7 +566,7 @@
 - [ ] Definir e integrar um canal autorizado para notificação automática de novas contas no WhatsApp
 - [x] Corrigir isolamento multi-tenant para que cada cliente visualize somente os próprios dados
 - [x] Remover Nota Fiscal também do menu do painel de revenda
-- [ ] Refinar a apresentação visual do painel de revenda
+- [x] Refinar a apresentação visual do painel de revenda
 - [x] Permitir o registro da quilometragem percorrida pelo técnico no aplicativo de manutenção
 - [x] Exibir e exportar o cálculo de R$ 200,00 por escola mais R$ 2,50 por quilômetro em todas as manutenções
 - [x] Organizar a planilha de exportação de manutenção com colunas financeiras e total geral

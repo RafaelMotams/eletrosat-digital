@@ -24,6 +24,19 @@ function createTenantContext(tenantId: number): TrpcContext {
   };
 }
 
+function createViewerContext(tenantId: number): TrpcContext {
+  return {
+    ...createTenantContext(tenantId),
+    tenantSession: {
+      tenantId,
+      adminId: 200 + tenantId,
+      email: `viewer@tenant${tenantId}.com`,
+      role: "viewer",
+      isSuperAdmin: false,
+    },
+  };
+}
+
 function createOAuthAdminContext(): TrpcContext {
   return {
     user: {
@@ -191,6 +204,11 @@ describe("Isolamento Multi-Tenant: Técnicos", () => {
     await expect(
       caller.tecnicos.delete({ id: 2 })
     ).rejects.toThrow(TRPCError);
+  });
+
+  it("visualizador não acessa a tabela de valores do técnico", async () => {
+    const caller = appRouter.createCaller(createViewerContext(1));
+    await expect(caller.tecnicos.getValoresAp({ tecnicoId: 1 })).rejects.toThrow(TRPCError);
   });
 });
 
