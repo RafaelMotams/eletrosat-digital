@@ -5,7 +5,7 @@ import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
   TrendingUp, Navigation, LocateFixed, X, Wifi,
-  Filter, Bell, ChevronDown
+  Filter, Bell, ChevronDown, Boxes, Wrench, Route, ArrowUpRight
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -256,6 +256,7 @@ export default function TecnicoHome() {
   const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
   const totalAps = escolas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
   const apsInstalados = escolas.filter(e => e.status === "concluido").reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
+  const proximaAtividade = finalSorted.find(escola => escola.status === "pendente" || escola.status === "em_andamento") ?? null;
 
 
 
@@ -354,6 +355,14 @@ export default function TecnicoHome() {
           </div>
         </div>
 
+        {proximaAtividade && (() => {
+          const proximoStatus = STATUS_CONFIG[proximaAtividade.status] ?? STATUS_CONFIG.pendente;
+          return <button type="button" onClick={() => navigate(`/tecnico/os/${proximaAtividade.id}`)} className="mb-4 w-full overflow-hidden rounded-2xl p-4 text-left transition-transform active:scale-[0.985]" style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.18),rgba(14,165,233,0.10))", border: "1px solid rgba(129,140,248,0.26)", boxShadow: "0 12px 32px rgba(30,41,59,0.28)" }}>
+            <div className="mb-3 flex items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(129,140,248,0.16)", color: "#c7d2fe" }}><span className="h-1.5 w-1.5 rounded-full bg-indigo-300" />PRÓXIMA ATIVIDADE</span><span className="rounded-full px-2 py-1 text-[10px] font-bold" style={{ background: proximoStatus.bg, color: proximoStatus.color, border: `1px solid ${proximoStatus.border}` }}>{proximoStatus.label}</span></div>
+            <div className="flex items-end gap-3"><span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl text-xs font-black" style={{ background: "rgba(255,255,255,0.09)", color: "#e0e7ff" }}>{proximaAtividade.nome.split(" ").filter(parte => parte.length > 2).slice(0, 2).map(parte => parte[0]).join("").toUpperCase() || "OS"}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-white">{proximaAtividade.nome}</span><span className="mt-1 block truncate text-[11px] text-slate-300">{proximaAtividade.municipio ?? "Local a confirmar"}{proximaAtividade.qtdAp ? ` · ${proximaAtividade.qtdAp} AP${proximaAtividade.qtdAp > 1 ? "s" : ""}` : ""}</span></span><span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#f8fafc" }}><ArrowUpRight className="h-4 w-4" /></span></div>
+          </button>;
+        })()}
+
         {/* Progress card */}
         <div className="rounded-2xl p-4 mb-4"
           style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.15), rgba(79,70,229,0.1))", border: "1px solid rgba(59,130,246,0.15)" }}>
@@ -392,6 +401,23 @@ export default function TecnicoHome() {
             </div>
           ))}
         </div>
+
+        <section className="mb-1" aria-label="Atalhos de campo">
+          <div className="mb-2 flex items-center justify-between"><p className="text-xs font-semibold tracking-wide text-slate-400">ATALHOS DE CAMPO</p><span className="text-[10px] text-slate-500">Acesso rápido</span></div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Planejar rota", sub: "Organize o dia", path: "/tecnico/rota", icon: Route, color: "#a78bfa" },
+              { label: "Manutenções", sub: "Atendimentos", path: "/tecnico/manutencao", icon: Wrench, color: "#fb923c" },
+              { label: "Materiais", sub: "Saldo e uso", path: "/tecnico/estoque", icon: Boxes, color: "#22d3ee" },
+            ].map(({ label, sub, path, icon: Icon, color }) => (
+              <button key={path} type="button" onClick={() => navigate(path)} className="min-w-0 rounded-2xl p-3 text-left transition-transform active:scale-[0.97]" style={{ background: "rgba(255,255,255,0.045)", border: "1px solid rgba(148,163,184,0.12)" }}>
+                <span className="mb-2 grid h-8 w-8 place-items-center rounded-xl" style={{ background: `${color}18`, color }}><Icon className="h-4 w-4" /></span>
+                <span className="block truncate text-[11px] font-bold text-slate-100">{label}</span>
+                <span className="mt-0.5 block truncate text-[9px] text-slate-500">{sub}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
 
       </div>

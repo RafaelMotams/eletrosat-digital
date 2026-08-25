@@ -652,6 +652,10 @@
 - [x] Isolar por tenant e técnico as rotas persistidas no navegador do aplicativo de campo
 - [x] Isolar por tenant e técnico as chaves legadas de cache e fila offline do aplicativo
 - [x] Restaurar com segurança a OS técnica ativa no retorno ao aplicativo sem sobrescrever a rota isolada
+- [x] Detalhar na rota semanal as conclusões por dia e as pendências abertas do técnico
+- [x] Redesenhar o aplicativo técnico com sistema visual premium, espaçamento e tipografia consistentes
+- [x] Modernizar a navegação e os componentes de campo para maior clareza e organização em telas móveis
+- [x] Adicionar melhorias funcionais úteis ao fluxo diário do técnico sem alterar dados ou permissões existentes
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

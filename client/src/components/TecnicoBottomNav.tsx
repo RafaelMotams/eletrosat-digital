@@ -1,81 +1,69 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { Home, Map, ClipboardCheck, User, Route, Wrench } from "lucide-react";
+import { Box, ClipboardCheck, Home, Map, Menu, Route, User, Wrench, X } from "lucide-react";
 
 const tabs = [
-  { path: "/tecnico",           icon: Home,           label: "Início",    color: "#3b82f6", glow: "rgba(59,130,246,0.35)",  grad: "linear-gradient(135deg,#1d4ed8,#3b82f6)" },
-  { path: "/tecnico/mapa",      icon: Map,            label: "Mapa",      color: "#06b6d4", glow: "rgba(6,182,212,0.35)",   grad: "linear-gradient(135deg,#0e7490,#06b6d4)" },
-  { path: "/tecnico/rota",      icon: Route,          label: "Rota",      color: "#8b5cf6", glow: "rgba(139,92,246,0.35)",  grad: "linear-gradient(135deg,#6d28d9,#8b5cf6)" },
-  { path: "/tecnico/historico",   icon: ClipboardCheck, label: "Histórico",   color: "#10b981", glow: "rgba(16,185,129,0.35)",  grad: "linear-gradient(135deg,#047857,#10b981)" },
-  { path: "/tecnico/manutencao",   icon: Wrench,         label: "Manutenção",  color: "#f97316", glow: "rgba(249,115,22,0.35)",  grad: "linear-gradient(135deg,#c2410c,#f97316)" },
-  { path: "/tecnico/perfil",       icon: User,           label: "Perfil",      color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  grad: "linear-gradient(135deg,#b45309,#f59e0b)" },
+  { path: "/tecnico", icon: Home, label: "Início", color: "#60a5fa" },
+  { path: "/tecnico/mapa", icon: Map, label: "Mapa", color: "#22d3ee" },
+  { path: "/tecnico/rota", icon: Route, label: "Rota", color: "#a78bfa" },
+  { path: "/tecnico/historico", icon: ClipboardCheck, label: "Histórico", color: "#34d399" },
+];
+
+const secondaryTabs = [
+  { path: "/tecnico/manutencao", icon: Wrench, label: "Manutenções", description: "Atendimentos atribuídos", color: "#fb923c" },
+  { path: "/tecnico/estoque", icon: Box, label: "Materiais", description: "Saldo e consumo", color: "#22d3ee" },
+  { path: "/tecnico/perfil", icon: User, label: "Perfil", description: "Conta e preferências", color: "#fbbf24" },
 ];
 
 export default function TecnicoBottomNav() {
   const [location, navigate] = useLocation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = secondaryTabs.some(tab => location === tab.path || location.startsWith(`${tab.path}/`));
+
+  function goTo(path: string) {
+    setMoreOpen(false);
+    navigate(path);
+  }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50"
-      style={{
-        background: "rgba(4,10,22,0.97)",
-        backdropFilter: "blur(48px) saturate(180%)",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 6px)",
-        boxShadow: "0 -8px 40px rgba(0,0,0,0.5)",
-      }}>
-      {/* Top separator line with gradient */}
-      <div className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: "linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.2) 30%, rgba(99,102,241,0.2) 70%, transparent 100%)" }} />
+    <>
+      {moreOpen && <button type="button" aria-label="Fechar menu" onClick={() => setMoreOpen(false)} className="fixed inset-0 z-40" style={{ background: "rgba(2,6,23,0.58)", backdropFilter: "blur(3px)" }} />}
 
-      <div className="flex items-center justify-around px-1 pt-2 pb-1">
-        {tabs.map(({ path, icon: Icon, label, color, glow, grad }) => {
-          const active = location === path || (path !== "/tecnico" && location.startsWith(path));
-          return (
-            <button key={path} onClick={() => navigate(path)}
-              className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-2xl transition-all duration-250 active:scale-90 relative"
-              style={{ minWidth: "64px" }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50" aria-label="Navegação principal do técnico"
+        style={{ background: "rgba(5,11,25,0.96)", backdropFilter: "blur(28px) saturate(160%)", borderTop: "1px solid rgba(148,163,184,0.14)", paddingBottom: "max(env(safe-area-inset-bottom), 8px)", boxShadow: "0 -12px 36px rgba(2,6,23,0.46)" }}>
+        {moreOpen && (
+          <section className="absolute bottom-[76px] left-3 right-3 overflow-hidden rounded-3xl p-3" aria-label="Mais opções"
+            style={{ background: "linear-gradient(160deg,rgba(15,23,42,0.99),rgba(10,18,36,0.98))", border: "1px solid rgba(148,163,184,0.17)", boxShadow: "0 24px 64px rgba(0,0,0,0.5)" }}>
+            <div className="flex items-center justify-between px-2 pb-2">
+              <div><p className="text-sm font-bold text-white">Mais ferramentas</p><p className="mt-0.5 text-[11px] text-slate-400">Acesse funções de campo e sua conta</p></div>
+              <button type="button" onClick={() => setMoreOpen(false)} className="grid h-8 w-8 place-items-center rounded-xl" style={{ color: "#cbd5e1", background: "rgba(148,163,184,0.1)" }}><X className="h-4 w-4" /></button>
+            </div>
+            <div className="grid gap-1">
+              {secondaryTabs.map(({ path, icon: Icon, label, description, color }) => (
+                <button key={path} type="button" onClick={() => goTo(path)} className="flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition-transform active:scale-[0.98]" style={{ background: "rgba(255,255,255,0.035)" }}>
+                  <span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: `${color}18`, color }}><Icon className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-slate-100">{label}</span><span className="mt-0.5 block text-[11px] text-slate-400">{description}</span></span>
+                  <span className="text-xs font-bold" style={{ color }}>Abrir</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
-              {/* Active indicator dot at top */}
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 transition-all duration-300"
-                style={{
-                  width: active ? "24px" : "4px",
-                  height: "2px",
-                  borderRadius: "2px",
-                  background: active ? grad : "transparent",
-                  boxShadow: active ? `0 0 8px ${glow}` : "none",
-                }} />
-
-              {/* Icon container */}
-              <div className="w-12 h-10 rounded-2xl flex items-center justify-center transition-all duration-250 relative overflow-hidden"
-                style={{
-                  background: active ? `${color}15` : "transparent",
-                  boxShadow: active ? `0 4px 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
-                }}>
-                {/* Inner glow for active */}
-                {active && (
-                  <div className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ background: `radial-gradient(circle at 50% 50%, ${color}20 0%, transparent 70%)` }} />
-                )}
-                <Icon className="w-5 h-5 relative z-10 transition-all duration-250"
-                  style={{
-                    color: active ? color : "rgba(71,85,105,0.55)",
-                    strokeWidth: active ? 2.5 : 1.8,
-                    filter: active ? `drop-shadow(0 0 6px ${glow})` : "none",
-                  }} />
-              </div>
-
-              {/* Label */}
-              <span className="text-[9px] font-bold tracking-wide transition-all duration-250"
-                style={{
-                  color: active ? color : "rgba(71,85,105,0.5)",
-                  textShadow: active ? `0 0 12px ${glow}` : "none",
-                  letterSpacing: "0.04em",
-                }}>
-                {label.toUpperCase()}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+        <div className="grid grid-cols-5 items-center px-2 pt-2">
+          {tabs.map(({ path, icon: Icon, label, color }) => {
+            const active = location === path || (path !== "/tecnico" && location.startsWith(`${path}/`));
+            return <button key={path} type="button" onClick={() => goTo(path)} aria-current={active ? "page" : undefined} className="flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-1.5 transition-transform active:scale-95">
+              <span className="grid h-9 w-11 place-items-center rounded-xl" style={{ color: active ? color : "#94a3b8", background: active ? `${color}18` : "transparent", boxShadow: active ? `inset 0 0 0 1px ${color}26` : "none" }}><Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.4 : 1.8} /></span>
+              <span className="max-w-full truncate text-[10px] font-semibold" style={{ color: active ? "#e2e8f0" : "#94a3b8" }}>{label}</span>
+            </button>;
+          })}
+          <button type="button" onClick={() => setMoreOpen(value => !value)} aria-expanded={moreOpen} className="flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-1.5 transition-transform active:scale-95">
+            <span className="grid h-9 w-11 place-items-center rounded-xl" style={{ color: moreActive || moreOpen ? "#f8fafc" : "#94a3b8", background: moreActive || moreOpen ? "rgba(148,163,184,0.14)" : "transparent" }}><Menu className="h-[19px] w-[19px]" strokeWidth={2} /></span>
+            <span className="max-w-full truncate text-[10px] font-semibold" style={{ color: moreActive || moreOpen ? "#e2e8f0" : "#94a3b8" }}>Mais</span>
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }

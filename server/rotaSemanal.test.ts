@@ -28,4 +28,14 @@ describe("organizarRotaSemanal", () => {
     expect(resumo.atividades.map(atividade => atividade.id)).toEqual([1, 3, 4]);
     expect(filtrarAtividadesSemanais(resumo, "pendente").map(atividade => atividade.id)).toEqual([4]);
   });
+
+  it("distribui as conclusões reais nos dias corretos da semana", () => {
+    const resumo = organizarRotaSemanal(atividades, referencia);
+    const domingo = resumo.dias.find(dia => dia.numero === 24);
+    const segunda = resumo.dias.find(dia => dia.numero === 25);
+
+    expect(domingo?.concluidas).toBe(1);
+    expect(domingo?.apsConcluidos).toBe(3);
+    expect(segunda?.concluidas).toBe(0);
+  });
 });

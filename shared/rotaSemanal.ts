@@ -37,6 +37,24 @@ export function organizarRotaSemanal<T extends AtividadeRotaSemanal>(atividades:
     .sort((a, b) => new Date(b.dataConclusao!).getTime() - new Date(a.dataConclusao!).getTime());
   const emAndamento = atividades.filter(atividade => atividade.status === "em_andamento");
   const pendentes = atividades.filter(atividade => atividade.status === "pendente");
+  const hoje = new Date(referencia);
+  hoje.setHours(0, 0, 0, 0);
+  const dias = Array.from({ length: 7 }, (_, indice) => {
+    const data = new Date(inicioSemana);
+    data.setDate(inicioSemana.getDate() + indice);
+    const atividadesDoDia = concluidas.filter(atividade => {
+      const conclusao = new Date(atividade.dataConclusao!);
+      return conclusao.getFullYear() === data.getFullYear() && conclusao.getMonth() === data.getMonth() && conclusao.getDate() === data.getDate();
+    });
+    return {
+      data,
+      dia: data.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+      numero: data.getDate(),
+      concluidas: atividadesDoDia.length,
+      apsConcluidos: atividadesDoDia.reduce((total, atividade) => total + (atividade.qtdAp ?? 0), 0),
+      hoje: data.getTime() === hoje.getTime(),
+    };
+  });
 
   return {
     inicioSemana,
@@ -44,6 +62,7 @@ export function organizarRotaSemanal<T extends AtividadeRotaSemanal>(atividades:
     concluidas,
     emAndamento,
     pendentes,
+    dias,
     apsConcluidos: concluidas.reduce((total, atividade) => total + (atividade.qtdAp ?? 0), 0),
     atividades: [...concluidas, ...emAndamento, ...pendentes],
   };

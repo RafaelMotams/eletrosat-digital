@@ -300,6 +300,13 @@ export default function RotaDia() {
           ].map(item => <div key={item.label} style={{ background: "rgba(255,255,255,0.045)", borderRadius: 9, padding: "9px 7px", textAlign: "center" }}><p style={{ color: item.color, fontSize: 18, fontWeight: 800 }}>{item.value}</p><p style={{ color: "rgba(148,163,184,0.62)", fontSize: 9, fontWeight: 600, marginTop: 2 }}>{item.label}</p></div>)}
         </div>
 
+        <div style={{ marginTop: 12, padding: "9px", borderRadius: 10, background: "rgba(2,6,23,0.2)", border: "1px solid rgba(167,243,208,0.1)" }}>
+          <div className="flex items-center justify-between mb-2"><span style={{ color: "rgba(209,250,229,0.76)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>EXECUÇÃO DIÁRIA</span><span style={{ color: "rgba(167,243,208,0.5)", fontSize: 9 }}>Concluídas no período</span></div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {resumoSemanal.dias.map(dia => <div key={dia.data.toISOString()} style={{ minWidth: 0, borderRadius: 8, padding: "6px 2px", textAlign: "center", background: dia.hoje ? "rgba(110,231,183,0.14)" : dia.concluidas > 0 ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.03)", border: dia.hoje ? "1px solid rgba(110,231,183,0.28)" : "1px solid transparent" }}><p style={{ color: dia.hoje ? "#a7f3d0" : "rgba(167,243,208,0.48)", fontSize: 8, fontWeight: 700, textTransform: "uppercase" }}>{dia.dia}</p><p style={{ color: dia.hoje ? "#f0fdf4" : "rgba(226,232,240,0.78)", fontSize: 11, fontWeight: 800, marginTop: 2 }}>{dia.numero}</p><span style={{ display: "inline-grid", placeItems: "center", minWidth: 14, height: 14, marginTop: 3, borderRadius: 999, padding: "0 3px", background: dia.concluidas > 0 ? "rgba(52,211,153,0.19)" : "rgba(148,163,184,0.08)", color: dia.concluidas > 0 ? "#6ee7b7" : "rgba(148,163,184,0.5)", fontSize: 8, fontWeight: 800 }}>{dia.concluidas}</span></div>)}
+          </div>
+        </div>
+
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, paddingBottom: 2 }} aria-label="Filtrar atividades da semana">
           {[
             { value: "todas", label: "Todas", total: resumoSemanal.atividades.length },
