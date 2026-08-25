@@ -46,8 +46,19 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string; i
 };
 
 // ── Componente Assistente IA ──────────────────────────────────────────────────
+const PERFIS_ASSISTENTE = [
+  { value: "rede_escolar", label: "Rede escolar", detail: "Diagnóstico, cobertura e continuidade", color: "#8b5cf6" },
+  { value: "infraestrutura_fisica", label: "Infraestrutura física", detail: "Rack, cabeamento, fibra e energia", color: "#06b6d4" },
+  { value: "configuracao_tp_link", label: "Especialista TP-Link", detail: "Omada, VLAN e provisionamento", color: "#22c55e" },
+  { value: "configuracao_intelbras", label: "Especialista Intelbras", detail: "Controladoras, APs e GPON", color: "#f59e0b" },
+  { value: "rede_externa_telbras", label: "Rede externa e Telbrás", detail: "Fibra, GPON, enlaces e medição", color: "#8b5cf6" },
+] as const;
+
+type PerfilAssistente = typeof PERFIS_ASSISTENTE[number]["value"];
+
 function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
   const [aberto, setAberto] = useState(false);
+  const [perfil, setPerfil] = useState<PerfilAssistente>("rede_escolar");
   const [pergunta, setPergunta] = useState("");
   const [historico, setHistorico] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const assistenteMut = trpc.manutencao.assistenteIA.useMutation({
@@ -62,7 +73,7 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
     const p = pergunta.trim();
     setHistorico(prev => [...prev, { role: "user", text: p }]);
     setPergunta("");
-    assistenteMut.mutate({ manutencaoId, pergunta: p });
+    assistenteMut.mutate({ manutencaoId, pergunta: p, perfil });
   }
 
   return (
@@ -90,6 +101,24 @@ function AssistenteIA({ manutencaoId }: { manutencaoId: number }) {
       {/* Conteúdo */}
       {aberto && (
         <div className="px-4 pb-4">
+          <div className="mb-4 rounded-2xl p-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div>
+                <p className="text-xs font-bold text-white">Perfil do especialista</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.48)" }}>Escolha o foco antes de enviar a dúvida</p>
+              </div>
+              <span className="rounded-full px-2 py-1 text-[10px] font-bold" style={{ color: PERFIS_ASSISTENTE.find(p => p.value === perfil)?.color, background: `${PERFIS_ASSISTENTE.find(p => p.value === perfil)?.color}18` }}>Professor Marcos</span>
+            </div>
+            <select
+              value={perfil}
+              onChange={e => setPerfil(e.target.value as PerfilAssistente)}
+              className="w-full rounded-xl px-3 py-2.5 text-xs font-semibold outline-none"
+              style={{ background: "#172033", color: "white", border: "1px solid rgba(255,255,255,0.11)" }}
+            >
+              {PERFIS_ASSISTENTE.map(item => <option key={item.value} value={item.value}>{item.label} — {item.detail}</option>)}
+            </select>
+          </div>
+
           {/* Histórico */}
           {historico.length > 0 && (
             <div className="space-y-3 mb-3 max-h-64 overflow-y-auto">

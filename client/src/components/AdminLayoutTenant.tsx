@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Bell, Search, Zap, Shield, Settings, Receipt, Wrench,
+  Bell, Search, Zap, Shield, Settings, Wrench,
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
@@ -33,7 +33,6 @@ const navGroups = [
       { path: "/admin/relatorios",  label: "Relatórios",        icon: BarChart3,       color: "#fb923c", desc: "Desempenho e metas" },
       { path: "/admin/mapa",        label: "Mapa Interativo",   icon: Map,             color: "#38bdf8", desc: "Visualização geográfica" },
       { path: "/admin/planilha",    label: "Importação",        icon: TableProperties, color: "#818cf8", desc: "Upload de planilhas" },
-      { path: "/admin/nota-fiscal",  label: "Nota Fiscal",       icon: Receipt,         color: "#4ade80", desc: "Faturamento e validação" },
     ],
   },
   {
@@ -270,7 +269,7 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
   );
 
   return (
-    <div className="min-h-screen flex" style={{ background: "oklch(0.965 0.004 240)" }}>
+    <div className="min-h-screen flex admin-shell">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 z-20 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
@@ -317,7 +316,7 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
 
       <aside
         className={`hidden lg:flex flex-col flex-shrink-0 transition-all duration-300 ease-out ${collapsed ? "w-16" : "w-64"}`}
-        style={{ background: "oklch(0.11 0.045 240)", borderRight: "1px solid oklch(0.18 0.05 240)" }}>
+        style={{ background: "linear-gradient(180deg,#071526 0%,#0a1b30 52%,#071421 100%)", borderRight: "1px solid rgba(148,163,184,0.12)", boxShadow: "18px 0 50px rgba(15,23,42,0.08)" }}>
         {collapsed && (
           <button onClick={() => setCollapsed(false)}
             className="mx-auto mt-4 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
@@ -330,20 +329,20 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
 
       <aside
         className={`fixed lg:hidden inset-y-0 left-0 z-30 w-72 flex flex-col transition-transform duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-        style={{ background: "oklch(0.11 0.045 240)", borderRight: "1px solid oklch(0.18 0.05 240)" }}>
+        style={{ background: "linear-gradient(180deg,#071526 0%,#0a1b30 52%,#071421 100%)", borderRight: "1px solid rgba(148,163,184,0.12)" }}>
         <SidebarContent />
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-10 flex items-center gap-4 px-4 lg:px-6 h-14 flex-shrink-0"
-          style={{ background: "oklch(0.965 0.004 240 / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid oklch(0.89 0.018 240)" }}>
+        <header className="sticky top-0 z-10 flex items-center gap-4 px-4 lg:px-8 h-16 flex-shrink-0"
+          style={{ background: "rgba(248,250,252,0.88)", backdropFilter: "blur(20px) saturate(160%)", borderBottom: "1px solid rgba(148,163,184,0.16)", boxShadow: "0 6px 20px rgba(15,23,42,0.035)" }}>
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors">
             <Menu className="w-5 h-5" style={{ color: "oklch(0.40 0.05 240)" }} />
           </button>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold truncate" style={{ color: "oklch(0.13 0.045 240)" }}>{title}</h1>
+              <h1 className="text-lg font-extrabold truncate tracking-tight" style={{ color: "#0f2742" }}>{title}</h1>
               {subtitle && (
                 <>
                   <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "oklch(0.60 0.04 240)" }} />
@@ -373,8 +372,8 @@ export default function AdminLayoutTenant({ children, title, subtitle, actions }
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
-          {children}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
+          <div className="admin-content">{children}</div>
         </main>
       </div>
     </div>

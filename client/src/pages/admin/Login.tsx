@@ -7,11 +7,11 @@ import {
   Users, MapPin, FileText, CheckCircle, Lock,
 } from "lucide-react";
 
-const stats = [
-  { value: "5.000+", label: "Escolas" },
-  { value: "120+", label: "Técnicos" },
-  { value: "98%", label: "Uptime" },
-  { value: "15k+", label: "OS Concluídas" },
+const accessPrinciples = [
+  { value: "Sessão", label: "Protegida" },
+  { value: "Dados", label: "Por cliente" },
+  { value: "Acesso", label: "Controlado" },
+  { value: "Registros", label: "Auditáveis" },
 ];
 
 const features = [
@@ -42,8 +42,6 @@ export default function AdminLogin() {
         localStorage.setItem("superadmin_info", JSON.stringify(data.admin));
         navigate("/superadmin/dashboard");
       } else {
-        localStorage.setItem("tenant_admin_token", data.token);
-        localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
         navigate("/admin");
       }
     },
@@ -110,7 +108,7 @@ export default function AdminLogin() {
             <h1 style={{ color: "white", fontSize: 38, fontWeight: 800, lineHeight: 1.15, marginBottom: 16, fontFamily: "'Outfit', sans-serif" }}>
               Gerencie sua equipe com{" "}
               <span style={{ background: "linear-gradient(135deg, #10b981, #34d399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                inteligência
+                controle
               </span>
             </h1>
             <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
@@ -124,7 +122,7 @@ export default function AdminLogin() {
             opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(16px)",
             transition: "all 0.7s cubic-bezier(0.16,1,0.3,1)", transitionDelay: "0.1s",
           }}>
-            {stats.map((s, i) => (
+            {accessPrinciples.map((s, i) => (
               <div key={i} style={{
                 background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 12, padding: "14px 10px", textAlign: "center",
@@ -204,7 +202,7 @@ export default function AdminLogin() {
                 <span style={{ color: "#10b981", fontSize: 12, fontWeight: 600 }}>Sistema online</span>
               </div>
               <h2 style={{ color: "white", fontWeight: 800, fontSize: 28, fontFamily: "'Outfit', sans-serif", lineHeight: 1.2, marginBottom: 8 }}>
-                Bem-vindo de volta
+                Bem-vindo
               </h2>
               <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>
                 Entre com suas credenciais para acessar o painel
@@ -311,7 +309,7 @@ export default function AdminLogin() {
             }}>
               <Lock size={14} color="rgba(16,185,129,0.7)" style={{ flexShrink: 0, marginTop: 1 }} />
               <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, lineHeight: 1.5 }}>
-                Suas credenciais são protegidas com criptografia. Sessão expira automaticamente após inatividade.
+                Suas credenciais são validadas no servidor. A sessão expira automaticamente após inatividade.
               </p>
             </div>
           </div>

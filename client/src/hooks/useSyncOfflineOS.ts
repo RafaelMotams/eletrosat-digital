@@ -28,6 +28,7 @@ import {
   PendingOS,
 } from "./useOfflineDB";
 import { trpcClient, trpcUploadClient } from "@/lib/trpc";
+import { ensurePhotoUploadsSucceeded } from "@/lib/offlineSyncGuard";
 
 export type SyncState = {
   isSyncing: boolean;
@@ -193,8 +194,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
             const categoriasValidas = ["mapa_calor"] as const;
             const catValida = categoriasValidas.includes(foto.categoria as typeof categoriasValidas[number]);
             if (!catValida) {
-              console.warn("[SyncOffline] Categoria inválida, pulando:", foto.categoria);
-              continue;
+              throw new Error(`Categoria de foto inválida: ${foto.categoria}`);
             }
 
             // Upload com retry (3 tentativas) e timeout de 60s
@@ -227,6 +227,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
         if (fotosFalhas > 0) {
           console.warn(`[SyncOffline] ${fotosFalhas} foto(s) falharam no upload para OS ${osIdFinal}`);
         }
+        // Não marca como concluída: a fila deve permanecer para retentar todas as fotos
+        // com clientId idempotente até que o conjunto seja realmente sincronizado.
+        ensurePhotoUploadsSucceeded(fotosFalhas);
       }
 
       await dbUpdateOSStatus(os.id, "done");

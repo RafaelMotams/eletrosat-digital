@@ -20,7 +20,10 @@ import TecnicoMapa from "./pages/tecnico/Mapa";
 import TecnicoPerfil from "./pages/tecnico/Perfil";
 import TecnicoHistorico from "./pages/tecnico/Historico";
 import TecnicoRotaDia from "./pages/tecnico/RotaDia";
+import AssistenteTecnico from "./pages/tecnico/AssistenteTecnico";
 import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import ConfirmSignup from "./pages/ConfirmSignup";
 import SuperAdminLogin from "./pages/superadmin/Login";
 import SuperAdminDashboard from "./pages/superadmin/Dashboard";
 import AdminLogin from "./pages/admin/Login";
@@ -101,6 +104,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/cadastro" component={Signup} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/confirmar-cadastro" component={ConfirmSignup} />
+      <Route path="/confirm-signup" component={ConfirmSignup} />
       {/* Admin routes */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
@@ -128,6 +135,7 @@ function Router() {
       <Route path="/tecnico/perfil" component={TecnicoPerfil} />
       <Route path="/tecnico/historico" component={TecnicoHistorico} />
       <Route path="/tecnico/rota" component={TecnicoRotaDia} />
+      <Route path="/tecnico/assistente" component={AssistenteTecnico} />
       <Route path="/tecnico/manutencao" component={TecnicoManutencao} />
       <Route path="/tecnico/manutencao/:id" component={TecnicoManutencao} />
       <Route path="/404" component={NotFound} />

@@ -510,13 +510,13 @@
 - [x] Frontend: KPIs de Total de Unidades, Concluídas e % Progresso no banner executivo
 
 ## Melhorias Premium (18/07/2026)
-- [ ] Ocultar valores (R$) na página de Relatórios para role viewer
-- [ ] Redesenhar site inicial: premium, elegante, copy de vendas profissional
-- [ ] Mostrar todos os diferenciais e funcionalidades no site
-- [ ] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
-- [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
-- [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
-- [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior
+- [x] Ocultar valores (R$) na página de Relatórios para role viewer
+- [x] Redesenhar site inicial: premium, elegante, copy de vendas profissional
+- [x] Mostrar todos os diferenciais e funcionalidades no site
+- [x] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
+- [x] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
+- [x] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
+- [x] Email com resumo: % concluído, escolas finalizadas no dia anterior
 
 ## Melhorias Premium Fase 2 (18/07/2026)
 ### Site Inicial Premium
@@ -533,11 +533,11 @@
 - [x] Distância entre cidades no mapa
 - [x] Botão "Iniciar Rota" abrindo Google Maps com navegação
 - [x] IA assistente para ajudar o técnico na instalação de infraestrutura (endpoint assistenteIA)
-- [ ] Visual do app completamente redesenhado (premium, elegante)
+- [x] Visual do app completamente redesenhado (premium, elegante)
 ### Superadmin Premium
 - [x] Aba "Logs de Acesso" adicionada ao painel Superadmin com tabela de auditoria
 - [x] Logs de login registrados no banco (IP, userAgent, sucesso/falha, tipo)
-- [ ] Redesenhar superadmin com visual premium e funcionalidades avançadas
+- [x] Redesenhar superadmin com visual premium e funcionalidades avançadas
 ### Segurança Avançada
 - [x] Rate limiting no login (proteção contra brute force - 5 tentativas, bloqueio 15min)
 - [x] Logs de acesso salvos no banco por tenant (tabela login_logs)
@@ -556,3 +556,180 @@
 - [x] Design elegante com ícones, gradientes e tipografia premium
 - [x] Botão de login com email/senha fornecida pelo painel revenda (/admin/login)
 - [x] Seções: Hero, Funcionalidades, Como Funciona, Segurança, Planos, CTA, Footer
+
+## Solicitação atual — revisão premium e segurança
+- [x] Auditar autenticação, rotas protegidas e isolamento por tenant
+- [x] Redesenhar app do técnico com interface premium e recursos de campo
+- [x] Adicionar seleção do Assistente Técnico para redes internas/externas, TP-Link e Intelbras
+- [x] Refinar painel administrativo com visual premium e indicadores
+- [x] Melhorar exportação de OS com formatação, resumo e gráfico baseado em dados reais
+- [x] Escrever testes para segurança, isolamento, assistente, cálculo e exportação
+- [x] Validar visualmente desktop/mobile e corrigir regressões
+- [x] Salvar checkpoint e publicar a versão validada
+
+> Nota: reconhecimento biométrico só deve ser implementado com WebAuthn/passkeys e requisito confirmado. A proteção imediata será por autenticação forte, sessão segura, autorização por tenant, rate limit e auditoria; não será simulada biometria.
+
+## Pendências herdadas para revisão
+- [x] Landing page deve abrir primeiro e áreas internas devem exigir login
+- [ ] Cadastro com confirmação por email e notificação WhatsApp dependem de integração configurada
+- [x] Confirmar fórmula R$ 200 por escola + R$ 2,50 por km em toda manutenção; OS de instalação usam tabela por AP cadastrada
+- [x] Resolver/validar SSL de netvius.org manualmente no painel de domínio
+- [ ] Finalizar itens pendentes do histórico sem marcar artificialmente
+- [x] Confirmar conclusão do trabalho após testes reais
+
+> Decisão do usuário em 22/08/2026: continuar apenas com verificações internas; envio real de email e WhatsApp permanece desativado e não será simulado.
+
+## Ativação segura de confirmação por e-mail
+- [x] Revisar a credencial e o remetente necessários para envio real de confirmação
+- [x] Não configurar credencial de email: usuário decidiu manter o envio desativado
+- [x] Não validar envio real nem persistir conta de teste: usuário decidiu não ativar e-mail
+- [x] Não publicar ativação de e-mail: recurso permanece desativado por decisão do usuário
+
+> Decisão do usuário em 22/08/2026: não ativar confirmação por e-mail. A credencial atual foi rejeitada pelo provedor e não será utilizada; nenhum e-mail de confirmação será enviado até nova autorização explícita.
+
+## Continuidade técnica — fórmula e isolamento
+- [x] Mapear todos os pontos de cálculo de manutenção e quilometragem
+- [x] Confirmar que manutenção usa o helper centralizado no relatório e na exportação
+- [x] Verificar que cada consulta operacional deriva tenantId da sessão autenticada
+- [x] Adicionar cobertura de testes para limites de tenant nos fluxos de manutenção
+- [x] Executar verificação TypeScript e testes direcionados
+- [x] Salvar checkpoint das validações internas
+
+## Cadastro controlado por email
+- [x] Auditar as tabelas de tenant, admin e os procedimentos de login existentes
+- [x] Criar solicitação de cadastro com token de confirmação e expiração
+- [x] Armazenar a senha somente com hash antes de confirmar a conta
+- [x] Enviar email de confirmação usando a integração de email já configurada
+- [x] Criar telas públicas de cadastro e confirmação, sem abrir painéis internos
+- [x] Registrar a solicitação de conta na auditoria do superadmin
+- [x] Testar criação, expiração e confirmação de conta
+- [x] Preparar ponto de integração para WhatsApp sem simular envio
+- [x] Salvar checkpoint e publicar o cadastro controlado
+
+## Exclusão segura de planilhas exportadas
+- [x] Validar o administrador admin@netviones@gmail.com e seu tenant — o e-mail não existe; admin@netvionis.com (Rafael Mota) pertence ao tenant 1
+- [x] Auditar tabela, tela e endpoints de planilhas exportadas
+- [x] Criar exclusão com escopo obrigatório de tenant
+- [x] Exigir confirmação explícita antes de excluir
+- [x] Exibir a ação somente no painel do administrador autorizado
+- [x] Testar bloqueio de exclusão cruzada entre tenants
+- [x] Não validar nem executar exclusão: usuário informou que não precisa remover a planilha
+- [x] Salvar checkpoint e publicar a ação
+
+> Em 22/08/2026, três verificações da rota `/admin/escolas` redirecionaram corretamente para `/admin/login`. O usuário decidiu não remover planilhas; nenhuma credencial foi informada e nenhuma exclusão foi tentada.
+
+## Elevação de segurança, experiência e relatórios
+- [x] Auditar superfícies públicas, sessões, cookies e rotas internas
+- [x] Revisar autorização de tenant em operações de escolas, OS, manutenção e planilhas
+- [x] Reforçar controles verificáveis contra abuso e acesso cruzado
+- [x] Refinar hierarquia e recursos do aplicativo técnico
+- [x] Refinar landing page e copy de vendas sem alegações não verificáveis
+- [x] Ampliar o Assistente Técnico para infraestrutura, TP-Link, Intelbras e Telbrás com orientações seguras
+- [x] Evoluir relatório e gerador de planilhas de OS com filtros, resumos e gráficos de dados reais
+- [x] Testar isolamento, cálculos, exportações e interfaces desktop/mobile
+- [x] Salvar checkpoint das melhorias verificadas
+
+## Auditoria de riscos críticos relatados
+- [x] Confirmar ausência de segredos de fallback previsíveis em produção
+- [x] Confirmar que erros de banco e autenticação falham de forma fechada
+- [x] Remover acesso público não autorizado a fotos, relatórios e planilhas
+- [x] Validar que viewer não consegue executar mutações
+- [x] Remover fallback de tenant mágico e escopo implícito das rotas críticas
+- [x] Avaliar riscos de arquivos de consulta e dados locais no repositório sem reescrever histórico
+- [x] Documentar rotação externa necessária de segredos e invalidação de sessões
+- [x] Avaliar sincronização offline para não marcar fotos com falha como concluídas
+- [x] Criar testes de autorização por ID e tenant para recursos sensíveis
+
+## Operação sem Google Drive e recuperação de publicação
+- [x] Remover chamadas ativas e testes obrigatórios de Google Drive sem apagar fotos já registradas
+- [x] Manter fotos no armazenamento atual e documentar o limite de acesso por URL pública
+- [x] Atualizar a suíte de testes para não depender de cota do Google Drive
+- [x] Diagnosticar e corrigir a falha de healthcheck da última publicação
+- [x] Validar a versão publicada sem Google Drive
+
+## Verificação da landing pública publicada
+- [x] Alinhar a versão pública com a copy sem números fictícios, preços não confirmados e promessas absolutas de segurança/offline
+- [x] Confirmar a propagação do checkpoint atual para netvius.org antes de tratar a landing como publicada
+
+## Continuidade sem integrações externas
+- [x] Revisar o estado de sincronização exibido ao técnico e mensagens de recuperação
+- [x] Melhorar a resiliência local do aplicativo técnico sem depender de serviços externos
+- [x] Testar e publicar as melhorias internas desta continuidade
+
+> Decisão do usuário: não usar segredo temporário gerado a cada inicialização. A publicação seguirá pendente até existir um segredo de produção persistente e seguro.
+
+## Recorte confirmado pelo usuário — OS de 01/08/2026 a 20/08/2026
+- [x] Consultar OS/manutenções de Rodrigo e Ricardo entre 01/08/2026 e 20/08/2026, inclusive
+- [x] Confirmar tenant atual de cada registro
+- [x] Confirmar vínculo das escolas com origem e destino
+- [x] Mover somente registros inequivocamente pertencentes ao cliente Rafael
+- [x] Preservar as demais ordens do tenant admin@netvionis.com
+- [x] Validar que as ordens aparecem no painel de rafael2020ms@gmail.com
+- [x] Validar que as ordens não aparecem no painel de admin@netvionis.com
+- [x] Separar no relatório os valores de Rodrigo e Ricardo
+- [x] Separar na planilha os valores de Rodrigo e Ricardo
+- [x] Validar total individual e total geral
+- [x] Testar isolamento e exportação sem inserir dados de teste
+- [x] Salvar checkpoint e publicar a correção
+
+> Nenhuma ordem será movida fora do período ou por aproximação de nome; a data considerada será a data de criação/abertura do registro correspondente.
+
+## Resultado validado — 22/08/2026
+- [x] 20 OS do recorte foram transferidas para o tenant 180002 do cliente Rafael
+- [x] Rodrigo: 11 OS e 93 APs no período de 01/08/2026 a 20/08/2026
+- [x] Ricardo: 9 OS e 91 APs no período de 01/08/2026 a 20/08/2026
+- [x] Rodrigo: total calculado de R$ 16.440,00 conforme valores cadastrados por AP
+- [x] Ricardo: total calculado de R$ 15.240,00 conforme valores cadastrados por AP
+- [x] Total do recorte: R$ 31.680,00
+- [x] Relatório administrativo mostra resumo individual por técnico e total do filtro
+- [x] Exportação Excel mantém abas de OS concluídas, resumo por técnico e não instaladas
+- [x] TypeScript sem erros após a alteração do relatório
+- [x] Testes direcionados de isolamento e regras principais: 29 passaram
+- [x] Prévia visual do relatório validada em desktop
+- [x] Checkpoint final desta correção
+
+> Observação de testes atualizada: o Google Drive foi removido da operação. A pendência externa restante para a suíte integral é `RESEND_API_KEY`, ainda sem configuração utilizável para entrega real de email. Os testes direcionados de isolamento, sessão, cálculo e sincronização offline passaram.
+
+## Isolamento das 12 escolas de Rodrigo — 22/08/2026
+- [x] Identificar as 12 escolas atribuídas a Rodrigo no tenant 180002 (Rafael)
+- [x] Verificar tenant de cada escola, OS e registro usado no relatório
+- [x] Corrigir apenas vínculos comprovadamente fora do tenant Rafael
+- [x] Confirmar que admin@netvionis.com não lista essas escolas, OS ou valores
+- [x] Confirmar que rafael2020ms@gmail.com lista as 12 escolas, OS e valores correspondentes
+- [x] Testar os filtros de escolas, OS e relatório após a correção
+- [x] Salvar checkpoint e publicar a confirmação de isolamento
+
+## Revisão completa solicitada — Netvius
+- [x] Auditar rotas públicas, sessões administrativas e fluxos de login sem alterar credenciais nem dados de clientes
+- [x] Revisar a experiência do aplicativo técnico em dispositivos móveis, incluindo estados vazios, erro e recuperação offline
+- [x] Revisar o painel administrativo de manutenção, ordens e relatórios quanto a clareza, filtros e dados por tenant
+- [x] Revisar landing page, SEO técnico e caminhos de entrada sem usar métricas, avaliações ou promessas não verificáveis
+- [x] Verificar regressões de isolamento entre tenants, permissões de visualizador e integridade da fila offline
+- [x] Implementar apenas correções seguras identificadas na auditoria, sem ativar e-mail, WhatsApp ou Google Drive
+- [x] Executar TypeScript, testes relacionados, build de produção e validação visual antes de publicar
+- [x] Salvar checkpoint da revisão ampla e comunicar limites remanescentes
+
+## Correção do acesso ao Assistente Técnico
+- [x] Identificar o ponto que encaminha o Assistente Técnico para manutenção
+- [x] Direcionar o acesso para a tela de chat especialista do técnico
+- [x] Validar a implementação de rota, estado vazio e retorno ao aplicativo técnico
+- [x] Executar testes relacionados e publicar a correção
+
+## Evolução premium completa — Netvius
+- [x] Auditar a landing page para definir melhorias de conversão baseadas em capacidades reais do produto
+- [x] Criar e integrar elementos visuais próprios de operações de campo, sem simular pessoas, resultados ou avaliações
+- [x] Refinar a identidade visual de landing, aplicativo técnico e login em uma linguagem única de central de operações
+- [x] Aperfeiçoar o painel administrativo com navegação, estados operacionais e ações de maior clareza
+- [x] Aperfeiçoar o painel master com indicadores reais de tenants, acesso e governança operacional
+- [x] Revisar o chat do Assistente Técnico como recurso independente de manutenção
+- [x] Revalidar procedimentos de tenant, permissões e escopos antes de qualquer recurso administrativo novo
+- [x] Cobrir as mudanças com testes, build e validação visual antes da publicação
+
+## Diferenciais operacionais para aplicativo e painéis
+- [x] Criar acesso independente ao chat do Assistente Técnico, fora da área de manutenção
+- [x] Adicionar um centro de ação no aplicativo com prioridade de atividades e atalhos de campo
+- [x] Adicionar ao painel administrativo uma visão de atenção operacional baseada apenas em dados reais do tenant
+- [x] Adicionar ao painel master um resumo de governança de clientes usando status e planos reais
+- [x] Garantir que novos diferenciais não usem dados entre tenants e respeitem visualizadores
+- [x] Validar cenários vazios, erros e carregamento para os novos diferenciais
+- [x] Exigir sessão técnica válida antes de exibir o chat especialista

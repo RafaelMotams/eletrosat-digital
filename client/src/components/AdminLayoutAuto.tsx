@@ -1,10 +1,11 @@
 /**
- * AdminLayoutAuto — detecta automaticamente o tipo de autenticação:
- * - Se há token de tenant_admin no localStorage → usa AdminLayoutTenant (email/senha)
- * - Caso contrário → usa AdminLayout (Manus OAuth)
+ * AdminLayoutAuto — protege o painel com a sessão administrativa do tenant.
+ * O painel Netvius não usa OAuth da plataforma como fallback de acesso.
  */
-import AdminLayout from "./AdminLayout";
 import AdminLayoutTenant from "./AdminLayoutTenant";
+import { useTenantAuth } from "@/hooks/useTenantAuth";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 
 interface AdminLayoutAutoProps {
   children: React.ReactNode;
@@ -12,11 +13,20 @@ interface AdminLayoutAutoProps {
 }
 
 export default function AdminLayoutAuto({ children, title }: AdminLayoutAutoProps) {
-  const hasTenantToken = !!localStorage.getItem("tenant_admin_token");
+  const { isAuthenticated, loading } = useTenantAuth();
+  const [, navigate] = useLocation();
 
-  if (hasTenantToken) {
+  useEffect(() => {
+    if (!loading && !isAuthenticated) navigate("/admin/login", { replace: true });
+  }, [isAuthenticated, loading, navigate]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-950" aria-label="Validando sessão administrativa" />;
+  }
+
+  if (isAuthenticated) {
     return <AdminLayoutTenant title={title}>{children}</AdminLayoutTenant>;
   }
 
-  return <AdminLayout title={title}>{children}</AdminLayout>;
+  return null;
 }

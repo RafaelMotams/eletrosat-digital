@@ -12,22 +12,23 @@ import { useEffect, useState, useCallback } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { dbGetAllPendingOS } from "@/hooks/useOfflineDB";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
-import { Wifi, WifiOff, RefreshCw, CheckCircle2, CloudOff } from "lucide-react";
+import { getOfflineBannerMode, type OfflineBannerMode } from "@/lib/offlineSyncGuard";
+import { Wifi, WifiOff, RefreshCw, CheckCircle2, CloudOff, AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-
-type BannerState = "hidden" | "offline" | "syncing" | "success";
 
 export function OfflineSyncBanner() {
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
-  const [bannerState, setBannerState] = useState<BannerState>("hidden");
+  const [bannerState, setBannerState] = useState<OfflineBannerMode>("hidden");
   const [pendingCount, setPendingCount] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
   const [syncedCount, setSyncedCount] = useState(0);
 
   const refreshPending = useCallback(async () => {
     const all = await dbGetAllPendingOS();
     const pending = all.filter(o => o.status === "pending" || o.status === "error" || o.status === "syncing");
     setPendingCount(pending.length);
+    setFailedCount(all.filter(o => o.status === "error").length);
     return pending.length;
   }, []);
 
@@ -47,24 +48,16 @@ export function OfflineSyncBanner() {
 
   // Atualiza o estado do banner baseado no status de sync e conexão
   useEffect(() => {
-    if (syncState.isSyncing) {
-      setBannerState("syncing");
-      return;
-    }
-    if (!isOnline) {
-      setBannerState("offline");
-      refreshPending();
-      return;
-    }
     refreshPending().then(count => {
-      if (count > 0) {
-        // Tem pendentes mas está online — sync em andamento ou aguardando
-        setBannerState("syncing");
-      } else {
-        setBannerState(prev => prev === "success" ? prev : "hidden");
-      }
+      setBannerState(prev => getOfflineBannerMode({
+        isOnline,
+        isSyncing: syncState.isSyncing,
+        pendingCount: count,
+        hasSyncError: Boolean(syncState.lastError),
+        previousMode: prev,
+      }));
     });
-  }, [isOnline, syncState.isSyncing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOnline, syncState.isSyncing, syncState.lastError, refreshPending]);
 
   // Atualiza contagem de pendentes periodicamente
   useEffect(() => {
@@ -83,6 +76,7 @@ export function OfflineSyncBanner() {
         ${bannerState === "offline" ? "bg-red-600 text-white" : ""}
         ${bannerState === "syncing" ? "bg-amber-500 text-white" : ""}
         ${bannerState === "success" ? "bg-emerald-600 text-white" : ""}
+        ${bannerState === "error" ? "bg-orange-600 text-white" : ""}
       `}
       role="status"
       aria-live="polite"
@@ -114,6 +108,15 @@ export function OfflineSyncBanner() {
         <>
           <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
           <span>OS sincronizadas com sucesso!</span>
+        </>
+      )}
+
+      {bannerState === "error" && (
+        <>
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <span>
+            {failedCount > 0 ? `${failedCount} OS` : "Uma OS"} aguarda nova tentativa — fotos não foram descartadas
+          </span>
         </>
       )}
     </div>

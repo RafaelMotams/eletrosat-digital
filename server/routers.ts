@@ -1,11 +1,14 @@
 import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { setTecnicoSession, clearTecnicoSession } from "./_core/tecnicoAuth";
+import { clearTenantSession } from "./_core/tenantAuth";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router, tenantAdminProcedure } from "./_core/trpc";
 import { superadminRouter } from "./routers/superadmin";
 import { manutencaoRouter } from "./routers/manutencao";
 import { tenantConfigRouter } from "./routers/tenantConfig";
+import { signupRouter } from "./routers/signup";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -47,16 +50,40 @@ import {
   getValoresApAllTecnicos,
   getOsNaoInstaladas,
   deleteOrdemServico,
-  listAllOsFotosComDados,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
-import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
 import { ordensServico, escolas } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Middleware para verificar se é admin
+const tecnicoProcedure = publicProcedure.use(({ ctx, next }) => {
+  if (!ctx.tecnicoSession) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão do técnico inválida ou expirada" });
+  }
+  return next({ ctx });
+});
+
+async function assertTecnicoScope(ctx: any, tecnicoId: number, escolaId: number) {
+  const session = ctx.tecnicoSession;
+  if (!session || session.tecnicoId !== tecnicoId) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não autorizado" });
+  const [tecnico, escola] = await Promise.all([getTecnicoById(tecnicoId), getEscolaById(escolaId)]);
+  if (!tecnico || !tecnico.ativo || tecnico.tenantId !== session.tenantId || !escola || escola.tenantId !== session.tenantId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Recurso fora do tenant autorizado" });
+  }
+  return { tecnico, escola };
+}
+
+async function assertTecnicoOsScope(ctx: any, osId: number) {
+  const session = ctx.tecnicoSession;
+  const db = await getDb();
+  if (!session || !db) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const rows = await db.select().from(ordensServico).where(and(eq(ordensServico.id, osId), eq(ordensServico.tecnicoId, session.tecnicoId), eq(ordensServico.tenantId, session.tenantId)));
+  if (!rows[0]) throw new TRPCError({ code: "FORBIDDEN", message: "OS fora do escopo do técnico" });
+  return rows[0];
+}
+
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
     throw new TRPCError({ code: "FORBIDDEN", message: "Acesso restrito a administradores" });
@@ -334,7 +361,8 @@ const planilhasImportadasRouter = router({
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
     const { planilhasImportadas } = await import("../drizzle/schema");
-    const tenantId = (ctx as any).tenantId ?? 1;
+    const tenantId = (ctx as { tenantId?: number }).tenantId;
+    if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
     return db.select().from(planilhasImportadas)
       .where(eq(planilhasImportadas.tenantId, tenantId))
       .orderBy(planilhasImportadas.createdAt);
@@ -352,7 +380,8 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
       await db.insert(planilhasImportadas).values({
         tenantId,
         nome: input.nome,
@@ -371,10 +400,14 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      const tenantId = (ctx as any).tenantId ?? 1;
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
+      const [planilha] = await db.select({ id: planilhasImportadas.id }).from(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
+      if (!planilha) throw new TRPCError({ code: "FORBIDDEN", message: "Planilha fora do tenant autorizado" });
       await db.update(planilhasImportadas)
         .set({ ativa: input.ativa })
-        .where(eq(planilhasImportadas.id, input.id));
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
       return { success: true };
     }),
 
@@ -384,7 +417,13 @@ const planilhasImportadasRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB indisponível" });
       const { planilhasImportadas } = await import("../drizzle/schema");
-      await db.delete(planilhasImportadas).where(eq(planilhasImportadas.id, input.id));
+      const tenantId = (ctx as { tenantId?: number }).tenantId;
+      if (!tenantId || tenantId <= 0) throw new TRPCError({ code: "FORBIDDEN", message: "Tenant autorizado é obrigatório" });
+      const [planilha] = await db.select({ id: planilhasImportadas.id }).from(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
+      if (!planilha) throw new TRPCError({ code: "FORBIDDEN", message: "Planilha fora do tenant autorizado" });
+      await db.delete(planilhasImportadas)
+        .where(and(eq(planilhasImportadas.id, input.id), eq(planilhasImportadas.tenantId, tenantId)));
       return { success: true };
     }),
 });
@@ -497,42 +536,6 @@ const ordensRouter = router({
     .mutation(async ({ input, ctx }) => {
       await deleteOrdemServico(input.osId);
       return { success: true };
-    }),
-
-  reenviarFotosDrive: tenantAdminProcedure
-    .mutation(async ({ ctx }) => {
-      const { uploadFotoParaDrive } = await import("./googleDrive");
-      const todasFotos = await listAllOsFotosComDados();
-      let sucesso = 0;
-      let falhas = 0;
-      const erros: string[] = [];
-
-      for (const { foto, tecnicoNome, escolaNome, dataOS } of todasFotos) {
-        try {
-          let fotoUrl = foto.url;
-          if (fotoUrl.startsWith("/manus-storage/")) {
-            fotoUrl = `https://netvionis.manus.space${fotoUrl}`;
-          }
-          await uploadFotoParaDrive({
-            tecnicoNome,
-            escolaNome,
-            fotoUrl,
-            fotoIndex: foto.id,
-            dataOS,
-          });
-          sucesso++;
-        } catch (err) {
-          falhas++;
-          erros.push(`Foto ${foto.id}: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
-
-      return {
-        total: todasFotos.length,
-        sucesso,
-        falhas,
-        erros: erros.slice(0, 10), // Retorna apenas os primeiros 10 erros
-      };
     }),
 
   deletarTodas: tenantAdminProcedure
@@ -658,16 +661,26 @@ const ordensRouter = router({
       return { success: true };
     }),
 
-  // Busca fotos de uma OS pelo admin (publicProcedure para funcionar com qualquer autenticação)
-  getOsFotos: publicProcedure
+  // Busca fotos de uma OS somente dentro do tenant administrativo autenticado.
+  getOsFotos: tenantAdminProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const os = await getOrdemById(input.osId);
+      if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
+      if (os.tenantId !== (ctx as any).tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "OS fora do tenant autorizado" });
+      }
       return listOsFotos(input.osId);
     }),
-  // Busca fotos de uma escola (todas as OS) pelo admin
-  getOsFotosByEscola: publicProcedure
+  // Busca fotos de uma escola somente dentro do tenant administrativo autenticado.
+  getOsFotosByEscola: tenantAdminProcedure
     .input(z.object({ escolaId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const escola = await getEscolaById(input.escolaId);
+      if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
+      if (escola.tenantId !== (ctx as any).tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Escola fora do tenant autorizado" });
+      }
       return listOsFotosByEscola(input.escolaId);
     }),
 });
@@ -765,7 +778,7 @@ const planilhaRouter = router({
 const tecnicoAuthRouter = router({
   login: publicProcedure
     .input(z.object({ email: z.string().email(), senha: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const tecnico = await getTecnicoByEmail(input.email);
       if (!tecnico) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos" });
@@ -774,6 +787,12 @@ const tecnicoAuthRouter = router({
       if (!valid) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Email ou senha inválidos" });
       }
+      await setTecnicoSession(ctx.res, ctx.req, {
+        tecnicoId: tecnico.id,
+        tenantId: tecnico.tenantId,
+        email: tecnico.email,
+        role: "tecnico",
+      });
       return {
         id: tecnico.id,
         nome: tecnico.nome,
@@ -783,27 +802,35 @@ const tecnicoAuthRouter = router({
       };
     }),
 
-  me: publicProcedure
+  me: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
       return getTecnicoById(input.tecnicoId);
     }),
+  logout: tecnicoProcedure.mutation(async ({ ctx }) => {
+    clearTecnicoSession(ctx.res, ctx.req);
+    return { success: true };
+  }),
   // Busca escolas atribuídas ao técnico pelo ID (não depende de OAuth)
-  minhasEscolas: publicProcedure
+  minhasEscolas: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
-      return listEscolas({ tecnicoId: input.tecnicoId });
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+      return listEscolas({ tecnicoId: input.tecnicoId, tenantId: ctx.tecnicoSession!.tenantId });
     }),
   // Busca OS do técnico pelo ID
-  minhasOrdens: publicProcedure
+  minhasOrdens: tecnicoProcedure
     .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input }) => {
-      return listOrdensServico({ tecnicoId: input.tecnicoId });
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession!.tecnicoId) throw new TRPCError({ code: "FORBIDDEN" });
+      return listOrdensServico({ tecnicoId: input.tecnicoId, tenantId: ctx.tecnicoSession!.tenantId });
     }),
   // Busca telefone da escola pelo INEP usando IA e salva no banco
-  buscarTelefone: publicProcedure
+  buscarTelefone: tecnicoProcedure
     .input(z.object({ escolaId: z.number(), inep: z.string(), nome: z.string(), municipio: z.string().optional() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, ctx.tecnicoSession!.tecnicoId, input.escolaId);
       const { invokeLLM } = await import("./_core/llm");
 
       // Primeiro verifica se já tem telefone salvo
@@ -862,12 +889,13 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Inicia a OS (muda status de aberta para em_andamento)
-  iniciarOS: publicProcedure
+  iniciarOS: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
       // Busca OS existente primeiro (evita race condition)
@@ -906,14 +934,15 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Registra escola como não instalada com motivo
-  naoInstalada: publicProcedure
+  naoInstalada: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
       motivo: z.enum(["escola_desativada", "em_reforma", "mudanca_endereco"]),
       observacao: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
       const result = await registrarNaoInstalada(input.escolaId, input.tecnicoId, input.motivo, input.observacao);
@@ -931,7 +960,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Cria e conclui OS pelo técnico com foto do mapa de calor (sem OAuth)
-  concluirEscola: publicProcedure
+  concluirEscola: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
       tecnicoId: z.number(),
@@ -940,7 +969,8 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       fotoMapaCalorUrl: z.string().optional(),
       fotoMapaCalorKey: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
 
@@ -1001,39 +1031,12 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
         });
 
-        // NOTA: O upload ao Google Drive é feito DEPOIS que as fotos são enviadas ao S3
-        // via uploadOsFoto. O Drive é acionado pelo endpoint reenviarParaDrive ou
-        // automaticamente 30s após a conclusão da OS para garantir que todas as fotos
-        // já estejam salvas no S3 antes de tentar enviar ao Drive.
-        // Aqui fazemos apenas um agendamento assíncrono (não bloqueante).
-        const osIdCapturado = osId;
-        const tecnicoNomeCapturado = tecnico?.nome ?? "Tecnico";
-        const escolaNomeCapturado = escola.nome ?? `Escola-${input.escolaId}`;
-        setTimeout(async () => {
-          try {
-            const fotos = await listOsFotos(osIdCapturado);
-            const fotoUrls = fotos.filter(f => f.url).map(f => f.url);
-            if (input.fotoMapaCalorUrl) fotoUrls.unshift(input.fotoMapaCalorUrl);
-            if (fotoUrls.length > 0) {
-              const dataOS = new Date().toISOString().split("T")[0];
-              const result = await uploadFotosOSParaDrive({
-                tecnicoNome: tecnicoNomeCapturado,
-                escolaNome: escolaNomeCapturado,
-                fotos: fotoUrls,
-                dataOS,
-              });
-              console.log(`[Drive] OS ${osIdCapturado}: ${result.sucesso}/${result.total} fotos enviadas para o Drive (agendado)`);
-            }
-          } catch (driveErr) {
-            console.error(`[Drive] Erro ao enviar fotos da OS ${osIdCapturado} ao Drive (agendado):`, driveErr);
-          }
-        }, 30000); // 30s de espera para garantir que todas as fotos já foram enviadas ao S3
       }
       return { osId };
     }),
 
   // Upload de foto do mapa de calor para uma OS
-  uploadFotoMapaCalor: publicProcedure
+  uploadFotoMapaCalor: tecnicoProcedure
     .input(z.object({
       osId: z.number().optional(),
       escolaId: z.number(),
@@ -1042,7 +1045,9 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
+      if (input.osId) await assertTecnicoOsScope(ctx, input.osId);
       const buffer = Buffer.from(input.imageBase64, "base64");
       const key = `mapa-calor/escola-${input.escolaId}-tecnico-${input.tecnicoId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -1057,7 +1062,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Upload de foto por categoria (apenas mapa_calor)
-  uploadOsFoto: publicProcedure
+  uploadOsFoto: tecnicoProcedure
     .input(z.object({
       osId: z.number(),
       escolaId: z.number(),
@@ -1068,7 +1073,9 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       // clientId: ID único gerado pelo app offline para garantir idempotência
       clientId: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, input.tecnicoId, input.escolaId);
+      await assertTecnicoOsScope(ctx, input.osId);
       // Validar tamanho da imagem (base64 de 10MB = ~13.3MB de string)
       const maxBase64Size = 14 * 1024 * 1024; // 14MB em caracteres
       if (input.imageBase64.length > maxBase64Size) {
@@ -1093,22 +1100,25 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     }),
 
   // Busca fotos de uma OS por ID
-  getOsFotos: publicProcedure
+  getOsFotos: tecnicoProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoOsScope(ctx, input.osId);
       return listOsFotos(input.osId);
     }),
 
   // Busca fotos de uma escola (todas as OS)
-  getOsFotosByEscola: publicProcedure
+  getOsFotosByEscola: tecnicoProcedure
     .input(z.object({ escolaId: z.number() }))
-    .query(async ({ input }) => {
-       return listOsFotosByEscola(input.escolaId);
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoScope(ctx, ctx.tecnicoSession!.tecnicoId, input.escolaId);
+      return listOsFotosByEscola(input.escolaId);
     }),
   // Verifica se todas as categorias obrigatórias têm foto
-  verificarFotosObrigatorias: publicProcedure
+  verificarFotosObrigatorias: tecnicoProcedure
     .input(z.object({ osId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await assertTecnicoOsScope(ctx, input.osId);
       const counts = await countOsFotosByCategoria(input.osId);
       const categorias = ["mapa_calor"] as const;
       const resultado: Record<string, boolean> = {};
@@ -1140,6 +1150,32 @@ const tenantAdminSelfRouter = router({
     }),
 });
 
+const tenantSessionRouter = router({
+  me: tenantAdminProcedure.query(async ({ ctx }) => {
+    const session = ctx.tenantSession;
+    if (!session) throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão administrativa inválida" });
+    const { getTenantAdminByEmail, getTenantById } = await import("./db-tenant");
+    const admin = await getTenantAdminByEmail(session.email);
+    if (!admin || !admin.ativo || admin.tenantId !== session.tenantId) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão administrativa inválida" });
+    }
+    const tenant = await getTenantById(session.tenantId);
+    return {
+      id: admin.id,
+      nome: admin.nome,
+      email: admin.email,
+      role: admin.role,
+      tenantId: session.tenantId,
+      isSuperAdmin: false,
+      tenant: tenant ? { id: tenant.id, nome: tenant.nome, slug: tenant.slug, plano: tenant.plano, status: tenant.status } : null,
+    };
+  }),
+  logout: tenantAdminProcedure.mutation(({ ctx }) => {
+    clearTenantSession(ctx.res, ctx.req);
+    return { success: true };
+  }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -1157,10 +1193,12 @@ export const appRouter = router({
   dashboard: dashboardRouter,
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
+  tenantSession: tenantSessionRouter,
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
   superadmin: superadminRouter,
+  signup: signupRouter,
   tenantConfig: tenantConfigRouter,
   tenantAdmin: tenantAdminSelfRouter,
 });

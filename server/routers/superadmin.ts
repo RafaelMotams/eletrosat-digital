@@ -12,19 +12,21 @@ import {
   updateTenantAdmin,
   deleteTenantAdmin,
   verifyTenantAdminPassword,
+  listRegistrationRequests,
+  getTenantAdminById,
 } from "../db-tenant";
 import { getDashboardStats, listTecnicos, listOrdensServico } from "../db";
 import { SignJWT, jwtVerify } from "jose";
+import { jwtSecretKey } from "../_core/jwtSecret";
+import { setTenantSession } from "../_core/tenantAuth";
 
-const JWT_SECRET = process.env.JWT_SECRET || "superadmin-secret";
-const secretKey = new TextEncoder().encode(JWT_SECRET);
 
 // Criar token JWT
 async function signToken(payload: Record<string, unknown>): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
-    .sign(secretKey);
+    .sign(jwtSecretKey);
 }
 
 // Verificar token JWT
@@ -35,7 +37,7 @@ async function verifyToken(token: string): Promise<{
   isSuperAdmin: boolean;
 } | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, jwtSecretKey);
     return payload as {
       adminId: number;
       tenantId: number;
@@ -60,7 +62,7 @@ export const superadminRouter = router({
         senha: z.string().min(1),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { admin, tenant } = await verifyTenantAdminPassword(
         input.email,
         input.senha
@@ -81,6 +83,16 @@ export const superadminRouter = router({
           role: admin.role,
           isSuperAdmin,
         });
+
+      if (!isSuperAdmin) {
+        await setTenantSession(ctx.res, ctx.req, {
+          adminId: admin.id,
+          tenantId: admin.tenantId,
+          email: admin.email,
+          role: admin.role,
+          isSuperAdmin: false,
+        });
+      }
 
       return {
         token,
@@ -147,6 +159,16 @@ export const superadminRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
       }
       return listTenants();
+    }),
+
+  listRegistrationRequests: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const session = await verifyToken(input.token);
+      if (!session?.isSuperAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
+      return listRegistrationRequests();
     }),
 
   createTenant: publicProcedure
@@ -281,6 +303,14 @@ export const superadminRouter = router({
     .mutation(async ({ input }) => {
       const session = await verifyToken(input.token);
       if (!session) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const target = await getTenantAdminById(input.id);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Administrador não encontrado" });
+      if (!session.isSuperAdmin && target.tenantId !== session.tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Administrador fora do tenant autorizado" });
+      }
+      if (!session.isSuperAdmin && target.id === session.adminId && input.role && input.role !== target.role) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Não é permitido alterar o próprio papel" });
+      }
       const { token: _t, id, ...data } = input;
       await updateTenantAdmin(id, data);
       return { success: true };

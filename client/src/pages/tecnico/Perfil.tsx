@@ -51,7 +51,9 @@ export default function TecnicoPerfil() {
 
   const progresso = stats.total > 0 ? Math.round((stats.concluidas / stats.total) * 100) : 0;
 
-  const handleLogout = () => {
+  const logoutMut = trpc.tecnicoAuth.logout.useMutation();
+  const handleLogout = async () => {
+    try { await logoutMut.mutateAsync(); } catch { /* limpar sessão local mesmo se a rede estiver indisponível */ }
     ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
     navigate("/tecnico/login");
   };
