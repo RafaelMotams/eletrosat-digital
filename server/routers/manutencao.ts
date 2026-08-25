@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
 import { invokeLLM } from "../_core/llm";
+import { recordAuditEvent } from "../audit";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 

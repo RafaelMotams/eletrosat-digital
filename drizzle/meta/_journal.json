@@ -148,6 +148,13 @@
       "when": 1787667740323,
       "tag": "0020_wise_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1787671534376,
+      "tag": "0021_young_master_chief",
+      "breakpoints": true
     }
   ]
 }

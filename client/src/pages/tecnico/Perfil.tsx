@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
+import { dbClearTecnicoData } from "@/hooks/useOfflineDB";
 import {
   User, Wifi, CheckCircle, Clock, Zap, LogOut, Award, TrendingUp,
   Shield, Star, ChevronRight, Settings, Bell, HelpCircle, Activity
@@ -33,6 +34,7 @@ export default function TecnicoPerfil() {
   const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
   const tecnicoNome = localStorage.getItem("tecnico_nome") || "Técnico";
   const tecnicoEmail = localStorage.getItem("tecnico_email") || "";
+  const logoutMutation = trpc.tecnicoAuth.logout.useMutation();
 
   useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
 
@@ -51,9 +53,21 @@ export default function TecnicoPerfil() {
 
   const progresso = stats.total > 0 ? Math.round((stats.concluidas / stats.total) * 100) : 0;
 
-  const handleLogout = () => {
-    ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
-    navigate("/tecnico/login");
+  const handleLogout = async () => {
+    try {
+      await dbClearTecnicoData(tecnicoId);
+    } catch (error) {
+      window.alert(error instanceof Error ? `${error.message} Conecte-se e sincronize antes de sair.` : "Sincronize as ordens pendentes antes de sair.");
+      return;
+    }
+
+    try {
+      await logoutMutation.mutateAsync();
+    } finally {
+      ["tecnico_id", "tecnico_nome", "tecnico_email", "tecnico", "tecnico_ever_logged", "tecnico_last_route"].forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+      navigate("/tecnico/login");
+    }
   };
 
   const initials = tecnicoNome.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
@@ -230,7 +244,7 @@ export default function TecnicoPerfil() {
         </div>
 
         {/* Logout */}
-        <button onClick={handleLogout}
+        <button onClick={handleLogout} disabled={logoutMutation.isPending}
           className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97] relative overflow-hidden"
           style={{
             background: "rgba(239,68,68,0.07)",

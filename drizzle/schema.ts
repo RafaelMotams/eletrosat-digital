@@ -7,6 +7,7 @@ import {
   varchar,
   decimal,
   boolean,
+  index,
   uniqueIndex,
 } from "drizzle-orm/mysql-core";
 
@@ -348,3 +349,27 @@ export const loginAttempts = mysqlTable("login_attempts", {
   ultimaTentativa: timestamp("ultimaTentativa").defaultNow().notNull(),
 });
 export type LoginAttempt = typeof loginAttempts.$inferSelect;
+
+// ============================================================
+// AUDITORIA OPERACIONAL (append-only pela aplicação)
+// ============================================================
+export const auditEvents = mysqlTable("audit_events", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId"),
+  actorType: mysqlEnum("actorType", ["superadmin", "admin", "viewer", "tecnico", "sistema"]).notNull(),
+  actorId: int("actorId"),
+  action: varchar("action", { length: 100 }).notNull(),
+  entityType: varchar("entityType", { length: 100 }).notNull(),
+  entityId: varchar("entityId", { length: 100 }),
+  success: boolean("success").default(true).notNull(),
+  metadata: text("metadata"),
+  ip: varchar("ip", { length: 64 }),
+  userAgent: varchar("userAgent", { length: 512 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tenantCreatedIdx: index("audit_tenant_created_idx").on(table.tenantId, table.createdAt),
+  actorCreatedIdx: index("audit_actor_created_idx").on(table.actorType, table.actorId, table.createdAt),
+}));
+
+export type AuditEvent = typeof auditEvents.$inferSelect;
+export type InsertAuditEvent = typeof auditEvents.$inferInsert;

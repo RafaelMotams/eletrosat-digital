@@ -242,3 +242,24 @@ export async function dbClearFotoRascunho(escolaId: number): Promise<void> {
     await wrap(tx(db, "fotoRascunho", "readwrite").delete(escolaId));
   } catch {}
 }
+
+/** Remove do aparelho os dados locais de um técnico após confirmar que não há OS pendentes. */
+export async function dbClearTecnicoData(tecnicoId: number): Promise<void> {
+  const db = await openDB();
+  const pending = await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
+  const pendentesDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status !== "done");
+  if (pendentesDoTecnico.length > 0) {
+    throw new Error(`Existem ${pendentesDoTecnico.length} ordem(ns) pendente(s) de sincronização.`);
+  }
+
+  await wrap(tx(db, "escolas", "readwrite").delete(tecnicoId));
+
+  const doneDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status === "done");
+  for (const item of doneDoTecnico) {
+    await wrap(tx(db, "pendingOS", "readwrite").delete(item.id));
+  }
+
+  // Rascunhos antigos não possuem tecnicoId; são apagados no logout para evitar
+  // que fotos de uma sessão anterior apareçam para outro usuário do aparelho.
+  await wrap(tx(db, "fotoRascunho", "readwrite").clear());
+}

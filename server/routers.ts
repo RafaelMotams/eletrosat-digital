@@ -57,6 +57,7 @@ import { getDb } from "./db";
 import { ordensServico, escolas } from "../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { clearTecnicoSession, setTecnicoSession } from "./_core/tecnicoAuth";
+import { recordAuditEvent } from "./audit";
 
 // Middleware para verificar se é admin
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -478,6 +479,16 @@ const ordensRouter = router({
       });
       // Atualizar status da escola
       await updateEscola(input.escolaId, { status: "em_andamento" });
+      await recordAuditEvent({
+        tenantId,
+        actorType: "admin",
+        actorId: (ctx as any).tenantSession?.adminId,
+        action: "service_order.create",
+        entityType: "ordem_servico",
+        entityId: input.escolaId,
+        metadata: { tecnicoId: input.tecnicoId },
+        req: ctx.req,
+      });
       return { success: true };
     }),
 
@@ -528,6 +539,7 @@ const ordensRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Ordem não pertence a este tenant" });
       }
       await deleteOrdemServico(input.osId);
+      await recordAuditEvent({ tenantId: ordem.tenantId, actorType: "admin", actorId: (ctx as any).tenantSession?.adminId, action: "service_order.delete", entityType: "ordem_servico", entityId: input.osId, req: ctx.req });
       return { success: true };
     }),
 
@@ -576,6 +588,7 @@ const ordensRouter = router({
       const total = await deleteAllOrdensServico(tenantId);
       // Resetar status das escolas para "pendente" após excluir todas as OS
       await resetEscolasStatusAposExcluirOS(tenantId);
+      await recordAuditEvent({ tenantId, actorType: "admin", actorId: (ctx as any).tenantSession?.adminId, action: "service_order.delete_all", entityType: "ordem_servico", metadata: { total }, req: ctx.req });
       return { success: true, total };
     }),
   concluir: protectedProcedure
@@ -1124,6 +1137,16 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       }
       // Atualiza escola como concluída (idempotente)
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
+      await recordAuditEvent({
+        tenantId: ctx.tecnicoSession.tenantId,
+        actorType: "tecnico",
+        actorId: ctx.tecnicoSession.tecnicoId,
+        action: "service_order.complete",
+        entityType: "ordem_servico",
+        entityId: osId,
+        metadata: { escolaId: input.escolaId, qtdApInstalado: input.qtdApInstalado },
+        req: ctx.req,
+      });
       // Notifica o dono apenas se a OS foi recém concluída (não em retry)
       if (!osJaConcluida) {
         const tecnico = await getTecnicoById(ctx.tecnicoSession.tecnicoId);
