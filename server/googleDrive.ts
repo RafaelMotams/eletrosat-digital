@@ -94,13 +94,14 @@ async function getOrCreateFolder(name: string, parentId: string, token: string):
  * Estrutura: Netvius Fotos / Técnico Nome / Escola Nome - Data / foto.jpg
  */
 export async function uploadFotoParaDrive(params: {
+  tenantId: number;
   tecnicoNome: string;
   escolaNome: string;
   fotoUrl: string;
   fotoIndex: number;
   dataOS: string;
 }): Promise<{ driveUrl: string; driveFileId: string }> {
-  const { tecnicoNome, escolaNome, fotoUrl, fotoIndex, dataOS } = params;
+  const { tenantId, tecnicoNome, escolaNome, fotoUrl, fotoIndex, dataOS } = params;
 
   // Obter token de acesso
   const token = await getAccessToken();
@@ -121,9 +122,10 @@ export async function uploadFotoParaDrive(params: {
   const contentType = response.headers.get("content-type") || "image/jpeg";
   const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
 
-  // Criar estrutura de pastas: Root / Escola Nome - Data
+  // Criar estrutura de pastas isolada: Root / Tenant-{id} / Escola Nome - Data
+  const tenantFolderId = await getOrCreateFolder(`Tenant-${tenantId}`, ROOT_FOLDER_ID, token);
   const escolaFolderName = `${escolaNome} - ${dataOS}`;
-  const escolaFolderId = await getOrCreateFolder(escolaFolderName, ROOT_FOLDER_ID, token);
+  const escolaFolderId = await getOrCreateFolder(escolaFolderName, tenantFolderId, token);
 
   // Upload multipart
   const fileName = `foto_${String(fotoIndex).padStart(2, "0")}_${tecnicoNome.split(" ")[0]}.${ext}`;
@@ -170,12 +172,13 @@ export async function uploadFotoParaDrive(params: {
  * Faz upload de todas as fotos de uma OS concluída para o Drive
  */
 export async function uploadFotosOSParaDrive(params: {
+  tenantId: number;
   tecnicoNome: string;
   escolaNome: string;
   fotos: string[];
   dataOS: string;
 }): Promise<{ total: number; sucesso: number; urls: string[] }> {
-  const { tecnicoNome, escolaNome, fotos, dataOS } = params;
+  const { tenantId, tecnicoNome, escolaNome, fotos, dataOS } = params;
 
   let sucesso = 0;
   const urls: string[] = [];
@@ -183,6 +186,7 @@ export async function uploadFotosOSParaDrive(params: {
   for (let i = 0; i < fotos.length; i++) {
     try {
       const result = await uploadFotoParaDrive({
+        tenantId,
         tecnicoNome,
         escolaNome,
         fotoUrl: fotos[i],

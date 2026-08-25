@@ -585,3 +585,17 @@
 - [x] Garantir que cada relatório de ordens e valores use exclusivamente o tenant da sessão autenticada
 - [x] Testar bloqueio de operações e fallback OAuth entre tenants (22 testes de isolamento)
 - [x] Publicar a correção crítica de isolamento após resolver a sincronização do repositório
+
+## Especificação Enterprise V7 (25/08/2026)
+- [x] Extrair e classificar requisitos, proibições e critérios de aceite do Prompt Mestre V7
+- [x] Auditar o projeto atual contra a separação entre Master, revenda, empresa e usuários internos
+- [x] Mapear lacunas de isolamento em banco, arquivos, cache, filas, exportações e notificações
+- [x] Definir uma estratégia incremental de migração sem apagar dados existentes
+- [ ] Implementar por etapas as correções prioritárias de segurança e autorização
+- [ ] Revisar OS, manutenção, aplicativo offline e Assistente Técnico conforme regras inegociáveis
+- [ ] Aprimorar relatórios com AP planejada, instalada, a menos, a mais, diferença e percentual
+- [ ] Consolidar estados de carregamento, vazio, erro, offline, conflito e permissão negada nas telas críticas
+- [ ] Executar testes, build, validação visual e publicação por checkpoints
+- [x] Remover personificação e métricas operacionais de clientes da Central Master
+- [x] Exigir sessão assinada do técnico nas consultas e ações operacionais
+- [x] Bloquear mutações de usuários visualizadores no backend por padrão

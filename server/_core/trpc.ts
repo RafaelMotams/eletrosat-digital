@@ -2,6 +2,7 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { getTecnicoSession } from "./tecnicoAuth";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -24,6 +25,49 @@ const requireUser = t.middleware(async opts => {
 });
 
 export const protectedProcedure = t.procedure.use(requireUser);
+
+export const tecnicoProcedure = t.procedure.use(
+  t.middleware(async ({ ctx, next }) => {
+    const tecnicoSession = await getTecnicoSession(ctx.req);
+    if (!tecnicoSession) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+    return next({ ctx: { ...ctx, tecnicoSession } });
+  }),
+);
+
+export const tenantOrTecnicoProcedure = t.procedure.use(
+  t.middleware(async ({ ctx, next }) => {
+    if (ctx.tenantSession && !ctx.tenantSession.isSuperAdmin && ctx.tenantSession.tenantId > 0) {
+      return next({
+        ctx: {
+          ...ctx,
+          accessSession: {
+            kind: "tenantAdmin" as "tenantAdmin" | "tecnico",
+            tenantId: ctx.tenantSession.tenantId,
+            adminId: ctx.tenantSession.adminId as number | null,
+            tecnicoId: null as number | null,
+          },
+        },
+      });
+    }
+    const tecnicoSession = await getTecnicoSession(ctx.req);
+    if (tecnicoSession) {
+      return next({
+        ctx: {
+          ...ctx,
+          accessSession: {
+            kind: "tecnico" as "tenantAdmin" | "tecnico",
+            tenantId: tecnicoSession.tenantId,
+            adminId: null as number | null,
+            tecnicoId: tecnicoSession.tecnicoId as number | null,
+          },
+        },
+      });
+    }
+    throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+  }),
+);
 
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
@@ -52,6 +96,9 @@ export const tenantAdminProcedure = t.procedure.use(
     if (ctx.tenantSession) {
       if (!ctx.tenantSession.isSuperAdmin && ctx.tenantSession.tenantId <= 0) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Tenant inválido" });
+      }
+      if (ctx.tenantSession.role === "viewer" && opts.type === "mutation") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não pode alterar dados" });
       }
       return next({
         ctx: {

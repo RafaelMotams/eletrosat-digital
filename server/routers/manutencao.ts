@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, and, desc, or, like } from "drizzle-orm";
-import { router, tenantAdminProcedure, publicProcedure } from "../_core/trpc";
+import { router, tecnicoProcedure, tenantAdminProcedure, tenantOrTecnicoProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
@@ -200,12 +200,15 @@ export const manutencaoRouter = router({
   }),
 
   // ── TÉCNICO: Listar manutenções atribuídas (public para funcionar no app) ───
-  minhas: publicProcedure
+  minhas: tecnicoProcedure
     .input(z.object({
       tecnicoId: z.number(),
       busca: z.string().optional(),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const rows = await db
@@ -217,7 +220,8 @@ export const manutencaoRouter = router({
         .leftJoin(escolas, eq(manutencoes.escolaId, escolas.id))
         .where(
           and(
-            eq(manutencoes.tecnicoId, input.tecnicoId),
+            eq(manutencoes.tecnicoId, ctx.tecnicoSession.tecnicoId),
+            eq(manutencoes.tenantId, ctx.tecnicoSession.tenantId),
             // Só mostra pendentes e em andamento (concluídas saem da lista)
             or(
               eq(manutencoes.status, "pendente"),
@@ -246,26 +250,44 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Buscar manutenção por ID ──────────────────────────────────────
-  getById: publicProcedure
+  getById: tenantOrTecnicoProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const restrictions = [
+        eq(manutencoes.id, input.id),
+        eq(manutencoes.tenantId, ctx.accessSession.tenantId),
+      ];
+      if (ctx.accessSession.kind === "tecnico" && ctx.accessSession.tecnicoId !== null) {
+        restrictions.push(eq(manutencoes.tecnicoId, ctx.accessSession.tecnicoId));
+      }
+      const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(...restrictions)).limit(1);
+      if (!registro) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
       return getManutencaoComDados(input.id);
     }),
 
   // ── TÉCNICO: Iniciar manutenção ─────────────────────────────────────────────
-  iniciar: publicProcedure
+  iniciar: tecnicoProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
         .set({ status: "em_andamento" })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
+        .where(and(
+          eq(manutencoes.id, input.id),
+          eq(manutencoes.tecnicoId, ctx.tecnicoSession.tecnicoId),
+          eq(manutencoes.tenantId, ctx.tecnicoSession.tenantId),
+        ));
       return { success: true };
     }),
 
   // ── TÉCNICO: Upload foto ────────────────────────────────────────────────────
-  uploadFoto: publicProcedure
+  uploadFoto: tecnicoProcedure
     .input(z.object({
       manutencaoId: z.number(),
       tipo: z.enum(["defeito", "conclusao"]),
@@ -273,9 +295,16 @@ export const manutencaoRouter = router({
       mimeType: z.string().default("image/jpeg"),
       clientId: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(
+        eq(manutencoes.id, input.manutencaoId),
+        eq(manutencoes.tecnicoId, ctx.tecnicoSession.tecnicoId),
+        eq(manutencoes.tenantId, ctx.tecnicoSession.tenantId),
+      )).limit(1);
+      if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence ao técnico autenticado" });
 
       // Verificar duplicata por clientId
       if (input.clientId) {
@@ -286,7 +315,7 @@ export const manutencaoRouter = router({
 
       const buffer = Buffer.from(input.base64, "base64");
       const ext = input.mimeType === "image/png" ? "png" : "jpg";
-      const key = `manutencao/${input.manutencaoId}/${input.tipo}/${Date.now()}.${ext}`;
+      const key = `tenants/${ctx.tecnicoSession.tenantId}/manutencao/${input.manutencaoId}/${input.tipo}/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
 
       await db.insert(manutencaoFotos).values({
@@ -300,14 +329,17 @@ export const manutencaoRouter = router({
     }),
 
   // ── TÉCNICO: Concluir manutenção ────────────────────────────────────────────
-  concluir: publicProcedure
+  concluir: tecnicoProcedure
     .input(z.object({
       id: z.number(),
       tecnicoId: z.number(),
       observacaoConclusao: z.string().min(5, "Observação obrigatória"),
       quilometragem: z.number().finite().min(0, "Informe uma quilometragem válida"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(manutencoes)
@@ -317,18 +349,33 @@ export const manutencaoRouter = router({
           quilometragem: String(input.quilometragem),
           dataConclusao: new Date(),
         })
-        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tecnicoId, input.tecnicoId)));
+        .where(and(
+          eq(manutencoes.id, input.id),
+          eq(manutencoes.tecnicoId, ctx.tecnicoSession.tecnicoId),
+          eq(manutencoes.tenantId, ctx.tecnicoSession.tenantId),
+        ));
       return { success: true };
     }),
 
   // ── TÉCNICO: Assistente IA ─────────────────────────────────────────────────
-  assistenteIA: publicProcedure
+  assistenteIA: tenantOrTecnicoProcedure
     .input(z.object({
       manutencaoId: z.number(),
       pergunta: z.string().min(3),
       contexto: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const restrictions = [
+        eq(manutencoes.id, input.manutencaoId),
+        eq(manutencoes.tenantId, ctx.accessSession.tenantId),
+      ];
+      if (ctx.accessSession.kind === "tecnico" && ctx.accessSession.tecnicoId !== null) {
+        restrictions.push(eq(manutencoes.tecnicoId, ctx.accessSession.tecnicoId));
+      }
+      const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(...restrictions)).limit(1);
+      if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence à sessão autenticada" });
       const m = await getManutencaoComDados(input.manutencaoId);
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
       const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:

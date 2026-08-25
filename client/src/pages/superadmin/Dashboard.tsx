@@ -182,15 +182,6 @@ export default function SuperadminDashboard() {
     onSuccess: () => { ok("Admin removido."); utils.superadmin.listAdmins.invalidate(); },
     onError: e => err(e.message),
   });
-  const impersonateM = trpc.superadmin.impersonateTenant.useMutation({
-    onSuccess: (data) => {
-      localStorage.setItem("sa_token", data.token);
-      localStorage.setItem("sa_admin", JSON.stringify(data.admin));
-      window.location.href = "/admin/dashboard";
-    },
-    onError: e => err(e.message),
-  });
-
   // ── Form: Novo Cliente ──
   const [form, setForm] = useState({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "", diasTrial: "5" });
   const setF = (k: string) => (v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -511,7 +502,6 @@ export default function SuperadminDashboard() {
                       onVerAdmins={() => setModalAdmins(t)}
                       onEditar={() => setModalEditar(t)}
                       onExcluir={() => setModalExcluir(t)}
-                      onImpersonate={() => impersonateM.mutate({ token, tenantId: t.id })}
                       onSuspender={(status) => updateTenantM.mutate({ token, id: t.id, status })}
                     />
                   ))}
@@ -752,12 +742,11 @@ function Modal({ title, children, onClose, wide }: { title: string; children: Re
 }
 
 // ─── TenantCard ───────────────────────────────────────────────────────────────
-function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onImpersonate, onSuspender }: {
+function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onSuspender }: {
   tenant: Tenant;
   onVerAdmins: () => void;
   onEditar: () => void;
   onExcluir: () => void;
-  onImpersonate: () => void;
   onSuspender: (status: "ativo" | "suspenso") => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -812,7 +801,6 @@ function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onImpersonate, o
                 style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.1)" }}
                 onMouseLeave={() => setMenuOpen(false)}>
                 {[
-                  { icon: ExternalLink, label: "Acessar painel", color: "#60a5fa", action: onImpersonate },
                   { icon: Users, label: "Ver admins", color: "#a78bfa", action: onVerAdmins },
                   { icon: Edit2, label: "Editar", color: "#fbbf24", action: onEditar },
                   {
@@ -882,13 +870,6 @@ function TenantCard({ tenant, onVerAdmins, onEditar, onExcluir, onImpersonate, o
 
       {/* Actions */}
       <div className="px-4 pb-4 flex gap-2">
-        <button onClick={onImpersonate}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
-          style={{ background: "rgba(96,165,250,0.1)", color: "#60a5fa", border: "1px solid rgba(96,165,250,0.2)" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(96,165,250,0.18)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(96,165,250,0.1)"; }}>
-          <ExternalLink size={11} /> Acessar
-        </button>
         <button onClick={onVerAdmins}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
           style={{ background: "rgba(167,139,250,0.1)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.2)" }}

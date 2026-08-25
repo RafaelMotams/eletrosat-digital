@@ -6,6 +6,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import { signTecnicoToken, TECNICO_SESSION_COOKIE } from "./_core/tecnicoAuth";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,16 @@ function createUnauthenticatedContext(): TrpcContext {
     tenantSession: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
+async function createTecnicoContext(tecnicoId: number, tenantId: number): Promise<TrpcContext> {
+  const token = await signTecnicoToken({ tecnicoId, tenantId, email: `tecnico${tecnicoId}@tenant${tenantId}.com`, role: "tecnico" });
+  return {
+    user: null,
+    tenantSession: null,
+    req: { protocol: "https", headers: { cookie: `${TECNICO_SESSION_COOKIE}=${encodeURIComponent(token)}` } } as TrpcContext["req"],
+    res: { clearCookie: vi.fn(), cookie: vi.fn() } as unknown as TrpcContext["res"],
   };
 }
 
@@ -318,5 +329,39 @@ describe("Isolamento Multi-Tenant: prioridade do login de revenda", () => {
 
     expect(result).toHaveLength(1);
     expect(result[0]?.tenantId).toBe(2);
+  });
+});
+
+describe("Isolamento Multi-Tenant: sessão do técnico", () => {
+  it("nega consulta técnica sem sessão assinada", async () => {
+    const caller = appRouter.createCaller(createUnauthenticatedContext());
+    await expect(caller.tecnicoAuth.minhasEscolas({ tecnicoId: 1 })).rejects.toThrow(TRPCError);
+  });
+
+  it("técnico autenticado consulta apenas as próprias escolas do tenant", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    const escolas = await caller.tecnicoAuth.minhasEscolas({ tecnicoId: 1 });
+    expect(escolas.every(escola => escola.tenantId === 1)).toBe(true);
+  });
+
+  it("técnico autenticado não pode consultar dados de outro técnico", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.minhasOrdens({ tecnicoId: 2 })).rejects.toThrow(TRPCError);
+  });
+
+  it("técnico autenticado não pode ler fotos de OS de outro tenant", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.getOsFotos({ osId: 200 })).rejects.toThrow(TRPCError);
+  });
+});
+
+describe("RBAC: perfil visualizador somente leitura", () => {
+  it("bloqueia mutação de técnico mesmo quando chamada diretamente pela API", async () => {
+    const caller = appRouter.createCaller(createViewerContext(1));
+    await expect(caller.tecnicos.create({
+      nome: "Tentativa indevida",
+      email: "tentativa@tenant1.com",
+      senha: "senha-segura",
+    })).rejects.toThrow(TRPCError);
   });
 });
