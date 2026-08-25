@@ -129,6 +129,20 @@ export const manutencaoRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const tenantId = (ctx as any).tenantId;
+      const [escolaDoTenant] = await db
+        .select({ id: escolas.id })
+        .from(escolas)
+        .where(and(eq(escolas.id, input.escolaId), eq(escolas.tenantId, tenantId)))
+        .limit(1);
+      if (!escolaDoTenant) throw new TRPCError({ code: "FORBIDDEN", message: "Escola não pertence a este tenant" });
+      if (input.tecnicoId) {
+        const [tecnicoDoTenant] = await db
+          .select({ id: tecnicos.id })
+          .from(tecnicos)
+          .where(and(eq(tecnicos.id, input.tecnicoId), eq(tecnicos.tenantId, tenantId)))
+          .limit(1);
+        if (!tecnicoDoTenant) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence a este tenant" });
+      }
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: input.escolaId,
@@ -144,23 +158,37 @@ export const manutencaoRouter = router({
   // ── ADMIN: Atribuir técnico ─────────────────────────────────────────────────
   atribuir: tenantAdminProcedure
     .input(z.object({ id: z.number(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const tenantId = (ctx as any).tenantId;
+      const [tecnicoDoTenant] = await db
+        .select({ id: tecnicos.id })
+        .from(tecnicos)
+        .where(and(eq(tecnicos.id, input.tecnicoId), eq(tecnicos.tenantId, tenantId)))
+        .limit(1);
+      if (!tecnicoDoTenant) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence a este tenant" });
       await db.update(manutencoes)
         .set({ tecnicoId: input.tecnicoId, dataAtribuicao: new Date(), status: "pendente" })
-        .where(eq(manutencoes.id, input.id));
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
       return { success: true };
     }),
 
   // ── ADMIN: Excluir manutenção ───────────────────────────────────────────────
   excluir: tenantAdminProcedure
     .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const tenantId = (ctx as any).tenantId;
+      const [registro] = await db
+        .select({ id: manutencoes.id })
+        .from(manutencoes)
+        .where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)))
+        .limit(1);
+      if (!registro) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
       await db.delete(manutencaoFotos).where(eq(manutencaoFotos.manutencaoId, input.id));
-      await db.delete(manutencoes).where(eq(manutencoes.id, input.id));
+      await db.delete(manutencoes).where(and(eq(manutencoes.id, input.id), eq(manutencoes.tenantId, tenantId)));
       return { success: true };
     }),
 
@@ -647,6 +675,14 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const tenantId = (ctx as any).tenantId;
+      if (input.tecnicoId) {
+        const [tecnicoDoTenant] = await db
+          .select({ id: tecnicos.id })
+          .from(tecnicos)
+          .where(and(eq(tecnicos.id, input.tecnicoId), eq(tecnicos.tenantId, tenantId)))
+          .limit(1);
+        if (!tecnicoDoTenant) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence a este tenant" });
+      }
       const res = await db.insert(manutencoes).values({
         tenantId,
         escolaId: null,
