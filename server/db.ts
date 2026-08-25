@@ -414,12 +414,14 @@ export async function getDashboardStats(tenantId?: number) {
   };
 }
 
-export async function getProdutividadePorTecnico(tenantId?: number) {
+export async function getProdutividadePorTecnico(tenantId?: number, dataInicio?: Date | null, dataFim?: Date | null) {
   const db = await getDb();
   if (!db) return [];
 
   const prodConditions: any[] = [eq(ordensServico.status, "concluida")];
   if (tenantId !== undefined) prodConditions.push(eq(ordensServico.tenantId, tenantId));
+  if (dataInicio) prodConditions.push(gte(ordensServico.dataConclusao, dataInicio));
+  if (dataFim) prodConditions.push(lte(ordensServico.dataConclusao, dataFim));
   const result = await db
     .select({
       tecnicoId: ordensServico.tecnicoId,

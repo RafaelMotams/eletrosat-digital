@@ -732,8 +732,14 @@ const dashboardRouter = router({
     return getDashboardStats((ctx as any).tenantId);
   }),
 
-  produtividade: tenantAdminProcedure.query(async ({ ctx }) => {
-    return getProdutividadePorTecnico((ctx as any).tenantId);
+  produtividade: tenantAdminProcedure.input(z.object({
+    dataInicio: z.string().nullable().optional(),
+    dataFim: z.string().nullable().optional(),
+  }).optional()).query(async ({ ctx, input }) => {
+    const inicio = input?.dataInicio ? new Date(input.dataInicio) : null;
+    const fim = input?.dataFim ? new Date(input.dataFim) : null;
+    if (fim) fim.setHours(23, 59, 59, 999);
+    return getProdutividadePorTecnico((ctx as any).tenantId, inicio, fim);
   }),
 });
 // === RELATÓRIOS ROUTER ===

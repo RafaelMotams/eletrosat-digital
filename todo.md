@@ -636,6 +636,9 @@
 - [x] Adicionar filtros de histórico de estoque por técnico, tipo de movimento e período
 - [x] Validar o carregamento seguro do painel de estoque antes da consulta do histórico filtrado
 - [x] Validar o acionamento do filtro por período e a limpeza de filtros no histórico de estoque
+- [x] Adicionar filtros de período aos indicadores de produtividade por técnico no dashboard
+- [x] Validar visualmente o seletor de período e os indicadores reais de produtividade no dashboard
+- [x] Confirmar que o filtro de 30 dias atualiza ranking e gráfico sem misturar dados de tenant
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

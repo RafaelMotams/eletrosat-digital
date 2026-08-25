@@ -1,9 +1,10 @@
 import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { Link } from "wouter";
 import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell
@@ -62,6 +63,7 @@ export default function AdminDashboard() {
   const isViewer = admin?.role === 'viewer';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [periodoProdutividade, setPeriodoProdutividade] = useState<"todo" | "7d" | "30d" | "mes">("todo");
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -85,8 +87,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (dataUpdatedAt) setLastUpdate(new Date(dataUpdatedAt));
   }, [dataUpdatedAt]);
+  const produtividadeInput = useMemo(() => {
+    if (periodoProdutividade === "todo") return undefined;
+    const inicio = new Date();
+    if (periodoProdutividade === "7d") inicio.setDate(inicio.getDate() - 6);
+    if (periodoProdutividade === "30d") inicio.setDate(inicio.getDate() - 29);
+    if (periodoProdutividade === "mes") inicio.setDate(1);
+    inicio.setHours(0, 0, 0, 0);
+    return { dataInicio: inicio.toISOString(), dataFim: new Date().toISOString() };
+  }, [periodoProdutividade]);
+  const periodoProdutividadeLabel = { todo: "Todo período", "7d": "Últimos 7 dias", "30d": "Últimos 30 dias", mes: "Mês atual" }[periodoProdutividade];
   const { data: produtividade, isLoading: loadingProd, refetch: refetchProd } = trpc.dashboard.produtividade.useQuery(
-    undefined,
+    produtividadeInput,
     {
       refetchInterval: isOnline ? 30000 : false,
       refetchIntervalInBackground: false,
@@ -307,11 +319,14 @@ export default function AdminDashboard() {
 
         {/* ── Produtividade por Técnico ── */}
         <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-6 shadow-sm animate-fade-in-up delay-200">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.94 0.04 240)" }}>
-              <Activity className="w-4 h-4" style={{ color: "oklch(0.30 0.10 240)" }} />
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "oklch(0.94 0.04 240)" }}>
+                <Activity className="w-4 h-4" style={{ color: "oklch(0.30 0.10 240)" }} />
+              </div>
+              <div><h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Produtividade por Técnico</h3><p className="text-xs text-muted-foreground">{periodoProdutividadeLabel}</p></div>
             </div>
-            <h3 className="font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>Produtividade por Técnico</h3>
+            <Select value={periodoProdutividade} onValueChange={value => setPeriodoProdutividade(value as "todo" | "7d" | "30d" | "mes")}><SelectTrigger className="w-full sm:w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="todo">Todo período</SelectItem><SelectItem value="7d">Últimos 7 dias</SelectItem><SelectItem value="30d">Últimos 30 dias</SelectItem><SelectItem value="mes">Mês atual</SelectItem></SelectContent></Select>
           </div>
 
           {loadingProd ? (
