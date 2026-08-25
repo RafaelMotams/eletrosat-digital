@@ -10,49 +10,49 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 overflow-hidden">
+    <div className="min-h-screen overflow-hidden bg-white text-slate-900">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
+      <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/75 text-white shadow-[0_10px_40px_rgba(2,6,23,.25)] backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/20">
               <Wifi className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900">Netvius</span>
+            <span className="text-xl font-bold tracking-tight text-white">Netvius</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8">
-            <a href="#funcionalidades" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Funcionalidades</a>
-            <a href="#como-funciona" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Como Funciona</a>
-            <a href="#seguranca" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Segurança</a>
-            <a href="#planos" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">Planos</a>
+            <a href="#funcionalidades" className="text-sm font-medium text-slate-300 transition hover:text-white">Funcionalidades</a>
+            <a href="#como-funciona" className="text-sm font-medium text-slate-300 transition hover:text-white">Como Funciona</a>
+            <a href="#seguranca" className="text-sm font-medium text-slate-300 transition hover:text-white">Segurança</a>
+            <a href="#planos" className="text-sm font-medium text-slate-300 transition hover:text-white">Planos</a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <a href="/admin/login" className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition">
+            <a href="/admin/login" className="px-4 py-2 text-sm font-medium text-slate-200 transition hover:text-white">
               Entrar
             </a>
-            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition shadow-sm">
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-emerald-50 shadow-lg shadow-black/20">
               Falar com Vendas
             </a>
           </div>
 
           {/* Mobile menu button */}
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2">
+          <button aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"} onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-lg p-2 text-white transition hover:bg-white/10 md:hidden">
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-slate-100 px-4 py-4 space-y-3">
-            <a href="#funcionalidades" className="block text-sm font-medium text-slate-600 py-2">Funcionalidades</a>
-            <a href="#como-funciona" className="block text-sm font-medium text-slate-600 py-2">Como Funciona</a>
-            <a href="#seguranca" className="block text-sm font-medium text-slate-600 py-2">Segurança</a>
-            <a href="#planos" className="block text-sm font-medium text-slate-600 py-2">Planos</a>
-            <hr className="border-slate-100" />
-            <a href="/admin/login" className="block text-sm font-semibold text-emerald-600 py-2">Entrar no Painel</a>
-            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="block text-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold">
+          <div className="space-y-2 border-t border-white/10 bg-slate-950 px-4 py-4 md:hidden">
+            <a href="#funcionalidades" className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/10">Funcionalidades</a>
+            <a href="#como-funciona" className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/10">Como Funciona</a>
+            <a href="#seguranca" className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/10">Segurança</a>
+            <a href="#planos" className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-200 hover:bg-white/10">Planos</a>
+            <hr className="border-white/10" />
+            <a href="/admin/login" className="block px-3 py-2 text-sm font-semibold text-emerald-300">Entrar no Painel</a>
+            <a href="https://wa.me/5575999142134?text=Olá! Quero conhecer o Netvius" target="_blank" rel="noopener" className="block rounded-xl bg-white px-5 py-3 text-center text-sm font-bold text-slate-950">
               Falar com Vendas
             </a>
           </div>
@@ -60,114 +60,50 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
+      <section className="relative isolate overflow-hidden bg-[#071426] px-4 pb-20 pt-32 text-white sm:px-6 lg:px-8 lg:pb-28">
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_78%_24%,rgba(16,185,129,.2),transparent_25%),radial-gradient(circle_at_5%_75%,rgba(56,189,248,.18),transparent_32%)]" />
+        <div className="absolute inset-y-0 right-0 -z-10 w-full bg-[linear-gradient(110deg,rgba(7,20,38,1)_15%,rgba(7,20,38,.58)_48%,rgba(7,20,38,.1)_100%)]" />
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid items-center gap-14 lg:grid-cols-[.92fr_1.08fr] lg:gap-8">
             {/* Left Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-sm font-medium text-emerald-700">Plataforma 100% online • Funciona offline</span>
+            <div className="relative z-10 space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 shadow-lg shadow-emerald-950/20 backdrop-blur">
+                <div className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,.8)]"></div>
+                <span className="text-sm font-semibold text-emerald-100">Operação de campo e gestão em uma só plataforma</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-slate-900">
-                Gestão completa de{" "}
-                <span className="text-emerald-600">equipes técnicas</span>{" "}
-                em campo
+              <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.04] tracking-[-.045em] text-white sm:text-5xl lg:text-6xl">
+                A operação em campo, <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-sky-300 bg-clip-text text-transparent">vista do jeito certo.</span>
               </h1>
 
-              <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
-                Controle ordens de serviço, rotas, fotos e relatórios em tempo real. 
-                Seus técnicos usam o app no celular. Você gerencia tudo pelo painel. 
-                Simples assim.
+              <p className="max-w-xl text-lg leading-relaxed text-slate-300">
+                Planeje rotas, acompanhe ordens, registre evidências e organize a gestão no mesmo fluxo — do celular do técnico ao painel da empresa.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href="/admin/cadastro" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition shadow-lg shadow-emerald-600/20 group">
+                <a href="/admin/cadastro" className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-7 py-4 text-base font-bold text-slate-950 shadow-xl shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-300">
                   Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
                 </a>
-                <a href="/admin/login" className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 font-semibold text-base transition">
+                <a href="/admin/login" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-7 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10">
                   <Lock className="w-4 h-4" /> Acessar Painel
                 </a>
               </div>
 
-              <p className="pt-2 text-sm text-slate-500">Crie sua conta, confirme o email e organize sua operação em um painel próprio.</p>
+              <div className="grid max-w-xl grid-cols-3 gap-3 border-t border-white/10 pt-6 text-xs text-slate-300 sm:text-sm">
+                <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 shrink-0 text-emerald-300" /> Rotas e OS</span>
+                <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 shrink-0 text-emerald-300" /> Fotos e laudos</span>
+                <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 shrink-0 text-emerald-300" /> Gestão por empresa</span>
+              </div>
             </div>
 
-            {/* Right - Dashboard Preview */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200 p-6 space-y-4">
-                {/* Mock Dashboard Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span className="text-sm font-semibold text-slate-700">Dashboard — Painel Admin</span>
-                  </div>
-                  <span className="text-xs text-slate-400">Atualizado agora</span>
-                </div>
-                
-                {/* Mock KPI Cards */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
-                    <p className="text-xs text-blue-600 font-medium">Escolas</p>
-                    <p className="text-sm font-bold text-blue-900">Após login</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 border border-emerald-200">
-                    <p className="text-xs text-emerald-600 font-medium">Concluídas</p>
-                    <p className="text-sm font-bold text-emerald-900">Em tempo real</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 border border-amber-200">
-                    <p className="text-xs text-amber-600 font-medium">Pendentes</p>
-                    <p className="text-sm font-bold text-amber-900">Do seu painel</p>
-                  </div>
-                </div>
-
-                {/* Mock Table */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 mb-3">ÚLTIMAS ORDENS DE SERVIÇO</p>
-                  {[
-                    { escola: "Unidade atendida", tecnico: "Técnico responsável", status: "Concluída", color: "emerald" },
-                    { escola: "Ordem de serviço", tecnico: "Em atendimento", status: "Em andamento", color: "blue" },
-                    { escola: "Próxima atividade", tecnico: "Equipe de campo", status: "Pendente", color: "amber" },
-                  ].map((row, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">{row.escola}</p>
-                        <p className="text-xs text-slate-400">{row.tecnico}</p>
-                      </div>
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${row.color}-100 text-${row.color}-700`}>
-                        {row.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Mock Progress */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-slate-100 rounded-full h-2.5">
-                    <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: "61%" }}></div>
-                  </div>
-                  <span className="text-sm font-semibold text-slate-700">61%</span>
-                </div>
+            {/* Right - 3D product composition */}
+            <div className="relative mx-auto w-full max-w-2xl lg:-mr-10">
+              <div className="absolute inset-8 rounded-[2.5rem] bg-emerald-400/20 blur-3xl" />
+              <img src="/manus-storage/netvius-hero-3d_affc93bb.png" alt="Visual 3D de dispositivos conectados à operação Netvius" className="relative w-full drop-shadow-[0_34px_45px_rgba(0,0,0,.42)]" />
+              <div className="absolute bottom-2 left-2 rounded-2xl border border-white/15 bg-slate-950/70 p-3.5 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:left-7">
+                <div className="flex items-center gap-2"><div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-400/15"><Route className="h-4 w-4 text-emerald-300" /></div><div><p className="text-xs font-bold text-white">Execução conectada</p><p className="mt-0.5 text-[11px] text-slate-300">Do campo ao painel</p></div></div>
               </div>
-
-              {/* Floating Mobile App Card */}
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl border border-slate-200 p-3 w-48">
-                <div className="flex items-center gap-2 mb-2">
-                  <Smartphone className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-semibold text-slate-700">App do Técnico</span>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <span className="text-xs text-slate-500">Ordens e manutenções</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    <span className="text-xs text-slate-500">Rotas, fotos e observações</span>
-                  </div>
-                </div>
-              </div>
+              <div className="absolute right-3 top-4 hidden rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-xl sm:block">App + Painel</div>
             </div>
           </div>
         </div>

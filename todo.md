@@ -667,7 +667,7 @@
 - [x] Modernizar a exportação XLSX com marca Netvius, navegação executiva e proteção de valores vindos do servidor
 - [x] Desativar com segurança o job diário legado fixado em tenant até uma configuração tenant-aware autorizada
 - [x] Remover a marca antiga Netvionis ainda exibida na tela técnica de acesso
-- [ ] Redesenhar a landing Netvius com hero 3D premium, narrativa clara e responsividade profissional
+- [x] Redesenhar a landing Netvius com hero 3D premium, narrativa clara e responsividade profissional
 - [x] Investigar e corrigir possível mistura de ordens entre o tenant de Rafael e outro painel administrativo
 
 ## Relatórios Executivos de AP (Enterprise V7)
