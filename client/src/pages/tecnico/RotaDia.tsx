@@ -4,11 +4,12 @@ import { useLocation } from "wouter";
 import {
   Route, CheckCircle, Circle, Share2, MessageCircle,
   MapPin, Wifi, ChevronLeft, Search, Navigation,
-  ListChecks, Trash2, ArrowUp, ArrowDown, Play, CalendarDays
+  ListChecks, Trash2, ArrowUp, ArrowDown, Play, CalendarDays, Clock
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbGetCachedEscolas } from "@/hooks/useOfflineDB";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { filtrarAtividadesSemanais, organizarRotaSemanal, type FiltroRotaSemanal } from "@shared/rotaSemanal";
 
 type Escola = {
   id: number;
@@ -62,25 +63,58 @@ function sortByRoute(list: Escola[]): Escola[] {
 
 const ROTA_DIA_KEY = "tecnico_rota_dia";
 
+const statusSemanal = {
+  concluido: { label: "Concluída", color: "#6ee7b7", background: "rgba(16,185,129,0.12)", border: "rgba(52,211,153,0.25)", icon: CheckCircle },
+  em_andamento: { label: "Em andamento", color: "#a5b4fc", background: "rgba(99,102,241,0.12)", border: "rgba(129,140,248,0.25)", icon: Play },
+  pendente: { label: "Pendente", color: "#fcd34d", background: "rgba(245,158,11,0.12)", border: "rgba(252,211,77,0.23)", icon: Clock },
+} as const;
+
 export default function RotaDia() {
   const [, navigate] = useLocation();
   const isOnline = useOnlineStatus();
   const [tecnicoId, setTecnicoId] = useState<number | null>(null);
+  const [tenantId, setTenantId] = useState<number | null>(null);
+  const [sessaoLocalCarregada, setSessaoLocalCarregada] = useState(false);
+  const [rotaLocalCarregada, setRotaLocalCarregada] = useState(false);
   const [escolas, setEscolas] = useState<Escola[]>([]);
   const [selecionadas, setSelecionadas] = useState<number[]>([]);
   const [busca, setBusca] = useState("");
   const [ordenarPorRota, setOrdenarPorRota] = useState(false);
   const [rotaConfirmada, setRotaConfirmada] = useState(false);
+  const [filtroSemanal, setFiltroSemanal] = useState<FiltroRotaSemanal>("todas");
 
   // Carregar tecnicoId
   useEffect(() => {
     const id = localStorage.getItem("tecnico_id");
+    const tenant = localStorage.getItem("tecnico_tenant_id");
     if (id) setTecnicoId(parseInt(id));
+    if (tenant) setTenantId(parseInt(tenant));
+    setSessaoLocalCarregada(true);
   }, []);
+
+  const { isLoading: verificandoSessao, error: erroSessao } = trpc.tecnicoAuth.me.useQuery(
+    { tecnicoId: tecnicoId ?? 0 },
+    { enabled: sessaoLocalCarregada && !!tecnicoId && isOnline, retry: false, refetchOnWindowFocus: false },
+  );
+
+  useEffect(() => {
+    if (!sessaoLocalCarregada) return;
+    const sessaoInvalida = erroSessao?.data?.code === "UNAUTHORIZED" || erroSessao?.data?.code === "FORBIDDEN";
+    if (tecnicoId && !sessaoInvalida) return;
+    if (tecnicoId && !isOnline) return;
+
+    ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico"].forEach(chave => localStorage.removeItem(chave));
+    navigate("/tecnico/login", { replace: true });
+  }, [erroSessao, isOnline, navigate, sessaoLocalCarregada, tecnicoId]);
+
+  const rotaDiaStorageKey = useMemo(() => (
+    tecnicoId && tenantId ? `${ROTA_DIA_KEY}:${tenantId}:${tecnicoId}` : null
+  ), [tecnicoId, tenantId]);
 
   // Carregar seleção salva do dia
   useEffect(() => {
-    const saved = localStorage.getItem(ROTA_DIA_KEY);
+    if (!rotaDiaStorageKey) return;
+    const saved = localStorage.getItem(rotaDiaStorageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -91,19 +125,21 @@ export default function RotaDia() {
         }
       } catch {}
     }
-  }, []);
+    setRotaLocalCarregada(true);
+  }, [rotaDiaStorageKey]);
 
   // Salvar seleção no localStorage
   useEffect(() => {
-    localStorage.setItem(ROTA_DIA_KEY, JSON.stringify({
+    if (!rotaDiaStorageKey || !rotaLocalCarregada) return;
+    localStorage.setItem(rotaDiaStorageKey, JSON.stringify({
       ids: selecionadas,
       data: new Date().toDateString(),
       confirmada: rotaConfirmada,
     }));
-  }, [selecionadas]);
+  }, [selecionadas, rotaConfirmada, rotaDiaStorageKey, rotaLocalCarregada]);
 
   // Query online
-  const { data: minhasEscolas } = trpc.tecnicoAuth.minhasEscolas.useQuery(
+  const { data: minhasEscolas, isLoading: carregandoEscolas } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId: tecnicoId! },
     { enabled: !!tecnicoId && isOnline }
   );
@@ -142,20 +178,11 @@ export default function RotaDia() {
     [rotaOrdenada]
   );
 
-  const resumoSemanal = useMemo(() => {
-    const agora = new Date();
-    const inicioSemana = new Date(agora);
-    inicioSemana.setHours(0, 0, 0, 0);
-    inicioSemana.setDate(agora.getDate() - ((agora.getDay() + 6) % 7));
-    const concluidas = escolas.filter(escola => escola.status === "concluido" && escola.dataConclusao && new Date(escola.dataConclusao) >= inicioSemana);
-    const pendentes = escolas.filter(escola => escola.status === "pendente" || escola.status === "em_andamento");
-    return {
-      concluidas: concluidas.length,
-      pendentes: pendentes.length,
-      apsConcluidos: concluidas.reduce((total, escola) => total + (escola.qtdAp ?? 0), 0),
-      inicioSemana,
-    };
-  }, [escolas]);
+  const resumoSemanal = useMemo(() => organizarRotaSemanal(escolas), [escolas]);
+  const atividadesSemanais = useMemo(
+    () => filtrarAtividadesSemanais(resumoSemanal, filtroSemanal),
+    [resumoSemanal, filtroSemanal],
+  );
 
   function toggleEscola(id: number) {
     setRotaConfirmada(false);
@@ -209,6 +236,10 @@ export default function RotaDia() {
     concluido: "#10b981",
   };
 
+  if (!sessaoLocalCarregada || (isOnline && !!tecnicoId && verificandoSessao)) {
+    return <div className="grid min-h-screen place-items-center" style={{ background: "#040a16", color: "rgba(148,163,184,0.72)", fontSize: 13 }}>Validando acesso seguro...</div>;
+  }
+
   return (
     <div style={{ minHeight: "100dvh", background: "linear-gradient(160deg,#040a16 0%,#0a1628 50%,#040a16 100%)", paddingBottom: "90px" }}>
       {/* Header */}
@@ -252,21 +283,63 @@ export default function RotaDia() {
         </div>
       </div>
 
-      {/* Resumo semanal de execução */}
+      {/* Visão semanal de execução */}
       <div style={{ margin: "12px 16px 0", background: "linear-gradient(135deg,rgba(16,185,129,0.13),rgba(6,78,59,0.16))", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 12, padding: "12px 14px" }}>
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4" style={{ color: "#6ee7b7" }} />
-            <div><p style={{ color: "#d1fae5", fontSize: 13, fontWeight: 700 }}>Resumo da semana</p><p style={{ color: "rgba(167,243,208,0.62)", fontSize: 10 }}>Desde {resumoSemanal.inicioSemana.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</p></div>
+            <div><p style={{ color: "#d1fae5", fontSize: 13, fontWeight: 700 }}>Plano da semana</p><p style={{ color: "rgba(167,243,208,0.62)", fontSize: 10 }}>{resumoSemanal.inicioSemana.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} — {resumoSemanal.fimSemana.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</p></div>
           </div>
           <span style={{ color: "#6ee7b7", fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.12)", borderRadius: 999, padding: "4px 8px" }}>Dados reais</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[
-            { label: "Concluídas", value: resumoSemanal.concluidas, color: "#6ee7b7" },
-            { label: "Pendentes", value: resumoSemanal.pendentes, color: "#fcd34d" },
+            { label: "Concluídas", value: resumoSemanal.concluidas.length, color: "#6ee7b7" },
+            { label: "Em aberto", value: resumoSemanal.pendentes.length + resumoSemanal.emAndamento.length, color: "#fcd34d" },
             { label: "APs feitos", value: resumoSemanal.apsConcluidos, color: "#a5b4fc" },
           ].map(item => <div key={item.label} style={{ background: "rgba(255,255,255,0.045)", borderRadius: 9, padding: "9px 7px", textAlign: "center" }}><p style={{ color: item.color, fontSize: 18, fontWeight: 800 }}>{item.value}</p><p style={{ color: "rgba(148,163,184,0.62)", fontSize: 9, fontWeight: 600, marginTop: 2 }}>{item.label}</p></div>)}
+        </div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 12, paddingBottom: 2 }} aria-label="Filtrar atividades da semana">
+          {[
+            { value: "todas", label: "Todas", total: resumoSemanal.atividades.length },
+            { value: "concluido", label: "Concluídas", total: resumoSemanal.concluidas.length },
+            { value: "em_andamento", label: "Em andamento", total: resumoSemanal.emAndamento.length },
+            { value: "pendente", label: "Pendentes", total: resumoSemanal.pendentes.length },
+          ].map(opcao => {
+            const ativo = filtroSemanal === opcao.value;
+            return <button
+              key={opcao.value}
+              type="button"
+              aria-pressed={ativo}
+              onClick={() => setFiltroSemanal(opcao.value as FiltroRotaSemanal)}
+              style={{ whiteSpace: "nowrap", flexShrink: 0, borderRadius: 999, padding: "6px 9px", fontSize: 10, fontWeight: 700, color: ativo ? "#04130d" : "rgba(209,250,229,0.72)", background: ativo ? "#6ee7b7" : "rgba(255,255,255,0.055)", border: ativo ? "1px solid #6ee7b7" : "1px solid rgba(167,243,208,0.14)" }}>
+              {opcao.label} · {opcao.total}
+            </button>;
+          })}
+        </div>
+
+        <div style={{ marginTop: 10, display: "grid", gap: 7 }} aria-live="polite">
+          {carregandoEscolas ? (
+            [0, 1].map(item => <div key={item} style={{ height: 54, borderRadius: 9, background: "rgba(255,255,255,0.05)" }} className="animate-pulse" />)
+          ) : atividadesSemanais.length === 0 ? (
+            <div style={{ borderRadius: 9, padding: "11px", textAlign: "center", color: "rgba(167,243,208,0.6)", fontSize: 11, background: "rgba(255,255,255,0.035)" }}>
+              Não há atividades com este status nesta semana.
+            </div>
+          ) : atividadesSemanais.map(atividade => {
+            const detalhe = statusSemanal[atividade.status as keyof typeof statusSemanal];
+            if (!detalhe) return null;
+            const Icon = detalhe.icon;
+            return <button
+              type="button"
+              key={atividade.id}
+              onClick={() => navigate(`/tecnico/os/${atividade.id}`)}
+              style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 9, background: "rgba(255,255,255,0.035)", border: `1px solid ${detalhe.border}` }}>
+              <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, display: "grid", placeItems: "center", background: detalhe.background }}><Icon className="w-3.5 h-3.5" style={{ color: detalhe.color }} /></span>
+              <span style={{ flex: 1, minWidth: 0 }}><span style={{ display: "block", color: "#f1f5f9", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{atividade.nome}</span><span style={{ display: "block", marginTop: 2, color: "rgba(167,243,208,0.54)", fontSize: 10 }}>{atividade.municipio ?? "Local não informado"}{atividade.qtdAp ? ` · ${atividade.qtdAp} AP${atividade.qtdAp > 1 ? "s" : ""}` : ""}</span></span>
+              <span style={{ color: detalhe.color, fontSize: 9, fontWeight: 700 }}>{detalhe.label}</span>
+            </button>;
+          })}
         </div>
       </div>
 

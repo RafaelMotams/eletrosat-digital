@@ -643,10 +643,12 @@
 - [x] Validar visualmente a opção de intervalo personalizado no seletor de produtividade
 - [x] Validar que o período personalizado incompleto informa o preenchimento necessário antes de consultar dados
 - [x] Validar intervalo personalizado aplicado com dados reais de produtividade por técnico
-- [ ] Criar resumo semanal de rota do técnico com concluídas e pendentes
+- [x] Criar resumo semanal de rota do técnico com concluídas e pendentes
 - [x] Exportar inventário físico com divergências e ajustes filtráveis por período
 - [x] Exibir indicadores de manutenção por técnico, status e período no painel
 - [x] Validar visualmente indicadores e filtros de manutenção com dados reais do tenant
+- [x] Organizar no aplicativo técnico a visão semanal de rota por atividades concluídas e pendentes
+- [x] Redirecionar com segurança a rota técnica semanal quando não houver sessão assinada válida
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
