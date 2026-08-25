@@ -264,6 +264,66 @@ function exportarExcel(
   XLSX.utils.book_append_sheet(wb, ws1, "OS Concluídas");
 
   /* ════════════════════════════════════════════════════════════════
+     ABA 2 — INDICADORES DE AP POR ORDEM
+     Mantém déficit e excedente separados para não ocultar divergências.
+  ════════════════════════════════════════════════════════════════ */
+  const rowsAp: any[][] = [
+    ["INDICADORES DE AP POR ORDEM", "", "", "", "", "", "", "", ""],
+    [`Período: ${periodoLabel}`, "", "", "", "", "", "", "", ""],
+    [`Técnico(s): ${tecLabel}`, "", "", "", "", "", "", "", ""],
+    [`Gerado em: ${new Date().toLocaleString("pt-BR")}`, "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["Nº", "Escola", "INEP", "AP planejada", "AP instalada", "AP a menos", "AP a mais", "Diferença", "% execução"],
+  ];
+  osDetalhadas.forEach((os: any, i: number) => {
+    const planejada = Number(os.qtdApPlanejado ?? 0);
+    const instalada = Number(os.qtdApInstalado ?? 0);
+    const diferenca = Number(os.diferencaAp ?? instalada - planejada);
+    rowsAp.push([
+      i + 1,
+      os.escolaNome ?? "",
+      os.inep ?? "",
+      planejada,
+      instalada,
+      Number(os.apsAMenos ?? Math.max(0, planejada - instalada)),
+      Number(os.apsAMais ?? Math.max(0, instalada - planejada)),
+      diferenca,
+      planejada > 0 ? instalada / planejada : "",
+    ]);
+  });
+  const totalApPlanejada = osDetalhadas.reduce((acc: number, os: any) => acc + Number(os.qtdApPlanejado ?? 0), 0);
+  const totalApInstalada = osDetalhadas.reduce((acc: number, os: any) => acc + Number(os.qtdApInstalado ?? 0), 0);
+  const totalApAMenos = osDetalhadas.reduce((acc: number, os: any) => acc + Number(os.apsAMenos ?? Math.max(0, Number(os.qtdApPlanejado ?? 0) - Number(os.qtdApInstalado ?? 0))), 0);
+  const totalApAMais = osDetalhadas.reduce((acc: number, os: any) => acc + Number(os.apsAMais ?? Math.max(0, Number(os.qtdApInstalado ?? 0) - Number(os.qtdApPlanejado ?? 0))), 0);
+  rowsAp.push([
+    "", `TOTAL — ${osDetalhadas.length} escola(s)`, "", totalApPlanejada, totalApInstalada,
+    totalApAMenos, totalApAMais, totalApInstalada - totalApPlanejada,
+    totalApPlanejada > 0 ? totalApInstalada / totalApPlanejada : "",
+  ]);
+  const wsAp = XLSX.utils.aoa_to_sheet(rowsAp);
+  wsAp["!cols"] = [{ wch: 5 }, { wch: 44 }, { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+  wsAp["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
+    { s: { r: 6 + osDetalhadas.length, c: 1 }, e: { r: 6 + osDetalhadas.length, c: 2 } },
+  ];
+  const colsAp = ["A","B","C","D","E","F","G","H","I"];
+  ["A1","A2","A3","A4"].forEach((addr, index) => { if (!wsAp[addr]) wsAp[addr] = { t: "s", v: "" }; wsAp[addr].s = index === 0 ? sTitulo : sInfo; });
+  colsAp.forEach((col) => { const addr = `${col}6`; if (!wsAp[addr]) wsAp[addr] = { t: "s", v: "" }; wsAp[addr].s = sHeader; });
+  for (let row = 7; row < 7 + osDetalhadas.length; row++) {
+    colsAp.forEach((col, index) => {
+      const addr = `${col}${row}`;
+      if (!wsAp[addr]) wsAp[addr] = { t: "s", v: "" };
+      wsAp[addr].s = index === 5 ? { ...sData, fill: { fgColor: { rgb: "FEF3C7" } } } : index === 6 ? { ...sData, fill: { fgColor: { rgb: "EDE9FE" } } } : sData;
+      if (index >= 3 && index <= 7) wsAp[addr].t = "n";
+      if (index === 8 && wsAp[addr].v !== "") { wsAp[addr].t = "n"; wsAp[addr].z = "0.0%"; }
+    });
+  }
+  const totalApRow = 7 + osDetalhadas.length;
+  colsAp.forEach((col, index) => { const addr = `${col}${totalApRow}`; if (!wsAp[addr]) wsAp[addr] = { t: "s", v: "" }; wsAp[addr].s = sTotal; if (index >= 3 && index <= 7) wsAp[addr].t = "n"; if (index === 8 && wsAp[addr].v !== "") { wsAp[addr].t = "n"; wsAp[addr].z = "0.0%"; } });
+  XLSX.utils.book_append_sheet(wb, wsAp, "Indicadores de AP");
+
+  /* ════════════════════════════════════════════════════════════════
      ABA 2 — RESUMO DE PAGAMENTO POR TÉCNICO
      Colunas: Técnico | Escolas | APs | Total a Pagar
   ════════════════════════════════════════════════════════════════ */
@@ -503,6 +563,21 @@ export default function AdminRelatorios() {
     [osDetalhadas]
   );
 
+  const resumoAps = useMemo(() => {
+    const ordens = osDetalhadas ?? [];
+    const planejados = ordens.reduce((acc, os: any) => acc + Number(os.qtdApPlanejado ?? 0), 0);
+    const instalados = ordens.reduce((acc, os: any) => acc + Number(os.qtdApInstalado ?? 0), 0);
+    const diferenca = instalados - planejados;
+    return {
+      planejados,
+      instalados,
+      aMenos: ordens.reduce((acc, os: any) => acc + Number(os.apsAMenos ?? Math.max(0, Number(os.qtdApPlanejado ?? 0) - Number(os.qtdApInstalado ?? 0))), 0),
+      aMais: ordens.reduce((acc, os: any) => acc + Number(os.apsAMais ?? Math.max(0, Number(os.qtdApInstalado ?? 0) - Number(os.qtdApPlanejado ?? 0))), 0),
+      diferenca,
+      percentual: planejados > 0 ? Number(((instalados / planejados) * 100).toFixed(1)) : 0,
+    };
+  }, [osDetalhadas]);
+
   const tecnicosSelecionados = useMemo(
     () => (tecnicos ?? []).filter(t => tecnicosSel.includes(t.id)),
     [tecnicos, tecnicosSel]
@@ -558,6 +633,36 @@ export default function AdminRelatorios() {
               </>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            Indicadores de AP no período
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingOs ? (
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">{[1,2,3,4,5,6].map(i => <div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />)}</div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+              {[
+                { label: "Planejados", value: resumoAps.planejados, cls: "text-sky-700 bg-sky-50 border-sky-100" },
+                { label: "Instalados", value: resumoAps.instalados, cls: "text-emerald-700 bg-emerald-50 border-emerald-100" },
+                { label: "A menos", value: resumoAps.aMenos, cls: "text-amber-700 bg-amber-50 border-amber-100" },
+                { label: "A mais", value: resumoAps.aMais, cls: "text-violet-700 bg-violet-50 border-violet-100" },
+                { label: "Diferença", value: resumoAps.diferenca > 0 ? `+${resumoAps.diferenca}` : resumoAps.diferenca, cls: "text-slate-700 bg-slate-50 border-slate-200" },
+                { label: "% executado", value: `${resumoAps.percentual}%`, cls: "text-slate-700 bg-slate-50 border-slate-200" },
+              ].map(item => (
+                <div key={item.label} className={`rounded-xl border p-4 ${item.cls}`}>
+                  <p className="text-2xl font-bold">{item.value}</p>
+                  <p className="mt-1 text-xs font-medium opacity-80">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -731,7 +836,7 @@ export default function AdminRelatorios() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/40">
-                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.",...(isViewer ? [] : ["Valor (R$)"]),"Técnico","Data","Observação"].map(h => (
+                    {["#","Escola","INEP","Município","APs Inst.","APs Plan.","A menos","A mais","Diferença","% Exec.",...(isViewer ? [] : ["Valor (R$)"]),"Técnico","Data","Observação"].map(h => (
                       <th key={h} className="px-4 py-3 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -753,6 +858,12 @@ export default function AdminRelatorios() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{os.qtdApPlanejado}</td>
+                      <td className="px-4 py-3 text-center font-medium text-amber-700">{os.apsAMenos ?? 0}</td>
+                      <td className="px-4 py-3 text-center font-medium text-violet-700">{os.apsAMais ?? 0}</td>
+                      <td className={`px-4 py-3 text-center font-medium ${(os.diferencaAp ?? 0) < 0 ? "text-amber-700" : (os.diferencaAp ?? 0) > 0 ? "text-violet-700" : "text-muted-foreground"}`}>
+                        {(os.diferencaAp ?? 0) > 0 ? `+${os.diferencaAp}` : (os.diferencaAp ?? 0)}
+                      </td>
+                      <td className="px-4 py-3 text-center text-muted-foreground whitespace-nowrap">{os.percentualExecucao == null ? "—" : `${os.percentualExecucao}%`}</td>
                       {!isViewer && (
                       <td className="px-4 py-3 text-center">
                         {os.valorCalculado != null ? (
@@ -785,9 +896,14 @@ export default function AdminRelatorios() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-300 font-bold text-sm">
-                        {totalApsTabela}
+                        {resumoAps.instalados}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-center font-semibold text-sky-700">{resumoAps.planejados}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-amber-700">{resumoAps.aMenos}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-violet-700">{resumoAps.aMais}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-muted-foreground">{resumoAps.diferenca > 0 ? `+${resumoAps.diferenca}` : resumoAps.diferenca}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-muted-foreground">{resumoAps.percentual}%</td>
                     {!isViewer && (
                     <td className="px-4 py-3 text-center">
                       {(() => {
@@ -800,7 +916,7 @@ export default function AdminRelatorios() {
                       })()}
                     </td>
                     )}
-                    <td colSpan={4} />
+                    <td colSpan={3} />
                   </tr>
                 </tfoot>
               </table>

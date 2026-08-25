@@ -780,9 +780,20 @@ const relatoriosRouter = router({
       // Calcular valor por OS com base nos APs instalados e valor cadastrado do técnico
       return rows.map(os => {
         const tecValores = valoresMap[os.tecnicoId ?? 0] ?? {};
-        const qtd = os.qtdApInstalado ?? 0;
-        const valorCalculado = isViewer ? null : (tecValores[qtd] ?? null);
-        return { ...os, valorCalculado };
+        const qtdInstalado = Number(os.qtdApInstalado ?? 0);
+        const qtdPlanejado = Number(os.qtdApPlanejado ?? 0);
+        const diferencaAp = qtdInstalado - qtdPlanejado;
+        const valorCalculado = isViewer ? null : (tecValores[qtdInstalado] ?? null);
+        return {
+          ...os,
+          valorCalculado,
+          qtdApPlanejado: qtdPlanejado,
+          qtdApInstalado: qtdInstalado,
+          diferencaAp,
+          apsAMenos: Math.max(0, -diferencaAp),
+          apsAMais: Math.max(0, diferencaAp),
+          percentualExecucao: qtdPlanejado > 0 ? Number(((qtdInstalado / qtdPlanejado) * 100).toFixed(1)) : null,
+        };
       });
     }),
 

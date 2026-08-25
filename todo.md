@@ -593,7 +593,7 @@
 - [x] Definir uma estratégia incremental de migração sem apagar dados existentes
 - [x] Implementar o primeiro pacote P0 de segurança e autorização (sessões, tenant, storage, auditoria e manutenção)
 - [x] Revisar OS, manutenção, aplicativo offline e Assistente Técnico com sessão técnica, validação de tenant e fila offline por técnico
-- [ ] Aprimorar relatórios com AP planejada, instalada, a menos, a mais, diferença e percentual
+- [x] Aprimorar relatórios com AP planejada, instalada, a menos, a mais, diferença e percentual
 - [ ] Consolidar estados de carregamento, vazio, erro, offline, conflito e permissão negada nas telas críticas
 - [ ] Executar testes, build, validação visual e publicação por checkpoints
 - [x] Remover personificação e métricas operacionais de clientes da Central Master
@@ -610,4 +610,9 @@
 
 ## Hotfix — Acesso ao Painel (25/08/2026)
 - [x] Reproduzir e corrigir a falha de login: assinatura e verificação JWT usavam chaves diferentes
-- [ ] Validar que o login retorna ao painel com dados exclusivos do tenant autenticado
+- [x] Validar login completo e dashboard do tenant de teste com dados carregados e sessão isolada
+
+## Relatórios Executivos de AP (Enterprise V7)
+- [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
+- [x] Consolidar os indicadores de AP no painel sem compensar déficits e excedentes entre escolas
+- [x] Exportar planilha XLSX auditável com os indicadores de AP por ordem
