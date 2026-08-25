@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OperationState } from "@/components/OperationState";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -34,7 +35,7 @@ export default function AdminManutencao() {
   // ── Dados ──────────────────────────────────────────────────────────────────
   const [filtroStatus, setFiltroStatus] = useState("todas");
   const [busca, setBusca] = useState("");
-  const { data: lista, isLoading } = trpc.manutencao.listar.useQuery(
+  const { data: lista, isLoading, error: listaError, refetch: refetchLista } = trpc.manutencao.listar.useQuery(
     { status: filtroStatus as any, busca: busca || undefined },
     { refetchInterval: 30000 }
   );
@@ -336,16 +337,15 @@ export default function AdminManutencao() {
       {/* ── Lista ── */}
       <Card className="border-0 shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
+          <OperationState kind="loading" title="Carregando manutenções" description="Buscando as ordens de manutenção do seu ambiente." />
+        ) : listaError ? (
+          <OperationState kind="error" title="Não foi possível carregar as manutenções" description="Confira sua conexão e tente novamente. Seus dados não foram alterados." actionLabel="Tentar novamente" onAction={() => refetchLista()} />
         ) : !lista || lista.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <Wrench size={32} className="text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">Nenhuma manutenção encontrada</p>
-            <Button size="sm" onClick={() => setCriarOpen(true)} className="gap-2">
-              <Plus size={14} /> Criar primeira manutenção
-            </Button>
+          <div>
+            <OperationState kind="empty" title="Nenhuma manutenção encontrada" description="Crie uma manutenção para atribuir um técnico e acompanhar o atendimento." />
+            <div className="-mt-12 pb-10 flex justify-center">
+              <Button size="sm" onClick={() => setCriarOpen(true)} className="gap-2"><Plus size={14} /> Criar primeira manutenção</Button>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">

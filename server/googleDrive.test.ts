@@ -23,7 +23,9 @@ function getAuth() {
   });
 }
 
-describe("Google Drive credentials", () => {
+const runLiveExternalTests = process.env.RUN_LIVE_EXTERNAL_TESTS === "true";
+
+describe.skipIf(!runLiveExternalTests)("Google Drive credentials", () => {
   it("deve listar todos os Shared Drives acessíveis pela conta de serviço", async () => {
     const drive = google.drive({ version: "v3", auth: getAuth() });
 

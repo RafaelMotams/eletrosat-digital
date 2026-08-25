@@ -550,7 +550,7 @@ export default function TecnicoManutencao() {
   const [busca, setBusca] = useState("");
   const [detalheId, setDetalheId] = useState<number | null>(null);
 
-  const { data: lista, isLoading, refetch } = trpc.manutencao.minhas.useQuery(
+  const { data: lista, isLoading, error: listaError, refetch } = trpc.manutencao.minhas.useQuery(
     { tecnicoId, busca: busca || undefined },
     { enabled: !!tecnicoId, refetchInterval: 30000 }
   );
@@ -596,12 +596,27 @@ export default function TecnicoManutencao() {
 
       {/* Lista */}
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-28 space-y-3">
-        {isLoading ? (
+        {!tecnicoId ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+            <div className="w-16 h-16 rounded-3xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <AlertCircle className="w-8 h-8" style={{ color: "#f87171" }} />
+            </div>
+            <div><p className="font-bold text-white mb-1">Sessão do técnico indisponível</p><p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Entre novamente para acessar somente as suas manutenções.</p></div>
+          </div>
+        ) : isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(249,115,22,0.15)" }}>
               <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#f97316" }} />
             </div>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>Carregando manutenções...</p>
+          </div>
+        ) : listaError ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+            <div className="w-16 h-16 rounded-3xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <AlertCircle className="w-8 h-8" style={{ color: "#f87171" }} />
+            </div>
+            <div><p className="font-bold text-white mb-1">Não foi possível carregar as manutenções</p><p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Verifique a conexão e tente atualizar. Nenhuma ordem foi alterada.</p></div>
+            <button onClick={() => refetch()} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "rgba(249,115,22,0.16)", color: "#fdba74", border: "1px solid rgba(249,115,22,0.26)" }}><RefreshCw className="w-4 h-4 inline mr-2" />Tentar novamente</button>
           </div>
         ) : !lista || lista.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">

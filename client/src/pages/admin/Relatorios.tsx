@@ -2,6 +2,7 @@ import AdminLayoutAuto from "@/components/AdminLayoutAuto";
 import { trpc } from "@/lib/trpc";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OperationState } from "@/components/OperationState";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -549,7 +550,7 @@ export default function AdminRelatorios() {
   });
 
   // OS detalhadas — múltiplos técnicos
-  const { data: osDetalhadas, isLoading: loadingOs } = trpc.relatorios.osDetalhadas.useQuery({
+  const { data: osDetalhadas, isLoading: loadingOs, error: errorOs, refetch: refetchOs } = trpc.relatorios.osDetalhadas.useQuery({
     tecnicoIds: tecnicosSel.length > 0 ? tecnicosSel : undefined,
     dataInicio: dates.inicio,
     dataFim:    dates.fim,
@@ -823,14 +824,11 @@ export default function AdminRelatorios() {
         </CardHeader>
         <CardContent className="p-0">
           {loadingOs ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
-            </div>
+            <OperationState kind="loading" title="Carregando ordens concluídas" description="Estamos consolidando os dados do período selecionado." />
+          ) : errorOs ? (
+            <OperationState kind="error" title="Não foi possível carregar as ordens" description="Confira sua conexão ou tente buscar o relatório novamente." actionLabel="Tentar novamente" onAction={() => refetchOs()} />
           ) : !osDetalhadas || osDetalhadas.length === 0 ? (
-            <div className="py-16 flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
-              <ClipboardList className="w-10 h-10 opacity-20" />
-              <span>Nenhuma OS concluída para os filtros selecionados.</span>
-            </div>
+            <OperationState kind="empty" title="Nenhuma OS concluída no período" description="Ajuste os filtros ou aguarde a conclusão de novas ordens para gerar o relatório." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
