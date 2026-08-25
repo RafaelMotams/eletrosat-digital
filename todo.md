@@ -629,6 +629,8 @@
 - [x] Validar que a rota de estoque técnico sem sessão redireciona ao login de forma segura
 - [x] Permitir ajuste de inventário físico com motivo, trilha de movimentação e auditoria no painel de estoque
 - [x] Validar visualmente o ajuste de inventário e seu bloqueio seguro sem materiais cadastrados
+- [x] Permitir devolução auditável de material do técnico para o almoxarifado
+- [x] Validar a tela de estoque com estados vazios seguros após incluir a devolução de materiais
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

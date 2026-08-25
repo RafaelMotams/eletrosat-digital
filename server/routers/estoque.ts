@@ -301,6 +301,31 @@ export const estoqueRouter = router({
         return { id };
       }),
 
+    devolver: tenantAdminProcedure.input(z.object({ materialId: z.number().int().positive(), tecnicoId: z.number().int().positive(), quantidade: quantidadeSchema, observacao: z.string().trim().min(3).max(2_000) }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await requireDb();
+        await Promise.all([requireMaterial(db, ctx.tenantId, input.materialId), requireTecnico(db, ctx.tenantId, input.tecnicoId)]);
+        const id = await db.transaction(async (tx: any) => {
+          await debitarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "tecnico", holderId: input.tecnicoId }, input.quantidade);
+          await incrementarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "almoxarifado", holderId: 0 }, input.quantidade);
+          return registrarMovimentacao(tx, {
+            tenantId: ctx.tenantId,
+            materialId: input.materialId,
+            tipo: "devolucao",
+            origemType: "tecnico",
+            origemId: input.tecnicoId,
+            destinoType: "almoxarifado",
+            destinoId: 0,
+            quantidade: input.quantidade,
+            observacao: input.observacao,
+            actorType: "admin",
+            actorId: ctx.tenantSession?.adminId,
+          });
+        });
+        await recordAuditEvent({ tenantId: ctx.tenantId, actorType: "admin", actorId: ctx.tenantSession?.adminId, action: "estoque.devolver", entityType: "estoque_movimentacao", entityId: id, metadata: { materialId: input.materialId, tecnicoId: input.tecnicoId, quantidade: input.quantidade }, req: ctx.req });
+        return { id };
+      }),
+
     consumir: tecnicoProcedure.input(z.object({
       materialId: z.number().int().positive(),
       quantidade: quantidadeSchema,
