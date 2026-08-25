@@ -24,3 +24,10 @@ export function chavesRotaTecnico(escopo: EscopoTecnicoLocal) {
     rotaDia: chaveTecnicoLocal(escopo, "rota-dia"),
   } as const;
 }
+
+export function chavesOfflineTecnico(escopo: EscopoTecnicoLocal) {
+  return {
+    fila: chaveTecnicoLocal(escopo, "offline-queue"),
+    escolasCache: chaveTecnicoLocal(escopo, "escolas-cache"),
+  } as const;
+}

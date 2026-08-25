@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chaveTecnicoLocal, chavesRotaTecnico, criarEscopoTecnicoLocal } from "../shared/tecnicoLocalState";
+import { chaveTecnicoLocal, chavesOfflineTecnico, chavesRotaTecnico, criarEscopoTecnicoLocal } from "../shared/tecnicoLocalState";
 
 describe("isolamento de persistência local do técnico", () => {
   it("gera chaves distintas para tenants diferentes no mesmo aparelho", () => {
@@ -17,5 +17,16 @@ describe("isolamento de persistência local do técnico", () => {
     expect(criarEscopoTecnicoLocal(0, 15)).toBeNull();
     expect(criarEscopoTecnicoLocal(1, 0)).toBeNull();
     expect(chavesRotaTecnico(tecnicoUm).ativa).not.toBe(chavesRotaTecnico(tecnicoDois).ativa);
+  });
+
+  it("mantém fila e cache offline no mesmo escopo do técnico", () => {
+    const escopo = criarEscopoTecnicoLocal(7, 31)!;
+    const outroTenant = criarEscopoTecnicoLocal(8, 31)!;
+
+    expect(chavesOfflineTecnico(escopo)).toEqual({
+      fila: "tecnico:7:31:offline-queue",
+      escolasCache: "tecnico:7:31:escolas-cache",
+    });
+    expect(chavesOfflineTecnico(escopo).fila).not.toBe(chavesOfflineTecnico(outroTenant).fila);
   });
 });
