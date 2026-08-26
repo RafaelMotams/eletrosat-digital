@@ -700,7 +700,7 @@
 - [x] Permitir atendimento parcial de solicitações de reposição com saldo pendente e múltiplas transferências auditáveis
 - [x] Revalidar P0: autorização direta de exportações financeiras e acesso por perfil visualizador
 - [x] Bloquear exportação financeira e validação de planilha para perfil visualizador no servidor
-- [ ] Consolidar P1: componentes operacionais compartilhados e cópia honesta sem promessas não verificáveis
+- [x] Consolidar P1: componentes operacionais compartilhados e cópia honesta sem promessas não verificáveis
 - [x] Substituir promessa pública não verificada de teste gratuito por CTA comercial honesto
 - [x] Implementar P2: Assistente Técnico com base de conhecimento versionada, fontes e limites de segurança
 - [x] Preparar P3: desenho de provisionamento e observabilidade por tenant sem migrar dados produtivos

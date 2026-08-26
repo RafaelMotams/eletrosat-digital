@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
+import { StatusFilterTabs } from "@/components/StatusFilterTabs";
 import { toast } from "sonner";
 import {
   Wrench, Search, X, ChevronRight, MapPin, Hash,
@@ -662,25 +663,18 @@ export default function TecnicoManutencao() {
             </button>
           )}
         </div>
-        <div className="mt-3 -mx-4 overflow-x-auto px-4 [scrollbar-width:none]">
-          <div className="flex min-w-max gap-2 pr-4">
-            {([
-              { value: "todos", label: "Todas", count: listaArray.length, color: "#cbd5e1" },
-              { value: "pendente", label: "Pendentes", count: resumoStatus.pendente, color: "#fbbf24" },
-              { value: "em_andamento", label: "Em andamento", count: resumoStatus.em_andamento, color: "#60a5fa" },
-              { value: "concluida", label: "Concluídas", count: resumoStatus.concluida, color: "#34d399" },
-            ] as const).map((filtro) => {
-              const ativo = statusFiltro === filtro.value;
-              return (
-                <button key={filtro.value} onClick={() => setStatusFiltro(filtro.value)}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-bold transition-all active:scale-95"
-                  style={{ color: ativo ? "#040a16" : filtro.color, background: ativo ? filtro.color : `${filtro.color}14`, border: `1px solid ${ativo ? filtro.color : `${filtro.color}35`}` }}>
-                  {filtro.label}<span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ background: ativo ? "rgba(4,10,22,0.16)" : `${filtro.color}20` }}>{filtro.count}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <StatusFilterTabs
+          className="mt-3"
+          tone="dark"
+          value={statusFiltro}
+          onValueChange={setStatusFiltro}
+          items={[
+            { value: "todos", label: "Todas", count: listaArray.length, color: "#cbd5e1" },
+            { value: "pendente", label: "Pendentes", count: resumoStatus.pendente, color: "#fbbf24" },
+            { value: "em_andamento", label: "Em andamento", count: resumoStatus.em_andamento, color: "#60a5fa" },
+            { value: "concluida", label: "Concluídas", count: resumoStatus.concluida, color: "#34d399" },
+          ] as const}
+        />
       </div>
 
       {/* Lista */}

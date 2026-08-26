@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OperationState } from "@/components/OperationState";
+import { StatusFilterTabs } from "@/components/StatusFilterTabs";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -319,22 +320,16 @@ export default function AdminManutencao() {
         </div>
 
         {/* Filtro status */}
-        <div className="flex gap-1 p-1 rounded-lg border border-border bg-muted/30">
-          {["todas", "pendente", "em_andamento", "concluida"].map(s => (
-            <button
-              key={s}
-              onClick={() => setFiltroStatus(s)}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-              style={{
-                background: filtroStatus === s ? "white" : "transparent",
-                color: filtroStatus === s ? "#0f172a" : "rgba(0,0,0,0.5)",
-                boxShadow: filtroStatus === s ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-              }}
-            >
-              {s === "todas" ? "Todas" : s === "em_andamento" ? "Em Andamento" : s === "concluida" ? "Concluídas" : "Pendentes"}
-            </button>
-          ))}
-        </div>
+        <StatusFilterTabs
+          value={filtroStatus}
+          onValueChange={setFiltroStatus}
+          items={[
+            { value: "todas", label: "Todas" },
+            { value: "pendente", label: "Pendentes" },
+            { value: "em_andamento", label: "Em andamento" },
+            { value: "concluida", label: "Concluídas" },
+          ] as const}
+        />
 
         <Select value={filtroTecnicoId} onValueChange={setFiltroTecnicoId}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Todos os técnicos" /></SelectTrigger>
