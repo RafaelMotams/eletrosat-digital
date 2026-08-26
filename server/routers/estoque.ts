@@ -83,6 +83,7 @@ async function registrarMovimentacao(tx: any, input: {
   quantidade: number;
   ordemServicoId?: number;
   manutencaoId?: number;
+  solicitacaoId?: number;
   observacao?: string;
   clientId?: string;
   actorType: "admin" | "tecnico" | "sistema";
@@ -312,16 +313,22 @@ export const estoqueRouter = router({
         await Promise.all([requireMaterial(db, ctx.tenantId, input.materialId), requireTecnico(db, ctx.tenantId, input.tecnicoId)]);
         const id = await db.transaction(async (tx: any) => {
           if (input.solicitacaoId) {
-            const [solicitacao] = await tx.select({ id: estoqueSolicitacoes.id }).from(estoqueSolicitacoes)
+            const [solicitacao] = await tx.select({ id: estoqueSolicitacoes.id, quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada, quantidadeAtendida: estoqueSolicitacoes.quantidadeAtendida }).from(estoqueSolicitacoes)
               .where(and(eq(estoqueSolicitacoes.id, input.solicitacaoId), eq(estoqueSolicitacoes.tenantId, ctx.tenantId), eq(estoqueSolicitacoes.tecnicoId, input.tecnicoId), eq(estoqueSolicitacoes.materialId, input.materialId), or(eq(estoqueSolicitacoes.status, "aberta"), eq(estoqueSolicitacoes.status, "em_analise"))!))
               .limit(1);
             if (!solicitacao) throw new TRPCError({ code: "BAD_REQUEST", message: "Solicitação não está disponível para atendimento neste material" });
+            const pendente = Math.max(0, Number(solicitacao.quantidadeSolicitada) - Number(solicitacao.quantidadeAtendida));
+            if (input.quantidade > pendente) throw new TRPCError({ code: "BAD_REQUEST", message: "A transferência supera a quantidade pendente da solicitação" });
           }
           await debitarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "almoxarifado", holderId: 0 }, input.quantidade);
           await incrementarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "tecnico", holderId: input.tecnicoId }, input.quantidade);
-          const movementId = await registrarMovimentacao(tx, { tenantId: ctx.tenantId, materialId: input.materialId, tipo: "transferencia", origemType: "almoxarifado", origemId: 0, destinoType: "tecnico", destinoId: input.tecnicoId, quantidade: input.quantidade, observacao: input.observacao, actorType: "admin", actorId: ctx.tenantSession?.adminId });
+          const movementId = await registrarMovimentacao(tx, { tenantId: ctx.tenantId, materialId: input.materialId, tipo: "transferencia", origemType: "almoxarifado", origemId: 0, destinoType: "tecnico", destinoId: input.tecnicoId, quantidade: input.quantidade, solicitacaoId: input.solicitacaoId, observacao: input.observacao, actorType: "admin", actorId: ctx.tenantSession?.adminId });
           if (input.solicitacaoId) {
-            await tx.update(estoqueSolicitacoes).set({ status: "atendida", resposta: input.observacao?.trim() || "Atendida por transferência do almoxarifado.", atendimentoMovimentacaoId: movementId, atendidaPorAdminId: ctx.tenantSession?.adminId ?? null, atendidaAt: new Date() })
+            const [solicitacao] = await tx.select({ quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada, quantidadeAtendida: estoqueSolicitacoes.quantidadeAtendida }).from(estoqueSolicitacoes)
+              .where(and(eq(estoqueSolicitacoes.id, input.solicitacaoId), eq(estoqueSolicitacoes.tenantId, ctx.tenantId))).limit(1);
+            const quantidadeAtendida = Number(solicitacao?.quantidadeAtendida ?? 0) + input.quantidade;
+            const foiAtendida = quantidadeAtendida >= Number(solicitacao?.quantidadeSolicitada ?? 0);
+            await tx.update(estoqueSolicitacoes).set({ status: foiAtendida ? "atendida" : "em_analise", quantidadeAtendida: decimal(quantidadeAtendida), resposta: input.observacao?.trim() || (foiAtendida ? "Atendida por transferência do almoxarifado." : `Entrega parcial: ${decimal(quantidadeAtendida)} de ${decimal(Number(solicitacao?.quantidadeSolicitada ?? 0))} solicitados.`), atendimentoMovimentacaoId: movementId, atendidaPorAdminId: ctx.tenantSession?.adminId ?? null, atendidaAt: foiAtendida ? new Date() : null })
               .where(and(eq(estoqueSolicitacoes.id, input.solicitacaoId), eq(estoqueSolicitacoes.tenantId, ctx.tenantId)));
           }
           return movementId;
@@ -390,6 +397,7 @@ export const estoqueRouter = router({
         id: estoqueSolicitacoes.id,
         materialId: estoqueSolicitacoes.materialId,
         quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada,
+        quantidadeAtendida: estoqueSolicitacoes.quantidadeAtendida,
         observacao: estoqueSolicitacoes.observacao,
         status: estoqueSolicitacoes.status,
         resposta: estoqueSolicitacoes.resposta,
@@ -438,6 +446,7 @@ export const estoqueRouter = router({
         tecnicoId: estoqueSolicitacoes.tecnicoId,
         materialId: estoqueSolicitacoes.materialId,
         quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada,
+        quantidadeAtendida: estoqueSolicitacoes.quantidadeAtendida,
         observacao: estoqueSolicitacoes.observacao,
         status: estoqueSolicitacoes.status,
         resposta: estoqueSolicitacoes.resposta,
