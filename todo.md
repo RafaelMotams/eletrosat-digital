@@ -673,6 +673,7 @@
 - [x] Migrar a sessão da Central Master para cookie seguro e revogável, após compatibilizar os endpoints legados
 - [x] Migrar a sessão do painel tenant para cookie HttpOnly compatível, mantendo a Central Master em migração separada
 - [x] Garantir no servidor que a conclusão de OS dependa da evidência de mapa de calor validada
+- [x] Restringir o acesso a evidências de ordem e manutenção por tenant, sessão e posse autenticada
 - [x] Investigar e corrigir possível mistura de ordens entre o tenant de Rafael e outro painel administrativo
 
 ## Relatórios Executivos de AP (Enterprise V7)
