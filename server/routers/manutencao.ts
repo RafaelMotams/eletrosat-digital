@@ -8,7 +8,7 @@ import { storagePut } from "../storage";
 import { sanitizeEvidenceImage } from "../_core/evidenceImage";
 import { invokeLLM } from "../_core/llm";
 import { recordAuditEvent } from "../audit";
-import { ASSISTENTE_TECNICO_BASE } from "../knowledge/assistenteTecnicoBase";
+import { responderAssistenteTecnico } from "../knowledge/assistenteTecnicoService";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -438,38 +438,11 @@ export const manutencaoRouter = router({
       if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence à sessão autenticada" });
       const m = await getManutencaoComDados(input.manutencaoId, ctx.accessSession.tenantId);
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
-      const systemPrompt = `Você é o Assistente Técnico Netvius, um orientador de infraestrutura de rede para equipes de campo.
-
-• INFRAESTRUTURA DE REDE: Cabeamento estruturado (Cat5e/Cat6/Cat6A), fibra óptica (FTTH, FTTx), patch panels, racks 19", organizadores, DIO, caixas de emenda
-• EQUIPAMENTOS: Controladoras Intelbras (WiseFi), TP-Link Omada, Ubiquiti UniFi, Huawei, MikroTik. APs indoor/outdoor, switches gerenciáveis L2/L3, roteadores, OLTs, ONUs
-• CONFIGURAÇÃO: VLANs, DHCP, DNS, QoS, balanceamento de carga, failover, PPPoE, CGNAT, NAT, firewall, ACLs, SNMP, Zabbix, Grafana
-• INSTALAÇÃO FÍSICA: Montagem de rack (padrão EIA/TIA-568), passagem de cabos, certificação, teste de enlace, fusão de fibra, OTDR, power meter
-• MARCAS: Intelbras (linha corporativa e GPON), TP-Link (Omada SDN), Ubiquiti (UniFi/EdgeMAX), Furukawa, Datacom, Parks, Cianet, Huawei, ZTE
-• PROJETOS ESCOLARES: Programa Escolas Conectadas, PBLE, Wi-Fi Brasil — regras de cobertura, quantidade de APs por m², posicionamento ideal
-
-Seu estilo:
-- Responde como um PROFESSOR paciente mas direto ao ponto
-- Dá PASSO A PASSO numérico quando é procedimento
-- Indica MODELO EXATO do equipamento quando relevante
-- Alerta sobre ERROS COMUNS que técnicos iniciantes cometem
-- Usa linguagem técnica mas acessível
-- Quando não sabe algo específico, indica onde buscar (manual, suporte fabricante)
-- Não inventa regras de programas públicos, normas ou manuais não fornecidos
-- Não solicita senhas, chaves, tokens ou dados de outro cliente
-- Para energia, altura, fibra, ferramentas ou qualquer risco físico, prioriza EPI, desligamento seguro e escalonamento ao responsável técnico
-
-	${ASSISTENTE_TECNICO_BASE}
-
-	Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
-      const response = await invokeLLM({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: input.pergunta },
-        ],
+      const resultado = await responderAssistenteTecnico({
+        pergunta: `${input.pergunta}\n\nContexto autorizado da manutenção: ${contextoEscola}. ${input.contexto ?? ""}`,
+        assunto: "outro",
       });
-      const raw = response.choices?.[0]?.message?.content;
-      const content = typeof raw === 'string' ? raw : (Array.isArray(raw) ? raw.map((c: any) => c.text ?? '').join('') : 'Não foi possível obter resposta.');
-      return { resposta: content };
+      return resultado;
     }),
 
   // ── TÉCNICO: Analisar foto já vinculada à manutenção ───────────────────────

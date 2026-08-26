@@ -773,6 +773,20 @@ export async function insertOsFoto(data: InsertOsFoto): Promise<void> {
   }
 }
 
+/**
+ * Mantém uma única evidência de mapa de calor por OS. A troca é atômica no
+ * banco; o objeto anterior deixa de ser referenciado e continua inacessível
+ * pelo proxy privado.
+ */
+export async function replaceOsMapaCalor(data: InsertOsFoto): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.transaction(async (tx) => {
+    await tx.delete(osFotos).where(and(eq(osFotos.osId, data.osId), eq(osFotos.categoria, "mapa_calor")));
+    await tx.insert(osFotos).values({ ...data, categoria: "mapa_calor" });
+  });
+}
+
 export async function listOsFotos(osId: number) {
   const db = await getDb();
   if (!db) return [];

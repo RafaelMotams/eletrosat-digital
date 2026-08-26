@@ -47,7 +47,7 @@ describe("manutencao.assistenteIA", () => {
     const caller = manutencaoRouter.createCaller(makeContext({ adminId: 1, tenantId: 180002, isSuperAdmin: false }));
 
     await expect(caller.assistenteIA({ manutencaoId: 9, pergunta: "Como validar uma VLAN?" }))
-      .resolves.toEqual({ resposta: "1. Confira a VLAN configurada no switch." });
+      .resolves.toMatchObject({ resposta: "1. Confira a VLAN configurada no switch.", fontes: expect.any(Array), versaoBase: expect.any(String) });
     expect(invokeLLM).toHaveBeenCalledTimes(1);
   });
 });

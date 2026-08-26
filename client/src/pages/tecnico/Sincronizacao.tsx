@@ -6,6 +6,7 @@ import { OperationState } from "@/components/OperationState";
 import { dbGetPendingOS, type PendingOS } from "@/hooks/useOfflineDB";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 
 function labelTipo(item: PendingOS) {
   if (item.tipo === "iniciar") return "Início de ordem";
@@ -20,18 +21,17 @@ function horario(timestamp: number) {
 export default function SincronizacaoTecnico() {
   const [, navigate] = useLocation();
   const online = useOnlineStatus();
-  const tecnicoId = Number(localStorage.getItem("tecnico_id"));
-  const tenantId = Number(localStorage.getItem("tecnico_tenant_id"));
+  const { tecnicoId, tenantId, isError: sessaoInvalida } = useTecnicoSession(online);
   const [itens, setItens] = useState<PendingOS[]>([]);
   const { syncState, runSync } = useSyncOfflineOS();
 
   const recarregar = useCallback(async () => {
     if (!Number.isInteger(tecnicoId) || tecnicoId <= 0 || !Number.isInteger(tenantId) || tenantId <= 0) {
-      navigate("/tecnico/login", { replace: true });
+      if (sessaoInvalida) navigate("/tecnico/login", { replace: true });
       return;
     }
     setItens(await dbGetPendingOS(tecnicoId, tenantId));
-  }, [navigate, tecnicoId, tenantId]);
+  }, [navigate, sessaoInvalida, tecnicoId, tenantId]);
 
   useEffect(() => {
     void recarregar();

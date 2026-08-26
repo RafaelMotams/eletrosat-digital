@@ -46,4 +46,8 @@ describe("estoque: autorização por tenant", () => {
       quantidade: 1,
     })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
+
+  it("nega histórico de entrega de reposição sem sessão autorizada", async () => {
+    await expect(caller().solicitacoes.historico({ id: 1 })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
 });

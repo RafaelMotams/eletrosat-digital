@@ -3,6 +3,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import { getTecnicoSession } from "./tecnicoAuth";
+import { tenantRoleCan } from "./capabilities";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -11,17 +12,25 @@ const t = initTRPC.context<TrpcContext>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-export function isTrustedMutationOrigin(origin: string | undefined, host: string | undefined): boolean {
-  if (!origin || !host) return true;
+function headerValues(value: string | string[] | undefined): string[] {
+  return (Array.isArray(value) ? value : [value])
+    .flatMap(item => item?.split(",") ?? [])
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+export function isTrustedMutationOrigin(origin: string | undefined, host: string | undefined, forwardedHost?: string | string[]): boolean {
+  if (!origin || (!host && !forwardedHost)) return true;
   try {
-    return new URL(origin).host === host;
+    const originHost = new URL(origin).host;
+    return headerValues(host).concat(headerValues(forwardedHost)).some(requestHost => requestHost === originHost);
   } catch {
     return false;
   }
 }
 
 const protectPanelMutationOrigin = t.middleware(async ({ ctx, next, type }) => {
-  if (type === "mutation" && ctx.tenantSession && !isTrustedMutationOrigin(ctx.req.headers.origin, ctx.req.headers.host)) {
+  if (type === "mutation" && ctx.tenantSession && !isTrustedMutationOrigin(ctx.req.headers.origin, ctx.req.headers.host, ctx.req.headers["x-forwarded-host"])) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Origem da requisição não autorizada" });
   }
   return next();
@@ -113,7 +122,8 @@ export const tenantAdminProcedure = t.procedure.use(protectPanelMutationOrigin).
       if (!ctx.tenantSession.isSuperAdmin && ctx.tenantSession.tenantId <= 0) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Tenant inválido" });
       }
-      if (ctx.tenantSession.role === "viewer" && opts.type === "mutation") {
+      const tenantRole = ctx.tenantSession.role === "viewer" ? "viewer" : "admin";
+      if (opts.type === "mutation" && !tenantRoleCan(tenantRole, "operational:mutate")) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Perfil visualizador não pode alterar dados" });
       }
       return next({

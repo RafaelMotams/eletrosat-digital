@@ -73,7 +73,6 @@ export default function RotaDia() {
   const isOnline = useOnlineStatus();
   const [tecnicoId, setTecnicoId] = useState<number | null>(null);
   const [tenantId, setTenantId] = useState<number | null>(null);
-  const [sessaoLocalCarregada, setSessaoLocalCarregada] = useState(false);
   const [rotaLocalCarregada, setRotaLocalCarregada] = useState(false);
   const [escolas, setEscolas] = useState<Escola[]>([]);
   const [selecionadas, setSelecionadas] = useState<number[]>([]);
@@ -82,29 +81,22 @@ export default function RotaDia() {
   const [rotaConfirmada, setRotaConfirmada] = useState(false);
   const [filtroSemanal, setFiltroSemanal] = useState<FiltroRotaSemanal>("todas");
 
-  // Carregar tecnicoId
-  useEffect(() => {
-    const id = localStorage.getItem("tecnico_id");
-    const tenant = localStorage.getItem("tecnico_tenant_id");
-    if (id) setTecnicoId(parseInt(id));
-    if (tenant) setTenantId(parseInt(tenant));
-    setSessaoLocalCarregada(true);
-  }, []);
-
-  const { isLoading: verificandoSessao, error: erroSessao } = trpc.tecnicoAuth.me.useQuery(
-    { tecnicoId: tecnicoId ?? 0 },
-    { enabled: sessaoLocalCarregada && !!tecnicoId && isOnline, retry: false, refetchOnWindowFocus: false },
-  );
+  const { data: sessaoTecnico, isLoading: verificandoSessao, error: erroSessao } = trpc.tecnicoAuth.me.useQuery(undefined, {
+    enabled: isOnline,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
-    if (!sessaoLocalCarregada) return;
+    if (sessaoTecnico) {
+      setTecnicoId(sessaoTecnico.id);
+      setTenantId(sessaoTecnico.tenantId);
+      ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico"].forEach(chave => localStorage.removeItem(chave));
+      return;
+    }
     const sessaoInvalida = erroSessao?.data?.code === "UNAUTHORIZED" || erroSessao?.data?.code === "FORBIDDEN";
-    if (tecnicoId && !sessaoInvalida) return;
-    if (tecnicoId && !isOnline) return;
-
-    ["tecnico_id", "tecnico_tenant_id", "tecnico_nome", "tecnico_email", "tecnico"].forEach(chave => localStorage.removeItem(chave));
-    navigate("/tecnico/login", { replace: true });
-  }, [erroSessao, isOnline, navigate, sessaoLocalCarregada, tecnicoId]);
+    if (sessaoInvalida) navigate("/tecnico/login", { replace: true });
+  }, [erroSessao, navigate, sessaoTecnico]);
 
   const rotaDiaStorageKey = useMemo(() => {
     const escopo = criarEscopoTecnicoLocal(tenantId ?? 0, tecnicoId ?? 0);
@@ -236,7 +228,7 @@ export default function RotaDia() {
     concluido: "#10b981",
   };
 
-  if (!sessaoLocalCarregada || (isOnline && !!tecnicoId && verificandoSessao)) {
+  if (isOnline && verificandoSessao) {
     return <div className="grid min-h-screen place-items-center" style={{ background: "#040a16", color: "rgba(148,163,184,0.72)", fontSize: 13 }}>Validando acesso seguro...</div>;
   }
 

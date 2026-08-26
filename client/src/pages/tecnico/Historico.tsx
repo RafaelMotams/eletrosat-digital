@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import {
   CheckCircle, Clock, Wifi, Zap, Calendar, XCircle, Play,
@@ -42,7 +43,7 @@ function formatDate(d: Date | null) {
 
 export default function TecnicoHistorico() {
   const [, navigate] = useLocation();
-  const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
+  const { tecnicoId } = useTecnicoSession();
   const [periodo, setPeriodo] = useState<Periodo>("todos");
   const [showPeriodo, setShowPeriodo] = useState(false);
   const [dataInicio, setDataInicio] = useState("");

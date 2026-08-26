@@ -63,3 +63,30 @@ export function calcularPoe(orçamentoWatts: number, consumoWatts: number) {
     excedido: consumo > orçamento,
   };
 }
+
+export function dbmParaMilliwatts(dbm: number): number | null {
+  if (!Number.isFinite(dbm)) return null;
+  return 10 ** (dbm / 10);
+}
+
+export function milliwattsParaDbm(milliwatts: number): number | null {
+  if (!Number.isFinite(milliwatts) || milliwatts <= 0) return null;
+  return 10 * Math.log10(milliwatts);
+}
+
+export function calcularPerdaOptica(potenciaLancadaDbm: number, potenciaRecebidaDbm: number) {
+  if (!Number.isFinite(potenciaLancadaDbm) || !Number.isFinite(potenciaRecebidaDbm)) return null;
+  return potenciaLancadaDbm - potenciaRecebidaDbm;
+}
+
+export function estimarAutonomiaNobreak(cargaWatts: number, bateriaAh: number, tensaoVolts = 12, eficiencia = 0.8) {
+  if (![cargaWatts, bateriaAh, tensaoVolts, eficiencia].every(Number.isFinite) || cargaWatts <= 0 || bateriaAh <= 0 || tensaoVolts <= 0 || eficiencia <= 0 || eficiencia > 1) return null;
+  const energiaUtilWh = bateriaAh * tensaoVolts * eficiencia;
+  const minutos = (energiaUtilWh / cargaWatts) * 60;
+  return { energiaUtilWh, minutos };
+}
+
+export const PADROES_T568 = {
+  A: ["Branco/Verde", "Verde", "Branco/Laranja", "Azul", "Branco/Azul", "Laranja", "Branco/Marrom", "Marrom"],
+  B: ["Branco/Laranja", "Laranja", "Branco/Verde", "Azul", "Branco/Azul", "Verde", "Branco/Marrom", "Marrom"],
+} as const;

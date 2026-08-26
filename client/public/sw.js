@@ -1,8 +1,8 @@
-// Service Worker — Eletrosat Digital / Netvius
+// Service Worker — Netvius
 // v7 — localStorage com timestamp para rota de OS (persiste ao abrir câmera/WhatsApp no Android)
 // CORRIGIDO: ao fechar e reabrir o app, vai para o menu (Home) e não para a OS
 // sessionStorage para rota de OS (limpa ao fechar), localStorage para menu (persiste)
-const CACHE_NAME = 'netvionis-v7';
+const CACHE_NAME = 'netvius-v8';
 
 // Assets essenciais para funcionar offline
 const OFFLINE_ASSETS = ['/tecnico'];
@@ -76,48 +76,6 @@ self.addEventListener('fetch', (event) => {
         if (cached) return cached;
 
         // Para rotas do técnico, serve /tecnico com script de restauração de rota
-        // O script lê tecnico_last_route do localStorage e redireciona para a rota correta
-        if (url.pathname.startsWith('/tecnico')) {
-          const tecnicoShell = await caches.match('/tecnico');
-          if (tecnicoShell) {
-            // Clona a resposta e injeta script de restauração de rota
-            const text = await tecnicoShell.text();
-            const headers = new Headers(tecnicoShell.headers);
-            // Injeta script de restauração ANTES do </head> para redirecionar para a rota correta
-            // Usa localStorage com timestamp para rota de OS (persiste ao abrir câmera/WhatsApp)
-            const injected = text.replace(
-              '</head>',
-              `<script>
-(function() {
-  try {
-    var tecnicoId = localStorage.getItem('tecnico_id');
-    if (!tecnicoId) return;
-    var OS_TTL = 4 * 60 * 60 * 1000; // 4 horas
-    // Prioridade: rota de OS ativa com timestamp válido
-    var activeOsRoute = localStorage.getItem('tecnico_active_os_route');
-    var activeOsTs = parseInt(localStorage.getItem('tecnico_active_os_ts') || '0', 10);
-    var osValida = activeOsRoute && activeOsRoute.startsWith('/tecnico/os/') && (Date.now() - activeOsTs) < OS_TTL;
-    if (osValida && activeOsRoute !== window.location.pathname) {
-      window.history.replaceState(null, '', activeOsRoute);
-      return;
-    }
-    // Sem OS ativa válida: limpa e vai para o menu
-    if (!osValida) {
-      localStorage.removeItem('tecnico_active_os_route');
-      localStorage.removeItem('tecnico_active_os_ts');
-    }
-    var menuRoute = localStorage.getItem('tecnico_last_route');
-    if (menuRoute && menuRoute !== window.location.pathname && !menuRoute.startsWith('/tecnico/os/')) {
-      window.history.replaceState(null, '', menuRoute);
-    }
-  } catch(e) {}
-})();
-</script></head>`
-            );
-            return new Response(injected, { headers });
-          }
-        }
-
         // Fallback final: página offline
         return new Response(
           `<!DOCTYPE html>

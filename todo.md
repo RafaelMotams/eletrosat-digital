@@ -729,3 +729,39 @@
 - [x] Validar responsividade móvel da landing page após a divisão de rotas
 - [x] Confirmar que a tela técnica renderiza corretamente após a inicialização do carregamento progressivo
 - [x] Validar visualmente o painel de estoque autenticado, seus indicadores, navegação e estado vazio
+
+## Execução Integral — Relatório Mestre Netvius (26/08/2026)
+- [x] Investigar e corrigir o bloqueio indevido de origem ao editar escolas no painel administrativo, mantendo a proteção contra origem cruzada
+- [x] Aplicar a confirmação do usuário: a marca exibida em todo fluxo público e autenticado é Netvius
+- [x] Revalidar que Netvius é a única marca exibida ao público, ignorando nomenclaturas históricas do relatório anexado
+- [x] Auditar os requisitos do relatório contra o código atual e manter Netvius como única marca pública aprovada
+- [x] Criar testes de regressão que congelem o fluxo crítico de OS, sessão e isolamento antes das refatorações
+- [x] Simplificar o contrato da conclusão de OS para APs instalados, observação obrigatória e uma única foto de mapa de calor
+- [ ] Remover ChecklistCampo, registro de equipamentos, categorias extras de foto e redirecionamento automático da conclusão de OS
+- [x] Substituir a grade de fotos da OS por cartão único de evidência com prévia, troca, remoção, progresso, erro e nova tentativa
+- [x] Exibir confirmação de conclusão com número da OS, recibo de sincronização e retorno manual à rota
+- [x] Eliminar identificadores de autenticação e autorização técnica do localStorage, mantendo a sessão validada como fonte de verdade
+- [ ] Modularizar a tela técnica de OS em componentes, hooks e serviços tipados sem alterar as regras de negócio
+- [x] Implementar rota autônoma do Assistente Técnico no aplicativo, com assunto, conversa, fontes, aviso de segurança e limpeza local
+- [x] Unificar a política, perfis, fontes, limites e recuperação do Assistente Técnico em um único serviço server-side
+- [x] Adicionar câmera e galeria ao Assistente com imagens temporárias privadas, higienização e escopo derivado da sessão
+- [x] Ampliar a base versionada do Assistente com fontes oficiais autorizadas e resposta estruturada que separe fatos de hipóteses
+- [x] Adicionar avaliação opcional do Assistente e guias locais previamente aprovados para consulta offline
+- [x] Revalidar tenant em todas as consultas, alterações, exclusões, fotos e laudos de manutenção por testes entre empresas
+- [x] Consolidar matriz de capacidades no servidor para papéis administrativos, visualizador, técnico e Master
+- [x] Revisar sessão técnica revogável, dispositivos e encerramento de sessão para garantir consistência entre login e logout
+- [x] Auditar schema, índices, unicidades e chaves de tenant sem defaults inseguros ou fallback para tenant padrão
+- [x] Revisar isolamento de arquivos, cache, filas offline, idempotência e exportações com escopo de tenant e técnico derivado no servidor
+- [ ] Completar a central de sincronização com item atual, tamanho pendente, erros legíveis, novas tentativas e descarte seguro de rascunho
+- [x] Evoluir ferramentas de campo com perda óptica, conversão dBm/mW, nobreak, queda de tensão, T568A/T568B e teste guiado seguro
+- [x] Aprimorar estoque técnico com recebimento, linha do tempo de entregas parciais, QR quando suportado e idempotência offline
+- [ ] Consolidar o shell administrativo, dados reais de dashboard, texto de atualização automática e ações orientadas a exceções
+- [ ] Completar gestão administrativa de escolas, técnicos, distribuição, rotas, ordens e manutenção com permissões e auditoria
+- [ ] Substituir exclusão instantânea de cliente no Master por suspensão, arquivamento, retenção, confirmação forte e auditoria
+- [ ] Restringir definitivamente o Master a dados de plataforma, sem consultas operacionais de tenants
+- [ ] Completar relatórios XLSX privados, importação transacional e busca global respeitando tenant e permissões
+- [ ] Adicionar recibos de evidência, auditoria compreensível, saúde operacional do cliente e recursos configuráveis server-side
+- [ ] Padronizar tokens visuais, acessibilidade, responsividade, estados de interface e desempenho das telas prioritárias
+- [ ] Adicionar identificadores de correlação, logs estruturados sem dados sensíveis, captura de erro e runbook operacional
+- [ ] Criar automação de integração contínua para formato, tipos, testes, build, dependências e detecção de segredos
+- [ ] Executar validação completa: isolamento, autenticação, OS, estoque, Assistente, admin, Master, offline, acessibilidade e responsividade

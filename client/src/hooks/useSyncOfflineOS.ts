@@ -240,13 +240,18 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
       }
 
       // Passo 3: concluir somente depois que a evidência foi aceita pelo servidor.
+      // O mesmo contrato do modo online exige uma observação curta e obrigatória.
+      const observacao = os.observacao?.trim();
+      if (!observacao || observacao.length < 5) {
+        throw new Error("A observação da instalação é obrigatória antes de concluir a OS.");
+      }
       await withRetry(
         () => withTimeout(
           trpcClient.tecnicoAuth.concluirEscola.mutate({
             tecnicoId: os.tecnicoId,
             escolaId: os.escolaId,
             qtdApInstalado: os.qtdApInstalado,
-            observacao: os.observacao,
+            observacao,
           }),
           30000,
           "concluirEscola"

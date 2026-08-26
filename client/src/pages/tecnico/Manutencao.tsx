@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { StatusFilterTabs } from "@/components/StatusFilterTabs";
 import { toast } from "sonner";
@@ -9,11 +10,6 @@ import {
   Building2, ArrowLeft, Loader2, Phone, Zap, Navigation,
   MessageCircle, Bot, Send, ChevronDown, ChevronUp,
 } from "lucide-react";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function getTecnicoId(): number {
-  return parseInt(localStorage.getItem("tecnico_id") ?? "0");
-}
 
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -609,7 +605,7 @@ function DetalheManutencao({ id, tecnicoId, onVoltar }: { id: number; tecnicoId:
 
 // ── Tela principal: lista de manutenções ─────────────────────────────────────
 export default function TecnicoManutencao() {
-  const tecnicoId = getTecnicoId();
+  const { tecnicoId } = useTecnicoSession();
   const [busca, setBusca] = useState("");
   const [detalheId, setDetalheId] = useState<number | null>(null);
   const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "em_andamento" | "concluida">("todos");

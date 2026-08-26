@@ -312,6 +312,24 @@ describe("Isolamento Multi-Tenant: Ordens de Serviço", () => {
       observacao: "Instalação validada",
     })).rejects.toThrow("Envie a foto do mapa de calor");
   });
+
+  it("exige observação descritiva antes de avaliar a conclusão da OS", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.concluirEscola({
+      escolaId: 10,
+      qtdApInstalado: 1,
+      observacao: "",
+    })).rejects.toThrow("Descreva brevemente o resultado da instalação");
+  });
+
+  it("rejeita quantidade de APs inválida antes de concluir a OS", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.concluirEscola({
+      escolaId: 10,
+      qtdApInstalado: 0,
+      observacao: "Instalação validada",
+    })).rejects.toThrow("Informe ao menos um AP instalado");
+  });
 });
 
 describe("Isolamento Multi-Tenant: Dashboard", () => {
@@ -363,6 +381,11 @@ describe("Isolamento Multi-Tenant: prioridade do login de revenda", () => {
 });
 
 describe("Isolamento Multi-Tenant: sessão do técnico", () => {
+  it("deriva a identidade técnica da sessão assinada sem receber identificador do cliente", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.me()).resolves.toMatchObject({ id: 1, tenantId: 1 });
+  });
+
   it("nega consulta técnica sem sessão assinada", async () => {
     const caller = appRouter.createCaller(createUnauthenticatedContext());
     await expect(caller.tecnicoAuth.minhasEscolas({ tecnicoId: 1 })).rejects.toThrow(TRPCError);

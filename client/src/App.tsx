@@ -12,6 +12,7 @@ import AdminLogin from "./pages/admin/Login";
 import AdminCadastro from "./pages/admin/Cadastro";
 import ConfirmarEmail from "./pages/admin/ConfirmarEmail";
 import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
+import { trpc } from "@/lib/trpc";
 import { chavesRotaTecnico, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
 import { decidirRotaInicialTecnico, ROTA_OS_TTL_MS } from "@shared/tecnicoRouteState";
 
@@ -38,10 +39,11 @@ const TecnicoManutencao = lazy(() => import("./pages/tecnico/Manutencao"));
 const TecnicoEstoque = lazy(() => import("./pages/tecnico/Estoque"));
 const TecnicoFerramentas = lazy(() => import("./pages/tecnico/Ferramentas"));
 const TecnicoSincronizacao = lazy(() => import("./pages/tecnico/Sincronizacao"));
+const TecnicoAssistente = lazy(() => import("./pages/tecnico/AssistenteTecnico"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 
 // Rotas do técnico que devem ser persistidas (exceto login)
-const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque", "/tecnico/ferramentas", "/tecnico/sincronizacao"];
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque", "/tecnico/ferramentas", "/tecnico/sincronizacao", "/tecnico/assistente"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"] as const;
 
@@ -53,11 +55,15 @@ const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "t
 function RoutePersistence() {
   const [location, navigate] = useLocation();
   const escopoRestauradoRef = useRef<string | null>(null);
+  const { data: sessaoTecnico } = trpc.tecnicoAuth.me.useQuery(undefined, {
+    enabled: location.startsWith("/tecnico") && location !== "/tecnico/login",
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
-  const escopoTecnico = criarEscopoTecnicoLocal(
-    Number(localStorage.getItem("tecnico_tenant_id")),
-    Number(localStorage.getItem("tecnico_id")),
-  );
+  const escopoTecnico = sessaoTecnico
+    ? criarEscopoTecnicoLocal(sessaoTecnico.tenantId, sessaoTecnico.id)
+    : null;
   const chavesRota = escopoTecnico ? chavesRotaTecnico(escopoTecnico) : null;
 
   useEffect(() => {
@@ -146,6 +152,7 @@ function Router() {
       <Route path="/tecnico/estoque" component={TecnicoEstoque} />
       <Route path="/tecnico/ferramentas" component={TecnicoFerramentas} />
       <Route path="/tecnico/sincronizacao" component={TecnicoSincronizacao} />
+      <Route path="/tecnico/assistente" component={TecnicoAssistente} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

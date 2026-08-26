@@ -4,7 +4,7 @@ import { z } from "zod";
 import { estoqueMovimentacoes, estoqueSaldos, estoqueSolicitacoes, materiaisEstoque, ordensServico, tecnicos } from "../../drizzle/schema";
 import { recordAuditEvent } from "../audit";
 import { getDb } from "../db";
-import { router, tecnicoProcedure, tenantAdminProcedure } from "../_core/trpc";
+import { router, tecnicoProcedure, tenantAdminProcedure, tenantOrTecnicoProcedure } from "../_core/trpc";
 
 const quantidadeSchema = z.number().finite().positive().max(1_000_000);
 const holderSchema = z.object({
@@ -413,6 +413,25 @@ export const estoqueRouter = router({
         .where(and(eq(estoqueSolicitacoes.tenantId, ctx.tecnicoSession.tenantId), eq(estoqueSolicitacoes.tecnicoId, ctx.tecnicoSession.tecnicoId)))
         .orderBy(desc(estoqueSolicitacoes.createdAt));
     }),
+
+    historico: tenantOrTecnicoProcedure.input(z.object({ id: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const db = await requireDb();
+        const filters = [eq(estoqueSolicitacoes.id, input.id), eq(estoqueSolicitacoes.tenantId, ctx.accessSession.tenantId)];
+        if (ctx.accessSession.kind === "tecnico" && ctx.accessSession.tecnicoId !== null) {
+          filters.push(eq(estoqueSolicitacoes.tecnicoId, ctx.accessSession.tecnicoId));
+        }
+        const [solicitacao] = await db.select({ id: estoqueSolicitacoes.id }).from(estoqueSolicitacoes).where(and(...filters)).limit(1);
+        if (!solicitacao) throw new TRPCError({ code: "FORBIDDEN", message: "Solicitação não pertence à sessão autenticada" });
+        return db.select({
+          id: estoqueMovimentacoes.id,
+          quantidade: estoqueMovimentacoes.quantidade,
+          observacao: estoqueMovimentacoes.observacao,
+          createdAt: estoqueMovimentacoes.createdAt,
+        }).from(estoqueMovimentacoes)
+          .where(and(eq(estoqueMovimentacoes.tenantId, ctx.accessSession.tenantId), eq(estoqueMovimentacoes.solicitacaoId, input.id), eq(estoqueMovimentacoes.tipo, "transferencia")))
+          .orderBy(desc(estoqueMovimentacoes.createdAt));
+      }),
 
     criar: tecnicoProcedure.input(z.object({
       materialId: z.number().int().positive(),

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { dbClearTecnicoData } from "@/hooks/useOfflineDB";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 import { chavesRotaTecnico, criarEscopoTecnicoLocal } from "@shared/tecnicoLocalState";
 import {
   User, Wifi, CheckCircle, Clock, Zap, LogOut, Award, TrendingUp,
@@ -32,10 +33,9 @@ function CircleProgress({ pct, size = 80, stroke = 6, color = "#3b82f6" }: {
 export default function TecnicoPerfil() {
   const [, navigate] = useLocation();
   const [mounted, setMounted] = useState(false);
-  const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
-  const tenantId = Number(localStorage.getItem("tecnico_tenant_id") || 0);
-  const tecnicoNome = localStorage.getItem("tecnico_nome") || "Técnico";
-  const tecnicoEmail = localStorage.getItem("tecnico_email") || "";
+  const { tecnicoId, tenantId, tecnico } = useTecnicoSession();
+  const tecnicoNome = tecnico?.nome || "Técnico";
+  const tecnicoEmail = tecnico?.email || "";
   const logoutMutation = trpc.tecnicoAuth.logout.useMutation();
 
   useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);

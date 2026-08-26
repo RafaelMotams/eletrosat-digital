@@ -125,6 +125,10 @@ export default function TecnicoHome() {
   const [pendingOsCount, setPendingOsCount] = useState(0);
   const isOnline = useOnlineStatus();
   const { syncState } = useSyncOfflineOS();
+  const { data: sessaoTecnico, isLoading: carregandoSessao } = trpc.tecnicoAuth.me.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   // Atualiza contagem de OS pendentes periodicamente
   useEffect(() => {
@@ -138,26 +142,15 @@ export default function TecnicoHome() {
   }, []);
 
   useEffect(() => {
-    const id = localStorage.getItem("tecnico_id");
-    const nome = localStorage.getItem("tecnico_nome");
-    if (!id) {
-      const stored = localStorage.getItem("tecnico");
-      if (!stored) { navigate("/tecnico/login"); return; }
-      try {
-        const t = JSON.parse(stored);
-        localStorage.setItem("tecnico_id", String(t.id));
-        localStorage.setItem("tecnico_nome", t.nome);
-        localStorage.setItem("tecnico_email", t.email);
-        setTecnicoId(t.id);
-        setTecnicoNome(t.nome);
-      } catch { navigate("/tecnico/login"); }
-    } else {
-      setTecnicoId(Number(id));
-      setTecnicoNome(nome || "Técnico");
+    if (carregandoSessao) return;
+    if (!sessaoTecnico) {
+      navigate("/tecnico/login");
+      return;
     }
-    // Welcome modal removido — limpar chave antiga se existir
+    setTecnicoId(sessaoTecnico.id);
+    setTecnicoNome(sessaoTecnico.nome || "Técnico");
     localStorage.removeItem("tecnico_show_welcome");
-  }, [navigate]);
+  }, [carregandoSessao, navigate, sessaoTecnico]);
 
   const { data: escolasOnline, isLoading, refetch } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },

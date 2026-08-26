@@ -214,16 +214,6 @@ export default function TecnicoLogin() {
     onSuccess: (data) => {
       if (data?.id) {
         setLoginSuccess(true);
-        const isFirstLogin = !localStorage.getItem("tecnico_ever_logged");
-        localStorage.setItem("tecnico_id", String(data.id));
-        localStorage.setItem("tecnico_tenant_id", String((data as any).tenantId ?? ""));
-        localStorage.setItem("tecnico_nome", data.nome);
-        localStorage.setItem("tecnico_email", data.email);
-        localStorage.setItem("tecnico", JSON.stringify(data));
-        if (isFirstLogin) {
-          localStorage.setItem("tecnico_ever_logged", "1");
-          localStorage.setItem("tecnico_show_welcome", "1");
-        }
         setTimeout(() => navigate("/tecnico"), 600);
       } else {
         setErro("Email ou senha inválidos");

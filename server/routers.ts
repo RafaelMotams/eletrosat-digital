@@ -6,6 +6,7 @@ import { protectedProcedure, publicProcedure, router, tecnicoProcedure, tenantAd
 import { superadminRouter } from "./routers/superadmin";
 import { cadastroRouter } from "./routers/cadastro";
 import { manutencaoRouter } from "./routers/manutencao";
+import { assistenteTecnicoRouter } from "./routers/assistenteTecnico";
 import { tenantConfigRouter } from "./routers/tenantConfig";
 import { estoqueRouter } from "./routers/estoque";
 import { TRPCError } from "@trpc/server";
@@ -40,7 +41,7 @@ import {
   setAtribuicaoManual,
   updateEscola,
   updateTecnico,
-  insertOsFoto,
+  replaceOsMapaCalor,
   listOsFotos,
   listOsFotosByEscola,
   countOsFotosByCategoria,
@@ -53,7 +54,6 @@ import {
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
-import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
 import { sanitizeEvidenceImage } from "./_core/evidenceImage";
 import { ordensServico, escolas } from "../drizzle/schema";
@@ -864,12 +864,12 @@ const tecnicoAuthRouter = router({
     }),
 
   me: tecnicoProcedure
-    .input(z.object({ tecnicoId: z.number() }))
-    .query(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
+    .query(async ({ ctx }) => {
+      const tecnico = await getTecnicoById(ctx.tecnicoSession.tecnicoId);
+      if (!tecnico || tecnico.tenantId !== ctx.tecnicoSession.tenantId) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão técnica inválida" });
       }
-      return getTecnicoById(ctx.tecnicoSession.tecnicoId);
+      return tecnico;
     }),
   // Busca escolas atribuídas ao técnico pelo ID (não depende de OAuth)
   minhasEscolas: tecnicoProcedure
@@ -1090,16 +1090,11 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
   concluirEscola: tecnicoProcedure
     .input(z.object({
       escolaId: z.number(),
-      tecnicoId: z.number(),
-      qtdApInstalado: z.number(),
-      observacao: z.string().optional(),
-      fotoMapaCalorUrl: z.string().optional(),
-      fotoMapaCalorKey: z.string().optional(),
+      tecnicoId: z.number().int().positive().optional(),
+      qtdApInstalado: z.number().int().min(1, "Informe ao menos um AP instalado"),
+      observacao: z.string().trim().min(5, "Descreva brevemente o resultado da instalação"),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
       const escola = await getEscolaById(input.escolaId);
       if (!escola) throw new TRPCError({ code: "NOT_FOUND", message: "Escola não encontrada" });
       if (escola.tenantId !== ctx.tecnicoSession.tenantId) {
@@ -1133,7 +1128,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
             message: "Envie a foto do mapa de calor antes de concluir a ordem.",
           });
         }
-        await concluirOrdemServico(osId, input.qtdApInstalado, input.observacao ?? "");
+        await concluirOrdemServico(osId, input.qtdApInstalado, input.observacao);
       }
       // Atualiza escola como concluída (idempotente)
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });
@@ -1152,37 +1147,8 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         const tecnico = await getTecnicoById(ctx.tecnicoSession.tecnicoId);
         await notifyOwner({
           title: `✅ OS Concluída: ${escola.nome}`,
-          content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao ?? "-"}`,
+          content: `Técnico: ${tecnico?.nome ?? "Desconhecido"}\nEscola: ${escola.nome ?? "-"}\nAPs Instalados: ${input.qtdApInstalado}\nObservação: ${input.observacao}`,
         });
-
-        // NOTA: O upload ao Google Drive é feito DEPOIS que as fotos são enviadas ao S3
-        // via uploadOsFoto. O Drive é acionado pelo endpoint reenviarParaDrive ou
-        // automaticamente 30s após a conclusão da OS para garantir que todas as fotos
-        // já estejam salvas no S3 antes de tentar enviar ao Drive.
-        // Aqui fazemos apenas um agendamento assíncrono (não bloqueante).
-        const osIdCapturado = osId;
-        const tecnicoNomeCapturado = tecnico?.nome ?? "Tecnico";
-        const escolaNomeCapturado = escola.nome ?? `Escola-${input.escolaId}`;
-        setTimeout(async () => {
-          try {
-            const fotos = await listOsFotos(osIdCapturado);
-            const fotoUrls = fotos.filter(f => f.url).map(f => f.url);
-            if (input.fotoMapaCalorUrl) fotoUrls.unshift(input.fotoMapaCalorUrl);
-            if (fotoUrls.length > 0) {
-              const dataOS = new Date().toISOString().split("T")[0];
-              const result = await uploadFotosOSParaDrive({
-                tenantId: ctx.tecnicoSession.tenantId,
-                tecnicoNome: tecnicoNomeCapturado,
-                escolaNome: escolaNomeCapturado,
-                fotos: fotoUrls,
-                dataOS,
-              });
-              console.log(`[Drive] OS ${osIdCapturado}: ${result.sucesso}/${result.total} fotos enviadas para o Drive (agendado)`);
-            }
-          } catch (driveErr) {
-            console.error(`[Drive] Erro ao enviar fotos da OS ${osIdCapturado} ao Drive (agendado):`, driveErr);
-          }
-        }, 30000); // 30s de espera para garantir que todas as fotos já foram enviadas ao S3
       }
       return { osId };
     }),
@@ -1229,17 +1195,14 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
     .input(z.object({
       osId: z.number(),
       escolaId: z.number(),
-      tecnicoId: z.number(),
-      categoria: z.enum(["mapa_calor", "fotos_ap", "etiqueta_controladora", "etiqueta_nobreak", "etiqueta_switch"]).default("mapa_calor"),
+      tecnicoId: z.number().int().positive().optional(),
+      categoria: z.literal("mapa_calor").default("mapa_calor"),
       imageBase64: z.string(),
       mimeType: z.string().default("image/jpeg"),
       // clientId: ID único gerado pelo app offline para garantir idempotência
       clientId: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
-      if (input.tecnicoId !== ctx.tecnicoSession.tecnicoId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
       const ordem = await getOrdemById(input.osId);
       if (!ordem || ordem.tenantId !== ctx.tecnicoSession.tenantId || ordem.tecnicoId !== ctx.tecnicoSession.tecnicoId || ordem.escolaId !== input.escolaId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Ordem não pertence ao técnico autenticado" });
@@ -1255,12 +1218,12 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       const buffer = await sanitizeEvidenceImage(input.imageBase64, input.mimeType);
       const key = `tenants/${ctx.tecnicoSession.tenantId}/os-fotos/${input.categoria}/os-${input.osId}-${Date.now()}.jpg`;
       const { url } = await storagePut(key, buffer, "image/jpeg");
-      await insertOsFoto({
+      await replaceOsMapaCalor({
         tenantId: ctx.tecnicoSession.tenantId,
         osId: input.osId,
         escolaId: input.escolaId,
-        tecnicoId: input.tecnicoId,
-        categoria: input.categoria,
+        tecnicoId: ctx.tecnicoSession.tecnicoId,
+        categoria: "mapa_calor",
         url,
         fileKey: key,
         clientId: input.clientId,
@@ -1372,6 +1335,7 @@ export const appRouter = router({
   planilha: planilhaRouter,
   planilhasImportadas: planilhasImportadasRouter,
   manutencao: manutencaoRouter,
+  assistenteTecnico: assistenteTecnicoRouter,
   estoque: estoqueRouter,
   superadmin: superadminRouter,
   cadastro: cadastroRouter,

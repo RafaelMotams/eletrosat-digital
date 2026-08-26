@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, Boxes, CircleAlert, Loader2, Minus, PackageCh
 import { toast } from "sonner";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 import { dbCacheEstoqueTecnico, dbGetCachedEstoqueTecnico } from "@/hooks/useOfflineDB";
 import { trpc } from "@/lib/trpc";
 
@@ -11,11 +12,14 @@ function quantity(value: string | number | null | undefined) {
   return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 }).format(Number(value ?? 0));
 }
 
+function dateTime(value: Date | string | null | undefined) {
+  return value ? new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—";
+}
+
 export default function TecnicoEstoque() {
   const [, navigate] = useLocation();
   const online = useOnlineStatus();
-  const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
-  const tenantId = Number(localStorage.getItem("tecnico_tenant_id") || 0);
+  const { tecnicoId, tenantId } = useTecnicoSession(online);
   const [search, setSearch] = useState("");
   const [filtroSaldo, setFiltroSaldo] = useState<"todos" | "esgotados" | "reposicao" | "regular">("todos");
   const [cachedItems, setCachedItems] = useState<Array<any> | null>(null);
@@ -25,9 +29,11 @@ export default function TecnicoEstoque() {
   const [requestMaterialId, setRequestMaterialId] = useState<number | null>(null);
   const [requestAmount, setRequestAmount] = useState("");
   const [requestNote, setRequestNote] = useState("");
+  const [timelineRequestId, setTimelineRequestId] = useState<number | null>(null);
   const utils = trpc.useUtils();
   const saldoQuery = trpc.estoque.saldos.meu.useQuery(undefined, { refetchInterval: online ? 90_000 : false });
   const requestsQuery = trpc.estoque.solicitacoes.minhas.useQuery(undefined, { enabled: !!tecnicoId });
+  const timelineQuery = trpc.estoque.solicitacoes.historico.useQuery({ id: timelineRequestId ?? 0 }, { enabled: !!timelineRequestId });
   const consume = trpc.estoque.movimentacoes.consumir.useMutation({
     onSuccess: async () => {
       await utils.estoque.saldos.meu.invalidate();
@@ -104,6 +110,7 @@ export default function TecnicoEstoque() {
       {openRequests.length > 0 && <div className="flex items-center justify-between gap-3 rounded-2xl border p-3.5" style={{ background: "rgba(99,102,241,.09)", borderColor: "rgba(129,140,248,.22)" }}><div><p className="text-sm font-bold text-indigo-100">{openRequests.length} solicitação{openRequests.length !== 1 ? "ões" : ""} em acompanhamento</p><p className="mt-0.5 text-xs text-indigo-200/70">O estoque da empresa recebe e analisa seus pedidos.</p></div><Send className="h-5 w-5 shrink-0 text-indigo-300" /></div>}
       {partialRequests.length > 0 && <div className="rounded-2xl border p-3.5" style={{ background: "rgba(245,158,11,.08)", borderColor: "rgba(251,191,36,.2)" }}><p className="text-sm font-bold text-amber-100">{partialRequests.length} reposição{partialRequests.length !== 1 ? "ões parciais" : " parcial"}</p><p className="mt-0.5 text-xs text-amber-200/70">Já entregue: {quantity(partialRequests[0].quantidadeAtendida)} de {quantity(partialRequests[0].quantidadeSolicitada)} {partialRequests[0].unidade}.</p></div>}
       {attendedRequests.length > 0 && <div className="rounded-2xl border p-3.5" style={{ background: "rgba(16,185,129,.08)", borderColor: "rgba(52,211,153,.2)" }}><p className="text-sm font-bold text-emerald-100">{attendedRequests.length} reposição{attendedRequests.length !== 1 ? "ões atendidas" : " atendida"}</p><p className="mt-0.5 text-xs text-emerald-200/70">A entrega foi registrada por transferência do almoxarifado{attendedRequests[0]?.atendimentoMovimentacaoId ? ` #${attendedRequests[0].atendimentoMovimentacaoId}` : ""}.</p></div>}
+      {(requestsQuery.data ?? []).length > 0 && <section className="rounded-3xl border p-4" style={{ background: "rgba(255,255,255,.035)", borderColor: "rgba(255,255,255,.08)" }}><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-white">Entregas de reposição</p><p className="mt-0.5 text-xs text-slate-400">Acompanhe cada transferência registrada pelo almoxarifado.</p></div></div><div className="mt-3 space-y-2">{(requestsQuery.data ?? []).map((solicitacao) => <button key={solicitacao.id} type="button" onClick={() => setTimelineRequestId(value => value === solicitacao.id ? null : solicitacao.id)} className="w-full rounded-2xl p-3 text-left" style={{ background: timelineRequestId === solicitacao.id ? "rgba(34,211,238,.1)" : "rgba(255,255,255,.035)", border: `1px solid ${timelineRequestId === solicitacao.id ? "rgba(34,211,238,.24)" : "rgba(255,255,255,.06)"}` }}><div className="flex items-center justify-between gap-3"><span className="min-w-0"><span className="block truncate text-sm font-bold text-white">{solicitacao.materialNome}</span><span className="mt-0.5 block text-xs text-slate-400">{quantity(solicitacao.quantidadeAtendida)} de {quantity(solicitacao.quantidadeSolicitada)} {solicitacao.unidade} entregues</span></span><span className="text-xs font-bold text-cyan-200">{timelineRequestId === solicitacao.id ? "Ocultar" : "Ver entregas"}</span></div></button>)}</div>{timelineRequestId && <div className="mt-3 rounded-2xl border border-cyan-300/15 bg-slate-950/45 p-3">{timelineQuery.isLoading ? <p className="text-xs text-slate-400">Carregando entregas registradas…</p> : timelineQuery.error ? <p className="text-xs text-amber-200">Não foi possível carregar o histórico agora.</p> : timelineQuery.data?.length ? <ol className="space-y-3">{timelineQuery.data.map((movimento) => <li key={movimento.id} className="border-l-2 border-cyan-300/40 pl-3"><p className="text-sm font-bold text-cyan-100">{quantity(movimento.quantidade)} entregue{Number(movimento.quantidade) !== 1 ? "s" : ""}</p><p className="mt-0.5 text-xs text-slate-400">Transferência #{movimento.id} · {dateTime(movimento.createdAt)}</p>{movimento.observacao && <p className="mt-1 text-xs text-slate-300">{movimento.observacao}</p>}</li>)}</ol> : <p className="text-xs text-slate-400">Nenhuma transferência registrada ainda. A solicitação permanece em acompanhamento.</p>}</div>}</section>}
       <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none]"><div className="flex min-w-max gap-2 pr-4">{([
         { value: "todos", label: "Todos", count: items.length, color: "#cbd5e1" },
         { value: "esgotados", label: "Esgotados", count: zeroCount, color: "#f87171" },

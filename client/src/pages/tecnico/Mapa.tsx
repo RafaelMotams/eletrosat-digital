@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useTecnicoSession } from "@/hooks/useTecnicoSession";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import {
   MapPin, Navigation, CheckCircle, Clock, AlertCircle,
@@ -50,7 +51,7 @@ function formatWhatsApp(raw: string | null | undefined): string | null {
 
 export default function TecnicoMapa() {
   const [, navigate] = useLocation();
-  const tecnicoId = Number(localStorage.getItem("tecnico_id") || 0);
+  const { tecnicoId } = useTecnicoSession();
   const [selectedEscola, setSelectedEscola] = useState<Escola | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);

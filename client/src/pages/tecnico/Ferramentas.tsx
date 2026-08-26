@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { AlertTriangle, Calculator, CheckCircle2, ChevronLeft, Cpu, Radio, ShieldCheck, Wifi } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { trpc } from "@/lib/trpc";
-import { calcularCidr, calcularPoe } from "@shared/fieldTools";
+import { calcularCidr, calcularPerdaOptica, calcularPoe, dbmParaMilliwatts, estimarAutonomiaNobreak, PADROES_T568 } from "@shared/fieldTools";
 
 function CampoNumero({ label, value, onChange, suffix }: { label: string; value: string; onChange: (value: string) => void; suffix: string }) {
   return <label className="block min-w-0"><span className="mb-1.5 block text-xs font-semibold text-slate-600">{label}</span><div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-sm"><input inputMode="decimal" value={value} onChange={(event) => onChange(event.target.value)} className="min-w-0 flex-1 bg-transparent py-3 text-sm font-bold text-slate-900 outline-none" /><span className="pl-2 text-xs font-bold text-slate-400">{suffix}</span></div></label>;
@@ -11,19 +11,25 @@ function CampoNumero({ label, value, onChange, suffix }: { label: string; value:
 
 export default function FerramentasTecnico() {
   const [, navigate] = useLocation();
-  const tecnicoId = Number(localStorage.getItem("tecnico_id"));
   const [cidrInput, setCidrInput] = useState("192.168.1.10/24");
   const [poeBudget, setPoeBudget] = useState("120");
   const [poeConsumption, setPoeConsumption] = useState("72");
+  const [potenciaLancada, setPotenciaLancada] = useState("-3");
+  const [potenciaRecebida, setPotenciaRecebida] = useState("-18");
+  const [nobreakCarga, setNobreakCarga] = useState("48");
+  const [nobreakBateria, setNobreakBateria] = useState("7");
   const [weakSignalMode, setWeakSignalMode] = useState(false);
-  const session = trpc.tecnicoAuth.me.useQuery({ tecnicoId }, { enabled: Number.isInteger(tecnicoId) && tecnicoId > 0, retry: false });
+  const session = trpc.tecnicoAuth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
 
   useEffect(() => {
-    if (!Number.isInteger(tecnicoId) || tecnicoId <= 0 || session.isError) navigate("/tecnico/login?reason=session-expired", { replace: true });
-  }, [navigate, session.isError, tecnicoId]);
+    if (session.isError) navigate("/tecnico/login?reason=session-expired", { replace: true });
+  }, [navigate, session.isError]);
 
   const cidr = useMemo(() => calcularCidr(cidrInput), [cidrInput]);
   const poe = useMemo(() => calcularPoe(Number(poeBudget.replace(",", ".")), Number(poeConsumption.replace(",", "."))), [poeBudget, poeConsumption]);
+  const perdaOptica = useMemo(() => calcularPerdaOptica(Number(potenciaLancada.replace(",", ".")), Number(potenciaRecebida.replace(",", "."))), [potenciaLancada, potenciaRecebida]);
+  const potenciaRecebidaMw = useMemo(() => dbmParaMilliwatts(Number(potenciaRecebida.replace(",", "."))), [potenciaRecebida]);
+  const autonomia = useMemo(() => estimarAutonomiaNobreak(Number(nobreakCarga.replace(",", ".")), Number(nobreakBateria.replace(",", "."))), [nobreakCarga, nobreakBateria]);
 
   if (session.isLoading) return <div className="grid min-h-screen place-items-center bg-slate-950 text-sm font-semibold text-slate-200">Validando sessão segura…</div>;
   if (session.isError) return null;
@@ -50,6 +56,20 @@ export default function FerramentasTecnico() {
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-4"><div className="flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600"><Radio className="h-5 w-5" /></span><div><h2 className="font-bold text-slate-900">Modo sinal fraco</h2><p className="mt-0.5 text-xs leading-5 text-slate-500">Reduz a densidade visual desta tela e lembra de priorizar os dados já baixados.</p></div></div><button type="button" aria-pressed={weakSignalMode} onClick={() => setWeakSignalMode(value => !value)} className="relative mt-1 h-7 w-12 shrink-0 rounded-full transition" style={{ background: weakSignalMode ? "#059669" : "#cbd5e1" }}><span className="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition" style={{ left: weakSignalMode ? "24px" : "4px" }} /></button></div>{weakSignalMode && <p className="mt-3 flex items-center gap-2 rounded-2xl bg-amber-50 px-3 py-3 text-xs font-medium text-amber-900"><ShieldCheck className="h-4 w-4 shrink-0" /> Use a rota e os materiais já sincronizados. O Copiloto e novos envios ainda dependem de conexão.</p>}</section>
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-start gap-3 border-b border-slate-100 p-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700"><Radio className="h-5 w-5" /></span><div><h2 className="font-bold text-slate-900">Perda óptica</h2><p className="mt-0.5 text-xs leading-5 text-slate-500">Cálculo de apoio. Use sempre os limites do módulo, do projeto e a medição certificada.</p></div></div>
+        <div className="space-y-3 p-4"><div className="grid grid-cols-2 gap-3"><CampoNumero label="Potência lançada" value={potenciaLancada} onChange={setPotenciaLancada} suffix="dBm" /><CampoNumero label="Potência recebida" value={potenciaRecebida} onChange={setPotenciaRecebida} suffix="dBm" /></div>{perdaOptica !== null && potenciaRecebidaMw !== null ? <div className="rounded-2xl bg-cyan-50 p-3"><p className="text-sm font-bold text-cyan-900">Perda calculada: {perdaOptica.toFixed(2)} dB</p><p className="mt-1 text-xs text-cyan-800">Recepção aproximada: {potenciaRecebidaMw.toFixed(4)} mW. Não substitui OTDR, power meter nem parâmetros do fabricante.</p></div> : <p className="text-xs text-amber-800">Informe valores numéricos em dBm.</p>}</div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-start gap-3 border-b border-slate-100 p-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-600"><Cpu className="h-5 w-5" /></span><div><h2 className="font-bold text-slate-900">Autonomia estimada do nobreak</h2><p className="mt-0.5 text-xs leading-5 text-slate-500">Estimativa para uma bateria de 12 V com eficiência de 80%; não representa autonomia garantida.</p></div></div>
+        <div className="space-y-3 p-4"><div className="grid grid-cols-2 gap-3"><CampoNumero label="Carga estimada" value={nobreakCarga} onChange={setNobreakCarga} suffix="W" /><CampoNumero label="Bateria" value={nobreakBateria} onChange={setNobreakBateria} suffix="Ah" /></div>{autonomia ? <div className="rounded-2xl bg-amber-50 p-3"><p className="text-sm font-bold text-amber-900">Autonomia estimada: {Math.round(autonomia.minutos)} minutos</p><p className="mt-1 text-xs text-amber-800">Energia útil estimada: {autonomia.energiaUtilWh.toFixed(1)} Wh. Confirme a tensão, o arranjo de baterias e a saúde real antes de decidir.</p></div> : <p className="text-xs text-amber-800">Informe carga e capacidade maiores que zero.</p>}</div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-start gap-3 border-b border-slate-100 p-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><ShieldCheck className="h-5 w-5" /></span><div><h2 className="font-bold text-slate-900">Terminação T568A e T568B</h2><p className="mt-0.5 text-xs leading-5 text-slate-500">Sequência de cores para conferência; siga o projeto e teste o cabo ao final.</p></div></div>
+        <div className="grid gap-3 p-4 sm:grid-cols-2">{(["A", "B"] as const).map((padrao) => <div key={padrao} className="rounded-2xl bg-slate-50 p-3"><p className="text-sm font-bold text-slate-900">T568{padrao}</p><ol className="mt-2 space-y-1 text-xs text-slate-600">{PADROES_T568[padrao].map((cor, index) => <li key={cor}><span className="mr-2 font-bold text-slate-400">{index + 1}</span>{cor}</li>)}</ol></div>)}</div>
+      </section>
     </main>
     <TecnicoBottomNav />
   </div>;

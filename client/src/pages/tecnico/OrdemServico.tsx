@@ -282,7 +282,8 @@ function CategoriaUploadCard({
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const canAdd = fotos.length < categoria.maxFotos;
+  // A seleção de uma nova foto substitui a evidência local anterior.
+  const canAdd = true;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -344,9 +345,9 @@ function CategoriaUploadCard({
         {/* Prévia das fotos */}
         {fotos.length > 0 && (
           <div className="px-4 pt-3 pb-2">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {fotos.map((f, idx) => (
-                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden"
+                <div key={idx} className="relative aspect-video rounded-xl overflow-hidden"
                   style={{ border: `1.5px solid ${categoria.border}` }}>
                   <img
                     src={f.preview}
@@ -391,14 +392,14 @@ function CategoriaUploadCard({
               className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <Camera className="w-4 h-4" style={{ color: categoria.color }} />
-              <span className="text-xs font-bold text-white">Câmera</span>
+              <span className="text-xs font-bold text-white">{fotos.length ? "Trocar foto" : "Câmera"}</span>
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <Image className="w-4 h-4" style={{ color: categoria.color }} />
-              <span className="text-xs font-bold text-white">Galeria</span>
+              <span className="text-xs font-bold text-white">{fotos.length ? "Trocar galeria" : "Galeria"}</span>
             </button>
           </div>
         )}
@@ -476,18 +477,8 @@ function FotosEnviadas({
 export default function TecnicoOS() {
   const params = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const [tecnicoId, setTecnicoId] = useState<number>(() => {
-    // Inicializa imediatamente do localStorage — evita delay do useEffect
-    const id = localStorage.getItem("tecnico_id");
-    if (id) return Number(id);
-    try {
-      const stored = localStorage.getItem("tecnico");
-      if (stored) return Number(JSON.parse(stored).id) || 0;
-    } catch { /* noop */ }
-    return 0;
-  });
+  const [tecnicoId, setTecnicoId] = useState(0);
 
-  const [openConcluir, setOpenConcluir] = useState(false);
   const [openNaoInstalada, setOpenNaoInstalada] = useState(false);
   const [uploadingAll, setUploadingAll] = useState(false);
 
@@ -506,43 +497,23 @@ export default function TecnicoOS() {
 
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
+  const { data: sessaoTecnico, isLoading: carregandoSessao, error: erroSessao } = trpc.tecnicoAuth.me.useQuery(undefined, {
+    enabled: isOnline,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
-    const id = localStorage.getItem("tecnico_id");
-    if (!id) {
-      const stored = localStorage.getItem("tecnico");
-      if (!stored) { navigate("/tecnico/login"); return; }
-      try {
-        const t = JSON.parse(stored);
-        localStorage.setItem("tecnico_id", String(t.id));
-        localStorage.setItem("tecnico_nome", t.nome);
-        localStorage.setItem("tecnico_email", t.email);
-        setTecnicoId(t.id);
-      } catch { navigate("/tecnico/login"); }
-    } else {
-      setTecnicoId(Number(id));
+    if (sessaoTecnico) {
+      setTecnicoId(sessaoTecnico.id);
+      return;
     }
-  }, [navigate]);
+    const sessaoInvalida = erroSessao?.data?.code === "UNAUTHORIZED" || erroSessao?.data?.code === "FORBIDDEN";
+    if (sessaoInvalida) navigate("/tecnico/login", { replace: true });
+  }, [erroSessao, navigate, sessaoTecnico]);
 
   const escolaId = Number(params.id);
-  const tenantIdAtivo = Number(localStorage.getItem("tecnico_tenant_id"));
-
-  // ANTI-REDIRECT ao voltar da câmera/WhatsApp/Maps:
-  // Quando o documento fica visível novamente (visibilitychange), atualiza o timestamp da OS ativa
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith('/tecnico/os/')) {
-          // Atualiza localStorage com timestamp para o App.tsx redirecionar corretamente
-          localStorage.setItem('tecnico_active_os_route', currentPath);
-          localStorage.setItem('tecnico_active_os_ts', String(Date.now()));
-        }
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+  const tenantIdAtivo = sessaoTecnico?.tenantId ?? 0;
 
   // ANTI-REDIRECT: queries com staleTime alto e sem refetch automático
   // Garante que a escola não desaparece enquanto o técnico preenche a RDO
@@ -621,24 +592,6 @@ export default function TecnicoOS() {
   // Estado local para simular "em andamento" imediatamente (antes do refetch)
   const [localStatus, setLocalStatus] = useState<string | null>(null);
   const [showSucesso, setShowSucesso] = useState(false);
-  const [countdown, setCountdown] = useState(5);
-
-  // Contagem regressiva e redirecionamento automático ao menu
-  useEffect(() => {
-    if (!showSucesso) return;
-    setCountdown(5);
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          navigate("/tecnico");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [showSucesso, navigate]);
 
   const iniciarMut = trpc.tecnicoAuth.iniciarOS.useMutation({
     onSuccess: () => {
@@ -691,7 +644,6 @@ export default function TecnicoOS() {
     onSuccess: () => {
       toast.success("Instalação concluída com sucesso!");
       utils.tecnicoAuth.minhasEscolas.invalidate();
-      setOpenConcluir(false);
       setPendingOffline(false);
     },
     onError: (err: { message: string }) => toast.error("Erro: " + err.message),
@@ -741,7 +693,7 @@ export default function TecnicoOS() {
   function addFotos(catId: FotoCategoria, novas: FotoPendente[]) {
     setFotosPorCategoria(prev => ({
       ...prev,
-      [catId]: [...prev[catId], ...novas].slice(0, CATEGORIAS_FOTOS.find(c => c.id === catId)!.maxFotos),
+      [catId]: novas.slice(0, CATEGORIAS_FOTOS.find(c => c.id === catId)!.maxFotos),
     }));
   }
 
@@ -849,15 +801,13 @@ export default function TecnicoOS() {
           </div>
           <h1 className="text-2xl font-black text-white mb-2">Instalação Concluída!</h1>
           <p className="text-base mb-1" style={{ color: "rgba(148,163,184,0.8)" }}>{escola.nome}</p>
-          <p className="text-sm mb-6" style={{ color: "rgba(16,185,129,0.85)" }}>Ordem de serviço finalizada com sucesso</p>
-          <p className="text-sm mb-6" style={{ color: "rgba(148,163,184,0.55)" }}>
-            Voltando ao menu em <span className="font-black text-white">{countdown}s</span>...
-          </p>
+          <p className="text-sm mb-2" style={{ color: "rgba(16,185,129,0.85)" }}>Ordem de serviço finalizada com sucesso</p>
+          <p className="text-sm mb-6" style={{ color: "rgba(148,163,184,0.55)" }}>Recibo de sincronização: conclusão e evidência confirmadas.</p>
           <button
             onClick={() => navigate("/tecnico")}
             className="w-full max-w-xs py-4 rounded-3xl font-black text-base text-white"
             style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-            Ir para o Menu Agora
+            Voltar para a rota
           </button>
         </div>
       )}
@@ -1138,7 +1088,7 @@ export default function TecnicoOS() {
                 {totalFotosPendentes} foto{totalFotosPendentes !== 1 ? "s" : ""} selecionada{totalFotosPendentes !== 1 ? "s" : ""}
               </span>
             </div>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-1 gap-1.5">
               {CATEGORIAS_FOTOS.map(cat => {
                 const pendentes = fotosPorCategoria[cat.id].length;
                 const enviadas = (fotosEnviadas as { id: number; url: string; categoria: string }[]).filter(f => f.categoria === cat.id).length;
@@ -1214,6 +1164,9 @@ export default function TecnicoOS() {
               className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
               style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
             />
+            <p className="mt-2 text-xs" style={{ color: observacao.trim().length >= 5 ? "rgba(148,163,184,0.55)" : "#fbbf24" }}>
+              A observação é obrigatória e deve ter ao menos 5 caracteres.
+            </p>
           </div>
 
           {/* Avisos */}
@@ -1222,6 +1175,13 @@ export default function TecnicoOS() {
               style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
               <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>Informe a quantidade de APs instalados para finalizar</p>
+            </div>
+          )}
+          {observacao.trim().length < 5 && (
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-2"
+              style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#fbbf24" }} />
+              <p className="text-xs" style={{ color: "rgba(251,191,36,0.85)" }}>Inclua uma breve observação antes de concluir.</p>
             </div>
           )}
           {categoriasFaltando.length > 0 && (
@@ -1242,6 +1202,7 @@ export default function TecnicoOS() {
             onClick={async () => {
               const n = parseInt(qtdAp);
               if (!qtdAp || isNaN(n) || n < 1) { toast.error("Informe a quantidade de APs instalados"); return; }
+              if (observacao.trim().length < 5) { toast.error("Descreva brevemente o resultado da instalação"); return; }
 
               // Modo offline
               if (!isOnline) {
@@ -1357,16 +1318,16 @@ export default function TecnicoOS() {
                 setUploadingAll(false);
               }
             }}
-            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()}
+            disabled={concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || observacao.trim().length < 5}
             className="w-full py-5 rounded-3xl flex items-center justify-center gap-3 font-black text-base text-white transition-all active:scale-[0.97] mb-3"
             style={{
-              background: (!qtdAp || !todasCategoriasFotos || !observacao.trim())
+              background: (!qtdAp || !todasCategoriasFotos || observacao.trim().length < 5)
                 ? "rgba(16,185,129,0.15)"
                 : isOnline
                 ? "linear-gradient(135deg, #065f46, #059669, #10b981)"
                 : "linear-gradient(135deg, #d97706, #f59e0b)",
-              boxShadow: (!qtdAp || !todasCategoriasFotos || !observacao.trim()) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
-              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || !observacao.trim()) ? 0.55 : 1,
+              boxShadow: (!qtdAp || !todasCategoriasFotos || observacao.trim().length < 5) ? "none" : isOnline ? "0 12px 40px rgba(16,185,129,0.3)" : "0 12px 40px rgba(245,158,11,0.3)",
+              opacity: (concluirMut.isPending || uploadingAll || !qtdAp || !todasCategoriasFotos || observacao.trim().length < 5) ? 0.55 : 1,
               cursor: (concluirMut.isPending || uploadingAll) ? "not-allowed" : "pointer",
               border: "1px solid rgba(16,185,129,0.25)",
             }}>
@@ -1405,7 +1366,7 @@ export default function TecnicoOS() {
                   <h3 className="text-white font-black text-xl">Concluir OS</h3>
                   <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(148,163,184,0.5)" }}>{escola?.nome}</p>
                 </div>
-                <button onClick={() => setOpenConcluir(false)}
+                <button onClick={() => undefined}
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: "rgba(255,255,255,0.06)" }}>
                   <X className="w-4 h-4 text-white" />
@@ -1535,9 +1496,9 @@ export default function TecnicoOS() {
                 </div>
               )}
 
-              {/* Botões */}
+              {/* Botões do fluxo legado desativado */}
               <div className="flex gap-3">
-                <button onClick={() => setOpenConcluir(false)}
+                <button onClick={() => undefined}
                   className="flex-1 py-4 rounded-2xl font-semibold text-sm transition-all active:scale-95"
                   style={{ background: "rgba(255,255,255,0.05)", color: "rgba(148,163,184,0.6)", border: "1px solid rgba(255,255,255,0.07)" }}>
                   Cancelar
@@ -1570,7 +1531,6 @@ export default function TecnicoOS() {
                         fotos: fotasOffline,
                       });
                       setPendingOffline(true);
-                      setOpenConcluir(false);
                       setFotosPorCategoria({ mapa_calor: [] });
                       toast.success(`OS e ${fotasOffline.length} foto${fotasOffline.length !== 1 ? 's' : ''} salvas localmente! Serão enviadas quando você tiver internet.`, { duration: 6000 });
                       return;
@@ -1657,7 +1617,6 @@ export default function TecnicoOS() {
                         mapa_calor: [],
                       });
                       utils.tecnicoAuth.minhasEscolas.invalidate();
-                      setOpenConcluir(false);
                       setPendingOffline(false);
                     } catch (err: unknown) {
                       const msg = err instanceof Error ? err.message : String(err);
