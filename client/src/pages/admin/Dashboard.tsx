@@ -14,6 +14,7 @@ const COLORS_BAR = [
   "oklch(0.40 0.18 162)", "oklch(0.30 0.10 240)", "oklch(0.60 0.16 75)",
   "oklch(0.50 0.20 290)", "oklch(0.42 0.16 200)"
 ];
+type PrioridadeFiltro = "todas" | "operacao" | "estoque" | "manutencao";
 
 function StatCard({ title, value, icon: Icon, variant, loading, subtitle }: {
   title: string; value: number | string; icon: React.ElementType;
@@ -66,6 +67,7 @@ export default function AdminDashboard() {
   const [periodoProdutividade, setPeriodoProdutividade] = useState<"todo" | "7d" | "30d" | "mes" | "custom">("todo");
   const [produtividadeInicio, setProdutividadeInicio] = useState("");
   const [produtividadeFim, setProdutividadeFim] = useState("");
+  const [filtroPrioridade, setFiltroPrioridade] = useState<PrioridadeFiltro>("todas");
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -136,6 +138,35 @@ export default function AdminDashboard() {
   const pctAps = totalApsExibir > 0 ? Math.round((totalApsConcluidos / totalApsExibir) * 100) : 0;
   const saldoAlmoxarifado = new Map((saldos ?? []).filter(saldo => saldo.holderType === "almoxarifado").map(saldo => [saldo.materialId, Number(saldo.quantidade)]));
   const materiaisCriticos = (materiais ?? []).filter(material => (saldoAlmoxarifado.get(material.id) ?? 0) < Number(material.estoqueMinimo));
+  const prioridades = [
+    {
+      tipo: "operacao" as const,
+      href: "/admin/ordens",
+      titulo: "Ordens em aberto",
+      descricao: `${(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)} atividade(s) pendente(s) ou em andamento.`,
+      icon: ClipboardList,
+      cor: "bg-amber-50 text-amber-700",
+    },
+    {
+      tipo: "estoque" as const,
+      href: "/admin/estoque",
+      titulo: "Estoque e técnicos",
+      descricao: materiaisCriticos.length > 0 ? `${materiaisCriticos.length} item(ns) abaixo do mínimo.` : "Sem alerta de reposição no almoxarifado.",
+      icon: Boxes,
+      cor: "bg-cyan-50 text-cyan-700",
+    },
+    {
+      tipo: "manutencao" as const,
+      href: "/admin/manutencao",
+      titulo: "Manutenções",
+      descricao: "Abra a fila de atendimento, laudos e quilometragem.",
+      icon: Wrench,
+      cor: "bg-emerald-50 text-emerald-700",
+    },
+  ];
+  const prioridadesFiltradas = filtroPrioridade === "todas"
+    ? prioridades
+    : prioridades.filter(prioridade => prioridade.tipo === filtroPrioridade);
 
   return (
     <AdminLayoutAuto title="Dashboard">
@@ -223,19 +254,29 @@ export default function AdminDashboard() {
           </div>
           <p className="text-xs text-muted-foreground">Baseada no status atual do seu tenant</p>
         </div>
-        <div className="grid gap-px bg-border md:grid-cols-3">
-          <Link href="/admin/ordens" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700"><ClipboardList className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Ordens em aberto</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{(stats?.pendentes ?? 0) + (stats?.emAndamento ?? 0)} atividade(s) pendente(s) ou em andamento.</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <Link href="/admin/estoque" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cyan-50 text-cyan-700"><Boxes className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Estoque e técnicos</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{materiaisCriticos.length > 0 ? `${materiaisCriticos.length} item(ns) abaixo do mínimo.` : "Sem alerta de reposição no almoxarifado."}</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <Link href="/admin/manutencao" className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700"><Wrench className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">Manutenções</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Abra a fila de atendimento, laudos e quilometragem.</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </Link>
+        <div className="flex gap-2 overflow-x-auto border-b border-border px-5 py-3 [scrollbar-width:none]">
+          {([
+            { value: "todas", label: "Tudo" },
+            { value: "operacao", label: "Operação" },
+            { value: "estoque", label: "Estoque" },
+            { value: "manutencao", label: "Manutenção" },
+          ] as const).map((filtro) => (
+            <button key={filtro.value} onClick={() => setFiltroPrioridade(filtro.value)}
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${filtroPrioridade === filtro.value ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}>
+              {filtro.label}
+            </button>
+          ))}
+        </div>
+        <div className={`grid gap-px bg-border ${prioridadesFiltradas.length > 1 ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
+          {prioridadesFiltradas.map((prioridade) => {
+            const Icon = prioridade.icon;
+            return (
+              <Link key={prioridade.tipo} href={prioridade.href} className="group flex min-w-0 gap-3 bg-card p-4 transition-colors hover:bg-muted/40">
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${prioridade.cor}`}><Icon className="h-5 w-5" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">{prioridade.titulo}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{prioridade.descricao}</span></span><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            );
+          })}
         </div>
       </section>
 

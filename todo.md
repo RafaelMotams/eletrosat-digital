@@ -692,6 +692,7 @@
 - [x] Consolidar Netvius como única marca pública no site, aplicativo, painéis e exportações
 - [x] Criar gestão de sessões administrativas com listagem e revogação isoladas por empresa
 - [x] Aprimorar o histórico técnico com filtros, resumo de produtividade e acesso seguro a evidências
+- [x] Aprimorar a central de prioridades administrativa com filtros operacionais e ações por contexto
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
