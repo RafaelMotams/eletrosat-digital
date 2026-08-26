@@ -306,16 +306,27 @@ export const estoqueRouter = router({
       return { id, quantidadeAnterior, quantidadeReal: input.quantidadeReal, diferenca };
     }),
 
-    transferir: tenantAdminProcedure.input(z.object({ materialId: z.number().int().positive(), tecnicoId: z.number().int().positive(), quantidade: quantidadeSchema, observacao: z.string().trim().max(2_000).optional() }))
+    transferir: tenantAdminProcedure.input(z.object({ materialId: z.number().int().positive(), tecnicoId: z.number().int().positive(), quantidade: quantidadeSchema, observacao: z.string().trim().max(2_000).optional(), solicitacaoId: z.number().int().positive().optional() }))
       .mutation(async ({ ctx, input }) => {
         const db = await requireDb();
         await Promise.all([requireMaterial(db, ctx.tenantId, input.materialId), requireTecnico(db, ctx.tenantId, input.tecnicoId)]);
         const id = await db.transaction(async (tx: any) => {
+          if (input.solicitacaoId) {
+            const [solicitacao] = await tx.select({ id: estoqueSolicitacoes.id }).from(estoqueSolicitacoes)
+              .where(and(eq(estoqueSolicitacoes.id, input.solicitacaoId), eq(estoqueSolicitacoes.tenantId, ctx.tenantId), eq(estoqueSolicitacoes.tecnicoId, input.tecnicoId), eq(estoqueSolicitacoes.materialId, input.materialId), or(eq(estoqueSolicitacoes.status, "aberta"), eq(estoqueSolicitacoes.status, "em_analise"))!))
+              .limit(1);
+            if (!solicitacao) throw new TRPCError({ code: "BAD_REQUEST", message: "Solicitação não está disponível para atendimento neste material" });
+          }
           await debitarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "almoxarifado", holderId: 0 }, input.quantidade);
           await incrementarSaldo(tx, ctx.tenantId, input.materialId, { holderType: "tecnico", holderId: input.tecnicoId }, input.quantidade);
-          return registrarMovimentacao(tx, { tenantId: ctx.tenantId, materialId: input.materialId, tipo: "transferencia", origemType: "almoxarifado", origemId: 0, destinoType: "tecnico", destinoId: input.tecnicoId, quantidade: input.quantidade, observacao: input.observacao, actorType: "admin", actorId: ctx.tenantSession?.adminId });
+          const movementId = await registrarMovimentacao(tx, { tenantId: ctx.tenantId, materialId: input.materialId, tipo: "transferencia", origemType: "almoxarifado", origemId: 0, destinoType: "tecnico", destinoId: input.tecnicoId, quantidade: input.quantidade, observacao: input.observacao, actorType: "admin", actorId: ctx.tenantSession?.adminId });
+          if (input.solicitacaoId) {
+            await tx.update(estoqueSolicitacoes).set({ status: "atendida", resposta: input.observacao?.trim() || "Atendida por transferência do almoxarifado.", atendimentoMovimentacaoId: movementId, atendidaPorAdminId: ctx.tenantSession?.adminId ?? null, atendidaAt: new Date() })
+              .where(and(eq(estoqueSolicitacoes.id, input.solicitacaoId), eq(estoqueSolicitacoes.tenantId, ctx.tenantId)));
+          }
+          return movementId;
         });
-        await recordAuditEvent({ tenantId: ctx.tenantId, actorType: "admin", actorId: ctx.tenantSession?.adminId, action: "estoque.transferir", entityType: "estoque_movimentacao", entityId: id, metadata: { materialId: input.materialId, tecnicoId: input.tecnicoId, quantidade: input.quantidade }, req: ctx.req });
+        await recordAuditEvent({ tenantId: ctx.tenantId, actorType: "admin", actorId: ctx.tenantSession?.adminId, action: "estoque.transferir", entityType: "estoque_movimentacao", entityId: id, metadata: { materialId: input.materialId, tecnicoId: input.tecnicoId, quantidade: input.quantidade, solicitacaoId: input.solicitacaoId }, req: ctx.req });
         return { id };
       }),
 
@@ -382,6 +393,8 @@ export const estoqueRouter = router({
         observacao: estoqueSolicitacoes.observacao,
         status: estoqueSolicitacoes.status,
         resposta: estoqueSolicitacoes.resposta,
+        atendimentoMovimentacaoId: estoqueSolicitacoes.atendimentoMovimentacaoId,
+        atendidaAt: estoqueSolicitacoes.atendidaAt,
         createdAt: estoqueSolicitacoes.createdAt,
         updatedAt: estoqueSolicitacoes.updatedAt,
         materialNome: materiaisEstoque.nome,
@@ -428,6 +441,8 @@ export const estoqueRouter = router({
         observacao: estoqueSolicitacoes.observacao,
         status: estoqueSolicitacoes.status,
         resposta: estoqueSolicitacoes.resposta,
+        atendimentoMovimentacaoId: estoqueSolicitacoes.atendimentoMovimentacaoId,
+        atendidaAt: estoqueSolicitacoes.atendidaAt,
         createdAt: estoqueSolicitacoes.createdAt,
         updatedAt: estoqueSolicitacoes.updatedAt,
         tecnicoNome: tecnicos.nome,

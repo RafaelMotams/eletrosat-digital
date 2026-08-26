@@ -696,6 +696,7 @@
 - [x] Aprimorar a manutenção no aplicativo técnico com resumo, filtros rápidos e acesso às ordens atribuídas
 - [x] Aprimorar o estoque técnico com resumo de reposição e filtros acionáveis por nível de saldo
 - [x] Criar solicitação interna de reposição a partir do estoque técnico com isolamento por empresa e técnico
+- [x] Vincular transferências de estoque às solicitações de reposição e registrar o atendimento auditável
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS

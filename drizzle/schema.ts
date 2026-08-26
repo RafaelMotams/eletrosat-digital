@@ -335,6 +335,8 @@ export const estoqueSolicitacoes = mysqlTable("estoque_solicitacoes", {
   status: mysqlEnum("status", ["aberta", "em_analise", "atendida", "cancelada"]).default("aberta").notNull(),
   resposta: text("resposta"),
   atendidaPorAdminId: int("atendidaPorAdminId"),
+  atendimentoMovimentacaoId: int("atendimentoMovimentacaoId"),
+  atendidaAt: timestamp("atendidaAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
