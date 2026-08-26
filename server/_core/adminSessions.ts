@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { adminSessions } from "../../drizzle/schema";
 import { getDb } from "../db";
 
@@ -42,4 +42,37 @@ export async function revokeAdminSession(sessionId: string | undefined): Promise
   await db.update(adminSessions)
     .set({ revokedAt: new Date() })
     .where(and(eq(adminSessions.id, sessionId), isNull(adminSessions.revokedAt)));
+}
+
+export async function listTenantAdminSessions(tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco indisponível para listar sessões");
+  return db.select({
+    id: adminSessions.id,
+    adminId: adminSessions.adminId,
+    role: adminSessions.role,
+    expiresAt: adminSessions.expiresAt,
+    createdAt: adminSessions.createdAt,
+    lastSeenAt: adminSessions.lastSeenAt,
+  })
+    .from(adminSessions)
+    .where(and(
+      eq(adminSessions.tenantId, tenantId),
+      isNull(adminSessions.revokedAt),
+      gt(adminSessions.expiresAt, new Date()),
+    ))
+    .orderBy(desc(adminSessions.lastSeenAt));
+}
+
+export async function revokeTenantAdminSession(sessionId: string, tenantId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Banco indisponível para revogar sessão");
+  const result = await db.update(adminSessions)
+    .set({ revokedAt: new Date() })
+    .where(and(
+      eq(adminSessions.id, sessionId),
+      eq(adminSessions.tenantId, tenantId),
+      isNull(adminSessions.revokedAt),
+    ));
+  return Number((result as any).rowsAffected ?? 0) > 0;
 }

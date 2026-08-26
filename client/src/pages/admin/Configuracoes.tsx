@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Settings, User, Lock, Building2, Shield,
   Eye, EyeOff, Save, CheckCircle, Bell, Wifi,
-  Key, AlertTriangle, Info
+  Key, AlertTriangle, Info, Monitor, Clock, LogOut, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
@@ -77,6 +77,16 @@ export default function AdminConfiguracoes() {
       toast.error(e.message);
       setSalvandoSenha(false);
     },
+  });
+
+  const utils = trpc.useUtils();
+  const sessoesQuery = trpc.tenantAdmin.sessoesAtivas.useQuery(undefined, { retry: false });
+  const revogarSessaoMut = trpc.tenantAdmin.revogarSessao.useMutation({
+    onSuccess: () => {
+      toast.success("Sessão encerrada com segurança");
+      utils.tenantAdmin.sessoesAtivas.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
   });
 
   function handleAlterarSenha() {
@@ -197,6 +207,46 @@ export default function AdminConfiguracoes() {
                 <><Save className="w-4 h-4" />Alterar Senha</>
               )}
             </Button>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Sessões Administrativas" icon={Shield} color="oklch(0.40 0.18 162)">
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 rounded-xl p-3" style={{ background: "oklch(0.96 0.018 162)", border: "1px solid oklch(0.88 0.05 162)" }}>
+              <Shield className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "oklch(0.36 0.16 162)" }} />
+              <p className="text-xs" style={{ color: "oklch(0.34 0.12 162)" }}>
+                Encerre acessos que não reconhece. Cada sessão é vinculada exclusivamente à sua empresa.
+              </p>
+            </div>
+            {sessoesQuery.isLoading ? (
+              <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground"><RefreshCw className="h-4 w-4 animate-spin" />Carregando sessões...</div>
+            ) : sessoesQuery.isError ? (
+              <p className="text-sm text-muted-foreground">Não foi possível carregar as sessões neste momento.</p>
+            ) : sessoesQuery.data?.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma sessão administrativa ativa foi encontrada.</p>
+            ) : (
+              <div className="space-y-2">
+                {sessoesQuery.data?.map((sessao) => (
+                  <div key={sessao.id} className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: "oklch(0.94 0.03 240)" }}>
+                        <Monitor className="h-4 w-4" style={{ color: "oklch(0.34 0.12 240)" }} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">Acesso administrativo</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />Expira em {new Date(sessao.expiresAt).toLocaleDateString("pt-BR")}</span>
+                          <span>Identificador {sessao.id.slice(0, 8)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className="gap-2 self-start rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive sm:self-auto" onClick={() => revogarSessaoMut.mutate({ sessionId: sessao.id })} disabled={revogarSessaoMut.isPending}>
+                      <LogOut className="h-3.5 w-3.5" />Encerrar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </SectionCard>
 

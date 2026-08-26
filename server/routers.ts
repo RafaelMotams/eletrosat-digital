@@ -1311,6 +1311,30 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
 // === APP ROUTER ===
 
 const tenantAdminSelfRouter = router({
+  sessoesAtivas: tenantAdminProcedure
+    .query(async ({ ctx }) => {
+      const session = (ctx as any).tenantSession;
+      if (!session || session.role === "viewer") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem gerenciar sessões" });
+      }
+      const { listTenantAdminSessions } = await import("./_core/adminSessions");
+      return listTenantAdminSessions(session.tenantId);
+    }),
+  revogarSessao: tenantAdminProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const session = (ctx as any).tenantSession;
+      if (!session || session.role === "viewer") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Apenas administradores podem gerenciar sessões" });
+      }
+      if (input.sessionId === session.sid) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Use sair para encerrar sua própria sessão" });
+      }
+      const { revokeTenantAdminSession } = await import("./_core/adminSessions");
+      const revoked = await revokeTenantAdminSession(input.sessionId, session.tenantId);
+      if (!revoked) throw new TRPCError({ code: "NOT_FOUND", message: "Sessão não encontrada" });
+      return { success: true } as const;
+    }),
   alterarSenha: tenantAdminProcedure
     .input(z.object({ senhaAtual: z.string(), novaSenha: z.string().min(6) }))
     .mutation(async ({ input, ctx }) => {
