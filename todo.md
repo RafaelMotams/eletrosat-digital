@@ -680,12 +680,12 @@
 - [x] Implementar sessões revogáveis e proteção contra requisições indevidas no painel web
 - [x] Higienizar uploads de evidência com validação binária, dimensões e remoção de metadados
 - [ ] Preparar migração de dados e schema por tenant sem defaults inseguros nem alteração destrutiva
-- [ ] Auditar evidências legadas de OS sem vínculo operacional antes de definir sua retenção ou descarte seguro
+- [x] Auditar evidências legadas de OS sem vínculo operacional e mantê-las em quarentena até reconciliação autorizada
 - [x] Comparar a nova versão do relatório premium e registrar somente novas prioridades verificáveis
 - [x] Comparar a versão mais recente do relatório premium e consolidar somente prioridades ainda pendentes
 - [x] Investigar e corrigir possível mistura de ordens entre o tenant de Rafael e outro painel administrativo
 - [x] Corrigir autorização de laudo e listagem de fotos de manutenção com filtro explícito por tenant
-- [ ] Remover de forma controlada a compatibilidade Bearer administrativa remanescente após migrar exportações HTTP
+- [x] Remover de forma controlada a compatibilidade Bearer administrativa remanescente após migrar exportações HTTP
 - [x] Migrar a sessão do técnico para registro persistente revogável com transição compatível de cookies legados
 - [x] Ajustar a política web de produção para câmera na própria origem e CSP mais restrita
 - [x] Consolidar a conclusão de OS em APs instalados, observação obrigatória e foto única do mapa de calor

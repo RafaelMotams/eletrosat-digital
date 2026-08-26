@@ -1,7 +1,8 @@
 import ExcelJS from "exceljs";
 import { Request, Response } from "express";
 import { getOsDetalhadas, getOsNaoInstaladas, getValoresApAllTecnicos } from "./db";
-import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
+import { verifyTenantToken } from "./_core/tenantAuth";
+import { extractTenantSessionCookie } from "./_core/context";
 
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
 const C = {
@@ -65,7 +66,7 @@ function aplicarEstiloCelula(
 export async function exportarRelatorioExcel(req: Request, res: Response) {
   try {
     // Auth
-    const token = extractBearerToken(req.headers.authorization);
+    const token = extractTenantSessionCookie(req.headers.cookie);
     const session = token ? await verifyTenantToken(token) : null;
     if (!session || session.isSuperAdmin || session.tenantId <= 0) {
       res.status(401).json({ error: "Sessão de tenant válida é obrigatória para exportar relatórios" });

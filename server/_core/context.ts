@@ -1,7 +1,7 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
-import { verifyTenantToken, extractBearerToken, type TenantSession } from "./tenantAuth";
+import { verifyTenantToken, type TenantSession } from "./tenantAuth";
 
 export const TENANT_SESSION_COOKIE = "netvius_tenant_session";
 
@@ -40,10 +40,8 @@ export async function createContext(
     user = null;
   }
 
-  // A sessão em cookie HttpOnly é a fonte preferencial. Durante a migração,
-  // o header Bearer legado continua aceito apenas quando o cookie não existe.
-  const authHeader = opts.req.headers.authorization;
-  const token = extractTenantSessionCookie(opts.req.headers.cookie) ?? extractBearerToken(authHeader);
+  // O painel e as rotas HTTP privadas usam somente a sessão HttpOnly em cookie.
+  const token = extractTenantSessionCookie(opts.req.headers.cookie);
   if (token) {
     tenantSession = await verifyTenantToken(token);
   }

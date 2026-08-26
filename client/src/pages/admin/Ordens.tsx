@@ -327,15 +327,9 @@ export default function AdminOrdens() {
     onError: (e) => toast.error(e.message),
   });
   async function handleExportarExcel() {
-    const valor = parseFloat(valorPorAp.replace(",", "."));
-    if (isNaN(valor) || valor < 0) {
-      toast.error("Informe um valor por AP válido");
-      return;
-    }
     setExportando(true);
     try {
-      const token = localStorage.getItem("tenant_admin_token") || "";
-      const params = new URLSearchParams({ valorPorAp: String(valor) });
+      const params = new URLSearchParams();
       if (exportTecnicoId && exportTecnicoId !== "todos") {
         params.set("tecnicoId", exportTecnicoId);
       }
@@ -351,7 +345,7 @@ export default function AdminOrdens() {
         ? tecnicos?.find(t => String(t.id) === exportTecnicoId)?.nome ?? "tecnico"
         : "todos";
       const resp = await fetch(`/api/relatorio/excel?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (!resp.ok) throw new Error("Erro ao gerar planilha");
       const blob = await resp.blob();

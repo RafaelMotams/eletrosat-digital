@@ -3,7 +3,8 @@ import { Request, Response } from "express";
 import multer from "multer";
 
 export const uploadMiddleware = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
-import { verifyTenantToken, extractBearerToken } from "./_core/tenantAuth";
+import { verifyTenantToken } from "./_core/tenantAuth";
+import { extractTenantSessionCookie } from "./_core/context";
 import mysql from "mysql2/promise";
 
 // ─── Tabela de valores por AP (empresa → Netvius) ──────────────────────────
@@ -100,7 +101,7 @@ function aplicarCelula(
 // ─── Endpoint: Exportar Nota Fiscal ──────────────────────────────────────────
 export async function exportarNotaFiscal(req: Request, res: Response) {
   try {
-    const token = extractBearerToken(req.headers.authorization);
+    const token = extractTenantSessionCookie(req.headers.cookie);
     if (!token) return res.status(401).json({ error: "Não autenticado" });
     const session = await verifyTenantToken(token);
     if (!session) return res.status(401).json({ error: "Token inválido" });
@@ -156,7 +157,7 @@ export async function exportarNotaFiscal(req: Request, res: Response) {
 
     ws.mergeCells(1, 1, 1, NCOLS);
     aplicarCelula(ws.getCell("A1"), { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
-    ws.getCell("A1").value = "NETVIONIS TECNOLOGIA";
+    ws.getCell("A1").value = "ELETROSAT DIGITAL";
     ws.getRow(1).height = 40;
 
     ws.mergeCells(2, 1, 2, NCOLS);
@@ -247,7 +248,7 @@ export async function exportarNotaFiscal(req: Request, res: Response) {
 // ─── Endpoint: Validar planilha da empresa ───────────────────────────────────
 export async function validarPlanilhaEmpresa(req: Request, res: Response) {
   try {
-    const token = extractBearerToken(req.headers.authorization);
+    const token = extractTenantSessionCookie(req.headers.cookie);
     if (!token) return res.status(401).json({ error: "Não autenticado" });
     const session = await verifyTenantToken(token);
     if (!session) return res.status(401).json({ error: "Token inválido" });
