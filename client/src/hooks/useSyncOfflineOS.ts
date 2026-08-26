@@ -169,26 +169,26 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
         return true;
       }
 
-      // Passo 1: Concluir a OS no servidor (idempotente no backend)
-      // Retry com backoff exponencial: 3 tentativas (1s, 2s, 4s)
-      const resultado = await withRetry(
+      // Passo 1: garantir uma OS em andamento antes de enviar evidência.
+      const inicio = await withRetry(
         () => withTimeout(
-          trpcClient.tecnicoAuth.concluirEscola.mutate({
+          trpcClient.tecnicoAuth.iniciarOS.mutate({
             tecnicoId: os.tecnicoId,
             escolaId: os.escolaId,
-            qtdApInstalado: os.qtdApInstalado,
-            observacao: os.observacao,
           }),
           30000,
-          "concluirEscola"
+          "iniciarOS"
         ),
         3,
-        "concluirEscola"
+        "iniciarOS"
       );
 
-      const osIdFinal: number = (resultado as { osId?: number })?.osId ?? 0;
+      const osIdFinal: number = (inicio as { osId?: number })?.osId ?? 0;
+      if (osIdFinal <= 0 || !os.fotos || os.fotos.length === 0) {
+        throw new Error("A foto do mapa de calor é necessária antes de concluir a OS.");
+      }
 
-      // Passo 2: Upload das fotos (se houver osId válido)
+      // Passo 2: Upload das fotos antes da conclusão.
       // Usa trpcUploadClient (sem batching) para garantir que cada foto
       // é enviada em um request HTTP separado, evitando falhas por payload grande
       if (osIdFinal > 0 && os.fotos && os.fotos.length > 0) {
@@ -230,10 +230,24 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
             console.error(`[SyncOffline] Erro ao enviar foto (${foto.categoria}) após 3 tentativas:`, errMsg);
           }
         }
-        if (fotosFalhas > 0) {
-          console.warn(`[SyncOffline] ${fotosFalhas} foto(s) falharam no upload para OS ${osIdFinal}`);
-        }
+        if (fotosFalhas > 0) throw new Error(`${fotosFalhas} foto(s) falharam no upload para OS ${osIdFinal}`);
       }
+
+      // Passo 3: concluir somente depois que a evidência foi aceita pelo servidor.
+      await withRetry(
+        () => withTimeout(
+          trpcClient.tecnicoAuth.concluirEscola.mutate({
+            tecnicoId: os.tecnicoId,
+            escolaId: os.escolaId,
+            qtdApInstalado: os.qtdApInstalado,
+            observacao: os.observacao,
+          }),
+          30000,
+          "concluirEscola"
+        ),
+        3,
+        "concluirEscola"
+      );
 
       await dbUpdateOSStatus(os.id, "done");
       syncingItemsRef.current.delete(os.id);

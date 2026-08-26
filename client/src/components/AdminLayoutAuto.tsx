@@ -1,7 +1,8 @@
 /**
  * AdminLayoutAuto — detecta automaticamente o tipo de autenticação:
- * - Se há token de tenant_admin no localStorage → usa AdminLayoutTenant (email/senha)
- * - Sem token → redireciona ao login, sem exibir dados de outro tenant
+ * - O cookie HttpOnly mantém a sessão do tenant; o resumo local apenas informa
+ *   que a interface pode montar enquanto as chamadas autenticadas verificam a sessão.
+ * - Sem resumo → redireciona ao login, sem exibir dados de outro tenant.
  */
 import AdminLayoutTenant from "./AdminLayoutTenant";
 import { useEffect } from "react";
@@ -13,14 +14,14 @@ interface AdminLayoutAutoProps {
 }
 
 export default function AdminLayoutAuto({ children, title }: AdminLayoutAutoProps) {
-  const hasTenantToken = !!localStorage.getItem("tenant_admin_token");
+  const hasTenantSession = !!localStorage.getItem("tenant_admin_info");
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!hasTenantToken) navigate("/admin/login");
-  }, [hasTenantToken, navigate]);
+    if (!hasTenantSession) navigate("/admin/login");
+  }, [hasTenantSession, navigate]);
 
-  if (hasTenantToken) {
+  if (hasTenantSession) {
     return <AdminLayoutTenant title={title}>{children}</AdminLayoutTenant>;
   }
 

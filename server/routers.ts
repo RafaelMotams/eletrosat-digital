@@ -1117,41 +1117,22 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
         o => o.escolaId === input.escolaId && o.status === "concluida"
       );
       const osExistente = osEmAndamento ?? osJaConcluida;
-      let osId: number;
-      if (osExistente) {
-        // Atualizar a OS existente para concluída (ou manter se já concluída)
-        // Idempotente: se já está concluída, apenas retorna o osId
-        if (osExistente.status !== "concluida") {
-          await concluirOrdemServico(osExistente.id, input.qtdApInstalado, input.observacao ?? "");
-        }
-        osId = osExistente.id;
-      } else {
-        // Criar nova OS já concluída (fallback — escola sem OS prévia)
-        // Usa INSERT para garantir que apenas uma OS é criada mesmo com requests simultâneos
-        try {
-          const os = await createOrdemServico({
-            escolaId: input.escolaId,
-            tecnicoId: ctx.tecnicoSession.tecnicoId,
-            qtdApInstalado: input.qtdApInstalado,
-            observacao: input.observacao ?? "",
-            status: "concluida",
-            fotoMapaCalorUrl: input.fotoMapaCalorUrl,
-            fotoMapaCalorKey: input.fotoMapaCalorKey,
-            tenantId: ctx.tecnicoSession.tenantId,
+      if (!osExistente) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Inicie a ordem antes de enviar a conclusão." });
+      }
+      const osId = osExistente.id;
+      // Ordens antigas já concluídas permanecem idempotentes. Para uma ordem
+      // ativa, a foto do mapa de calor deve estar gravada e vinculada à OS antes
+      // de o servidor alterar qualquer status operacional.
+      if (osExistente.status !== "concluida") {
+        const fotosPorCategoria = await countOsFotosByCategoria(osId);
+        if ((fotosPorCategoria.mapa_calor ?? 0) < 1) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Envie a foto do mapa de calor antes de concluir a ordem.",
           });
-          osId = (os as any).insertId;
-        } catch (insertErr) {
-          // Em caso de race condition (dois inserts simultâneos), busca a OS criada pelo outro request
-          const ordensAposInsert = await listOrdensServico({ tecnicoId: ctx.tecnicoSession.tecnicoId, tenantId: ctx.tecnicoSession.tenantId });
-          const osCriada = ordensAposInsert.find(
-            o => o.escolaId === input.escolaId
-          );
-          if (osCriada) {
-            osId = osCriada.id;
-          } else {
-            throw insertErr; // re-throw se não encontrou
-          }
         }
+        await concluirOrdemServico(osId, input.qtdApInstalado, input.observacao ?? "");
       }
       // Atualiza escola como concluída (idempotente)
       await updateEscola(input.escolaId, { status: "concluido", dataConclusao: new Date() });

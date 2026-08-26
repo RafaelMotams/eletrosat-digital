@@ -21,27 +21,26 @@ export function useTenantAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("tenant_admin_token");
     const info = localStorage.getItem("tenant_admin_info");
-    if (token && info) {
+    if (info) {
       try {
         setAdmin(JSON.parse(info));
       } catch {
-        localStorage.removeItem("tenant_admin_token");
         localStorage.removeItem("tenant_admin_info");
       }
     }
     setLoading(false);
   }, []);
 
+  const logoutMutation = trpc.superadmin.logout.useMutation();
+
   const logout = () => {
-    localStorage.removeItem("tenant_admin_token");
+    void logoutMutation.mutateAsync().catch(() => undefined);
     localStorage.removeItem("tenant_admin_info");
     setAdmin(null);
     window.location.href = "/admin/login";
   };
 
-  const token = localStorage.getItem("tenant_admin_token") ?? "";
-
-  return { admin, loading, logout, token, isAuthenticated: !!admin };
+  return { admin, loading, logout, token: "", isAuthenticated: !!admin };
 }
+import { trpc } from "@/lib/trpc";

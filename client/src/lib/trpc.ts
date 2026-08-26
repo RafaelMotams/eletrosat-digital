@@ -9,11 +9,7 @@ export const trpcClient = createTRPCClient<AppRouter>({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      async headers() {
-        const tenantToken = localStorage.getItem("tenant_admin_token");
-        if (tenantToken) return { Authorization: `Bearer ${tenantToken}` };
-        return {};
-      },
+      async headers() { return {}; },
       fetch(input, init) {
         return globalThis.fetch(input, { ...(init ?? {}), credentials: "include" });
       },
@@ -32,11 +28,7 @@ export const trpcUploadClient = createTRPCClient<AppRouter>({
     httpLink({
       url: "/api/trpc",
       transformer: superjson,
-      async headers() {
-        const tenantToken = localStorage.getItem("tenant_admin_token");
-        if (tenantToken) return { Authorization: `Bearer ${tenantToken}` };
-        return {};
-      },
+      async headers() { return {}; },
       fetch(input, init) {
         return globalThis.fetch(input, { ...(init ?? {}), credentials: "include" });
       },

@@ -175,6 +175,7 @@ vi.mock("./db", async (importOriginal) => {
     createEscola: vi.fn(async () => {}),
     createOrdemServico: vi.fn(async () => ({ insertId: 999 })),
     getTecnicoByEmail: vi.fn(async () => undefined),
+    countOsFotosByCategoria: vi.fn(async () => ({})),
     getProdutividadePorTecnico: vi.fn(async () => []),
     getRelatorioTecnico: vi.fn(async () => ({ tecnico: null, escolas: [], totalAps: 0 })),
     getOsDetalhadas: vi.fn(async () => []),
@@ -300,6 +301,16 @@ describe("Isolamento Multi-Tenant: Ordens de Serviço", () => {
   it("tenant 1 não consegue excluir OS do tenant 2", async () => {
     const caller = appRouter.createCaller(createTenantContext(1));
     await expect(caller.ordens.deletar({ osId: 200 })).rejects.toThrow(TRPCError);
+  });
+
+  it("técnico não conclui OS sem a foto de mapa de calor confirmada", async () => {
+    const caller = appRouter.createCaller(await createTecnicoContext(1, 1));
+    await expect(caller.tecnicoAuth.concluirEscola({
+      escolaId: 10,
+      tecnicoId: 1,
+      qtdApInstalado: 1,
+      observacao: "Instalação validada",
+    })).rejects.toThrow("Envie a foto do mapa de calor");
   });
 });
 

@@ -18,6 +18,19 @@ import { SignJWT } from "jose";
 import { verifyTenantToken } from "../_core/tenantAuth";
 import { jwtSecretKey } from "../_core/jwtSecret";
 import { recordAuditEvent } from "../audit";
+import { TENANT_SESSION_COOKIE } from "../_core/context";
+
+const TENANT_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+function writeTenantSessionCookie(res: { cookie: Function }, token: string) {
+  res.cookie(TENANT_SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: TENANT_SESSION_MAX_AGE_MS,
+  });
+}
 
 // Criar token JWT
 async function signToken(payload: Record<string, unknown>): Promise<string> {
@@ -51,7 +64,7 @@ export const superadminRouter = router({
         senha: z.string().min(1),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { admin, tenant } = await verifyTenantAdminPassword(
         input.email,
         input.senha
@@ -70,8 +83,13 @@ export const superadminRouter = router({
           adminId: admin.id,
           tenantId: admin.tenantId,
           role: admin.role,
-          isSuperAdmin,
-        });
+        isSuperAdmin,
+      });
+
+      // O painel administrativo passa a receber sessão HttpOnly. Mantemos o
+      // token no retorno apenas para os fluxos legados do superadmin enquanto
+      // eles são migrados; o painel de tenant não o persiste mais no navegador.
+      writeTenantSessionCookie(ctx.res, token);
 
       return {
         token,
@@ -94,6 +112,16 @@ export const superadminRouter = router({
           : null,
       };
     }),
+
+  logout: publicProcedure.mutation(({ ctx }) => {
+    ctx.res.clearCookie(TENANT_SESSION_COOKIE, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+    return { success: true };
+  }),
 
   // Verificar sessão atual
   me: publicProcedure

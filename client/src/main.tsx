@@ -32,9 +32,8 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   const path = window.location.pathname;
 
   // Sessão de tenant inválida não pode deixar a tela administrativa aberta com
-  // consultas vazias; remove o token antigo e solicita novo login.
+  // consultas vazias; remove somente o resumo local e solicita novo login.
   if (path.startsWith("/admin") && !path.startsWith("/admin/login") && !path.startsWith("/admin/cadastro")) {
-    localStorage.removeItem("tenant_admin_token");
     localStorage.removeItem("tenant_admin_info");
     window.location.href = "/admin/login";
     return;
@@ -69,11 +68,6 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       async headers() {
-        // Enviar token JWT do tenant admin se disponível
-        const tenantToken = localStorage.getItem("tenant_admin_token");
-        if (tenantToken) {
-          return { Authorization: `Bearer ${tenantToken}` };
-        }
         return {};
       },
       fetch(input, init) {

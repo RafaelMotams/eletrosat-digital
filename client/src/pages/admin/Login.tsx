@@ -42,7 +42,6 @@ export default function AdminLogin() {
         localStorage.setItem("superadmin_info", JSON.stringify(data.admin));
         navigate("/superadmin/dashboard");
       } else {
-        localStorage.setItem("tenant_admin_token", data.token);
         localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
         navigate("/admin");
       }

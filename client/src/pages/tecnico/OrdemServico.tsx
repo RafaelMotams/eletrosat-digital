@@ -1268,41 +1268,45 @@ export default function TecnicoOS() {
               // Modo online
               setUploadingAll(true);
               try {
-                const resultado = await utils.client.tecnicoAuth.concluirEscola.mutate({
-                  tecnicoId, escolaId, qtdApInstalado: n, observacao
-                });
-                const osIdFinal = resultado?.osId ?? osId;
-
                 const todasFotos: { catId: FotoCategoria; foto: FotoPendente }[] = [];
                 for (const cat of CATEGORIAS_FOTOS) {
                   for (const foto of fotosPorCategoria[cat.id]) {
                     todasFotos.push({ catId: cat.id, foto });
                   }
                 }
-                if (todasFotos.length > 0 && osIdFinal > 0) {
+                const jaTemMapaDeCalor = fotosEnviadas.some(foto => foto.categoria === "mapa_calor");
+                if (!jaTemMapaDeCalor && todasFotos.length === 0) {
+                  toast.error("Adicione a foto do mapa de calor antes de concluir.");
+                  return;
+                }
+
+                // A OS precisa existir e permanecer em andamento durante o upload.
+                // Só depois que a evidência estiver confirmada o servidor permite concluir.
+                let osIdFinal = osId;
+                if (!osIdFinal) {
+                  const inicio = await utils.client.tecnicoAuth.iniciarOS.mutate({ tecnicoId, escolaId });
+                  osIdFinal = inicio.osId;
+                }
+
+                if (todasFotos.length > 0) {
                   toast.loading(`Enviando ${todasFotos.length} foto${todasFotos.length > 1 ? "s" : ""}...`, { id: "upload-all" });
                   let enviadas = 0;
                   const fotasFalhadasLista: { catId: FotoCategoria; foto: FotoPendente; clientId: string }[] = [];
                   for (const { catId, foto } of todasFotos) {
                     const clientId = `online-${escolaId}-${catId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
                     let ok = false;
-                    // 3 tentativas por foto com backoff
                     for (let tentativa = 1; tentativa <= 3; tentativa++) {
                       try {
-                        // Usa httpLink (sem batching) para garantir request separado por foto
                         await trpcUploadClient.tecnicoAuth.uploadOsFoto.mutate({
-                          osId: osIdFinal, escolaId, tecnicoId,
-                          categoria: catId, imageBase64: foto.base64, mimeType: foto.mime,
-                          clientId,
+                          osId: osIdFinal, escolaId, tecnicoId, categoria: catId,
+                          imageBase64: foto.base64, mimeType: foto.mime, clientId,
                         });
                         ok = true;
                         break;
                       } catch (fotoErr) {
                         const errMsg = fotoErr instanceof Error ? fotoErr.message : String(fotoErr);
                         console.error(`[OS] Tentativa ${tentativa}/3 falhou para foto ${catId}:`, errMsg);
-                        if (tentativa < 3) {
-                          await new Promise(r => setTimeout(r, tentativa * 1000));
-                        }
+                        if (tentativa < 3) await new Promise(r => setTimeout(r, tentativa * 1000));
                       }
                     }
                     if (ok) {
@@ -1313,14 +1317,15 @@ export default function TecnicoOS() {
                     }
                   }
                   toast.dismiss("upload-all");
-                  const fotosFalhadas = fotasFalhadasLista.length;
-                  if (enviadas > 0 && fotosFalhadas === 0) {
-                    toast.success(`${enviadas} foto${enviadas > 1 ? "s" : ""} enviada${enviadas > 1 ? "s" : ""} com sucesso!`);
-                  } else if (fotosFalhadas > 0) {
-                    toast.error(`⚠️ ${fotosFalhadas} foto${fotosFalhadas > 1 ? "s" : ""} não foram enviadas (verifique a conexão). As demais foram salvas.`, { duration: 10000 });
-                    console.error("[OS] Fotos que falharam:", fotasFalhadasLista.map(f => f.catId));
+                  if (fotasFalhadasLista.length > 0) {
+                    toast.error("A foto do mapa de calor não foi confirmada. A ordem continua em andamento para nova tentativa.", { duration: 10000 });
+                    return;
                   }
                 }
+
+                await utils.client.tecnicoAuth.concluirEscola.mutate({
+                  tecnicoId, escolaId, qtdApInstalado: n, observacao,
+                });
                 // Remover escola da rota do dia ao concluir
                 try {
                   const rotaKey = `tecnico_rota_dia`;
