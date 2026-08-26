@@ -29,6 +29,7 @@ const PERIODOS = [
   { value: "custom", label: "Período personalizado" },
 ] as const;
 type Periodo = typeof PERIODOS[number]["value"];
+type StatusFiltro = "todos" | "concluido" | "em_andamento" | "nao_instalada" | "pendente";
 
 function startOfDay(d: Date) { const r = new Date(d); r.setHours(0,0,0,0); return r; }
 function startOfWeek(d: Date) { const r = startOfDay(d); r.setDate(r.getDate() - r.getDay()); return r; }
@@ -48,6 +49,7 @@ export default function TecnicoHistorico() {
   const [dataFim, setDataFim] = useState("");
   const [search, setSearch] = useState("");
   const [searchFocus, setSearchFocus] = useState(false);
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos");
 
   const { data: escolas = [], isLoading } = trpc.tecnicoAuth.minhasEscolas.useQuery(
     { tecnicoId },
@@ -88,6 +90,9 @@ export default function TecnicoHistorico() {
         e.nome.toLowerCase().includes(q) || e.inep.includes(q) || (e.municipio ?? "").toLowerCase().includes(q)
       );
     }
+    if (statusFiltro !== "todos") {
+      list = list.filter(e => e.status === statusFiltro);
+    }
     if (periodo === "todos") return list;
     const now = new Date();
     let from: Date | null = null, to: Date | null = null;
@@ -103,7 +108,7 @@ export default function TecnicoHistorico() {
       const d = e.dataConclusao ? new Date(e.dataConclusao) : null;
       return d && d >= from! && d <= to!;
     });
-  }, [escolas, periodo, dataInicio, dataFim, search]);
+  }, [escolas, periodo, dataInicio, dataFim, search, statusFiltro]);
 
   const concluidas    = escolasFiltradas.filter(e => e.status === "concluido");
   const emAndamento   = escolasFiltradas.filter(e => e.status === "em_andamento");
@@ -154,6 +159,31 @@ export default function TecnicoHistorico() {
               <p className="text-[9px] font-semibold mt-0.5 uppercase tracking-wide" style={{ color: "rgba(148,163,184,0.5)" }}>{s.label}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mb-4 -mx-4 overflow-x-auto px-4 [scrollbar-width:none]">
+          <div className="flex min-w-max gap-2 pr-4">
+            {([
+              { value: "todos", label: "Todos", count: escolas.length, color: "#cbd5e1" },
+              { value: "concluido", label: "Concluídas", count: concluidas.length, color: "#34d399" },
+              { value: "em_andamento", label: "Em andamento", count: emAndamento.length, color: "#818cf8" },
+              { value: "pendente", label: "Pendentes", count: pendentes.length, color: "#fbbf24" },
+              { value: "nao_instalada", label: "Não instaladas", count: naoInstaladas.length, color: "#f87171" },
+            ] as const).map((item) => {
+              const ativo = statusFiltro === item.value;
+              return (
+                <button key={item.value} onClick={() => setStatusFiltro(item.value)}
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-bold transition-all active:scale-95"
+                  style={{
+                    color: ativo ? "#020817" : item.color,
+                    background: ativo ? item.color : `${item.color}10`,
+                    border: `1px solid ${ativo ? item.color : `${item.color}35`}`,
+                  }}>
+                  {item.label}<span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ background: ativo ? "rgba(2,8,23,0.14)" : `${item.color}18` }}>{item.count}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Ganhos em OS concluídas */}
@@ -338,6 +368,9 @@ export default function TecnicoHistorico() {
                             </span>
                           </div>
                         )}
+                        <div className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold" style={{ color: "#67e8f9" }}>
+                          Abrir OS e evidências <span aria-hidden="true">→</span>
+                        </div>
                       </div>
                     </div>
                   </div>
