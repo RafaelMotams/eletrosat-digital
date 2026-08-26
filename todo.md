@@ -670,7 +670,7 @@
 - [x] Redesenhar a landing Netvius com hero 3D premium, narrativa clara e responsividade profissional
 - [x] Remover a opção de próxima atividade do aplicativo técnico e ajustar o layout correspondente
 - [x] Analisar o relatório premium enviado e consolidar requisitos para a próxima etapa do Netvius
-- [ ] Migrar a sessão da Central Master para cookie seguro e revogável, após compatibilizar os endpoints legados
+- [x] Migrar a sessão da Central Master para cookie seguro e revogável, após compatibilizar os endpoints legados
 - [x] Migrar a sessão do painel tenant para cookie HttpOnly compatível, mantendo a Central Master em migração separada
 - [x] Garantir no servidor que a conclusão de OS dependa da evidência de mapa de calor validada
 - [x] Investigar e corrigir possível mistura de ordens entre o tenant de Rafael e outro painel administrativo

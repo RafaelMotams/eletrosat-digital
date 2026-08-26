@@ -112,3 +112,14 @@ export const tenantAdminProcedure = t.procedure.use(
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }),
 );
+
+// A Central Master administra o control plane, nunca os dados operacionais
+// dos tenants. A sessão vem do cookie HttpOnly resolvido no contexto.
+export const masterProcedure = t.procedure.use(
+  t.middleware(async ({ ctx, next }) => {
+    if (!ctx.tenantSession?.isSuperAdmin || ctx.tenantSession.tenantId !== 0) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Acesso Master necessário" });
+    }
+    return next({ ctx: { ...ctx, masterSession: ctx.tenantSession } });
+  }),
+);

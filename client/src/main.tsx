@@ -39,6 +39,12 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
     return;
   }
 
+  if (path.startsWith("/superadmin") && !path.startsWith("/superadmin/login")) {
+    localStorage.removeItem("sa_admin");
+    window.location.href = "/superadmin/login";
+    return;
+  }
+
   // O técnico mantém a fila offline no dispositivo, mas precisa renovar a sessão
   // para voltar a consultar ou sincronizar dados no servidor.
   if (path.startsWith("/tecnico") && !path.startsWith("/tecnico/login")) {

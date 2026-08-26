@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../_core/trpc";
+import { router, publicProcedure, masterProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   listTenants,
@@ -38,17 +38,6 @@ async function signToken(payload: Record<string, unknown>): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
     .sign(jwtSecretKey);
-}
-
-// Verificar token JWT
-async function verifyToken(token: string): Promise<{
-  adminId: number;
-  tenantId: number;
-  email: string;
-  role: string;
-  isSuperAdmin: boolean;
-} | null> {
-  return verifyTenantToken(token);
 }
 
 export const superadminRouter = router({
@@ -124,33 +113,14 @@ export const superadminRouter = router({
   }),
 
   // Verificar sessão atual
-  me: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .query(async ({ input }) => {
-      const session = await verifyToken(input.token);
-      if (!session) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão inválida" });
-      }
-
-      let tenant = null;
-      if (session.tenantId > 0) {
-        tenant = await getTenantById(session.tenantId);
-      }
-
+  me: masterProcedure.query(async ({ ctx }) => {
+      const session = ctx.masterSession;
       return {
         adminId: session.adminId,
         tenantId: session.tenantId,
         role: session.role,
         isSuperAdmin: session.isSuperAdmin,
-        tenant: tenant
-          ? {
-              id: tenant.id,
-              nome: tenant.nome,
-              slug: tenant.slug,
-              plano: tenant.plano,
-              status: tenant.status,
-            }
-          : null,
+        tenant: null,
       };
     }),
 
@@ -158,20 +128,13 @@ export const superadminRouter = router({
   // TENANTS (apenas superadmin)
   // ============================================================
 
-  listTenants: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .query(async ({ input }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
+  listTenants: masterProcedure.query(async () => {
       return listTenants();
     }),
 
-  createTenant: publicProcedure
+  createTenant: masterProcedure
     .input(
       z.object({
-        token: z.string(),
         nome: z.string().min(2),
         slug: z.string().min(2).regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
         plano: z.enum(["basico", "profissional", "enterprise"]),
@@ -187,12 +150,8 @@ export const superadminRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
-
-      const { token: _t, adminNome, adminEmail, adminSenha, ...tenantData } = input;
+      const session = ctx.masterSession;
+      const { adminNome, adminEmail, adminSenha, ...tenantData } = input;
 
       await createTenant(tenantData);
 
@@ -224,10 +183,9 @@ export const superadminRouter = router({
       return { success: true, tenantId: tenant.id };
     }),
 
-  updateTenant: publicProcedure
+  updateTenant: masterProcedure
     .input(
       z.object({
-        token: z.string(),
         id: z.number(),
         nome: z.string().min(2).optional(),
         slug: z.string().min(2).optional(),
@@ -241,11 +199,8 @@ export const superadminRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
-      const { token: _t, id, ...data } = input;
+      const session = ctx.masterSession;
+      const { id, ...data } = input;
       await updateTenant(id, data);
       await recordAuditEvent({
         tenantId: id,
@@ -260,13 +215,10 @@ export const superadminRouter = router({
       return { success: true };
     }),
 
-  deleteTenant: publicProcedure
-    .input(z.object({ token: z.string(), id: z.number() }))
+  deleteTenant: masterProcedure
+    .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
+      const session = ctx.masterSession;
       await deleteTenant(input.id);
       await recordAuditEvent({ tenantId: input.id, actorType: "superadmin", actorId: session.adminId, action: "tenant.delete", entityType: "tenant", entityId: input.id, req: ctx.req });
       return { success: true };
@@ -276,20 +228,15 @@ export const superadminRouter = router({
   // ADMINS DE TENANT
   // ============================================================
 
-  listAdmins: publicProcedure
-    .input(z.object({ token: z.string(), tenantId: z.number() }))
+  listAdmins: masterProcedure
+    .input(z.object({ tenantId: z.number() }))
     .query(async ({ input }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin && session?.tenantId !== input.tenantId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
       return listTenantAdmins(input.tenantId);
     }),
 
-  createAdmin: publicProcedure
+  createAdmin: masterProcedure
     .input(
       z.object({
-        token: z.string(),
         tenantId: z.number(),
         nome: z.string().min(2),
         email: z.string().email(),
@@ -298,15 +245,11 @@ export const superadminRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin && session?.tenantId !== input.tenantId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
-      const { token: _t, ...data } = input;
-      await createTenantAdmin(data);
+      const session = ctx.masterSession;
+      await createTenantAdmin(input);
       await recordAuditEvent({
         tenantId: input.tenantId,
-        actorType: session.isSuperAdmin ? "superadmin" : "admin",
+        actorType: "superadmin",
         actorId: session.adminId,
         action: "tenant_admin.create",
         entityType: "tenant_admin",
@@ -316,10 +259,9 @@ export const superadminRouter = router({
       return { success: true };
     }),
 
-  updateAdmin: publicProcedure
+  updateAdmin: masterProcedure
     .input(
       z.object({
-        token: z.string(),
         id: z.number(),
         nome: z.string().min(2).optional(),
         email: z.string().email().optional(),
@@ -329,18 +271,14 @@ export const superadminRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const session = ctx.masterSession;
       const alvo = await getTenantAdminById(input.id);
       if (!alvo) throw new TRPCError({ code: "NOT_FOUND", message: "Administrador não encontrado" });
-      if (!session.isSuperAdmin && (session.role !== "admin" || alvo.tenantId !== session.tenantId)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
-      const { token: _t, id, ...data } = input;
+      const { id, ...data } = input;
       await updateTenantAdmin(id, data);
       await recordAuditEvent({
         tenantId: alvo.tenantId,
-        actorType: session.isSuperAdmin ? "superadmin" : "admin",
+        actorType: "superadmin",
         actorId: session.adminId,
         action: "tenant_admin.update",
         entityType: "tenant_admin",
@@ -351,13 +289,10 @@ export const superadminRouter = router({
       return { success: true };
     }),
 
-  deleteAdmin: publicProcedure
-    .input(z.object({ token: z.string(), id: z.number() }))
+  deleteAdmin: masterProcedure
+    .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const session = await verifyToken(input.token);
-      if (!session?.isSuperAdmin) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Acesso negado" });
-      }
+      const session = ctx.masterSession;
       const alvo = await getTenantAdminById(input.id);
       if (!alvo) throw new TRPCError({ code: "NOT_FOUND", message: "Administrador não encontrado" });
       await deleteTenantAdmin(input.id);

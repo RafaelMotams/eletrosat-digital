@@ -127,7 +127,6 @@ function Select({ label, value, onChange, options, required }: {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function SuperadminDashboard() {
-  const [token] = useState(() => localStorage.getItem("sa_token") || "");
   const [admin] = useState(() => {
     try { return JSON.parse(localStorage.getItem("sa_admin") || "{}"); } catch { return {}; }
   });
@@ -148,9 +147,9 @@ export default function SuperadminDashboard() {
   const err = (msg: string) => setToast({ msg, type: "err" });
 
   // ── Queries ──
-  const tenantsQ = trpc.superadmin.listTenants.useQuery({ token }, { enabled: !!token });
+  const tenantsQ = trpc.superadmin.listTenants.useQuery();
   const adminsQ = trpc.superadmin.listAdmins.useQuery(
-    { token, tenantId: modalAdmins?.id ?? 0 },
+    { tenantId: modalAdmins?.id ?? 0 },
     { enabled: !!modalAdmins }
   );
 
@@ -182,6 +181,7 @@ export default function SuperadminDashboard() {
     onSuccess: () => { ok("Admin removido."); utils.superadmin.listAdmins.invalidate(); },
     onError: e => err(e.message),
   });
+  const logoutM = trpc.superadmin.logout.useMutation();
   // ── Form: Novo Cliente ──
   const [form, setForm] = useState({ nome: "", slug: "", plano: "profissional", contato: "", email: "", telefone: "", observacoes: "", adminNome: "", adminEmail: "", adminSenha: "", diasTrial: "5" });
   const setF = (k: string) => (v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -231,7 +231,7 @@ export default function SuperadminDashboard() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("sa_token");
+    void logoutM.mutateAsync().catch(() => undefined);
     localStorage.removeItem("sa_admin");
     window.location.href = "/superadmin/login";
   };
@@ -502,7 +502,7 @@ export default function SuperadminDashboard() {
                       onVerAdmins={() => setModalAdmins(t)}
                       onEditar={() => setModalEditar(t)}
                       onExcluir={() => setModalExcluir(t)}
-                      onSuspender={(status) => updateTenantM.mutate({ token, id: t.id, status })}
+                      onSuspender={(status) => updateTenantM.mutate({ id: t.id, status })}
                     />
                   ))}
                 </div>
@@ -527,7 +527,7 @@ export default function SuperadminDashboard() {
 
                 <form onSubmit={e => {
                   e.preventDefault();
-                  createTenantM.mutate({ token, nome: form.nome, slug: form.slug, plano: form.plano as any, contato: form.contato, email: form.email, telefone: form.telefone, observacoes: form.observacoes, adminNome: form.adminNome, adminEmail: form.adminEmail, adminSenha: form.adminSenha, diasTrial: parseInt(form.diasTrial) || 5 });
+                  createTenantM.mutate({ nome: form.nome, slug: form.slug, plano: form.plano as any, contato: form.contato, email: form.email, telefone: form.telefone, observacoes: form.observacoes, adminNome: form.adminNome, adminEmail: form.adminEmail, adminSenha: form.adminSenha, diasTrial: parseInt(form.diasTrial) || 5 });
                 }} className="space-y-5">
 
                   {/* Dados da empresa */}
@@ -609,7 +609,7 @@ export default function SuperadminDashboard() {
                 { value: "viewer", label: "Visualizador" },
               ]} />
             </div>
-            <button onClick={() => createAdminM.mutate({ token, tenantId: modalAdmins.id, nome: adminForm.nome, email: adminForm.email, senha: adminForm.senha, role: adminForm.role as any })}
+            <button onClick={() => createAdminM.mutate({ tenantId: modalAdmins.id, nome: adminForm.nome, email: adminForm.email, senha: adminForm.senha, role: adminForm.role as any })}
               disabled={createAdminM.isPending || !adminForm.nome || !adminForm.email || !adminForm.senha}
               className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #00f5a0, #00d9f5)", color: "#050b18", opacity: (createAdminM.isPending || !adminForm.nome || !adminForm.email || !adminForm.senha) ? 0.6 : 1 }}>
@@ -637,12 +637,12 @@ export default function SuperadminDashboard() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>{a.role}</span>
-                    <button onClick={() => updateAdminM.mutate({ token, id: a.id, ativo: !a.ativo })}
+                    <button onClick={() => updateAdminM.mutate({ id: a.id, ativo: !a.ativo })}
                       className="p-1.5 rounded-lg transition-all"
                       style={{ background: a.ativo ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)", color: a.ativo ? "#34d399" : "#f87171" }}>
                       {a.ativo ? <CheckCircle size={13} /> : <XCircle size={13} />}
                     </button>
-                    <button onClick={() => deleteAdminM.mutate({ token, id: a.id })}
+                    <button onClick={() => deleteAdminM.mutate({ id: a.id })}
                       className="p-1.5 rounded-lg transition-all"
                       style={{ color: "rgba(248,113,113,0.5)" }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(248,113,113,0.1)"; (e.currentTarget as HTMLElement).style.color = "#f87171"; }}
@@ -660,7 +660,7 @@ export default function SuperadminDashboard() {
       {/* ── MODAL: EDITAR ── */}
       {modalEditar && (
         <Modal title={`Editar — ${modalEditar.nome}`} onClose={() => setModalEditar(null)}>
-          <form onSubmit={e => { e.preventDefault(); updateTenantM.mutate({ token, id: modalEditar.id, nome: editForm.nome, slug: editForm.slug, plano: editForm.plano as any, status: editForm.status as any, contato: editForm.contato, email: editForm.email, telefone: editForm.telefone, observacoes: editForm.observacoes }); }} className="space-y-3">
+          <form onSubmit={e => { e.preventDefault(); updateTenantM.mutate({ id: modalEditar.id, nome: editForm.nome, slug: editForm.slug, plano: editForm.plano as any, status: editForm.status as any, contato: editForm.contato, email: editForm.email, telefone: editForm.telefone, observacoes: editForm.observacoes }); }} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Input label="Nome" value={editForm.nome} onChange={setEF("nome")} required />
               <Input label="Slug" value={editForm.slug} onChange={setEF("slug")} required />
@@ -704,7 +704,7 @@ export default function SuperadminDashboard() {
                 style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 Cancelar
               </button>
-              <button onClick={() => deleteTenantM.mutate({ token, id: modalExcluir.id })}
+              <button onClick={() => deleteTenantM.mutate({ id: modalExcluir.id })}
                 disabled={deleteTenantM.isPending}
                 className="flex-1 py-2.5 rounded-xl text-sm font-bold"
                 style={{ background: "linear-gradient(135deg, #7f1d1d, #991b1b)", color: "#fca5a5", border: "1px solid rgba(248,113,113,0.3)" }}>

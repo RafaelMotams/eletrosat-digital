@@ -12,11 +12,11 @@ export default function SuperAdminLogin() {
 
   const loginMut = trpc.superadmin.login.useMutation({
     onSuccess: (data) => {
-      localStorage.setItem("sa_token", data.token);
-      localStorage.setItem("sa_admin", JSON.stringify(data.admin));
       if (data.admin.isSuperAdmin) {
+        localStorage.setItem("sa_admin", JSON.stringify(data.admin));
         navigate("/superadmin/dashboard");
       } else {
+        localStorage.setItem("tenant_admin_info", JSON.stringify({ ...data.admin, tenant: data.tenant }));
         navigate("/admin/dashboard");
       }
     },
