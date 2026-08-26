@@ -5,7 +5,7 @@ import {
   MapPin, ChevronRight, CheckCircle, Clock, AlertCircle,
   Search, Zap, RefreshCw, Phone, Building2, WifiOff,
   TrendingUp, Navigation, LocateFixed, X, Wifi,
-  Filter, Bell, ChevronDown, Boxes, Wrench, Route, ArrowUpRight
+  Filter, Bell, ChevronDown, Boxes, Wrench, Route
 } from "lucide-react";
 import TecnicoBottomNav from "@/components/TecnicoBottomNav";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -256,10 +256,6 @@ export default function TecnicoHome() {
   const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
   const totalAps = escolas.reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
   const apsInstalados = escolas.filter(e => e.status === "concluido").reduce((acc, e) => acc + (e.qtdAp ?? 0), 0);
-  const proximaAtividade = finalSorted.find(escola => escola.status === "pendente" || escola.status === "em_andamento") ?? null;
-
-
-
   const getInitials = (nome: string) =>
     nome.split(" ").filter(Boolean).slice(0, 2).map(n => n[0]).join("").toUpperCase();
 
@@ -354,14 +350,6 @@ export default function TecnicoHome() {
             </div>
           </div>
         </div>
-
-        {proximaAtividade && (() => {
-          const proximoStatus = STATUS_CONFIG[proximaAtividade.status] ?? STATUS_CONFIG.pendente;
-          return <button type="button" onClick={() => navigate(`/tecnico/os/${proximaAtividade.id}`)} className="mb-4 w-full overflow-hidden rounded-2xl p-4 text-left transition-transform active:scale-[0.985]" style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.18),rgba(14,165,233,0.10))", border: "1px solid rgba(129,140,248,0.26)", boxShadow: "0 12px 32px rgba(30,41,59,0.28)" }}>
-            <div className="mb-3 flex items-center justify-between gap-3"><span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "rgba(129,140,248,0.16)", color: "#c7d2fe" }}><span className="h-1.5 w-1.5 rounded-full bg-indigo-300" />PRÓXIMA ATIVIDADE</span><span className="rounded-full px-2 py-1 text-[10px] font-bold" style={{ background: proximoStatus.bg, color: proximoStatus.color, border: `1px solid ${proximoStatus.border}` }}>{proximoStatus.label}</span></div>
-            <div className="flex items-end gap-3"><span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl text-xs font-black" style={{ background: "rgba(255,255,255,0.09)", color: "#e0e7ff" }}>{proximaAtividade.nome.split(" ").filter(parte => parte.length > 2).slice(0, 2).map(parte => parte[0]).join("").toUpperCase() || "OS"}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-white">{proximaAtividade.nome}</span><span className="mt-1 block truncate text-[11px] text-slate-300">{proximaAtividade.municipio ?? "Local a confirmar"}{proximaAtividade.qtdAp ? ` · ${proximaAtividade.qtdAp} AP${proximaAtividade.qtdAp > 1 ? "s" : ""}` : ""}</span></span><span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#f8fafc" }}><ArrowUpRight className="h-4 w-4" /></span></div>
-          </button>;
-        })()}
 
         {/* Progress card */}
         <div className="rounded-2xl p-4 mb-4"
