@@ -157,7 +157,7 @@ export async function exportarNotaFiscal(req: Request, res: Response) {
 
     ws.mergeCells(1, 1, 1, NCOLS);
     aplicarCelula(ws.getCell("A1"), { bg: C.azulEscuro, fg: C.branco, bold: true, size: 16, hAlign: "center" });
-    ws.getCell("A1").value = "ELETROSAT DIGITAL";
+    ws.getCell("A1").value = "NETVIUS";
     ws.getRow(1).height = 40;
 
     ws.mergeCells(2, 1, 2, NCOLS);

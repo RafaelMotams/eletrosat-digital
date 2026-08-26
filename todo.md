@@ -689,7 +689,7 @@
 - [x] Migrar a sessão do técnico para registro persistente revogável com transição compatível de cookies legados
 - [x] Ajustar a política web de produção para câmera na própria origem e CSP mais restrita
 - [x] Consolidar a conclusão de OS em APs instalados, observação obrigatória e foto única do mapa de calor
-- [ ] Unificar a marca institucional Eletrosat Digital na configuração pública e autenticada sem quebrar compatibilidade
+- [x] Consolidar Netvius como única marca pública no site, aplicativo, painéis e exportações
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
