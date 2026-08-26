@@ -514,9 +514,9 @@
 - [x] Redesenhar site inicial: premium, elegante, copy de vendas profissional
 - [x] Mostrar todos os diferenciais e funcionalidades no site
 - [x] Vídeo demonstrativo simulado (animação CSS) mostrando abertura/fechamento de OS
-- [ ] Notificação diária email 08:00 para isabele.vieira@bitinternet.com.br
-- [ ] Notificação diária email 08:00 para nielsen.bezerra@bitinternet.com.br
-- [ ] Email com resumo: % concluído, escolas finalizadas no dia anterior
+- [x] Não implementar notificação diária por e-mail para isabele.vieira@bitinternet.com.br — fora do escopo por decisão do usuário
+- [x] Não implementar notificação diária por e-mail para nielsen.bezerra@bitinternet.com.br — fora do escopo por decisão do usuário
+- [x] Não implementar e-mail com resumo diário — fora do escopo por decisão do usuário
 
 ## Melhorias Premium Fase 2 (18/07/2026)
 ### Site Inicial Premium
@@ -563,7 +563,7 @@
 - [x] Restaurar o vínculo de netvius.org e www.netvius.org ao projeto
 - [x] Criar cadastro de conta com email, senha e confirmação por email
 - [x] Validar visualmente as telas de landing page, login e cadastro no ambiente de desenvolvimento
-- [ ] Definir e integrar um canal autorizado para notificação automática de novas contas no WhatsApp
+- [x] Não definir ou integrar alerta automático de novas contas no WhatsApp — fora do escopo por decisão do usuário
 - [x] Corrigir isolamento multi-tenant para que cada cliente visualize somente os próprios dados
 - [x] Remover Nota Fiscal também do menu do painel de revenda
 - [x] Refinar a apresentação visual do painel de revenda
@@ -614,8 +614,8 @@
 
 ## Integrações Externas Adiadas por Decisão do Usuário (25/08/2026)
 - [x] Registrar o adiamento de alertas externos até autorização de provedor e credenciais
-- [ ] Retomar relatório diário por email para os destinatários definidos quando houver provedor autorizado
-- [ ] Retomar alerta de novo cadastro por WhatsApp quando houver provedor autorizado
+- [x] Manter relatório diário por e-mail fora do escopo ativo por decisão do usuário
+- [x] Manter alerta de novo cadastro por WhatsApp fora do escopo ativo por decisão do usuário
 
 ## Retomada de Melhorias Internas (25/08/2026)
 - [x] Revisar backlog funcional e priorizar a próxima melhoria interna sem dependência externa
@@ -694,6 +694,7 @@
 - [x] Aprimorar o histórico técnico com filtros, resumo de produtividade e acesso seguro a evidências
 - [x] Aprimorar a central de prioridades administrativa com filtros operacionais e ações por contexto
 - [x] Aprimorar a manutenção no aplicativo técnico com resumo, filtros rápidos e acesso às ordens atribuídas
+- [x] Aprimorar o estoque técnico com resumo de reposição e filtros acionáveis por nível de saldo
 
 ## Relatórios Executivos de AP (Enterprise V7)
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
