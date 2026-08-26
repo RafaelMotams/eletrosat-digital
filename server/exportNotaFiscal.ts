@@ -51,6 +51,10 @@ export function getValorEmpresaPorAp(qtd: number): number {
   return TABELA_VALORES_EMPRESA[keys[keys.length - 1]];
 }
 
+export function podeExportarFinanceiro(role: string | undefined) {
+  return role === "admin";
+}
+
 // ─── Paleta de cores ──────────────────────────────────────────────────────────
 const C = {
   azulEscuro:  "FF0D2137",
@@ -107,6 +111,7 @@ export async function exportarNotaFiscal(req: Request, res: Response) {
     if (!session) return res.status(401).json({ error: "Token inválido" });
 
     const tenantId = session.tenantId;
+    if (!podeExportarFinanceiro(session.role)) return res.status(403).json({ error: "Perfil sem permissão para exportar dados financeiros" });
     const dataInicio = req.query.dataInicio as string | undefined;
     const dataFim = req.query.dataFim as string | undefined;
 
@@ -255,6 +260,7 @@ export async function validarPlanilhaEmpresa(req: Request, res: Response) {
 
     const tenantId = session.tenantId;
 
+    if (!podeExportarFinanceiro(session.role)) return res.status(403).json({ error: "Perfil sem permissão para validar dados financeiros" });
     const multerReq = req as Request & { file?: Express.Multer.File };
     if (!multerReq.file) return res.status(400).json({ error: "Nenhum arquivo enviado" });
 

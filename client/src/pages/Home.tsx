@@ -82,7 +82,7 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="/admin/cadastro" className="group inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-7 py-4 text-base font-bold text-slate-950 shadow-xl shadow-emerald-500/20 transition hover:-translate-y-0.5 hover:bg-emerald-300">
-                  Testar Grátis por 5 Dias <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                  Solicitar demonstração <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
                 </a>
                 <a href="/admin/login" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-7 py-4 text-base font-semibold text-white backdrop-blur transition hover:bg-white/10">
                   <Lock className="w-4 h-4" /> Acessar Painel

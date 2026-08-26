@@ -8,6 +8,7 @@ import { storagePut } from "../storage";
 import { sanitizeEvidenceImage } from "../_core/evidenceImage";
 import { invokeLLM } from "../_core/llm";
 import { recordAuditEvent } from "../audit";
+import { ASSISTENTE_TECNICO_BASE } from "../knowledge/assistenteTecnicoBase";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -437,7 +438,7 @@ export const manutencaoRouter = router({
       if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence à sessão autenticada" });
       const m = await getManutencaoComDados(input.manutencaoId, ctx.accessSession.tenantId);
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
-      const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
+      const systemPrompt = `Você é o Assistente Técnico Netvius, um orientador de infraestrutura de rede para equipes de campo.
 
 • INFRAESTRUTURA DE REDE: Cabeamento estruturado (Cat5e/Cat6/Cat6A), fibra óptica (FTTH, FTTx), patch panels, racks 19", organizadores, DIO, caixas de emenda
 • EQUIPAMENTOS: Controladoras Intelbras (WiseFi), TP-Link Omada, Ubiquiti UniFi, Huawei, MikroTik. APs indoor/outdoor, switches gerenciáveis L2/L3, roteadores, OLTs, ONUs
@@ -457,7 +458,9 @@ Seu estilo:
 - Não solicita senhas, chaves, tokens ou dados de outro cliente
 - Para energia, altura, fibra, ferramentas ou qualquer risco físico, prioriza EPI, desligamento seguro e escalonamento ao responsável técnico
 
-Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
+	${ASSISTENTE_TECNICO_BASE}
+
+	Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       const response = await invokeLLM({
         messages: [
           { role: 'system', content: systemPrompt },
