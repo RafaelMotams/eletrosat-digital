@@ -611,11 +611,19 @@ export default function TecnicoManutencao() {
   const tecnicoId = getTecnicoId();
   const [busca, setBusca] = useState("");
   const [detalheId, setDetalheId] = useState<number | null>(null);
+  const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "em_andamento" | "concluida">("todos");
 
   const { data: lista, isLoading, error: listaError, refetch } = trpc.manutencao.minhas.useQuery(
     { tecnicoId, busca: busca || undefined },
     { enabled: !!tecnicoId, refetchInterval: 30000 }
   );
+  const listaArray = (lista ?? []) as any[];
+  const listaFiltrada = statusFiltro === "todos" ? listaArray : listaArray.filter((manutencao) => manutencao.status === statusFiltro);
+  const resumoStatus = {
+    pendente: listaArray.filter((manutencao) => manutencao.status === "pendente").length,
+    em_andamento: listaArray.filter((manutencao) => manutencao.status === "em_andamento").length,
+    concluida: listaArray.filter((manutencao) => manutencao.status === "concluida").length,
+  };
 
   if (detalheId !== null) {
     return <DetalheManutencao id={detalheId} tecnicoId={tecnicoId} onVoltar={() => { setDetalheId(null); refetch(); }} />;
@@ -654,6 +662,25 @@ export default function TecnicoManutencao() {
             </button>
           )}
         </div>
+        <div className="mt-3 -mx-4 overflow-x-auto px-4 [scrollbar-width:none]">
+          <div className="flex min-w-max gap-2 pr-4">
+            {([
+              { value: "todos", label: "Todas", count: listaArray.length, color: "#cbd5e1" },
+              { value: "pendente", label: "Pendentes", count: resumoStatus.pendente, color: "#fbbf24" },
+              { value: "em_andamento", label: "Em andamento", count: resumoStatus.em_andamento, color: "#60a5fa" },
+              { value: "concluida", label: "Concluídas", count: resumoStatus.concluida, color: "#34d399" },
+            ] as const).map((filtro) => {
+              const ativo = statusFiltro === filtro.value;
+              return (
+                <button key={filtro.value} onClick={() => setStatusFiltro(filtro.value)}
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-bold transition-all active:scale-95"
+                  style={{ color: ativo ? "#040a16" : filtro.color, background: ativo ? filtro.color : `${filtro.color}14`, border: `1px solid ${ativo ? filtro.color : `${filtro.color}35`}` }}>
+                  {filtro.label}<span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ background: ativo ? "rgba(4,10,22,0.16)" : `${filtro.color}20` }}>{filtro.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Lista */}
@@ -680,7 +707,7 @@ export default function TecnicoManutencao() {
             <div><p className="font-bold text-white mb-1">Não foi possível carregar as manutenções</p><p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Verifique a conexão e tente atualizar. Nenhuma ordem foi alterada.</p></div>
             <button onClick={() => refetch()} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "rgba(249,115,22,0.16)", color: "#fdba74", border: "1px solid rgba(249,115,22,0.26)" }}><RefreshCw className="w-4 h-4 inline mr-2" />Tentar novamente</button>
           </div>
-        ) : !lista || lista.length === 0 ? (
+        ) : listaFiltrada.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-16 h-16 rounded-3xl flex items-center justify-center"
               style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.15)" }}>
@@ -689,12 +716,12 @@ export default function TecnicoManutencao() {
             <div className="text-center">
               <p className="font-bold text-white mb-1">Nenhuma manutenção</p>
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-                {busca ? "Nenhum resultado para sua busca" : "Você não tem ordens de manutenção atribuídas"}
+                {busca ? "Nenhum resultado para sua busca" : statusFiltro !== "todos" ? "Nenhuma manutenção neste status" : "Você não tem ordens de manutenção atribuídas"}
               </p>
             </div>
           </div>
         ) : (
-          (lista as any[]).map((m) => {
+          listaFiltrada.map((m) => {
             const st = STATUS_STYLE[m.status] ?? STATUS_STYLE.pendente;
             const Icon = st.icon;
             return (
