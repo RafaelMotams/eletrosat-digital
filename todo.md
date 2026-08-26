@@ -679,7 +679,7 @@
 - [x] Comparar a versão atualizada do relatório premium e registrar apenas novas prioridades verificáveis
 - [x] Implementar sessões revogáveis e proteção contra requisições indevidas no painel web
 - [x] Higienizar uploads de evidência com validação binária, dimensões e remoção de metadados
-- [ ] Preparar migração de dados e schema por tenant sem defaults inseguros nem alteração destrutiva
+- [x] Preparar migração de dados e schema por tenant sem defaults inseguros nem alteração destrutiva
 - [x] Auditar evidências legadas de OS sem vínculo operacional e mantê-las em quarentena até reconciliação autorizada
 - [x] Comparar a nova versão do relatório premium e registrar somente novas prioridades verificáveis
 - [x] Comparar a versão mais recente do relatório premium e consolidar somente prioridades ainda pendentes

@@ -135,7 +135,7 @@ export type RegistrationRequest = typeof registrationRequests.$inferSelect;
 // Tabela de Técnicos
 export const tecnicos = mysqlTable("tecnicos", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1), // isolamento por tenant
+  tenantId: int("tenantId").notNull(), // isolamento por tenant obrigatório
   nome: varchar("nome", { length: 255 }).notNull(),
   telefone: varchar("telefone", { length: 20 }),
   email: varchar("email", { length: 320 }).notNull(),
@@ -152,7 +152,7 @@ export type InsertTecnico = typeof tecnicos.$inferInsert;
 // Tabela de Escolas
 export const escolas = mysqlTable("escolas", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1), // isolamento por tenant
+  tenantId: int("tenantId").notNull(), // isolamento por tenant obrigatório
   inep: varchar("inep", { length: 20 }).notNull(),
   uf: varchar("uf", { length: 2 }),
   municipio: varchar("municipio", { length: 255 }),
@@ -187,7 +187,7 @@ export type InsertEscola = typeof escolas.$inferInsert;
 // Tabela de Atribuições Manuais (sobrescreve regra de cidade)
 export const atribuicoesManual = mysqlTable("atribuicoes_manual", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1),
+  tenantId: int("tenantId").notNull(),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -199,7 +199,7 @@ export type InsertAtribuicaoManual = typeof atribuicoesManual.$inferInsert;
 // Tabela de Ordens de Serviço
 export const ordensServico = mysqlTable("ordens_servico", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1),
+  tenantId: int("tenantId").notNull(),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
   status: mysqlEnum("status", ["aberta", "em_andamento", "concluida", "nao_instalada"]).default("aberta").notNull(),
@@ -249,7 +249,7 @@ export type InsertOsFoto = typeof osFotos.$inferInsert;
 export const tecnicoValoresAp = mysqlTable("tecnico_valores_ap", {
   id: int("id").autoincrement().primaryKey(),
   tecnicoId: int("tecnicoId").notNull(),
-  tenantId: int("tenantId").notNull().default(1),
+  tenantId: int("tenantId").notNull(),
   qtdAp: int("qtdAp").notNull(), // 1 a 15
   valor: decimal("valor", { precision: 10, scale: 2 }).notNull().default("0.00"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -326,7 +326,7 @@ export type InsertEstoqueMovimentacao = typeof estoqueMovimentacoes.$inferInsert
 // Tabela de Planilhas Importadas (histórico de uploads de planilhas de escolas)
 export const planilhasImportadas = mysqlTable("planilhas_importadas", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1),
+  tenantId: int("tenantId").notNull(),
   nome: varchar("nome", { length: 255 }).notNull(),
   fileKey: varchar("fileKey", { length: 500 }).notNull(),
   fileUrl: text("fileUrl").notNull(),
@@ -346,7 +346,7 @@ export type InsertPlanilhaImportada = typeof planilhasImportadas.$inferInsert;
 // Tabela de Ordens de Manutenção
 export const manutencoes = mysqlTable("manutencoes", {
   id: int("id").autoincrement().primaryKey(),
-  tenantId: int("tenantId").notNull().default(1),
+  tenantId: int("tenantId").notNull(),
   escolaId: int("escolaId"), // opcional se usar escolaNaoCadastrada
   // Escola não cadastrada (quando criar OS para escola nova)
   escolaNaoCadastradaNome: varchar("escolaNaoCadastradaNome", { length: 255 }),

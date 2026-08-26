@@ -195,41 +195,44 @@ export async function updateEscola(id: number, data: Partial<InsertEscola>) {
   await db.update(escolas).set(data).where(eq(escolas.id, id));
 }
 
-export async function atribuirTecnicoEscola(escolaId: number, tecnicoId: number | null) {
+export async function atribuirTecnicoEscola(escolaId: number, tecnicoId: number | null, tenantId: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.update(escolas).set({ tecnicoId, dataAtribuicao: new Date() }).where(eq(escolas.id, escolaId));
+  await db.update(escolas).set({ tecnicoId, dataAtribuicao: new Date() })
+    .where(and(eq(escolas.id, escolaId), eq(escolas.tenantId, tenantId)));
 }
 
-export async function atribuirPorCidade(cidade: string, tecnicoId: number) {
+export async function atribuirPorCidade(cidade: string, tecnicoId: number, tenantId: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   // Buscar escolas sem atribuição manual nessa cidade
-  const escolasManuais = await db.select({ escolaId: atribuicoesManual.escolaId }).from(atribuicoesManual);
+  const escolasManuais = await db.select({ escolaId: atribuicoesManual.escolaId }).from(atribuicoesManual)
+    .where(eq(atribuicoesManual.tenantId, tenantId));
   const idsManual = escolasManuais.map((a) => a.escolaId);
 
   const escolasDaCidade = await db
     .select()
     .from(escolas)
-    .where(and(eq(escolas.municipio, cidade), eq(escolas.status, "pendente")));
+    .where(and(eq(escolas.municipio, cidade), eq(escolas.status, "pendente"), eq(escolas.tenantId, tenantId)));
 
   for (const escola of escolasDaCidade) {
     if (!idsManual.includes(escola.id)) {
-      await db.update(escolas).set({ tecnicoId, dataAtribuicao: new Date() }).where(eq(escolas.id, escola.id));
+      await db.update(escolas).set({ tecnicoId, dataAtribuicao: new Date() })
+        .where(and(eq(escolas.id, escola.id), eq(escolas.tenantId, tenantId)));
     }
   }
 }
 
-export async function setAtribuicaoManual(escolaId: number, tecnicoId: number) {
+export async function setAtribuicaoManual(escolaId: number, tecnicoId: number, tenantId: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   // Upsert na tabela de atribuições manuais
   await db
     .insert(atribuicoesManual)
-    .values({ escolaId, tecnicoId })
+    .values({ tenantId, escolaId, tecnicoId })
     .onDuplicateKeyUpdate({ set: { tecnicoId } });
   // Atualizar a escola também
-  await atribuirTecnicoEscola(escolaId, tecnicoId);
+  await atribuirTecnicoEscola(escolaId, tecnicoId, tenantId);
 }
 
 // ─── ORDENS DE SERVIÇO ────────────────────────────────────────────────────────
@@ -313,6 +316,7 @@ export async function iniciarOrdemServico(osId: number) {
 export async function registrarNaoInstalada(
   escolaId: number,
   tecnicoId: number,
+  tenantId: number,
   motivo: "escola_desativada" | "em_reforma" | "mudanca_endereco",
   observacao?: string
 ) {
@@ -322,6 +326,7 @@ export async function registrarNaoInstalada(
   const result = await db
     .insert(ordensServico)
     .values({
+      tenantId,
       escolaId,
       tecnicoId,
       status: "nao_instalada",
@@ -342,7 +347,7 @@ export async function registrarNaoInstalada(
   await db
     .update(escolas)
     .set({ status: "nao_instalada", motivoNaoInstalacao: motivo, dataConclusao: new Date() })
-    .where(eq(escolas.id, escolaId));
+    .where(and(eq(escolas.id, escolaId), eq(escolas.tenantId, tenantId)));
   return result;
 }
 

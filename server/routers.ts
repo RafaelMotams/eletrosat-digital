@@ -414,15 +414,15 @@ const planilhasImportadasRouter = router({
 const atribuicoesRouter = router({
   porEscola: tenantAdminProcedure
     .input(z.object({ escolaId: z.number(), tecnicoId: z.number().nullable() }))
-    .mutation(async ({ input }) => {
-      await setAtribuicaoManual(input.escolaId, input.tecnicoId!);
+    .mutation(async ({ input, ctx }) => {
+      await setAtribuicaoManual(input.escolaId, input.tecnicoId!, (ctx as any).tenantId);
       return { success: true };
     }),
 
   porCidade: tenantAdminProcedure
     .input(z.object({ cidade: z.string(), tecnicoId: z.number() }))
-    .mutation(async ({ input }) => {
-      await atribuirPorCidade(input.cidade, input.tecnicoId);
+    .mutation(async ({ input, ctx }) => {
+      await atribuirPorCidade(input.cidade, input.tecnicoId, (ctx as any).tenantId);
       // Atualizar cidade do técnico
       await updateTecnico(input.tecnicoId, { cidadeResponsavel: input.cidade });
       return { success: true };
@@ -651,7 +651,7 @@ const ordensRouter = router({
       const tenantId = (ctx as any).tenantId;
       if (tenantId !== undefined && os.tenantId !== tenantId)
         throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão" });
-      await registrarNaoInstalada(os.escolaId, os.tecnicoId, input.motivo, input.observacao);
+      await registrarNaoInstalada(os.escolaId, os.tecnicoId, os.tenantId, input.motivo, input.observacao);
       return { success: true };
     }),
 
@@ -1072,7 +1072,7 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
       if (escola.tenantId !== ctx.tecnicoSession.tenantId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Escola não pertence à sua empresa" });
       }
-      const result = await registrarNaoInstalada(input.escolaId, ctx.tecnicoSession.tecnicoId, input.motivo, input.observacao);
+      const result = await registrarNaoInstalada(input.escolaId, ctx.tecnicoSession.tecnicoId, ctx.tecnicoSession.tenantId, input.motivo, input.observacao);
       const tecnico = await getTecnicoById(ctx.tecnicoSession.tecnicoId);
       const motivoLabel: Record<string, string> = {
         escola_desativada: "Escola desativada",
