@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { estoqueMovimentacoes, estoqueSaldos, materiaisEstoque, ordensServico, tecnicos } from "../../drizzle/schema";
+import { estoqueMovimentacoes, estoqueSaldos, estoqueSolicitacoes, materiaisEstoque, ordensServico, tecnicos } from "../../drizzle/schema";
 import { recordAuditEvent } from "../audit";
 import { getDb } from "../db";
 import { router, tecnicoProcedure, tenantAdminProcedure } from "../_core/trpc";
@@ -369,6 +369,95 @@ export const estoqueRouter = router({
       });
       await recordAuditEvent({ tenantId, actorType: "tecnico", actorId: tecnicoId, action: "estoque.consumir", entityType: "estoque_movimentacao", entityId: id, metadata: { materialId: input.materialId, quantidade: input.quantidade, ordemServicoId: input.ordemServicoId }, req: ctx.req });
       return { id, idempotent: false };
+      }),
+  }),
+
+  solicitacoes: router({
+    minhas: tecnicoProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: estoqueSolicitacoes.id,
+        materialId: estoqueSolicitacoes.materialId,
+        quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada,
+        observacao: estoqueSolicitacoes.observacao,
+        status: estoqueSolicitacoes.status,
+        resposta: estoqueSolicitacoes.resposta,
+        createdAt: estoqueSolicitacoes.createdAt,
+        updatedAt: estoqueSolicitacoes.updatedAt,
+        materialNome: materiaisEstoque.nome,
+        materialCodigo: materiaisEstoque.codigo,
+        unidade: materiaisEstoque.unidade,
+      }).from(estoqueSolicitacoes)
+        .innerJoin(materiaisEstoque, and(eq(materiaisEstoque.id, estoqueSolicitacoes.materialId), eq(materiaisEstoque.tenantId, ctx.tecnicoSession.tenantId)))
+        .where(and(eq(estoqueSolicitacoes.tenantId, ctx.tecnicoSession.tenantId), eq(estoqueSolicitacoes.tecnicoId, ctx.tecnicoSession.tecnicoId)))
+        .orderBy(desc(estoqueSolicitacoes.createdAt));
+    }),
+
+    criar: tecnicoProcedure.input(z.object({
+      materialId: z.number().int().positive(),
+      quantidadeSolicitada: quantidadeSchema,
+      observacao: z.string().trim().min(3).max(2_000).optional(),
+    })).mutation(async ({ ctx, input }) => {
+      const tenantId = ctx.tecnicoSession.tenantId;
+      const tecnicoId = ctx.tecnicoSession.tecnicoId;
+      const db = await requireDb();
+      await Promise.all([requireMaterial(db, tenantId, input.materialId), requireTecnico(db, tenantId, tecnicoId)]);
+      const [pendente] = await db.select({ id: estoqueSolicitacoes.id }).from(estoqueSolicitacoes)
+        .where(and(eq(estoqueSolicitacoes.tenantId, tenantId), eq(estoqueSolicitacoes.tecnicoId, tecnicoId), eq(estoqueSolicitacoes.materialId, input.materialId), or(eq(estoqueSolicitacoes.status, "aberta"), eq(estoqueSolicitacoes.status, "em_analise"))!))
+        .limit(1);
+      if (pendente) throw new TRPCError({ code: "CONFLICT", message: "Já existe uma solicitação aberta para este material" });
+      const [created] = await db.insert(estoqueSolicitacoes).values({
+        tenantId,
+        tecnicoId,
+        materialId: input.materialId,
+        quantidadeSolicitada: decimal(input.quantidadeSolicitada),
+        observacao: input.observacao?.trim() || null,
+      });
+      const id = Number((created as any).insertId ?? 0);
+      await recordAuditEvent({ tenantId, actorType: "tecnico", actorId: tecnicoId, action: "estoque.solicitacao.criar", entityType: "estoque_solicitacao", entityId: id, metadata: { materialId: input.materialId, quantidadeSolicitada: input.quantidadeSolicitada }, req: ctx.req });
+      return { id };
+    }),
+
+    listar: tenantAdminProcedure.query(async ({ ctx }) => {
+      const db = await requireDb();
+      return db.select({
+        id: estoqueSolicitacoes.id,
+        tecnicoId: estoqueSolicitacoes.tecnicoId,
+        materialId: estoqueSolicitacoes.materialId,
+        quantidadeSolicitada: estoqueSolicitacoes.quantidadeSolicitada,
+        observacao: estoqueSolicitacoes.observacao,
+        status: estoqueSolicitacoes.status,
+        resposta: estoqueSolicitacoes.resposta,
+        createdAt: estoqueSolicitacoes.createdAt,
+        updatedAt: estoqueSolicitacoes.updatedAt,
+        tecnicoNome: tecnicos.nome,
+        materialNome: materiaisEstoque.nome,
+        materialCodigo: materiaisEstoque.codigo,
+        unidade: materiaisEstoque.unidade,
+      }).from(estoqueSolicitacoes)
+        .innerJoin(tecnicos, and(eq(tecnicos.id, estoqueSolicitacoes.tecnicoId), eq(tecnicos.tenantId, ctx.tenantId)))
+        .innerJoin(materiaisEstoque, and(eq(materiaisEstoque.id, estoqueSolicitacoes.materialId), eq(materiaisEstoque.tenantId, ctx.tenantId)))
+        .where(eq(estoqueSolicitacoes.tenantId, ctx.tenantId))
+        .orderBy(desc(estoqueSolicitacoes.createdAt));
+    }),
+
+    atualizar: tenantAdminProcedure.input(z.object({
+      id: z.number().int().positive(),
+      status: z.enum(["em_analise", "atendida", "cancelada"]),
+      resposta: z.string().trim().max(2_000).optional(),
+    })).mutation(async ({ ctx, input }) => {
+      const db = await requireDb();
+      const [solicitacao] = await db.select({ id: estoqueSolicitacoes.id }).from(estoqueSolicitacoes)
+        .where(and(eq(estoqueSolicitacoes.id, input.id), eq(estoqueSolicitacoes.tenantId, ctx.tenantId)))
+        .limit(1);
+      if (!solicitacao) throw new TRPCError({ code: "NOT_FOUND", message: "Solicitação não encontrada para esta empresa" });
+      await db.update(estoqueSolicitacoes).set({
+        status: input.status,
+        resposta: input.resposta?.trim() || null,
+        atendidaPorAdminId: ctx.tenantSession?.adminId ?? null,
+      }).where(and(eq(estoqueSolicitacoes.id, input.id), eq(estoqueSolicitacoes.tenantId, ctx.tenantId)));
+      await recordAuditEvent({ tenantId: ctx.tenantId, actorType: "admin", actorId: ctx.tenantSession?.adminId, action: "estoque.solicitacao.atualizar", entityType: "estoque_solicitacao", entityId: input.id, metadata: { status: input.status }, req: ctx.req });
+      return { success: true };
     }),
   }),
 });

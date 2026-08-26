@@ -323,6 +323,28 @@ export const estoqueMovimentacoes = mysqlTable("estoque_movimentacoes", {
 export type EstoqueMovimentacao = typeof estoqueMovimentacoes.$inferSelect;
 export type InsertEstoqueMovimentacao = typeof estoqueMovimentacoes.$inferInsert;
 
+// Pedido de reposição iniciado pelo técnico. Não movimenta saldo: a transferência
+// continua sendo uma ação administrativa auditável e isolada no mesmo tenant.
+export const estoqueSolicitacoes = mysqlTable("estoque_solicitacoes", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  tecnicoId: int("tecnicoId").notNull(),
+  materialId: int("materialId").notNull(),
+  quantidadeSolicitada: decimal("quantidadeSolicitada", { precision: 12, scale: 3 }).notNull(),
+  observacao: text("observacao"),
+  status: mysqlEnum("status", ["aberta", "em_analise", "atendida", "cancelada"]).default("aberta").notNull(),
+  resposta: text("resposta"),
+  atendidaPorAdminId: int("atendidaPorAdminId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantStatusIdx: index("estoque_solicitacao_tenant_status_idx").on(table.tenantId, table.status, table.createdAt),
+  tecnicoStatusIdx: index("estoque_solicitacao_tecnico_status_idx").on(table.tenantId, table.tecnicoId, table.status),
+  materialIdx: index("estoque_solicitacao_material_idx").on(table.tenantId, table.materialId),
+}));
+export type EstoqueSolicitacao = typeof estoqueSolicitacoes.$inferSelect;
+export type InsertEstoqueSolicitacao = typeof estoqueSolicitacoes.$inferInsert;
+
 // Tabela de Planilhas Importadas (histórico de uploads de planilhas de escolas)
 export const planilhasImportadas = mysqlTable("planilhas_importadas", {
   id: int("id").autoincrement().primaryKey(),
