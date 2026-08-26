@@ -525,6 +525,7 @@ export default function TecnicoOS() {
   }, [navigate]);
 
   const escolaId = Number(params.id);
+  const tenantIdAtivo = Number(localStorage.getItem("tecnico_tenant_id"));
 
   // ANTI-REDIRECT ao voltar da câmera/WhatsApp/Maps:
   // Quando o documento fica visível novamente (visibilitychange), atualiza o timestamp da OS ativa
@@ -658,6 +659,7 @@ export default function TecnicoOS() {
       // Offline: salva no IndexedDB e atualiza estado local
       try {
         await dbEnqueueOS({
+          tenantId: tenantIdAtivo,
           escolaId,
           tecnicoId,
           qtdApInstalado: 0,
@@ -1254,6 +1256,7 @@ export default function TecnicoOS() {
                   }))
                 );
                 await dbEnqueueOS({
+                  tenantId: tenantIdAtivo,
                   escolaId, tecnicoId, qtdApInstalado: n,
                   observacao: observacao || undefined,
                   dataHora: new Date().toISOString(),
@@ -1562,6 +1565,7 @@ export default function TecnicoOS() {
                         }))
                       );
                       await dbEnqueueOS({
+                        tenantId: tenantIdAtivo,
                         escolaId, tecnicoId, qtdApInstalado: n,
                         observacao: observacao || undefined,
                         dataHora: new Date().toISOString(),
@@ -1785,6 +1789,7 @@ export default function TecnicoOS() {
                     if (!isOnline) {
                       // Modo offline: salva no IndexedDB e sincroniza quando voltar
                       await dbEnqueueOS({
+                        tenantId: tenantIdAtivo,
                         escolaId,
                         tecnicoId,
                         qtdApInstalado: 0,

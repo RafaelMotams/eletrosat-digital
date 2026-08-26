@@ -18,7 +18,7 @@
  */
 
 const DB_NAME = "netvionis_offline";
-const DB_VERSION = 4; // v4: cache de materiais isolado por tenant e técnico
+const DB_VERSION = 5; // v5: fila de OS com escopo obrigatório de tenant e técnico
 
 export type FotoOffline = {
   categoria: string;
@@ -30,6 +30,7 @@ export type FotoOffline = {
 
 export type PendingOS = {
   id: string;
+  tenantId: number;
   escolaId: number;
   tecnicoId: number;
   qtdApInstalado: number;
@@ -71,7 +72,9 @@ function openDB(): Promise<IDBDatabase> {
   dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
-      const db = (e.target as IDBOpenDBRequest).result;
+      const upgradeRequest = e.target as IDBOpenDBRequest;
+      const db = upgradeRequest.result;
+      const upgradeTransaction = upgradeRequest.transaction;
       if (!db.objectStoreNames.contains("escolas")) {
         db.createObjectStore("escolas", { keyPath: "tecnicoId" });
       }
@@ -79,6 +82,9 @@ function openDB(): Promise<IDBDatabase> {
         const store = db.createObjectStore("pendingOS", { keyPath: "id" });
         store.createIndex("status", "status", { unique: false });
         store.createIndex("escolaId", "escolaId", { unique: false });
+        store.createIndex("tenantTecnico", ["tenantId", "tecnicoId"], { unique: false });
+      } else if (upgradeTransaction && !upgradeTransaction.objectStore("pendingOS").indexNames.contains("tenantTecnico")) {
+        upgradeTransaction.objectStore("pendingOS").createIndex("tenantTecnico", ["tenantId", "tecnicoId"], { unique: false });
       }
       // v3: rascunho de fotos para persistir ao voltar da câmera no Android
       if (!db.objectStoreNames.contains("fotoRascunho")) {
@@ -171,6 +177,9 @@ export async function dbGetCachedEscolas(
 export async function dbEnqueueOS(
   payload: Omit<PendingOS, "id" | "status" | "createdAt">
 ): Promise<PendingOS> {
+  if (!Number.isInteger(payload.tenantId) || payload.tenantId <= 0) {
+    throw new Error("Tenant técnico inválido para fila offline");
+  }
   const db = await openDB();
   const entry: PendingOS = {
     ...payload,
@@ -182,7 +191,7 @@ export async function dbEnqueueOS(
   return entry;
 }
 
-export async function dbGetPendingOS(tecnicoId?: number): Promise<PendingOS[]> {
+export async function dbGetPendingOS(tecnicoId?: number, tenantId?: number): Promise<PendingOS[]> {
   try {
     const db = await openDB();
     const all = await wrap<PendingOS[]>(
@@ -190,7 +199,7 @@ export async function dbGetPendingOS(tecnicoId?: number): Promise<PendingOS[]> {
     );
     return all.filter((o) =>
       (o.status === "pending" || o.status === "error")
-      && (tecnicoId === undefined || o.tecnicoId === tecnicoId)
+      && (tecnicoId === undefined || tenantId === undefined || pertenceAoEscopoOffline(o, { tenantId, tecnicoId }))
     );
   } catch {
     return [];
@@ -225,20 +234,22 @@ export async function dbUpdateOSStatus(
   );
 }
 
-export async function dbRemoveDoneOS(tecnicoId?: number): Promise<void> {
+export async function dbRemoveDoneOS(tecnicoId?: number, tenantId?: number): Promise<void> {
   try {
     const db = await openDB();
     const all = await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
     const store = tx(db, "pendingOS", "readwrite");
     for (const o of all) {
-      if (o.status === "done" && (tecnicoId === undefined || o.tecnicoId === tecnicoId)) store.delete(o.id);
+      if (o.status === "done"
+        && (tecnicoId === undefined || o.tecnicoId === tecnicoId)
+        && (tenantId === undefined || o.tenantId === tenantId)) store.delete(o.id);
     }
   } catch {}
 }
 
 /** Conta quantas OS estão pendentes de sincronização */
-export async function dbCountPending(tecnicoId?: number): Promise<number> {
-  const list = await dbGetPendingOS(tecnicoId);
+export async function dbCountPending(tecnicoId?: number, tenantId?: number): Promise<number> {
+  const list = await dbGetPendingOS(tecnicoId, tenantId);
   return list.length;
 }
 
@@ -288,7 +299,9 @@ export async function dbClearFotoRascunho(escolaId: number): Promise<void> {
 export async function dbClearTecnicoData(tecnicoId: number, tenantId?: number): Promise<void> {
   const db = await openDB();
   const pending = await wrap<PendingOS[]>(tx(db, "pendingOS", "readonly").getAll());
-  const pendentesDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status !== "done");
+  const pendentesDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId
+    && (tenantId === undefined || item.tenantId === tenantId)
+    && item.status !== "done");
   if (pendentesDoTecnico.length > 0) {
     throw new Error(`Existem ${pendentesDoTecnico.length} ordem(ns) pendente(s) de sincronização.`);
   }
@@ -303,7 +316,9 @@ export async function dbClearTecnicoData(tecnicoId: number, tenantId?: number): 
     for (const entry of entries.filter(item => item.tecnicoId === tecnicoId)) store.delete(entry.key);
   }
 
-  const doneDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId && item.status === "done");
+  const doneDoTecnico = pending.filter(item => item.tecnicoId === tecnicoId
+    && (tenantId === undefined || item.tenantId === tenantId)
+    && item.status === "done");
   for (const item of doneDoTecnico) {
     await wrap(tx(db, "pendingOS", "readwrite").delete(item.id));
   }
@@ -312,3 +327,4 @@ export async function dbClearTecnicoData(tecnicoId: number, tenantId?: number): 
   // que fotos de uma sessão anterior apareçam para outro usuário do aparelho.
   await wrap(tx(db, "fotoRascunho", "readwrite").clear());
 }
+import { pertenceAoEscopoOffline } from "@shared/offlineQueueScope";

@@ -100,6 +100,11 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     return Number.isInteger(value) && value > 0 ? value : null;
   }, []);
 
+  const getTenantIdAtivo = useCallback(() => {
+    const value = Number(localStorage.getItem("tecnico_tenant_id"));
+    return Number.isInteger(value) && value > 0 ? value : null;
+  }, []);
+
   // Mantém a ref atualizada com o valor mais recente de isOnline
   useEffect(() => {
     isOnlineRef.current = isOnline;
@@ -107,9 +112,10 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
 
   const refreshPendingCount = useCallback(async () => {
     const tecnicoId = getTecnicoIdAtivo();
-    const pending = tecnicoId ? await dbGetPendingOS(tecnicoId) : [];
+    const tenantId = getTenantIdAtivo();
+    const pending = tecnicoId && tenantId ? await dbGetPendingOS(tecnicoId, tenantId) : [];
     setSyncState((s) => ({ ...s, pendingCount: pending.length }));
-  }, [getTecnicoIdAtivo]);
+  }, [getTecnicoIdAtivo, getTenantIdAtivo]);
 
   const syncOne = useCallback(async (os: PendingOS): Promise<boolean> => {
     // ── ANTI-DUPLICAÇÃO: se esta OS já está sendo processada, pula ──
@@ -267,8 +273,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     if (syncingRef.current || !isOnlineRef.current) return;
 
     const tecnicoId = getTecnicoIdAtivo();
-    if (!tecnicoId) return;
-    const pending = await dbGetPendingOS(tecnicoId);
+    const tenantId = getTenantIdAtivo();
+    if (!tecnicoId || !tenantId) return;
+    const pending = await dbGetPendingOS(tecnicoId, tenantId);
     if (pending.length === 0) return;
 
     syncingRef.current = true;
@@ -290,9 +297,9 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     }
 
     // Remove as OS já sincronizadas do IndexedDB
-    await dbRemoveDoneOS(tecnicoId);
+    await dbRemoveDoneOS(tecnicoId, tenantId);
 
-    const remaining = await dbGetPendingOS(tecnicoId);
+    const remaining = await dbGetPendingOS(tecnicoId, tenantId);
     syncingRef.current = false;
     setSyncState({
       isSyncing: false,
@@ -302,7 +309,7 @@ export function useSyncOfflineOS(onSyncDone?: () => void) {
     });
 
     if (!anyError) onSyncDone?.();
-  }, [syncOne, onSyncDone, getTecnicoIdAtivo]);
+  }, [syncOne, onSyncDone, getTecnicoIdAtivo, getTenantIdAtivo]);
 
   // Sincroniza ao montar (se online)
   useEffect(() => {

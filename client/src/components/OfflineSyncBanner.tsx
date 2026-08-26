@@ -10,7 +10,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { dbGetAllPendingOS } from "@/hooks/useOfflineDB";
+import { dbGetPendingOS } from "@/hooks/useOfflineDB";
 import { useSyncOfflineOS } from "@/hooks/useSyncOfflineOS";
 import { Wifi, WifiOff, RefreshCw, CheckCircle2, CloudOff } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -25,8 +25,11 @@ export function OfflineSyncBanner() {
   const [syncedCount, setSyncedCount] = useState(0);
 
   const refreshPending = useCallback(async () => {
-    const all = await dbGetAllPendingOS();
-    const pending = all.filter(o => o.status === "pending" || o.status === "error" || o.status === "syncing");
+    const tecnicoId = Number(localStorage.getItem("tecnico_id"));
+    const tenantId = Number(localStorage.getItem("tecnico_tenant_id"));
+    const pending = Number.isInteger(tecnicoId) && tecnicoId > 0 && Number.isInteger(tenantId) && tenantId > 0
+      ? await dbGetPendingOS(tecnicoId, tenantId)
+      : [];
     setPendingCount(pending.length);
     return pending.length;
   }, []);
@@ -130,8 +133,12 @@ export function OfflineStatusDot() {
 
   useEffect(() => {
     const refresh = async () => {
-      const all = await dbGetAllPendingOS();
-      setPendingCount(all.filter(o => o.status === "pending" || o.status === "error").length);
+      const tecnicoId = Number(localStorage.getItem("tecnico_id"));
+      const tenantId = Number(localStorage.getItem("tecnico_tenant_id"));
+      const pending = Number.isInteger(tecnicoId) && tecnicoId > 0 && Number.isInteger(tenantId) && tenantId > 0
+        ? await dbGetPendingOS(tecnicoId, tenantId)
+        : [];
+      setPendingCount(pending.filter(o => o.status === "pending" || o.status === "error").length);
     };
     refresh();
     const interval = setInterval(refresh, 10_000);
