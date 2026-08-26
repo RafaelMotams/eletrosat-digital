@@ -46,7 +46,7 @@ function escolaDaManutencao(manutencao: typeof manutencoes.$inferSelect, escola:
   };
 }
 
-async function getManutencaoComDados(id: number) {
+async function getManutencaoComDados(id: number, tenantId: number) {
   const db = await getDb();
   if (!db) return null;
   const rows = await db
@@ -58,9 +58,12 @@ async function getManutencaoComDados(id: number) {
     .from(manutencoes)
     .leftJoin(escolas, eq(manutencoes.escolaId, escolas.id))
     .leftJoin(tecnicos, eq(manutencoes.tecnicoId, tecnicos.id))
-    .where(eq(manutencoes.id, id));
+    .where(and(eq(manutencoes.id, id), eq(manutencoes.tenantId, tenantId)));
   if (!rows[0]) return null;
-  const fotos = await db.select().from(manutencaoFotos).where(eq(manutencaoFotos.manutencaoId, id));
+  const fotos = await db.select().from(manutencaoFotos).where(and(
+    eq(manutencaoFotos.manutencaoId, id),
+    eq(manutencaoFotos.tenantId, tenantId),
+  ));
   return {
     ...rows[0].m,
     ...calcularRemuneracaoManutencao(rows[0].m.quilometragem),
@@ -317,7 +320,7 @@ export const manutencaoRouter = router({
       }
       const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(...restrictions)).limit(1);
       if (!registro) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
-      return getManutencaoComDados(input.id);
+      return getManutencaoComDados(input.id, ctx.accessSession.tenantId);
     }),
 
   // ── TÉCNICO: Iniciar manutenção ─────────────────────────────────────────────
@@ -362,7 +365,10 @@ export const manutencaoRouter = router({
       // Verificar duplicata por clientId
       if (input.clientId) {
         const existing = await db.select().from(manutencaoFotos)
-          .where(eq(manutencaoFotos.clientId, input.clientId));
+          .where(and(
+            eq(manutencaoFotos.clientId, input.clientId),
+            eq(manutencaoFotos.tenantId, ctx.tecnicoSession.tenantId),
+          ));
         if (existing.length > 0) return { success: true, url: existing[0].url, key: existing[0].fileKey };
       }
 
@@ -429,7 +435,7 @@ export const manutencaoRouter = router({
       }
       const [registro] = await db.select({ id: manutencoes.id }).from(manutencoes).where(and(...restrictions)).limit(1);
       if (!registro) throw new TRPCError({ code: "FORBIDDEN", message: "Manutenção não pertence à sessão autenticada" });
-      const m = await getManutencaoComDados(input.manutencaoId);
+      const m = await getManutencaoComDados(input.manutencaoId, ctx.accessSession.tenantId);
       const contextoEscola = m ? `Escola: ${m.escola?.nome ?? 'N/A'} | INEP: ${m.escola?.inep ?? 'N/A'} | Município: ${m.escola?.municipio ?? 'N/A'} | Velocidade ofertada: ${m.escola?.velocidadeOfertada ?? 'N/A'} | Problema: ${m.descricaoProblema}` : '';
       const systemPrompt = `Você é o PROFESSOR MARCOS — um engenheiro de telecomunicações com 20 anos de experiência em campo, especialista absoluto em:
 
@@ -510,11 +516,14 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
   // ── ADMIN: Buscar fotos de uma manutenção ──────────────────────────────────
   fotos: tenantAdminProcedure
     .input(z.object({ manutencaoId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       return db.select().from(manutencaoFotos)
-        .where(eq(manutencaoFotos.manutencaoId, input.manutencaoId))
+        .where(and(
+          eq(manutencaoFotos.manutencaoId, input.manutencaoId),
+          eq(manutencaoFotos.tenantId, (ctx as any).tenantId),
+        ))
         .orderBy(manutencaoFotos.createdAt);
     }),
 
@@ -524,8 +533,8 @@ Contexto da manutenção atual: ${contextoEscola}. ${input.contexto ?? ''}`;
       id: z.number(),
       observacaoAdmin: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
-      const m = await getManutencaoComDados(input.id);
+    .mutation(async ({ input, ctx }) => {
+      const m = await getManutencaoComDados(input.id, (ctx as any).tenantId);
       if (!m) throw new TRPCError({ code: "NOT_FOUND", message: "Manutenção não encontrada" });
 
       const fotoDefeito = m.fotos.filter(f => f.tipo === "defeito");

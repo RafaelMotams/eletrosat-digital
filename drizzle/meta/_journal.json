@@ -176,6 +176,13 @@
       "when": 1787756191914,
       "tag": "0024_plain_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1787760385176,
+      "tag": "0025_left_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

@@ -15,7 +15,7 @@ export function tenantFromEvidenceKey(key: string): number | null {
 }
 
 export function isPrivateEvidenceKey(key: string): boolean {
-  return tenantFromEvidenceKey(key) !== null;
+  return tenantFromEvidenceKey(key) !== null || key.startsWith("os-fotos/");
 }
 
 async function tecnicoPossuiEvidencia(req: RequestLike, key: string, tenantId: number): Promise<boolean> {
@@ -49,7 +49,8 @@ async function tecnicoPossuiEvidencia(req: RequestLike, key: string, tenantId: n
 
 async function podeLerEvidencia(req: RequestLike, key: string): Promise<boolean> {
   const tenantId = tenantFromEvidenceKey(key);
-  if (tenantId === null) return true;
+  // Evidências antigas sem tenant não podem receber URL até reconciliação manual.
+  if (tenantId === null) return !key.startsWith("os-fotos/");
   const token = extractTenantSessionCookie(req.headers.cookie) ?? extractBearerToken(req.headers.authorization);
   const adminSession = token ? await verifyTenantToken(token) : null;
   if (adminSession && !adminSession.isSuperAdmin && adminSession.tenantId === tenantId) return true;

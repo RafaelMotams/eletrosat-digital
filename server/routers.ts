@@ -936,8 +936,8 @@ const tecnicoAuthRouter = router({
       };
     }),
 
-  logout: tecnicoProcedure.mutation(({ ctx }) => {
-    clearTecnicoSession(ctx.res, ctx.req);
+  logout: tecnicoProcedure.mutation(async ({ ctx }) => {
+    await clearTecnicoSession(ctx.res, ctx.req);
     return { success: true } as const;
   }),
   // Busca telefone da escola pelo INEP usando IA e salva no banco

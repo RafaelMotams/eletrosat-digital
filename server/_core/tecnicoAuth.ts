@@ -3,6 +3,7 @@ import type { Response } from "express";
 import type { Request } from "express";
 import { getSessionCookieOptions } from "./cookies";
 import { jwtSecretKey } from "./jwtSecret";
+import { createTecnicoSession, hasActiveTecnicoSession, revokeTecnicoSession } from "./tecnicoSessions";
 
 const COOKIE_NAME = "netvius_tecnico_session";
 
@@ -11,6 +12,7 @@ export interface TecnicoSession {
   tenantId: number;
   email: string;
   role: "tecnico";
+  sid?: string;
 }
 
 export async function signTecnicoToken(session: TecnicoSession) {
@@ -25,12 +27,17 @@ export async function verifyTecnicoToken(token: string): Promise<TecnicoSession 
   try {
     const { payload } = await jwtVerify(token, jwtSecretKey);
     if (payload.role !== "tecnico" || typeof payload.tecnicoId !== "number" || typeof payload.tenantId !== "number") return null;
-    return {
+    const session = {
       tecnicoId: payload.tecnicoId,
       tenantId: payload.tenantId,
       email: typeof payload.email === "string" ? payload.email : "",
-      role: "tecnico",
+      role: "tecnico" as const,
+      sid: typeof payload.sid === "string" ? payload.sid : undefined,
     };
+    // Compatibilidade transitória: tokens emitidos antes desta migração não
+    // possuem sid e deixam de funcionar naturalmente na expiração de 12 horas.
+    if (session.sid && !(await hasActiveTecnicoSession({ id: session.sid, tecnicoId: session.tecnicoId, tenantId: session.tenantId }))) return null;
+    return session;
   } catch {
     return null;
   }
@@ -48,11 +55,15 @@ export async function getTecnicoSession(req: Request) {
 }
 
 export async function setTecnicoSession(res: Response, req: Request, session: TecnicoSession) {
-  const token = await signTecnicoToken(session);
+  const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
+  const sid = await createTecnicoSession({ tecnicoId: session.tecnicoId, tenantId: session.tenantId, expiresAt });
+  const token = await signTecnicoToken({ ...session, sid });
   res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(req), maxAge: 12 * 60 * 60 * 1000 });
 }
 
-export function clearTecnicoSession(res: Response, req: Request) {
+export async function clearTecnicoSession(res: Response, req: Request) {
+  const active = await getTecnicoSession(req);
+  await revokeTecnicoSession(active?.sid);
   res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(req), maxAge: -1 });
 }
 

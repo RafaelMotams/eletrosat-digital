@@ -1037,8 +1037,6 @@ export default function TecnicoOS() {
         </div>
       </div>
 
-      <ChecklistCampo tipoConexao={escola.tipoConexao} />
-
       {/* ─── Ações da OS ─── */}
       <div className="mx-4 mt-6">
         <div className="flex items-center gap-2 mb-4">
@@ -1119,7 +1117,7 @@ export default function TecnicoOS() {
         )}
       </div>
 
-      {/* ─── Seção de Equipamentos (inline, visível após iniciar OS) ─── */}
+      {/* ─── Conclusão da instalação (visível após iniciar OS) ─── */}
       {isEmAndamento && (
         <div className="mx-4 mt-6">
           {/* Título da seção */}
@@ -1128,14 +1126,14 @@ export default function TecnicoOS() {
               style={{ background: "rgba(251,191,36,0.18)" }}>
               <Camera className="w-3.5 h-3.5" style={{ color: "#fbbf24" }} />
             </div>
-            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(251,191,36,0.7)" }}>Registro de Equipamentos</p>
+            <p className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: "rgba(251,191,36,0.7)" }}>Concluir instalação</p>
           </div>
 
           {/* Barra de progresso das categorias */}
           <div className="px-4 py-3 rounded-2xl mb-4"
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="flex items-center justify-between mb-2.5">
-              <p className="text-xs font-black uppercase tracking-wider" style={{ color: "#fbbf24" }}>Fotos por categoria</p>
+              <p className="text-xs font-black uppercase tracking-wider" style={{ color: "#fbbf24" }}>Evidência obrigatória</p>
               <span className="text-xs font-bold" style={{ color: "rgba(148,163,184,0.6)" }}>
                 {totalFotosPendentes} foto{totalFotosPendentes !== 1 ? "s" : ""} selecionada{totalFotosPendentes !== 1 ? "s" : ""}
               </span>
@@ -1206,13 +1204,13 @@ export default function TecnicoOS() {
           {/* Observações */}
           <div className="mb-5">
             <label className="text-xs font-black mb-2.5 flex items-center gap-1.5 uppercase tracking-wider" style={{ color: "rgba(148,163,184,0.6)" }}>
-              <FileText className="w-3.5 h-3.5" /> Observações (opcional)
+              <FileText className="w-3.5 h-3.5" /> Observação da instalação *
             </label>
             <textarea
               rows={2}
               value={observacao}
               onChange={e => setObservacao(e.target.value)}
-              placeholder="Alguma observação sobre a instalação..."
+              placeholder="Descreva de forma breve o resultado da instalação..."
               className="w-full px-4 py-3.5 rounded-2xl text-white text-sm outline-none resize-none transition-all"
               style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.09)" }}
             />
@@ -1231,7 +1229,7 @@ export default function TecnicoOS() {
               style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: "#f87171" }} />
               <div>
-                <p className="text-xs font-bold mb-0.5" style={{ color: "rgba(248,113,113,0.95)" }}>Fotos obrigatórias faltando:</p>
+                <p className="text-xs font-bold mb-0.5" style={{ color: "rgba(248,113,113,0.95)" }}>Foto do mapa de calor pendente:</p>
                 {categoriasFaltando.map(cat => (
                   <p key={cat.id} className="text-xs" style={{ color: "rgba(248,113,113,0.75)" }}>{cat.icon} {cat.label}</p>
                 ))}

@@ -91,6 +91,23 @@ export const adminSessions = mysqlTable("admin_sessions", {
 
 export type AdminSession = typeof adminSessions.$inferSelect;
 
+// Sessões técnicas persistentes: novas sessões carregam um identificador
+// revogável; JWTs técnicos antigos permanecem válidos apenas até expirar.
+export const tecnicoSessions = mysqlTable("tecnico_sessions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tecnicoId: int("tecnicoId").notNull(),
+  tenantId: int("tenantId").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+}, (table) => ({
+  tecnicoActiveIdx: index("tecnico_sessions_tecnico_active_idx").on(table.tecnicoId, table.revokedAt, table.expiresAt),
+  tenantActiveIdx: index("tecnico_sessions_tenant_active_idx").on(table.tenantId, table.revokedAt, table.expiresAt),
+}));
+
+export type TecnicoSessionRecord = typeof tecnicoSessions.$inferSelect;
+
 // Solicitações públicas de cadastro: a conta só é criada após confirmação do email.
 // A senha e o token são guardados exclusivamente em formato hash.
 export const registrationRequests = mysqlTable("registration_requests", {
