@@ -72,6 +72,25 @@ export const tenantAdmins = mysqlTable("tenant_admins", {
 export type TenantAdmin = typeof tenantAdmins.$inferSelect;
 export type InsertTenantAdmin = typeof tenantAdmins.$inferInsert;
 
+// Sessões administrativas persistentes: permitem revogação imediata no logout
+// e encerramento seletivo sem depender somente da expiração do JWT.
+export const adminSessions = mysqlTable("admin_sessions", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  adminId: int("adminId").notNull(),
+  tenantId: int("tenantId").notNull(),
+  role: varchar("role", { length: 24 }).notNull(),
+  isSuperAdmin: boolean("isSuperAdmin").default(false).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+}, (table) => ({
+  adminActiveIdx: index("admin_sessions_admin_active_idx").on(table.adminId, table.revokedAt, table.expiresAt),
+  tenantActiveIdx: index("admin_sessions_tenant_active_idx").on(table.tenantId, table.revokedAt, table.expiresAt),
+}));
+
+export type AdminSession = typeof adminSessions.$inferSelect;
+
 // Solicitações públicas de cadastro: a conta só é criada após confirmação do email.
 // A senha e o token são guardados exclusivamente em formato hash.
 export const registrationRequests = mysqlTable("registration_requests", {
@@ -187,6 +206,9 @@ export type InsertOrdemServico = typeof ordensServico.$inferInsert;
 // Tabela de Fotos das Ordens de Serviço (por categoria)
 export const osFotos = mysqlTable("os_fotos", {
   id: int("id").autoincrement().primaryKey(),
+  // Preenchido na fase de compatibilidade; registros antigos serão auditados e
+  // preenchidos antes de tornar a coluna obrigatória em migração posterior.
+  tenantId: int("tenantId"),
   osId: int("osId").notNull(),
   escolaId: int("escolaId").notNull(),
   tecnicoId: int("tecnicoId").notNull(),
@@ -200,6 +222,7 @@ export const osFotos = mysqlTable("os_fotos", {
 }, (table) => ({
   // UNIQUE por clientId — impede upload duplicado mesmo com retry offline
   clientIdIdx: uniqueIndex("os_fotos_client_id_unique").on(table.clientId),
+  tenantOsIdx: index("os_fotos_tenant_os_idx").on(table.tenantId, table.osId),
 }));
 
 export type OsFoto = typeof osFotos.$inferSelect;
@@ -342,6 +365,7 @@ export type InsertManutencao = typeof manutencoes.$inferInsert;
 // Fotos de manutenção (estrutura separada para múltiplas fotos)
 export const manutencaoFotos = mysqlTable("manutencao_fotos", {
   id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId"),
   manutencaoId: int("manutencaoId").notNull(),
   tipo: mysqlEnum("tipo", ["defeito", "conclusao"]).notNull(),
   url: text("url").notNull(),
@@ -350,6 +374,7 @@ export const manutencaoFotos = mysqlTable("manutencao_fotos", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   clientIdIdx: uniqueIndex("manutencao_fotos_client_id_unique").on(table.clientId),
+  tenantManutencaoIdx: index("manutencao_fotos_tenant_manutencao_idx").on(table.tenantId, table.manutencaoId),
 }));
 export type ManutencaoFoto = typeof manutencaoFotos.$inferSelect;
 

@@ -676,6 +676,11 @@
 - [x] Restringir o acesso a evidências de ordem e manutenção por tenant, sessão e posse autenticada
 - [x] Criar uma Central de Sincronização técnica com pendências, falhas e novas tentativas baseadas na fila offline real
 - [x] Corrigir a fila IndexedDB de OS para incluir tenant e impedir pendências de outro cliente no mesmo aparelho
+- [x] Comparar a versão atualizada do relatório premium e registrar apenas novas prioridades verificáveis
+- [x] Implementar sessões revogáveis e proteção contra requisições indevidas no painel web
+- [x] Higienizar uploads de evidência com validação binária, dimensões e remoção de metadados
+- [ ] Preparar migração de dados e schema por tenant sem defaults inseguros nem alteração destrutiva
+- [ ] Auditar evidências legadas de OS sem vínculo operacional antes de definir sua retenção ou descarte seguro
 - [x] Investigar e corrigir possível mistura de ordens entre o tenant de Rafael e outro painel administrativo
 
 ## Relatórios Executivos de AP (Enterprise V7)

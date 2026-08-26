@@ -11,6 +11,22 @@ const t = initTRPC.context<TrpcContext>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
+export function isTrustedMutationOrigin(origin: string | undefined, host: string | undefined): boolean {
+  if (!origin || !host) return true;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+const protectPanelMutationOrigin = t.middleware(async ({ ctx, next, type }) => {
+  if (type === "mutation" && ctx.tenantSession && !isTrustedMutationOrigin(ctx.req.headers.origin, ctx.req.headers.host)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Origem da requisição não autorizada" });
+  }
+  return next();
+});
+
 const requireUser = t.middleware(async opts => {
   const { ctx, next } = opts;
   if (!ctx.user) {
@@ -86,7 +102,7 @@ export const adminProcedure = t.procedure.use(
 
 // Procedure exclusiva do painel de revenda: toda chamada deve carregar um JWT
 // de tenant válido. Não há fallback para o tenant padrão.
-export const tenantAdminProcedure = t.procedure.use(
+export const tenantAdminProcedure = t.procedure.use(protectPanelMutationOrigin).use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
@@ -115,7 +131,7 @@ export const tenantAdminProcedure = t.procedure.use(
 
 // A Central Master administra o control plane, nunca os dados operacionais
 // dos tenants. A sessão vem do cookie HttpOnly resolvido no contexto.
-export const masterProcedure = t.procedure.use(
+export const masterProcedure = t.procedure.use(protectPanelMutationOrigin).use(
   t.middleware(async ({ ctx, next }) => {
     if (!ctx.tenantSession?.isSuperAdmin || ctx.tenantSession.tenantId !== 0) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Acesso Master necessário" });

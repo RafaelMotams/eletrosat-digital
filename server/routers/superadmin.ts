@@ -19,6 +19,7 @@ import { verifyTenantToken } from "../_core/tenantAuth";
 import { jwtSecretKey } from "../_core/jwtSecret";
 import { recordAuditEvent } from "../audit";
 import { TENANT_SESSION_COOKIE } from "../_core/context";
+import { createAdminSession, revokeAdminSession } from "../_core/adminSessions";
 
 const TENANT_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -67,8 +68,17 @@ export const superadminRouter = router({
       }
 
       const isSuperAdmin = admin.tenantId === 0;
+      const expiresAt = new Date(Date.now() + TENANT_SESSION_MAX_AGE_MS);
+      const sessionId = await createAdminSession({
+        adminId: admin.id,
+        tenantId: admin.tenantId,
+        role: admin.role,
+        isSuperAdmin,
+        expiresAt,
+      });
 
       const token = await signToken({
+          sid: sessionId,
           adminId: admin.id,
           tenantId: admin.tenantId,
           role: admin.role,
@@ -102,7 +112,8 @@ export const superadminRouter = router({
       };
     }),
 
-  logout: publicProcedure.mutation(({ ctx }) => {
+  logout: publicProcedure.mutation(async ({ ctx }) => {
+    await revokeAdminSession(ctx.tenantSession?.sessionId);
     ctx.res.clearCookie(TENANT_SESSION_COOKIE, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

@@ -5,6 +5,7 @@ import { router, tecnicoProcedure, tenantAdminProcedure, tenantOrTecnicoProcedur
 import { getDb } from "../db";
 import { manutencoes, manutencaoFotos, escolas, tecnicos } from "../../drizzle/schema";
 import { storagePut } from "../storage";
+import { sanitizeEvidenceImage } from "../_core/evidenceImage";
 import { invokeLLM } from "../_core/llm";
 import { recordAuditEvent } from "../audit";
 
@@ -365,12 +366,12 @@ export const manutencaoRouter = router({
         if (existing.length > 0) return { success: true, url: existing[0].url, key: existing[0].fileKey };
       }
 
-      const buffer = Buffer.from(input.base64, "base64");
-      const ext = input.mimeType === "image/png" ? "png" : "jpg";
-      const key = `tenants/${ctx.tecnicoSession.tenantId}/manutencao/${input.manutencaoId}/${input.tipo}/${Date.now()}.${ext}`;
-      const { url } = await storagePut(key, buffer, input.mimeType);
+      const buffer = await sanitizeEvidenceImage(input.base64, input.mimeType);
+      const key = `tenants/${ctx.tecnicoSession.tenantId}/manutencao/${input.manutencaoId}/${input.tipo}/${Date.now()}.jpg`;
+      const { url } = await storagePut(key, buffer, "image/jpeg");
 
       await db.insert(manutencaoFotos).values({
+        tenantId: ctx.tecnicoSession.tenantId,
         manutencaoId: input.manutencaoId,
         tipo: input.tipo,
         url,

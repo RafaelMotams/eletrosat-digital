@@ -3,8 +3,10 @@ import { getDb } from "../db";
 import { tenants, tenantAdmins } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { jwtSecretKey } from "./jwtSecret";
+import { hasActiveAdminSession } from "./adminSessions";
 
 export interface TenantSession {
+  sessionId?: string;
   adminId: number;
   tenantId: number;
   email: string;
@@ -51,8 +53,9 @@ async function checkAndExpireTrial(db: Awaited<ReturnType<typeof getDb>>, tenant
 export async function verifyTenantToken(token: string): Promise<TenantSession | null> {
   try {
     const { payload } = await jwtVerify(token, jwtSecretKey);
-    const session = payload as unknown as Partial<TenantSession>;
+    const session = payload as unknown as Partial<TenantSession> & { sid?: unknown };
     if (
+      typeof session.sid !== "string" ||
       typeof session.adminId !== "number" ||
       typeof session.tenantId !== "number" ||
       typeof session.role !== "string" ||
@@ -61,6 +64,7 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
       return null;
     }
     const sessionData: Omit<TenantSession, "email"> = {
+      sessionId: session.sid,
       adminId: session.adminId,
       tenantId: session.tenantId,
       role: session.role,
@@ -70,6 +74,15 @@ export async function verifyTenantToken(token: string): Promise<TenantSession | 
     const db = await getDb();
     // Sem banco não é possível confirmar se o vínculo admin/tenant ainda é válido.
     if (!db) return null;
+
+    const isActive = await hasActiveAdminSession({
+      id: sessionData.sessionId!,
+      adminId: sessionData.adminId,
+      tenantId: sessionData.tenantId,
+      role: sessionData.role,
+      isSuperAdmin: sessionData.isSuperAdmin,
+    });
+    if (!isActive) return null;
 
     // O token só vale se o administrador continuar ativo e ligado ao mesmo tenant.
     const [admin] = await db

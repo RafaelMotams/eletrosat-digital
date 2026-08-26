@@ -55,6 +55,7 @@ import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 import { uploadFotosOSParaDrive } from "./googleDrive";
 import { getDb } from "./db";
+import { sanitizeEvidenceImage } from "./_core/evidenceImage";
 import { ordensServico, escolas } from "../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { clearTecnicoSession, setTecnicoSession } from "./_core/tecnicoAuth";
@@ -1210,9 +1211,9 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           throw new TRPCError({ code: "FORBIDDEN", message: "Ordem não pertence ao técnico autenticado" });
         }
       }
-      const buffer = Buffer.from(input.imageBase64, "base64");
+      const buffer = await sanitizeEvidenceImage(input.imageBase64, input.mimeType);
       const key = `tenants/${ctx.tecnicoSession.tenantId}/mapa-calor/escola-${input.escolaId}-tecnico-${ctx.tecnicoSession.tecnicoId}-${Date.now()}.jpg`;
-      const { url } = await storagePut(key, buffer, input.mimeType);
+      const { url } = await storagePut(key, buffer, "image/jpeg");
       // Se tiver osId, atualiza a OS existente
       if (input.osId) {
         const db = await getDb();
@@ -1251,10 +1252,11 @@ Não inclua nenhum outro texto, apenas o número ou NAO_ENCONTRADO.`;
           message: "Foto muito grande. Máximo permitido: 10MB por foto.",
         });
       }
-      const buffer = Buffer.from(input.imageBase64, "base64");
+      const buffer = await sanitizeEvidenceImage(input.imageBase64, input.mimeType);
       const key = `tenants/${ctx.tecnicoSession.tenantId}/os-fotos/${input.categoria}/os-${input.osId}-${Date.now()}.jpg`;
-      const { url } = await storagePut(key, buffer, input.mimeType);
+      const { url } = await storagePut(key, buffer, "image/jpeg");
       await insertOsFoto({
+        tenantId: ctx.tecnicoSession.tenantId,
         osId: input.osId,
         escolaId: input.escolaId,
         tecnicoId: input.tecnicoId,
