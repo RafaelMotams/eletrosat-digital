@@ -361,6 +361,31 @@ describe("Isolamento Multi-Tenant: Acesso não autenticado", () => {
     const caller = appRouter.createCaller(createUnauthenticatedContext());
     await expect(caller.dashboard.stats()).rejects.toThrow(TRPCError);
   });
+
+  it("acesso sem autenticação é negado para o Radar de Impedimentos", async () => {
+    const caller = appRouter.createCaller(createUnauthenticatedContext());
+    await expect(caller.radar.scan()).rejects.toThrow(TRPCError);
+  });
+
+  it("Radar do tenant 1 não inclui escolas do tenant 2", async () => {
+    const caller = appRouter.createCaller(createTenantContext(1));
+    const result = await caller.radar.scan();
+    expect(result.resumo).toMatchObject({
+      total: expect.any(Number),
+      scoreSaude: expect.any(Number),
+    });
+    const escolaIds = result.impedimentos.map((i) => i.escolaId).filter(Boolean);
+    expect(escolaIds.every((id) => id === 10)).toBe(true);
+    expect(escolaIds).not.toContain(20);
+  });
+
+  it("Radar do tenant 2 não inclui escolas do tenant 1", async () => {
+    const caller = appRouter.createCaller(createTenantContext(2));
+    const result = await caller.radar.scan();
+    const escolaIds = result.impedimentos.map((i) => i.escolaId).filter(Boolean);
+    expect(escolaIds.every((id) => id === 20)).toBe(true);
+    expect(escolaIds).not.toContain(10);
+  });
 });
 
 describe("Isolamento Multi-Tenant: sem fallback OAuth", () => {

@@ -705,7 +705,13 @@
 - [x] Implementar P2: Assistente Técnico com base de conhecimento versionada, fontes e limites de segurança
 - [x] Preparar P3: desenho de provisionamento e observabilidade por tenant sem migrar dados produtivos
 
-## Relatórios Executivos de AP (Enterprise V7)
+## Radar de Impedimentos (inovação operacional)
+- [x] Criar motor puro de scoring de bloqueios reais de campo (GPS, contato, atribuição, OS parada, déficit AP, evidência, manutenção, estoque, sobrecarga)
+- [x] Expor endpoint tRPC `radar.scan` isolado por tenant autenticado
+- [x] Criar página admin `/admin/radar` com saúde operacional e fila ranqueada de ações
+- [x] Integrar atalho no Dashboard e item no menu lateral
+- [x] Cobrir o motor com testes vitest
+
 - [x] Exibir AP planejada, instalada, a menos, a mais, diferença líquida e percentual por OS
 - [x] Consolidar os indicadores de AP no painel sem compensar déficits e excedentes entre escolas
 - [x] Exportar planilha XLSX auditável com os indicadores de AP por ordem

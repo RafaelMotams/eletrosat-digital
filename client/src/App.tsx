@@ -29,6 +29,7 @@ const AdminGerenciarEscolas = lazy(() => import("./pages/admin/GerenciarEscolas"
 const AdminConfiguracaoIA = lazy(() => import("./pages/admin/ConfiguracaoIA"));
 const AdminManutencao = lazy(() => import("./pages/admin/Manutencao"));
 const AdminEstoque = lazy(() => import("./pages/admin/Estoque"));
+const AdminRadar = lazy(() => import("./pages/admin/Radar"));
 const TecnicoHome = lazy(() => import("./pages/tecnico/Home"));
 const TecnicoOS = lazy(() => import("./pages/tecnico/OrdemServico"));
 const TecnicoMapa = lazy(() => import("./pages/tecnico/Mapa"));
@@ -135,6 +136,7 @@ function Router() {
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
       <Route path="/admin/manutencao" component={AdminManutencao} />
       <Route path="/admin/estoque" component={AdminEstoque} />
+      <Route path="/admin/radar" component={AdminRadar} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />

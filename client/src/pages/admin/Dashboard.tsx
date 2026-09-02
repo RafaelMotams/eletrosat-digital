@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect, useMemo } from "react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { Link } from "wouter";
-import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users, Boxes, ClipboardList, Wrench } from "lucide-react";
+import { School, CheckCircle, Clock, Wifi, Trophy, TrendingUp, Activity, Zap, AlertCircle, ArrowRight, RefreshCw, Wifi as WifiIcon, WifiOff, Eye, MapPin, Users, Boxes, ClipboardList, Wrench, Radar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -139,6 +139,14 @@ export default function AdminDashboard() {
   const saldoAlmoxarifado = new Map((saldos ?? []).filter(saldo => saldo.holderType === "almoxarifado").map(saldo => [saldo.materialId, Number(saldo.quantidade)]));
   const materiaisCriticos = (materiais ?? []).filter(material => (saldoAlmoxarifado.get(material.id) ?? 0) < Number(material.estoqueMinimo));
   const prioridades = [
+    {
+      tipo: "operacao" as const,
+      href: "/admin/radar",
+      titulo: "Radar de Impedimentos",
+      descricao: "Fila ranqueada do que bloqueia escolas, OS, manutenção e estoque agora.",
+      icon: Radar,
+      cor: "bg-red-50 text-red-700",
+    },
     {
       tipo: "operacao" as const,
       href: "/admin/ordens",

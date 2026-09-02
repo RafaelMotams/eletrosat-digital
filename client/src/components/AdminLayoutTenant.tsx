@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Bell, Search, Zap, Shield, Settings, Wrench, Boxes,
+  Bell, Search, Zap, Shield, Settings, Wrench, Boxes, Radar,
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
@@ -15,6 +15,7 @@ const navGroups = [
     label: "Visão Geral",
     items: [
       { path: "/admin",             label: "Dashboard",         icon: LayoutDashboard, color: "#22d3ee", desc: "Métricas e KPIs" },
+      { path: "/admin/radar",       label: "Radar",             icon: Radar,           color: "#f87171", desc: "Impedimentos prioritários" },
     ],
   },
   {
