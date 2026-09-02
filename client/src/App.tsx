@@ -29,6 +29,8 @@ const AdminGerenciarEscolas = lazy(() => import("./pages/admin/GerenciarEscolas"
 const AdminConfiguracaoIA = lazy(() => import("./pages/admin/ConfiguracaoIA"));
 const AdminManutencao = lazy(() => import("./pages/admin/Manutencao"));
 const AdminEstoque = lazy(() => import("./pages/admin/Estoque"));
+const AdminSinalVivo = lazy(() => import("./pages/admin/SinalVivo"));
+const SinalVivoPublico = lazy(() => import("./pages/SinalVivoPublico"));
 const TecnicoHome = lazy(() => import("./pages/tecnico/Home"));
 const TecnicoOS = lazy(() => import("./pages/tecnico/OrdemServico"));
 const TecnicoMapa = lazy(() => import("./pages/tecnico/Mapa"));
@@ -117,6 +119,7 @@ function Router() {
     <Suspense fallback={<div className="grid min-h-screen place-items-center bg-slate-950 text-sm font-semibold text-slate-200">Carregando módulo seguro...</div>}>
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/sinal-vivo/:slug" component={SinalVivoPublico} />
       {/* Admin routes */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/cadastro" component={AdminCadastro} />
@@ -135,6 +138,7 @@ function Router() {
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
       <Route path="/admin/manutencao" component={AdminManutencao} />
       <Route path="/admin/estoque" component={AdminEstoque} />
+      <Route path="/admin/sinal-vivo" component={AdminSinalVivo} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />

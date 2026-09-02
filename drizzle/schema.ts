@@ -506,3 +506,53 @@ export const auditEvents = mysqlTable("audit_events", {
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type InsertAuditEvent = typeof auditEvents.$inferInsert;
+
+// ============================================================
+// SINALVIVO — saúde da conectividade escolar (crowdsourcing)
+// ============================================================
+// Diretores enviam "pulsos" diários. O sistema tria autoajuda vs.
+// manutenção local vs. incidente regional do provedor, e alerta
+// escolas instaladas que ficaram em silêncio sem check-in.
+
+export const sinalVivoPulsos = mysqlTable("sinal_vivo_pulsos", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  escolaId: int("escolaId").notNull(),
+  status: mysqlEnum("status", ["ok", "lento", "offline"]).notNull(),
+  temEnergia: boolean("temEnergia"),
+  ledsModemOk: boolean("ledsModemOk"),
+  vizinhosTambem: boolean("vizinhosTambem"),
+  classificacao: varchar("classificacao", { length: 40 }).notNull(),
+  relato: text("relato"),
+  origem: mysqlEnum("origem", ["publico", "admin", "tecnico"]).default("publico").notNull(),
+  contatoNome: varchar("contatoNome", { length: 255 }),
+  contatoTelefone: varchar("contatoTelefone", { length: 30 }),
+  incidenteId: int("incidenteId"),
+  manutencaoId: int("manutencaoId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  tenantEscolaCreatedIdx: index("sinal_vivo_pulsos_tenant_escola_created_idx").on(table.tenantId, table.escolaId, table.createdAt),
+  tenantCreatedIdx: index("sinal_vivo_pulsos_tenant_created_idx").on(table.tenantId, table.createdAt),
+  tenantStatusCreatedIdx: index("sinal_vivo_pulsos_tenant_status_created_idx").on(table.tenantId, table.status, table.createdAt),
+}));
+
+export type SinalVivoPulso = typeof sinalVivoPulsos.$inferSelect;
+export type InsertSinalVivoPulso = typeof sinalVivoPulsos.$inferInsert;
+
+export const sinalVivoIncidentes = mysqlTable("sinal_vivo_incidentes", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  municipio: varchar("municipio", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["aberto", "monitorando", "resolvido"]).default("aberto").notNull(),
+  escolasAfetadas: int("escolasAfetadas").default(0).notNull(),
+  resumo: text("resumo"),
+  resolvidoEm: timestamp("resolvidoEm"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  tenantStatusIdx: index("sinal_vivo_incidentes_tenant_status_idx").on(table.tenantId, table.status, table.createdAt),
+  tenantMunicipioIdx: index("sinal_vivo_incidentes_tenant_municipio_idx").on(table.tenantId, table.municipio, table.status),
+}));
+
+export type SinalVivoIncidente = typeof sinalVivoIncidentes.$inferSelect;
+export type InsertSinalVivoIncidente = typeof sinalVivoIncidentes.$inferInsert;
