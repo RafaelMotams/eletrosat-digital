@@ -9,6 +9,7 @@ import { manutencaoRouter } from "./routers/manutencao";
 import { assistenteTecnicoRouter } from "./routers/assistenteTecnico";
 import { tenantConfigRouter } from "./routers/tenantConfig";
 import { estoqueRouter } from "./routers/estoque";
+import { executarRadarImpedimentos } from "./radarImpedimentos";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -742,6 +743,19 @@ const dashboardRouter = router({
     return getProdutividadePorTecnico((ctx as any).tenantId, inicio, fim);
   }),
 });
+
+// === RADAR DE IMPEDIMENTOS ===
+// Motor de inteligência operacional: cruza escolas, OS, manutenção e estoque
+// do tenant autenticado e devolve uma fila ranqueada do que bloqueia a execução.
+const radarRouter = router({
+  scan: tenantAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = (ctx as any).tenantId as number;
+    if (!tenantId || tenantId <= 0) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Tenant inválido para o Radar" });
+    }
+    return executarRadarImpedimentos(tenantId);
+  }),
+});
 // === RELATÓRIOS ROUTER ===
 const relatoriosRouter = router({
   // Usa tenantAdminProcedure para filtrar por tenant
@@ -1330,6 +1344,7 @@ export const appRouter = router({
   atribuicoes: atribuicoesRouter,
   ordens: ordensRouter,
   dashboard: dashboardRouter,
+  radar: radarRouter,
   relatorios: relatoriosRouter,
   tecnicoAuth: tecnicoAuthRouter,
   planilha: planilhaRouter,
