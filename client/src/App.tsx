@@ -29,6 +29,7 @@ const AdminGerenciarEscolas = lazy(() => import("./pages/admin/GerenciarEscolas"
 const AdminConfiguracaoIA = lazy(() => import("./pages/admin/ConfiguracaoIA"));
 const AdminManutencao = lazy(() => import("./pages/admin/Manutencao"));
 const AdminEstoque = lazy(() => import("./pages/admin/Estoque"));
+const AdminProntidao = lazy(() => import("./pages/admin/Prontidao"));
 const TecnicoHome = lazy(() => import("./pages/tecnico/Home"));
 const TecnicoOS = lazy(() => import("./pages/tecnico/OrdemServico"));
 const TecnicoMapa = lazy(() => import("./pages/tecnico/Mapa"));
@@ -40,10 +41,11 @@ const TecnicoEstoque = lazy(() => import("./pages/tecnico/Estoque"));
 const TecnicoFerramentas = lazy(() => import("./pages/tecnico/Ferramentas"));
 const TecnicoSincronizacao = lazy(() => import("./pages/tecnico/Sincronizacao"));
 const TecnicoAssistente = lazy(() => import("./pages/tecnico/AssistenteTecnico"));
+const TecnicoProntidao = lazy(() => import("./pages/tecnico/Prontidao"));
 const SuperAdminDashboard = lazy(() => import("./pages/superadmin/Dashboard"));
 
 // Rotas do técnico que devem ser persistidas (exceto login)
-const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque", "/tecnico/ferramentas", "/tecnico/sincronizacao", "/tecnico/assistente"];
+const TECNICO_ROUTES = ["/tecnico", "/tecnico/mapa", "/tecnico/perfil", "/tecnico/historico", "/tecnico/rota", "/tecnico/estoque", "/tecnico/ferramentas", "/tecnico/sincronizacao", "/tecnico/assistente", "/tecnico/prontidao"];
 const TECNICO_OS_PREFIX = "/tecnico/os/";
 const LEGACY_ROUTE_KEYS = ["tecnico_active_os_route", "tecnico_active_os_ts", "tecnico_last_route"] as const;
 
@@ -135,6 +137,7 @@ function Router() {
       <Route path="/admin/configuracao-ia" component={AdminConfiguracaoIA} />
       <Route path="/admin/manutencao" component={AdminManutencao} />
       <Route path="/admin/estoque" component={AdminEstoque} />
+      <Route path="/admin/prontidao" component={AdminProntidao} />
       {/* Superadmin routes */}
       <Route path="/superadmin/login" component={SuperAdminLogin} />
       <Route path="/superadmin/dashboard" component={SuperAdminDashboard} />
@@ -153,6 +156,7 @@ function Router() {
       <Route path="/tecnico/ferramentas" component={TecnicoFerramentas} />
       <Route path="/tecnico/sincronizacao" component={TecnicoSincronizacao} />
       <Route path="/tecnico/assistente" component={TecnicoAssistente} />
+      <Route path="/tecnico/prontidao" component={TecnicoProntidao} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

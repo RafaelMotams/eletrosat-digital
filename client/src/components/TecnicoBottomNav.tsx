@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Bot, Box, Calculator, ClipboardCheck, Cloud, Home, Map, Menu, Route, User, Wrench, X } from "lucide-react";
+import { Bot, Box, Calculator, ClipboardCheck, Cloud, Home, Map, Menu, Radar, Route, User, Wrench, X } from "lucide-react";
 
 const tabs = [
   { path: "/tecnico", icon: Home, label: "Início", color: "#60a5fa" },
@@ -10,6 +10,7 @@ const tabs = [
 ];
 
 const secondaryTabs = [
+  { path: "/tecnico/prontidao", icon: Radar, label: "Conferência de saída", description: "O que impede a visita hoje", color: "#f87171" },
   { path: "/tecnico/manutencao", icon: Wrench, label: "Manutenções", description: "Atendimentos atribuídos", color: "#fb923c" },
   { path: "/tecnico/estoque", icon: Box, label: "Materiais", description: "Saldo e consumo", color: "#22d3ee" },
   { path: "/tecnico/ferramentas", icon: Calculator, label: "Ferramentas", description: "Cálculos de rede e PoE", color: "#34d399" },

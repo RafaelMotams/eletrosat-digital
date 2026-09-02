@@ -9,6 +9,7 @@ import { manutencaoRouter } from "./routers/manutencao";
 import { assistenteTecnicoRouter } from "./routers/assistenteTecnico";
 import { tenantConfigRouter } from "./routers/tenantConfig";
 import { estoqueRouter } from "./routers/estoque";
+import { prontidaoRouter } from "./routers/prontidao";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -1337,6 +1338,7 @@ export const appRouter = router({
   manutencao: manutencaoRouter,
   assistenteTecnico: assistenteTecnicoRouter,
   estoque: estoqueRouter,
+  prontidao: prontidaoRouter,
   superadmin: superadminRouter,
   cadastro: cadastroRouter,
   tenantConfig: tenantConfigRouter,
