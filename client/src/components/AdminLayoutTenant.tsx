@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, GitBranch,
   ClipboardList, BarChart3, Map, Wifi, LogOut,
   Menu, X, TableProperties, ChevronRight,
-  Bell, Search, Zap, Shield, Settings, Wrench, Boxes,
+  Bell, Search, Zap, Shield, Settings, Wrench, Boxes, Radio,
 } from "lucide-react";
 import { useTenantAuth } from "@/hooks/useTenantAuth";
 import { trpc } from "@/lib/trpc";
@@ -26,6 +26,7 @@ const navGroups = [
       { path: "/admin/ordens",      label: "Ordens de Serviço", icon: ClipboardList,   color: "#f472b6", desc: "OS e execução" },
       { path: "/admin/manutencao",   label: "Manutenção",         icon: Wrench,          color: "#fb923c", desc: "Ordens de manutenção" },
       { path: "/admin/estoque",      label: "Estoque",            icon: Boxes,           color: "#22d3ee", desc: "Materiais e saldos" },
+      { path: "/admin/sinal-vivo",   label: "SinalVivo",          icon: Radio,           color: "#2dd4bf", desc: "Saúde da conectividade" },
     ],
   },
   {
