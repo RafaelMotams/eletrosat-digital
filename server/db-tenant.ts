@@ -5,26 +5,28 @@ import bcrypt from "bcryptjs";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 function getDb() {
-  if (!_db) _db = drizzle(process.env.DATABASE_URL as string);
+  if (_db) return _db;
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) throw new Error("DATABASE_URL é obrigatório para operações de banco.");
+  _db = drizzle(url);
   return _db;
 }
-const db = getDb();
 
 // ============================================================
 // TENANTS (Clientes)
 // ============================================================
 
 export async function listTenants() {
-  return db.select().from(tenants).orderBy(tenants.createdAt);
+  return getDb().select().from(tenants).orderBy(tenants.createdAt);
 }
 
 export async function getTenantById(id: number) {
-  const rows = await db.select().from(tenants).where(eq(tenants.id, id));
+  const rows = await getDb().select().from(tenants).where(eq(tenants.id, id));
   return rows[0] ?? null;
 }
 
 export async function getTenantBySlug(slug: string) {
-  const rows = await db.select().from(tenants).where(eq(tenants.slug, slug));
+  const rows = await getDb().select().from(tenants).where(eq(tenants.slug, slug));
   return rows[0] ?? null;
 }
 
@@ -42,7 +44,7 @@ export async function createTenant(data: {
   const agora = new Date();
   const trialFim = new Date(agora.getTime() + dias * 24 * 60 * 60 * 1000);
   const { diasTrial: _dt, ...rest } = data;
-  const result = await db.insert(tenants).values({
+  const result = await getDb().insert(tenants).values({
     ...rest,
     status: "trial",
     diasTrial: dias,
@@ -65,11 +67,11 @@ export async function updateTenant(
     observacoes: string;
   }>
 ) {
-  return db.update(tenants).set(data).where(eq(tenants.id, id));
+  return getDb().update(tenants).set(data).where(eq(tenants.id, id));
 }
 
 export async function deleteTenant(id: number) {
-  return db.delete(tenants).where(eq(tenants.id, id));
+  return getDb().delete(tenants).where(eq(tenants.id, id));
 }
 
 // ============================================================
@@ -77,7 +79,7 @@ export async function deleteTenant(id: number) {
 // ============================================================
 
 export async function listTenantAdmins(tenantId: number) {
-  return db
+  return getDb()
     .select({
       id: tenantAdmins.id,
       tenantId: tenantAdmins.tenantId,
@@ -93,7 +95,7 @@ export async function listTenantAdmins(tenantId: number) {
 }
 
 export async function getTenantAdminByEmail(email: string) {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(tenantAdmins)
     .where(eq(tenantAdmins.email, email));
@@ -101,7 +103,7 @@ export async function getTenantAdminByEmail(email: string) {
 }
 
 export async function getTenantAdminById(id: number) {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(tenantAdmins)
     .where(eq(tenantAdmins.id, id));
@@ -109,7 +111,7 @@ export async function getTenantAdminById(id: number) {
 }
 
 export async function getTenantAdminByVerificationHash(tokenHash: string) {
-  const rows = await db
+  const rows = await getDb()
     .select()
     .from(tenantAdmins)
     .where(eq(tenantAdmins.emailVerificacaoHash, tokenHash));
@@ -128,7 +130,7 @@ export async function createTenantAdmin(data: {
   emailVerificacaoExpiraEm?: Date;
 }) {
   const senhaHash = await bcrypt.hash(data.senha, 10);
-  return db.insert(tenantAdmins).values({
+  return getDb().insert(tenantAdmins).values({
     tenantId: data.tenantId,
     nome: data.nome,
     email: data.email,
@@ -146,7 +148,7 @@ export async function definirTokenVerificacaoEmail(
   tokenHash: string,
   expiraEm: Date
 ) {
-  return db
+  return getDb()
     .update(tenantAdmins)
     .set({
       ativo: false,
@@ -163,7 +165,7 @@ export async function confirmarEmailTenantAdmin(tokenHash: string): Promise<bool
     return false;
   }
 
-  await db
+  await getDb()
     .update(tenantAdmins)
     .set({
       ativo: true,
@@ -190,17 +192,17 @@ export async function updateTenantAdmin(
     updateData.senhaHash = await bcrypt.hash(data.senha, 10);
     delete updateData.senha;
   }
-  return db.update(tenantAdmins).set(updateData).where(eq(tenantAdmins.id, id));
+  return getDb().update(tenantAdmins).set(updateData).where(eq(tenantAdmins.id, id));
 }
 
 export async function deleteTenantAdmin(id: number) {
-  return db.delete(tenantAdmins).where(eq(tenantAdmins.id, id));
+  return getDb().delete(tenantAdmins).where(eq(tenantAdmins.id, id));
 }
 
 
 export async function updateTenantAdminPassword(id: number, novaSenha: string) {
   const senhaHash = await bcrypt.hash(novaSenha, 10);
-  return db.update(tenantAdmins).set({ senhaHash }).where(eq(tenantAdmins.id, id));
+  return getDb().update(tenantAdmins).set({ senhaHash }).where(eq(tenantAdmins.id, id));
 }
 
 export async function verifyTenantAdminPassword(
@@ -214,7 +216,7 @@ export async function verifyTenantAdminPassword(
   if (!valid) return { admin: null, tenant: null };
 
   // Atualizar último login
-  await db
+  await getDb()
     .update(tenantAdmins)
     .set({ ultimoLogin: new Date() })
     .where(eq(tenantAdmins.id, admin.id));

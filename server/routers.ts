@@ -424,7 +424,9 @@ const atribuicoesRouter = router({
     .mutation(async ({ input, ctx }) => {
       await atribuirPorCidade(input.cidade, input.tecnicoId, (ctx as any).tenantId);
       // Atualizar cidade do técnico
-      await updateTecnico(input.tecnicoId, { cidadeResponsavel: input.cidade });
+      const tecnico = await getTecnicoById(input.tecnicoId);
+      if (!tecnico || tecnico.tenantId !== (ctx as any).tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "Técnico não pertence a este tenant" });
+      await updateTecnico(input.tecnicoId, { cidadeResponsavel: input.cidade }, (ctx as any).tenantId);
       return { success: true };
     }),
 });
@@ -592,7 +594,7 @@ const ordensRouter = router({
       await recordAuditEvent({ tenantId, actorType: "admin", actorId: (ctx as any).tenantSession?.adminId, action: "service_order.delete_all", entityType: "ordem_servico", metadata: { total }, req: ctx.req });
       return { success: true, total };
     }),
-  concluir: protectedProcedure
+  concluir: tenantAdminProcedure
     .input(
       z.object({
         osId: z.number(),
@@ -604,13 +606,7 @@ const ordensRouter = router({
       const os = await getOrdemById(input.osId);
       if (!os) throw new TRPCError({ code: "NOT_FOUND", message: "OS não encontrada" });
 
-      // Técnico só pode concluir suas próprias OS
-      if (ctx.user.role !== "admin") {
-        const tecnico = await getTecnicoByEmail(ctx.user.email ?? "");
-        if (!tecnico || tecnico.id !== os.tecnicoId) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Sem permissão para concluir esta OS" });
-        }
-      }
+      if (os.tenantId !== (ctx as any).tenantId) throw new TRPCError({ code: "FORBIDDEN", message: "OS não pertence a este tenant" });
 
       await concluirOrdemServico(input.osId, input.qtdApInstalado, input.observacao ?? "");
 

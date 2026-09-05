@@ -28,20 +28,17 @@ export function escapeHtml(value: string) {
   }[character] ?? character));
 }
 
+const DEFAULT_APP_ORIGIN = "https://eletrosat-mgcpkmbx.manus.space";
+function configuredAppOrigins() {
+  const configured = (process.env.PUBLIC_APP_ORIGINS ?? "").split(",").map(value => value.trim()).filter(Boolean);
+  const defaults = [DEFAULT_APP_ORIGIN, "https://netvius.org"];
+  if (process.env.NODE_ENV !== "production") defaults.push("http://localhost:3000", "http://127.0.0.1:3000");
+  return new Set([...defaults, ...configured].map(value => { try { return new URL(value).origin; } catch { return ""; } }).filter(Boolean));
+}
 export function getAllowedOrigin(origin?: string) {
-  if (!origin) return "https://eletrosat-mgcpkmbx.manus.space";
-
-  try {
-    const url = new URL(origin);
-    const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    if (url.protocol === "https:" || (isLocalhost && url.protocol === "http:")) {
-      return url.origin;
-    }
-  } catch {
-    // Usa o endereço público seguro abaixo quando a origem recebida for inválida.
-  }
-
-  return "https://eletrosat-mgcpkmbx.manus.space";
+  if (!origin) return DEFAULT_APP_ORIGIN;
+  try { const url = new URL(origin); if (configuredAppOrigins().has(url.origin)) return url.origin; } catch { /* fallback seguro */ }
+  return DEFAULT_APP_ORIGIN;
 }
 
 async function getAvailableSlug(empresa: string) {
