@@ -1,48 +1,18 @@
+/** Provisionamento seguro: DATABASE_URL, VIEWER_EMAIL, VIEWER_PASSWORD, VIEWER_NAME, VIEWER_TENANT_ID. */
 import "dotenv/config";
 import mysql from "mysql2/promise";
-import bcryptjs from "bcryptjs";
-
-const conn = await mysql.createConnection(process.env.DATABASE_URL);
-
-const email = "bitnet@gmail.com";
-const senha = "bitneteace";
-const nome = "Diretor Executivo";
-const tenantId = 1;
-
-// Verificar se já existe
-const [existing] = await conn.execute(
-  "SELECT id FROM tenant_admins WHERE email = ?",
-  [email]
-);
-
-if (existing.length > 0) {
-  // Atualizar
-  const hash = await bcryptjs.hash(senha, 10);
-  await conn.execute(
-    "UPDATE tenant_admins SET senhaHash = ?, nome = ?, role = 'viewer', ativo = 1 WHERE email = ?",
-    [hash, nome, email]
-  );
-  console.log("✅ Usuário atualizado!");
-} else {
-  // Criar novo
-  const hash = await bcryptjs.hash(senha, 10);
-  await conn.execute(
-    "INSERT INTO tenant_admins (tenantId, nome, email, senhaHash, role, ativo) VALUES (?, ?, ?, ?, 'viewer', 1)",
-    [tenantId, nome, email, hash]
-  );
-  console.log("✅ Usuário criado!");
-}
-
-const [rows] = await conn.execute(
-  "SELECT id, tenantId, nome, email, role, ativo FROM tenant_admins WHERE tenantId = 1"
-);
-console.log("\nAdmins do tenant 1:");
-console.table(rows);
-
-console.log(`\n📋 Credenciais do Visualizador:`);
-console.log(`URL: https://netvius.org/admin/login`);
-console.log(`Email: ${email}`);
-console.log(`Senha: ${senha}`);
-console.log(`Role: viewer (sem valores financeiros)`);
-
-await conn.end();
+import bcrypt from "bcryptjs";
+const { DATABASE_URL, VIEWER_EMAIL, VIEWER_PASSWORD } = process.env;
+const email = VIEWER_EMAIL?.trim().toLowerCase();
+const name = process.env.VIEWER_NAME?.trim() || "Visualizador";
+const tenantId = Number(process.env.VIEWER_TENANT_ID);
+if (!DATABASE_URL || !email || !VIEWER_PASSWORD || VIEWER_PASSWORD.length < 16 || !Number.isInteger(tenantId) || tenantId <= 0) throw new Error("Defina DATABASE_URL, VIEWER_EMAIL, VIEWER_PASSWORD (mínimo 16), VIEWER_NAME e VIEWER_TENANT_ID.");
+if (process.env.NODE_ENV === "production" && process.env.ALLOW_PROVISIONING !== "1") throw new Error("Produção exige ALLOW_PROVISIONING=1.");
+const conn = await mysql.createConnection(DATABASE_URL);
+try {
+  const hash = await bcrypt.hash(VIEWER_PASSWORD, 12);
+  const [rows] = await conn.execute("SELECT id FROM tenant_admins WHERE email = ?", [email]);
+  if (rows.length > 0) await conn.execute("UPDATE tenant_admins SET senhaHash = ?, nome = ?, role = 'viewer', ativo = 1, tenantId = ? WHERE email = ?", [hash, name, tenantId, email]);
+  else await conn.execute("INSERT INTO tenant_admins (tenantId, nome, email, senhaHash, role, ativo) VALUES (?, ?, ?, ?, 'viewer', 1)", [tenantId, name, email, hash]);
+  console.log(`Viewer provisionado para tenant ${tenantId}: ${email}. A senha não é exibida.`);
+} finally { await conn.end(); }

@@ -86,6 +86,16 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+const analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT as string | undefined;
+const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID as string | undefined;
+if (analyticsEndpoint && analyticsWebsiteId) {
+  const analytics = document.createElement("script");
+  analytics.defer = true;
+  analytics.src = `${analyticsEndpoint.replace(/\/$/, "")}/umami`;
+  analytics.dataset.websiteId = analyticsWebsiteId;
+  document.head.appendChild(analytics);
+}
+
 // Registrar Service Worker para suporte offline
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

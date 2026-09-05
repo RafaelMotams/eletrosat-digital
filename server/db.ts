@@ -125,10 +125,11 @@ export async function createTecnico(data: InsertTecnico) {
   return result;
 }
 
-export async function updateTecnico(id: number, data: Partial<InsertTecnico>) {
+export async function updateTecnico(id: number, data: Partial<InsertTecnico>, tenantId?: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.update(tecnicos).set(data).where(eq(tecnicos.id, id));
+  const condition = tenantId === undefined ? eq(tecnicos.id, id) : and(eq(tecnicos.id, id), eq(tecnicos.tenantId, tenantId));
+  await db.update(tecnicos).set(data).where(condition);
 }
 
 export async function deleteTecnico(id: number) {
